@@ -1,0 +1,59 @@
+{
+  "name": "drinks-fly",
+  "private": true,
+  "sideEffects": false,
+  "scripts": {
+    "clean": "rimraf .cache ./build ./public/build ./**/*.generated.css",
+    "build": "run-s build:*",
+    "build:css": "run-p \"generate:css:* -- --minify\"",
+    "build:fonts": "npm run generate:fonts",
+    "build:app": "remix build",
+    "deploy": "fly deploy --remote-only",
+    "dev": "run-p build:css build:fonts && run-p dev:*",
+    "dev:css": "run-p \"generate:css:* -- --watch\"",
+    "dev:app": "remix dev --port 3000",
+    "format": "prettier --cache --write .",
+    "lint": "eslint .",
+    "generate:css": "run-p generate:css:*",
+    "generate:css:app": "tailwindcss --input ./app/styles/app.css --output ./app/styles/app.generated.css",
+    "generate:fonts": "cpy './node_modules/@fontsource/source-sans-pro/files/source-sans-pro-latin-???-normal.*' ./app/fonts/source-sans-pro",
+    "start": "remix-serve build"
+  },
+  "dependencies": {
+    "@fontsource/source-sans-pro": "4.5.10",
+    "@prisma/client": "3.15.2",
+    "@remix-run/node": "1.6.0",
+    "@remix-run/react": "1.6.0",
+    "@remix-run/serve": "1.6.0",
+    "clsx": "1.1.1",
+    "lodash": "4.17.21",
+    "marked": "4.0.17",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-icons": "4.4.0"
+  },
+  "devDependencies": {
+    "@remix-run/dev": "1.6.0",
+    "@remix-run/eslint-config": "1.6.0",
+    "@types/lodash": "4.14.182",
+    "@types/marked": "4.0.3",
+    "@types/react": "18.0.14",
+    "@types/react-dom": "18.0.5",
+    "@wkovacs64/prettier-config": "3.0.2",
+    "autoprefixer": "10.4.7",
+    "cpy-cli": "4.1.0",
+    "eslint": "8.17.0",
+    "npm-run-all": "4.1.5",
+    "postcss": "8.4.14",
+    "prettier": "2.7.1",
+    "prettier-plugin-tailwindcss": "0.1.11",
+    "prisma": "3.15.2",
+    "rimraf": "3.0.2",
+    "tailwindcss": "3.1.3",
+    "type-fest": "2.13.1",
+    "typescript": "4.7.3"
+  },
+  "engines": {
+    "node": ">=14"
+  }
+}

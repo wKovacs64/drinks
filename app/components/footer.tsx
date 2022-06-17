@@ -1,0 +1,27 @@
+import { FaGithub } from 'react-icons/fa';
+
+export default function Footer() {
+  return (
+    <footer className="flex flex-col items-center bg-[#111111] p-4 text-stone-300 md:p-8">
+      <section className="flex w-full flex-wrap items-center justify-between sm:w-[26rem] lg:w-full lg:max-w-[60rem] xl:max-w-[80rem]">
+        {/* TODO: reimplement or remove the feedback form */}
+        {/* <button
+          type="button"
+          onClick={onFeedbackClick}
+          className="ease-default inline-block whitespace-nowrap border border-solid border-current p-2 transition-shadow hover:border-zinc-100 hover:text-zinc-100 focus:border-zinc-100 focus:text-zinc-100 focus-visible:outline-none focus-visible:ring md:p-4"
+        >
+          Send Feedback
+        </button> */}
+        <div />
+        <a
+          className="transition-shadow ease-default hover:text-zinc-100 focus:text-zinc-100 focus-visible:outline-none focus-visible:ring"
+          href="https://github.com/wKovacs64/drinks"
+          target="_blank"
+          rel="nofollow noopener noreferrer"
+        >
+          <FaGithub aria-label="View source on GitHub" size={32} />
+        </a>
+      </section>
+    </footer>
+  );
+}

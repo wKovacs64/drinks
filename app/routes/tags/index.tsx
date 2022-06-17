@@ -13,13 +13,32 @@ import TagLink from '~/components/tag-link';
 import Tag from '~/components/tag';
 import { getEnvVars } from '~/utils/env.server';
 import { fetchGraphQL } from '~/utils/graphql.server';
+import { cache } from '~/utils/cache.server';
 import type { DrinkTagsResponse } from '~/types';
 
 interface LoaderData {
   tags: ReadonlyArray<string>;
 }
 
-export const loader: LoaderFunction = async ({ context }) => {
+export const loader: LoaderFunction = async ({ request }) => {
+  const cacheKey = new URL(request.url).pathname;
+  const cachedData = await cache.get(cacheKey);
+  if (cachedData) {
+    try {
+      const cachedTags: ReadonlyArray<string> = JSON.parse(cachedData);
+      return json<LoaderData>(
+        { tags: cachedTags },
+        {
+          headers: {
+            'Cache-Control': 'max-age=0, s-maxage=300',
+          },
+        },
+      );
+    } catch {
+      // noop, cache failures shouldn't break the app
+    }
+  }
+
   const { CONTENTFUL_ACCESS_TOKEN, CONTENTFUL_URL, CONTENTFUL_PREVIEW } =
     getEnvVars();
 
@@ -63,8 +82,16 @@ export const loader: LoaderFunction = async ({ context }) => {
       return acc;
     }, new Set());
 
+    const tags = Array.from(uniqueTags).sort();
+
+    try {
+      await cache.put(cacheKey, JSON.stringify(tags));
+    } catch {
+      // noop, cache failures shouldn't break the app
+    }
+
     return json<LoaderData>(
-      { tags: Array.from(uniqueTags).sort() },
+      { tags },
       {
         headers: {
           'Cache-Control': 'max-age=0, s-maxage=300',

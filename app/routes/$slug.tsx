@@ -23,8 +23,26 @@ interface LoaderData {
   drink: EnhancedDrink;
 }
 
-export const loader: LoaderFunction = async ({ params }) => {
+export const loader: LoaderFunction = async ({ params, request }) => {
   if (!params.slug) throw json('Missing slug', 400);
+
+  const cacheKey = new URL(request.url).pathname;
+  const cachedData = await cache.get(cacheKey);
+  if (cachedData) {
+    try {
+      const cachedDrink: EnhancedDrink = JSON.parse(cachedData);
+      return json<LoaderData>(
+        { drink: cachedDrink },
+        {
+          headers: {
+            'Cache-Control': 'max-age=0, s-maxage=300',
+          },
+        },
+      );
+    } catch {
+      // noop, cache failures shouldn't break the app
+    }
+  }
 
   const { CONTENTFUL_ACCESS_TOKEN, CONTENTFUL_URL, CONTENTFUL_PREVIEW } =
     getEnvVars();
@@ -84,6 +102,12 @@ export const loader: LoaderFunction = async ({ params }) => {
 
     if (enhancedDrink.notes) {
       enhancedDrink.notes = markdownToHtml(enhancedDrink.notes);
+    }
+
+    try {
+      await cache.put(cacheKey, JSON.stringify(enhancedDrink));
+    } catch {
+      // noop, cache failures shouldn't break the app
     }
 
     return json<LoaderData>(

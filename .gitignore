@@ -252,3 +252,4 @@ app/fonts/**/*
 
 # Prisma
 /prisma/*.db
+/prisma/*.db-journal

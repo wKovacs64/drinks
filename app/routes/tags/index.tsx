@@ -132,7 +132,7 @@ function TagList({ tags }: { tags: ReadonlyArray<string> }) {
       className="mx-4 grid gap-4 sm:mx-0 sm:gap-8 lg:grid-cols-2 xl:grid-cols-3"
     >
       {tags.map((tag) => (
-        <TagLink to={`/tags/${kebabCase(tag)}/`} key={tag}>
+        <TagLink to={`/tags/${kebabCase(tag)}`} key={tag}>
           <Tag className="p-4 text-2xl lg:p-6 lg:text-4xl">{tag}</Tag>
         </TagLink>
       ))}

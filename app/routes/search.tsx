@@ -12,7 +12,6 @@ import {
 } from '@remix-run/react';
 import { getEnvVars } from '~/utils/env.server';
 import { fetchGraphQL } from '~/utils/graphql.server';
-import { cache } from '~/utils/cache.server';
 import { withPlaceholderImages } from '~/utils/placeholder-images.server';
 import Nav from '~/components/nav';
 import NavLink from '~/components/nav-link';
@@ -33,7 +32,7 @@ interface LoaderData {
 export const loader: LoaderFunction = async ({ request }) => {
   const q = new URL(request.url).searchParams.get('q');
   if (!q) {
-    return success({ drinks: [] });
+    return json<LoaderData>({ drinks: [] });
   }
 
   const {
@@ -70,7 +69,7 @@ export const loader: LoaderFunction = async ({ request }) => {
     (await algoliaSearchResponse.json()) as AlgoliaSearchResponse;
 
   if (hits.length === 0) {
-    return success({ drinks: [] });
+    return json<LoaderData>({ drinks: [] });
   }
 
   // query Contentful for drinks matching slugs in Algolia results
@@ -119,21 +118,11 @@ export const loader: LoaderFunction = async ({ request }) => {
     },
   } = queryResponseJson;
 
-  const drinksWithPlaceholderImages = await withPlaceholderImages(
-    drinks,
-    cache,
-  );
+  const drinksWithPlaceholderImages = await withPlaceholderImages(drinks);
+  const loaderData: LoaderData = { drinks: drinksWithPlaceholderImages };
 
-  return success({ drinks: drinksWithPlaceholderImages });
+  return json<LoaderData>(loaderData);
 };
-
-function success(data: LoaderData) {
-  return json<LoaderData>(data, {
-    headers: {
-      'Cache-Control': 'max-age=0, s-maxage=300',
-    },
-  });
-}
 
 export const headers: HeadersFunction = ({ loaderHeaders }) => {
   return {

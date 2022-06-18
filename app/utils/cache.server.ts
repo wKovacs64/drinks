@@ -1,16 +1,23 @@
 import { db } from '~/utils/db.server';
 
-export interface DrinksCache {
-  get: (key: string) => Promise<string | void>;
-  put: (key: string, value: string) => Promise<void>;
-}
-
-export const cache: DrinksCache = {
-  get: async (key: string) => {
-    const data = await db.cacheEntry.findUnique({ where: { key } });
-    if (data) return data.value;
+export const cache = {
+  async get(key: string) {
+    const cachedData = await db.cacheEntry.findUnique({ where: { key } });
+    if (cachedData) {
+      try {
+        return JSON.parse(cachedData.value);
+      } catch {
+        // noop, cache failures shouldn't break the app
+      }
+    }
   },
-  put: async (key: string, value: string) => {
-    await db.cacheEntry.create({ data: { key, value } });
+  async put(key: string, value: any) {
+    try {
+      await db.cacheEntry.create({
+        data: { key, value: JSON.stringify(value) },
+      });
+    } catch {
+      // noop, cache failures shouldn't break the app
+    }
   },
 };

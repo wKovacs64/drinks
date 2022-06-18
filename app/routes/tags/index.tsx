@@ -22,15 +22,8 @@ interface LoaderData {
 
 export const loader: LoaderFunction = async ({ request }) => {
   const cacheKey = new URL(request.url).pathname;
-  const cachedData = await cache.get(cacheKey);
-  if (cachedData) {
-    try {
-      const cachedTags: ReadonlyArray<string> = JSON.parse(cachedData);
-      return success({ tags: cachedTags });
-    } catch {
-      // noop, cache failures shouldn't break the app
-    }
-  }
+  const cachedData: LoaderData = await cache.get(cacheKey);
+  if (cachedData) return json<LoaderData>(cachedData);
 
   const { CONTENTFUL_ACCESS_TOKEN, CONTENTFUL_URL, CONTENTFUL_PREVIEW } =
     getEnvVars();
@@ -74,24 +67,11 @@ export const loader: LoaderFunction = async ({ request }) => {
     return acc;
   }, new Set());
 
-  const tags = Array.from(uniqueTags).sort();
+  const loaderData: LoaderData = { tags: Array.from(uniqueTags).sort() };
 
-  try {
-    await cache.put(cacheKey, JSON.stringify(tags));
-  } catch {
-    // noop, cache failures shouldn't break the app
-  }
-
-  return success({ tags });
+  await cache.put(cacheKey, loaderData);
+  return json<LoaderData>(loaderData);
 };
-
-function success(data: LoaderData) {
-  return json<LoaderData>(data, {
-    headers: {
-      'Cache-Control': 'max-age=0, s-maxage=300',
-    },
-  });
-}
 
 export const meta: MetaFunction = () => {
   return {

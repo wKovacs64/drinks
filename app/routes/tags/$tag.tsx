@@ -25,15 +25,8 @@ export const loader: LoaderFunction = async ({ params, request }) => {
   if (!params.tag) throw json('Missing tag', 400);
 
   const cacheKey = new URL(request.url).pathname;
-  const cachedData = await cache.get(cacheKey);
-  if (cachedData) {
-    try {
-      const cachedDrinks: ReadonlyArray<EnhancedDrink> = JSON.parse(cachedData);
-      return success({ drinks: cachedDrinks });
-    } catch {
-      // noop, cache failures shouldn't break the app
-    }
-  }
+  const cachedData: LoaderData = await cache.get(cacheKey);
+  if (cachedData) return json<LoaderData>(cachedData);
 
   const { CONTENTFUL_ACCESS_TOKEN, CONTENTFUL_URL, CONTENTFUL_PREVIEW } =
     getEnvVars();
@@ -83,27 +76,12 @@ export const loader: LoaderFunction = async ({ params, request }) => {
     },
   } = queryResponseJson;
 
-  const drinksWithPlaceholderImages = await withPlaceholderImages(
-    drinks,
-    cache,
-  );
+  const drinksWithPlaceholderImages = await withPlaceholderImages(drinks);
+  const loaderData: LoaderData = { drinks: drinksWithPlaceholderImages };
 
-  try {
-    await cache.put(cacheKey, JSON.stringify(drinksWithPlaceholderImages));
-  } catch {
-    // noop, cache failures shouldn't break the app
-  }
-
-  return success({ drinks: drinksWithPlaceholderImages });
+  await cache.put(cacheKey, loaderData);
+  return json<LoaderData>(loaderData);
 };
-
-function success(data: LoaderData) {
-  return json<LoaderData>(data, {
-    headers: {
-      'Cache-Control': 'max-age=0, s-maxage=300',
-    },
-  });
-}
 
 export const headers: HeadersFunction = ({ loaderHeaders }) => {
   return {

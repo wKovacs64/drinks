@@ -31,8 +31,7 @@ interface LoaderData {
 }
 
 export const loader: LoaderFunction = async ({ context, request }) => {
-  const url = new URL(request.url);
-  const q = url.searchParams.get('q');
+  const q = new URL(request.url).searchParams.get('q');
   if (!q) {
     return json<LoaderData>(
       { drinks: [] },

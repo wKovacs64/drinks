@@ -15,7 +15,6 @@ import { fetchGraphQL } from '~/utils/graphql.server';
 import { cache } from '~/utils/cache.server';
 import { withPlaceholderImages } from '~/utils/placeholder-images.server';
 import Nav from '~/components/nav';
-import type { Drink, DrinksResponse, EnhancedDrink } from '~/types';
 import NavLink from '~/components/nav-link';
 import NavDivider from '~/components/nav-divider';
 import {
@@ -25,6 +24,7 @@ import {
   Searching,
 } from '~/components/search';
 import DrinkList from '~/components/drink-list';
+import type { Drink, DrinksResponse, EnhancedDrink } from '~/types';
 
 interface LoaderData {
   drinks: ReadonlyArray<EnhancedDrink>;

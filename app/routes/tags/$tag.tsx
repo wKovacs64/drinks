@@ -12,10 +12,10 @@ import { fetchGraphQL } from '~/utils/graphql.server';
 import { cache } from '~/utils/cache.server';
 import { withPlaceholderImages } from '~/utils/placeholder-images.server';
 import Nav from '~/components/nav';
-import DrinkList from '~/components/drink-list';
-import type { DrinksResponse, EnhancedDrink } from '~/types';
 import NavLink from '~/components/nav-link';
 import NavDivider from '~/components/nav-divider';
+import DrinkList from '~/components/drink-list';
+import type { DrinksResponse, EnhancedDrink } from '~/types';
 
 interface LoaderData {
   drinks: ReadonlyArray<EnhancedDrink>;

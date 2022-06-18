@@ -26,14 +26,7 @@ export const loader: LoaderFunction = async ({ request }) => {
   if (cachedData) {
     try {
       const cachedTags: ReadonlyArray<string> = JSON.parse(cachedData);
-      return json<LoaderData>(
-        { tags: cachedTags },
-        {
-          headers: {
-            'Cache-Control': 'max-age=0, s-maxage=300',
-          },
-        },
-      );
+      return success({ tags: cachedTags });
     } catch {
       // noop, cache failures shouldn't break the app
     }
@@ -52,58 +45,53 @@ export const loader: LoaderFunction = async ({ request }) => {
     }
   `;
 
-  try {
-    const queryResponse = await fetchGraphQL(
-      CONTENTFUL_URL,
-      CONTENTFUL_ACCESS_TOKEN,
-      allDrinkTagsQuery,
-      {
-        preview: CONTENTFUL_PREVIEW === 'true',
-      },
-    );
+  const queryResponse = await fetchGraphQL(
+    CONTENTFUL_URL,
+    CONTENTFUL_ACCESS_TOKEN,
+    allDrinkTagsQuery,
+    {
+      preview: CONTENTFUL_PREVIEW === 'true',
+    },
+  );
 
-    const queryResponseJson: DrinkTagsResponse = await queryResponse.json();
+  const queryResponseJson: DrinkTagsResponse = await queryResponse.json();
 
-    if (
-      queryResponseJson.errors?.length ||
-      !queryResponseJson.data.drinkCollection
-    ) {
-      throw json(queryResponseJson, 500);
-    }
-
-    const {
-      data: {
-        drinkCollection: { drinks },
-      },
-    } = queryResponseJson;
-
-    const uniqueTags = drinks.reduce<Set<string>>((acc, drink) => {
-      drink.tags?.forEach((tag) => acc.add(tag));
-      return acc;
-    }, new Set());
-
-    const tags = Array.from(uniqueTags).sort();
-
-    try {
-      await cache.put(cacheKey, JSON.stringify(tags));
-    } catch {
-      // noop, cache failures shouldn't break the app
-    }
-
-    return json<LoaderData>(
-      { tags },
-      {
-        headers: {
-          'Cache-Control': 'max-age=0, s-maxage=300',
-        },
-      },
-    );
-  } catch (err: unknown) {
-    if (err instanceof Response) throw err;
-    if (err instanceof Error) throw json(err.message, 500);
-    throw json('Unknown failure', 500);
+  if (
+    queryResponseJson.errors?.length ||
+    !queryResponseJson.data.drinkCollection
+  ) {
+    throw json(queryResponseJson, 500);
   }
+
+  const {
+    data: {
+      drinkCollection: { drinks },
+    },
+  } = queryResponseJson;
+
+  const uniqueTags = drinks.reduce<Set<string>>((acc, drink) => {
+    drink.tags?.forEach((tag) => acc.add(tag));
+    return acc;
+  }, new Set());
+
+  const tags = Array.from(uniqueTags).sort();
+
+  try {
+    await cache.put(cacheKey, JSON.stringify(tags));
+  } catch {
+    // noop, cache failures shouldn't break the app
+  }
+
+  return success({ tags });
 };
+
+function success(data: LoaderData) {
+  return json<LoaderData>(data, {
+    headers: {
+      'Cache-Control': 'max-age=0, s-maxage=300',
+    },
+  });
+}
 
 export const meta: MetaFunction = () => {
   return {

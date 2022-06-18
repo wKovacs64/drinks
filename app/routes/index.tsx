@@ -22,14 +22,7 @@ export const loader: LoaderFunction = async ({ request }) => {
   if (cachedData) {
     try {
       const cachedDrinks: ReadonlyArray<EnhancedDrink> = JSON.parse(cachedData);
-      return json<LoaderData>(
-        { drinks: cachedDrinks },
-        {
-          headers: {
-            'Cache-Control': 'max-age=0, s-maxage=300',
-          },
-        },
-      );
+      return success({ drinks: cachedDrinks });
     } catch {
       // noop, cache failures shouldn't break the app
     }
@@ -57,56 +50,51 @@ export const loader: LoaderFunction = async ({ request }) => {
     }
   `;
 
-  try {
-    const queryResponse = await fetchGraphQL(
-      CONTENTFUL_URL,
-      CONTENTFUL_ACCESS_TOKEN,
-      allDrinksQuery,
-      {
-        preview: CONTENTFUL_PREVIEW === 'true',
-      },
-    );
+  const queryResponse = await fetchGraphQL(
+    CONTENTFUL_URL,
+    CONTENTFUL_ACCESS_TOKEN,
+    allDrinksQuery,
+    {
+      preview: CONTENTFUL_PREVIEW === 'true',
+    },
+  );
 
-    const queryResponseJson: DrinksResponse = await queryResponse.json();
+  const queryResponseJson: DrinksResponse = await queryResponse.json();
 
-    if (
-      queryResponseJson.errors?.length ||
-      !queryResponseJson.data.drinkCollection
-    ) {
-      throw json(queryResponseJson, 500);
-    }
-
-    const {
-      data: {
-        drinkCollection: { drinks },
-      },
-    } = queryResponseJson;
-
-    const drinksWithPlaceholderImages = await withPlaceholderImages(
-      drinks,
-      cache,
-    );
-
-    try {
-      await cache.put(cacheKey, JSON.stringify(drinksWithPlaceholderImages));
-    } catch {
-      // noop, cache failures shouldn't break the app
-    }
-
-    return json<LoaderData>(
-      { drinks: drinksWithPlaceholderImages },
-      {
-        headers: {
-          'Cache-Control': 'max-age=0, s-maxage=300',
-        },
-      },
-    );
-  } catch (err: unknown) {
-    if (err instanceof Response) throw err;
-    if (err instanceof Error) throw json(err.message, 500);
-    throw json('Unknown failure', 500);
+  if (
+    queryResponseJson.errors?.length ||
+    !queryResponseJson.data.drinkCollection
+  ) {
+    throw json(queryResponseJson, 500);
   }
+
+  const {
+    data: {
+      drinkCollection: { drinks },
+    },
+  } = queryResponseJson;
+
+  const drinksWithPlaceholderImages = await withPlaceholderImages(
+    drinks,
+    cache,
+  );
+
+  try {
+    await cache.put(cacheKey, JSON.stringify(drinksWithPlaceholderImages));
+  } catch {
+    // noop, cache failures shouldn't break the app
+  }
+
+  return success({ drinks: drinksWithPlaceholderImages });
 };
+
+function success(data: LoaderData) {
+  return json<LoaderData>(data, {
+    headers: {
+      'Cache-Control': 'max-age=0, s-maxage=300',
+    },
+  });
+}
 
 export const headers: HeadersFunction = ({ loaderHeaders }) => {
   return {

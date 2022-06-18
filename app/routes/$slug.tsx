@@ -114,8 +114,6 @@ export const loader: LoaderFunction = async ({ params, request }) => {
       { drink: enhancedDrink },
       {
         headers: {
-          // TODO: bump this way up as a drink likely won't change much, and use
-          // CMS webhook to purge Cloudflare cache for this url when it does?
           'Cache-Control': 'max-age=0, s-maxage=300',
         },
       },

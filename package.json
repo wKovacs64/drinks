@@ -9,7 +9,7 @@
     "build:fonts": "npm run generate:fonts",
     "build:remix": "remix build",
     "build:server": "esbuild --platform=node --format=cjs ./server.ts --outdir=build",
-    "deploy": "fly deploy --remote-only",
+    "deploy": "flyctl deploy --remote-only",
     "dev": "npm run clean && run-p build:css build:fonts && pm2-dev ./other/pm2.config.js",
     "dev:css": "npm run generate:css -- --watch",
     "dev:remix": "cross-env NODE_ENV=development remix watch",

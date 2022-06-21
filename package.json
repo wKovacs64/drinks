@@ -16,7 +16,7 @@
     "lint": "eslint .",
     "generate:css": "run-p generate:css:*",
     "generate:css:app": "tailwindcss --input ./app/styles/app.css --output ./app/styles/app.generated.css",
-    "generate:fonts": "cpy './node_modules/@fontsource/source-sans-pro/files/source-sans-pro-latin-???-normal.*' ./app/fonts/source-sans-pro",
+    "generate:fonts": "cpy \"./node_modules/@fontsource/source-sans-pro/files/source-sans-pro-latin-???-normal.*\" ./app/fonts/source-sans-pro",
     "start": "remix-serve build"
   },
   "dependencies": {

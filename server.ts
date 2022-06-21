@@ -1,0 +1,96 @@
+// Adapted from https://github.com/smerchek/synth-stack/blob/5cd58a07aa4e80bd345d7da5c69099e99ae466af/server.ts
+import path from 'path';
+import express from 'express';
+import compression from 'compression';
+import morgan from 'morgan';
+import { createRequestHandler } from '@remix-run/express';
+
+const app = express();
+
+app.use((req, res, next) => {
+  // miscellaneous headers
+  res.set('X-Fly-Region', process.env.FLY_REGION ?? 'unknown');
+
+  // security headers
+  res.set(
+    'Content-Security-Policy',
+    "base-uri 'none'; frame-ancestors 'none'; form-action 'self'; default-src 'self'; connect-src 'self' ws: https://images.ctfassets.net/ https://*.algolianet.com https://*.algolia.net; img-src 'self' data: https:; object-src 'none'; script-src 'self' 'unsafe-inline' https://*.algolianet.com; style-src 'self' 'unsafe-inline'; worker-src 'self';",
+  );
+  res.set(
+    'Permissions-Policy',
+    'geolocation=(), camera=(), microphone=(), payment=(), usb=()',
+  );
+  res.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.set(
+    'Strict-Transport-Security',
+    'max-age=63072000; includeSubDomains; preload',
+  );
+  res.set('X-Content-Type-Options', 'nosniff');
+  res.set('X-Frame-Options', 'DENY');
+
+  // /clean-urls/ -> /clean-urls
+  if (req.path.endsWith('/') && req.path.length > 1) {
+    const query = req.url.slice(req.path.length);
+    const safePath = req.path.slice(0, -1).replace(/\/+/g, '/');
+    res.redirect(301, safePath + query);
+    return;
+  }
+
+  next();
+});
+
+app.use(compression());
+
+// https://expressjs.com/en/advanced/best-practice-security.html#reduce-fingerprinting
+app.disable('x-powered-by');
+
+// Remix fingerprints its assets so we can cache forever.
+app.use(
+  '/build',
+  express.static('public/build', { immutable: true, maxAge: '1y' }),
+);
+
+// Everything else (like favicon.ico) is cached for less than forever but still
+// a long time.
+app.use(express.static('public', { maxAge: '1d' }));
+
+app.use(morgan('tiny'));
+
+const MODE = process.env.NODE_ENV;
+const BUILD_DIR = path.join(process.cwd(), 'build');
+
+app.all(
+  '*',
+  MODE === 'production'
+    ? createRequestHandler({ build: require(BUILD_DIR) })
+    : (...args) => {
+        purgeRequireCache();
+        const requestHandler = createRequestHandler({
+          build: require(BUILD_DIR),
+          mode: MODE,
+        });
+        return requestHandler(...args);
+      },
+);
+
+const port = process.env.PORT || 3000;
+
+app.listen(port, () => {
+  // require the built app so we're ready when the first request comes in
+  require(BUILD_DIR);
+  console.log(`✅ app ready: http://localhost:${port}`);
+});
+
+function purgeRequireCache() {
+  // purge require cache on requests for "server side HMR" this won't let
+  // you have in-memory objects between requests in development,
+  // alternatively you can set up nodemon/pm2-dev to restart the server on
+  // file changes, we prefer the DX of this though, so we've included it
+  // for you by default
+  for (const key in require.cache) {
+    if (key.startsWith(BUILD_DIR)) {
+      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+      delete require.cache[key];
+    }
+  }
+}

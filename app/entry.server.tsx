@@ -2,15 +2,6 @@ import type { EntryContext, HandleDataRequestFunction } from '@remix-run/node';
 import { RemixServer } from '@remix-run/react';
 import { renderToString } from 'react-dom/server';
 
-const securityHeaders = {
-  csp: "base-uri 'none'; frame-ancestors 'none'; form-action 'self'; default-src 'self'; connect-src 'self' ws: https://images.ctfassets.net/ https://*.algolianet.com https://*.algolia.net; img-src 'self' data: https:; object-src 'none'; script-src 'self' 'unsafe-inline' https://*.algolianet.com; style-src 'self' 'unsafe-inline'; worker-src 'self';",
-  pp: 'geolocation=(), camera=(), microphone=(), payment=(), usb=()',
-  rp: 'strict-origin-when-cross-origin',
-  sts: 'max-age=63072000; includeSubDomains; preload',
-  xCTO: 'nosniff',
-  xFO: 'DENY',
-};
-
 export default function handleRequest(
   request: Request,
   responseStatusCode: number,
@@ -22,13 +13,6 @@ export default function handleRequest(
   );
 
   responseHeaders.set('Content-Type', 'text/html');
-
-  responseHeaders.set('Content-Security-Policy', securityHeaders.csp);
-  responseHeaders.set('Permissions-Policy', securityHeaders.pp);
-  responseHeaders.set('Referrer-Policy', securityHeaders.rp);
-  responseHeaders.set('Strict-Transport-Security', securityHeaders.sts);
-  responseHeaders.set('X-Content-Type-Options', securityHeaders.xCTO);
-  responseHeaders.set('X-Frame-Options', securityHeaders.xFO);
 
   return new Response('<!DOCTYPE html>' + markup, {
     status: responseStatusCode,

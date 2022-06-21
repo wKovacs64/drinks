@@ -20,4 +20,25 @@ export const cache = {
       // noop, cache failures shouldn't break the app
     }
   },
+  async has(key: string) {
+    try {
+      return (await db.cacheEntry.count({ where: { key } })) > 0;
+    } catch {
+      return false;
+    }
+  },
+  async del(key: string) {
+    try {
+      await db.cacheEntry.delete({ where: { key } });
+    } catch {
+      // noop, cache failures shouldn't break the app
+    }
+  },
+  async clear() {
+    try {
+      await db.cacheEntry.deleteMany();
+    } catch {
+      // noop, cache failures shouldn't break the app
+    }
+  },
 };

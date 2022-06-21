@@ -1,9 +1,4 @@
-import {
-  json,
-  type HeadersFunction,
-  type LoaderFunction,
-  type MetaFunction,
-} from '@remix-run/node';
+import { json, type LoaderFunction, type MetaFunction } from '@remix-run/node';
 import { useLoaderData } from '@remix-run/react';
 import kebabCase from 'lodash/kebabCase';
 import Nav from '~/components/nav';
@@ -77,12 +72,6 @@ export const meta: MetaFunction = () => {
   return {
     title: 'Ingredient Tags',
     description: 'Discover drinks by ingredient',
-  };
-};
-
-export const headers: HeadersFunction = ({ loaderHeaders }) => {
-  return {
-    'Cache-Control': loaderHeaders.get('Cache-Control') || '',
   };
 };
 

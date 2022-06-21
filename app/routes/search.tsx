@@ -1,10 +1,5 @@
 import * as React from 'react';
-import {
-  json,
-  type HeadersFunction,
-  type LoaderFunction,
-  type MetaFunction,
-} from '@remix-run/node';
+import { json, type LoaderFunction, type MetaFunction } from '@remix-run/node';
 import {
   useLoaderData,
   useSearchParams,
@@ -122,12 +117,6 @@ export const loader: LoaderFunction = async ({ request }) => {
   const loaderData: LoaderData = { drinks: drinksWithPlaceholderImages };
 
   return json<LoaderData>(loaderData);
-};
-
-export const headers: HeadersFunction = ({ loaderHeaders }) => {
-  return {
-    'Cache-Control': loaderHeaders.get('Cache-Control') || '',
-  };
 };
 
 export const meta: MetaFunction = (metaArgs) => {

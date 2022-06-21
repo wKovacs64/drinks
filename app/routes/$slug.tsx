@@ -1,9 +1,4 @@
-import {
-  json,
-  type HeadersFunction,
-  type LoaderFunction,
-  type MetaFunction,
-} from '@remix-run/node';
+import { json, type LoaderFunction, type MetaFunction } from '@remix-run/node';
 import { useLoaderData } from '@remix-run/react';
 import { getEnvVars } from '~/utils/env.server';
 import { fetchGraphQL } from '~/utils/graphql.server';
@@ -93,12 +88,6 @@ export const loader: LoaderFunction = async ({ params, request }) => {
 
   await cache.put(cacheKey, loaderData);
   return json<LoaderData>(loaderData);
-};
-
-export const headers: HeadersFunction = ({ loaderHeaders }) => {
-  return {
-    'Cache-Control': loaderHeaders.get('Cache-Control') || '',
-  };
 };
 
 export const meta: MetaFunction = (metaArgs) => {

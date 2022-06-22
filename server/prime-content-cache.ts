@@ -1,4 +1,5 @@
 import type { DataFunctionArgs } from '@remix-run/node';
+import pThrottle from 'p-throttle';
 import { cache } from '~/utils/cache.server';
 import {
   loader as allDrinksLoader,
@@ -10,6 +11,12 @@ import {
   type LoaderData as AllTagsLoaderData,
 } from '~/routes/tags/index';
 import { loader as tagLoader } from '~/routes/tags/$tag';
+
+// https://www.contentful.com/developers/docs/technical-limits/
+const throttle = pThrottle({
+  limit: process.env.NODE_ENV === 'production' ? 54 : 13,
+  interval: 1000,
+});
 
 export async function primeContentCache() {
   try {
@@ -24,7 +31,8 @@ export async function primeContentCache() {
       params: {},
       request: new Request('https://drinks.fyi'),
     };
-    const allDrinksResponse: Response = await allDrinksLoader(
+    const throttledAllDrinksLoader = throttle(allDrinksLoader);
+    const allDrinksResponse: Response = await throttledAllDrinksLoader(
       allDrinksDataFnArgs,
     );
     const allDrinksData: AllDrinksLoaderData = await allDrinksResponse.json();
@@ -32,6 +40,7 @@ export async function primeContentCache() {
 
     // 3. Load and cache each individual drink
     const allSlugs = drinks.map(({ slug }) => slug);
+    const throttledDrinkLoader = throttle(drinkLoader);
     await Promise.all(
       allSlugs.map(async (slug) => {
         const drinkDataFnArgs: DataFunctionArgs = {
@@ -39,7 +48,7 @@ export async function primeContentCache() {
           params: { slug },
           request: new Request(`https://drinks.fyi/${slug}`),
         };
-        return drinkLoader(drinkDataFnArgs);
+        return throttledDrinkLoader(drinkDataFnArgs);
       }),
     );
 
@@ -49,11 +58,15 @@ export async function primeContentCache() {
       params: {},
       request: new Request('https://drinks.fyi/tags'),
     };
-    const allTagsResponse: Response = await allTagsLoader(allTagsDataFnArgs);
+    const throttledAllTagsLoader = throttle(allTagsLoader);
+    const allTagsResponse: Response = await throttledAllTagsLoader(
+      allTagsDataFnArgs,
+    );
     const allTagsData: AllTagsLoaderData = await allTagsResponse.json();
     const { tags } = allTagsData;
 
     // 5. Load and cache each individual tag
+    const throttledTagLoader = throttle(tagLoader);
     await Promise.all(
       tags.map(async (tag) => {
         const tagDataFnArgs: DataFunctionArgs = {
@@ -61,7 +74,7 @@ export async function primeContentCache() {
           params: { tag },
           request: new Request(`https://drinks.fyi/tags/${tag}`),
         };
-        return tagLoader(tagDataFnArgs);
+        return throttledTagLoader(tagDataFnArgs);
       }),
     );
 

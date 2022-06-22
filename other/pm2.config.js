@@ -9,21 +9,21 @@ module.exports = {
   apps: [
     {
       name: 'Tailwind',
-      script: './other/tailwind.js',
+      script: './other/pm2-tailwind.js',
       autorestart: false,
       watch: ['./tailwind.config.js', './app/styles/app.css'],
       env,
     },
     {
       name: 'Remix',
-      script: './other/remix.js',
+      script: './other/pm2-remix.js',
       ignore_watch: ['.'],
       env,
     },
     {
       name: 'Server',
-      script: './other/server.js',
-      watch: ['./mocks/**/*.ts', './server.ts', './.env'],
+      script: './other/pm2-server.js',
+      watch: ['./mocks/**/*.ts', './server/**/*.ts', './.env'],
       env,
     },
   ],

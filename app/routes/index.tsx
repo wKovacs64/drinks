@@ -8,7 +8,7 @@ import Nav from '~/components/nav';
 import DrinkList from '~/components/drink-list';
 import type { DrinksResponse, EnhancedDrink } from '~/types';
 
-interface LoaderData {
+export interface LoaderData {
   drinks: ReadonlyArray<EnhancedDrink>;
 }
 

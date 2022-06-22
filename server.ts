@@ -4,6 +4,7 @@ import express from 'express';
 import compression from 'compression';
 import morgan from 'morgan';
 import { createRequestHandler } from '@remix-run/express';
+import { primeContentCache } from '~/utils/boot.server';
 
 const app = express();
 
@@ -75,10 +76,12 @@ app.all(
 
 const port = process.env.PORT || 3000;
 
-app.listen(port, () => {
-  // require the built app so we're ready when the first request comes in
-  require(BUILD_DIR);
-  console.log(`✅ app ready: http://localhost:${port}`);
+primeContentCache().then(() => {
+  app.listen(port, () => {
+    // require the built app so we're ready when the first request comes in
+    require(BUILD_DIR);
+    console.log(`✅ app ready: http://localhost:${port}`);
+  });
 });
 
 function purgeRequireCache() {

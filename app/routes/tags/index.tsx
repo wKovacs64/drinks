@@ -11,7 +11,7 @@ import { fetchGraphQL } from '~/utils/graphql.server';
 import { cache } from '~/utils/cache.server';
 import type { DrinkTagsResponse } from '~/types';
 
-interface LoaderData {
+export interface LoaderData {
   tags: ReadonlyArray<string>;
 }
 

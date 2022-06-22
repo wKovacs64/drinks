@@ -1,4 +1,5 @@
 import type { DataFunctionArgs } from '@remix-run/node';
+import kebabCase from 'lodash/kebabCase';
 import pThrottle from 'p-throttle';
 import { cache } from '~/utils/cache.server';
 import {
@@ -69,10 +70,11 @@ export async function primeContentCache() {
     const throttledTagLoader = throttle(tagLoader);
     await Promise.all(
       tags.map(async (tag) => {
+        const tagSlug = kebabCase(tag);
         const tagDataFnArgs: DataFunctionArgs = {
           context: {},
-          params: { tag },
-          request: new Request(`https://drinks.fyi/tags/${tag}`),
+          params: { tag: tagSlug },
+          request: new Request(`https://drinks.fyi/tags/${tagSlug}`),
         };
         return throttledTagLoader(tagDataFnArgs);
       }),

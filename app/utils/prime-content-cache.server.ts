@@ -1,6 +1,7 @@
 import type { DataFunctionArgs } from '@remix-run/node';
 import kebabCase from 'lodash/kebabCase';
 import pThrottle from 'p-throttle';
+import { getEnvVars } from '~/utils/env.server';
 import { cache } from '~/utils/cache.server';
 import {
   loader as allDrinksLoader,
@@ -13,9 +14,11 @@ import {
 } from '~/routes/tags/index';
 import { loader as tagLoader } from '~/routes/tags/$tag';
 
+const { CONTENTFUL_PREVIEW } = getEnvVars();
+
 // https://www.contentful.com/developers/docs/technical-limits/
 const throttle = pThrottle({
-  limit: process.env.NODE_ENV === 'production' ? 54 : 13,
+  limit: CONTENTFUL_PREVIEW === 'true' ? 13 : 54,
   interval: 1000,
 });
 

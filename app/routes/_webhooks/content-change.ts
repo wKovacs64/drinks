@@ -22,6 +22,9 @@ export const action: ActionFunction = async ({ request }) => {
     return new Response(null, { status: 401 });
   }
 
+  // We could be smarter here and only update cache related to the changed
+  // content (provided in the request body), but refreshing the entire cache is
+  // so fast that it's really not worth it at this time.
   await primeContentCache();
   return new Response(null, { status: 204 });
 };

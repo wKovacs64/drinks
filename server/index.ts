@@ -17,13 +17,30 @@ app.use((req, res, next) => {
   // security headers
   res.set(
     'Content-Security-Policy',
-    `base-uri 'none'; frame-ancestors 'none'; form-action 'self'; default-src 'self'; connect-src 'self' ${
-      isDev ? 'ws:' : ''
-    } https://images.ctfassets.net/ https://*.algolianet.com https://*.algolia.net; img-src 'self' data: https:; object-src 'none'; script-src 'self' 'unsafe-inline' https://*.algolianet.com; style-src 'self' 'unsafe-inline'; worker-src 'self';`,
+    [
+      `base-uri 'none'`,
+      `frame-ancestors 'none'`,
+      `form-action 'self'`,
+      `default-src 'self'`,
+      `connect-src 'self' ${
+        isDev ? 'ws:' : ''
+      } https://images.ctfassets.net/ https://*.algolianet.com https://*.algolia.net`,
+      `img-src 'self' data: https:`,
+      `object-src 'none'`,
+      `script-src 'self' 'unsafe-inline' https://*.algolianet.com`,
+      `style-src 'self' 'unsafe-inline'`,
+      `worker-src 'self'`,
+    ].join('; ') + ';',
   );
   res.set(
     'Permissions-Policy',
-    'geolocation=(), camera=(), microphone=(), payment=(), usb=()',
+    [
+      'geolocation=()',
+      'camera=()',
+      'microphone=()',
+      'payment=()',
+      'usb=()',
+    ].join(', '),
   );
   res.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.set(

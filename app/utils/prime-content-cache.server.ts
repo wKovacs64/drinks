@@ -21,7 +21,7 @@ const throttle = pThrottle({
 
 export async function primeContentCache() {
   try {
-    console.log('🚒 warming up content cache...');
+    console.log('🚒 priming content cache...');
 
     // 1. Start with an empty cache
     await cache.clear();

@@ -5,6 +5,7 @@ interface LoaderEnv {
   CONTENTFUL_ACCESS_TOKEN: string;
   CONTENTFUL_URL: string;
   CONTENTFUL_PREVIEW?: string;
+  CONTENTFUL_WEBHOOK_TOKEN: string;
   SITE_IMAGE_URL: string;
   SITE_IMAGE_ALT: string;
 }
@@ -17,6 +18,7 @@ export function getEnvVars() {
     CONTENTFUL_ACCESS_TOKEN,
     CONTENTFUL_URL,
     CONTENTFUL_PREVIEW,
+    CONTENTFUL_WEBHOOK_TOKEN,
     SITE_IMAGE_URL,
     SITE_IMAGE_ALT,
   } = process.env;
@@ -28,6 +30,9 @@ export function getEnvVars() {
   if (!CONTENTFUL_ACCESS_TOKEN) {
     throw new Error(`CONTENTFUL_ACCESS_TOKEN is not set`);
   }
+  if (!CONTENTFUL_WEBHOOK_TOKEN) {
+    throw new Error(`CONTENTFUL_WEBHOOK_TOKEN is not set`);
+  }
   if (!SITE_IMAGE_URL) throw new Error(`SITE_IMAGE_URL is not set`);
   if (!SITE_IMAGE_ALT) throw new Error(`SITE_IMAGE_ALT is not set`);
 
@@ -38,6 +43,7 @@ export function getEnvVars() {
     CONTENTFUL_ACCESS_TOKEN,
     CONTENTFUL_URL,
     CONTENTFUL_PREVIEW,
+    CONTENTFUL_WEBHOOK_TOKEN,
     SITE_IMAGE_URL,
     SITE_IMAGE_ALT,
   };

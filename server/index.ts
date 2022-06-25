@@ -4,7 +4,7 @@ import express from 'express';
 import compression from 'compression';
 import morgan from 'morgan';
 import { createRequestHandler } from '@remix-run/express';
-import { primeContentCache } from './prime-content-cache';
+import { primeContentCache } from '~/utils/prime-content-cache.server';
 
 const app = express();
 

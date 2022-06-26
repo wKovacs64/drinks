@@ -50,23 +50,21 @@ async function rebuildContentCacheOnTheOtherInstances(request: Request) {
   const appRegion = process.env.FLY_REGION;
 
   // local development
-  if (!appRegion) return;
+  if (!appName || !appRegion) return;
 
-  const allInternalAddresses = await dns.promises.resolve6(
-    `global.${appName}.internal`,
+  // e.g., [["dfw,sea"]]
+  const appRegionsTxtResult = await dns.promises.resolveTxt(
+    `regions.${appName}.internal`,
   );
-  const internalAddressesInThisRegion = await dns.promises.resolve6(
-    `${appRegion}.${appName}.internal`,
-  );
+  const appRegions = appRegionsTxtResult[0][0].split(',');
+
   // ⚠ assuming only one instance per region
-  const [thisAddress] = internalAddressesInThisRegion;
-  const otherInternalAddresses = allInternalAddresses.filter(
-    (address) => address !== thisAddress,
-  );
+  const otherRegions = appRegions.filter((region) => region !== appRegion);
 
   // include the "no-replay" query parameter to prevent infinite loops
-  const webhookUrlsForOtherInstances = otherInternalAddresses.map(
-    (address) => `http://[${address}]:8080/_/content-change?no-replay`,
+  const webhookUrlsForOtherInstances = otherRegions.map(
+    (region) =>
+      `http://${region}.${appName}.internal:8080/_/content-change?no-replay`,
   );
 
   // grab the relevant info from the original request to include in the replays

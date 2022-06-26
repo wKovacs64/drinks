@@ -72,15 +72,14 @@ async function rebuildContentCacheOnTheOtherInstances(request: Request) {
   const contentType = request.headers.get('Content-Type') ?? '';
   const token = request.headers.get('X-Contentful-Webhook-Token') ?? '';
 
-  return Promise.all(
-    webhookUrlsForOtherInstances.map(async (internalWebhookUrl) =>
-      fetch(internalWebhookUrl, {
-        method,
-        headers: {
-          'Content-Type': contentType,
-          'X-Contentful-Webhook-Token': token,
-        },
-      }),
-    ),
-  );
+  // execute replay requests serially to avoid exceeding Contentful's API limits
+  for (const internalWebhookUrl of webhookUrlsForOtherInstances) {
+    await fetch(internalWebhookUrl, {
+      method,
+      headers: {
+        'Content-Type': contentType,
+        'X-Contentful-Webhook-Token': token,
+      },
+    });
+  }
 }

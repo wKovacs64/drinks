@@ -44,8 +44,8 @@ interface LoaderData {
   socialImageAlt: string;
 }
 
-export const loader: LoaderFunction = async ({ context }) => {
-  const { SITE_IMAGE_URL, SITE_IMAGE_ALT } = getEnvVars(context);
+export const loader: LoaderFunction = async () => {
+  const { SITE_IMAGE_URL, SITE_IMAGE_ALT } = getEnvVars();
 
   return json<LoaderData>({
     socialImageUrl: SITE_IMAGE_URL,

@@ -1,8 +1,8 @@
-import { db } from '~/utils/db.server';
+import { prisma } from '~/utils/db.server';
 
 export const cache = {
   async get(key: string) {
-    const cachedData = await db.cacheEntry.findUnique({ where: { key } });
+    const cachedData = await prisma.cacheEntry.findUnique({ where: { key } });
     if (cachedData) {
       try {
         return JSON.parse(cachedData.value);
@@ -13,7 +13,7 @@ export const cache = {
   },
   async put(key: string, value: any) {
     try {
-      await db.cacheEntry.create({
+      await prisma.cacheEntry.create({
         data: { key, value: JSON.stringify(value) },
       });
     } catch {
@@ -22,21 +22,21 @@ export const cache = {
   },
   async has(key: string) {
     try {
-      return (await db.cacheEntry.count({ where: { key } })) > 0;
+      return (await prisma.cacheEntry.count({ where: { key } })) > 0;
     } catch {
       return false;
     }
   },
   async del(key: string) {
     try {
-      await db.cacheEntry.delete({ where: { key } });
+      await prisma.cacheEntry.delete({ where: { key } });
     } catch {
       // noop, cache failures shouldn't break the app
     }
   },
   async clear() {
     try {
-      await db.cacheEntry.deleteMany();
+      await prisma.cacheEntry.deleteMany();
     } catch {
       // noop, cache failures shouldn't break the app
     }

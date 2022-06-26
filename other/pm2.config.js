@@ -11,7 +11,7 @@ module.exports = {
       name: 'Tailwind',
       script: './other/pm2-tailwind.js',
       autorestart: false,
-      watch: ['./tailwind.config.js', './app/styles/app.css'],
+      watch: ['./tailwind.config.js'],
       env,
     },
     {
@@ -24,6 +24,12 @@ module.exports = {
       name: 'Server',
       script: './other/pm2-server.js',
       watch: ['./mocks/**/*.ts', './server/**/*.ts', './.env'],
+      env,
+    },
+    {
+      name: 'Worker',
+      script: './other/pm2-worker.js',
+      watch: ['./app/entry.worker.ts'],
       env,
     },
   ],

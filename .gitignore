@@ -253,3 +253,6 @@ app/fonts/**/*
 # Prisma
 /prisma/*.db
 /prisma/*.db-journal
+
+# ShafSpecs/remix-pwa
+/public/entry.worker.js

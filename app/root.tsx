@@ -1,3 +1,4 @@
+import * as React from 'react';
 import {
   json,
   type LinksFunction,
@@ -12,6 +13,8 @@ import {
   Scripts,
   ScrollRestoration,
   useCatch,
+  useLocation,
+  useMatches,
 } from '@remix-run/react';
 // @ts-ignore
 import faviconIcoUrl from '../public/favicon.ico';
@@ -124,6 +127,45 @@ function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
+  const location = useLocation();
+  const matches = useMatches();
+  const isMountRef = React.useRef(true);
+
+  // credit: ShafSpecs/remix-pwa
+  React.useEffect(() => {
+    const isMount = isMountRef.current;
+    isMountRef.current = false;
+    if ('serviceWorker' in navigator) {
+      if (navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({
+          type: 'REMIX_NAVIGATION',
+          isMount,
+          location,
+          matches,
+          manifest: window.__remixManifest,
+        });
+      } else {
+        const listener = async () => {
+          await navigator.serviceWorker.ready;
+          navigator.serviceWorker.controller?.postMessage({
+            type: 'REMIX_NAVIGATION',
+            isMount,
+            location,
+            matches,
+            manifest: window.__remixManifest,
+          });
+        };
+        navigator.serviceWorker.addEventListener('controllerchange', listener);
+        return () => {
+          navigator.serviceWorker.removeEventListener(
+            'controllerchange',
+            listener,
+          );
+        };
+      }
+    }
+  }, [location, matches]);
+
   return (
     <Layout>
       <Outlet />

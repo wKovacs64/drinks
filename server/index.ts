@@ -76,7 +76,11 @@ app.use(
 // a long time.
 app.use(express.static('public', { maxAge: '1d' }));
 
-app.use(morgan('tiny'));
+app.use(
+  morgan('tiny', {
+    skip: (req, res) => req.url === '/_/healthcheck',
+  }),
+);
 
 const MODE = process.env.NODE_ENV;
 const BUILD_DIR = path.join(process.cwd(), 'build');

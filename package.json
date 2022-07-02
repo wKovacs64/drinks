@@ -25,7 +25,7 @@
   },
   "dependencies": {
     "@fontsource/source-sans-pro": "4.5.10",
-    "@prisma/client": "3.15.2",
+    "@prisma/client": "4.0.0",
     "@remix-run/express": "1.6.3",
     "@remix-run/node": "1.6.3",
     "@remix-run/react": "1.6.3",
@@ -64,7 +64,7 @@
     "postcss": "8.4.14",
     "prettier": "2.7.1",
     "prettier-plugin-tailwindcss": "0.1.11",
-    "prisma": "3.15.2",
+    "prisma": "4.0.0",
     "rimraf": "3.0.2",
     "shelljs": "0.8.5",
     "tailwindcss": "3.1.4",

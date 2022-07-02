@@ -1,0 +1,15 @@
+{
+  "extends": [
+    "config:base",
+    ":semanticCommits",
+    ":semanticCommitTypeAll(chore)"
+  ],
+  "commitMessageTopic": "{{depName}}",
+  "automergeType": "branch",
+  "automerge": true,
+  "major": {
+    "automerge": false
+  },
+  "prConcurrentLimit": 0,
+  "prHourlyLimit": 0
+}

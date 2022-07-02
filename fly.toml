@@ -9,10 +9,10 @@ processes = []
   PORT = "8080"
 
 [experimental]
-  cmd = "start_with_migrations.sh"
+  cmd = "start.sh"
   entrypoint = "sh"
 
-[[mounts]]
+[mounts]
   destination = "/data"
   source = "data"
 
@@ -37,11 +37,11 @@ processes = []
     port = 443
 
   [[services.http_checks]]
-    interval = 5000
+    interval = "5s"
     grace_period = "5s"
     method = "get"
     path = "/_/healthcheck"
     protocol = "http"
     restart_limit = 0
-    timeout = 2000
+    timeout = "2s"
     tls_skip_verify = false

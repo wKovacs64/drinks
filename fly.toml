@@ -8,10 +8,6 @@ processes = []
 [env]
   PORT = "8080"
 
-[experimental]
-  cmd = "start.sh"
-  entrypoint = "sh"
-
 [mounts]
   destination = "/data"
   source = "data"

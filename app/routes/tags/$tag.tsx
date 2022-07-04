@@ -71,6 +71,10 @@ export const loader: LoaderFunction = async ({ params, request }) => {
     },
   } = queryResponseJson;
 
+  if (drinks.length === 0) {
+    throw json({ message: 'No drinks found' }, 404);
+  }
+
   const drinksWithPlaceholderImages = await withPlaceholderImages(drinks);
   const loaderData: LoaderData = { drinks: drinksWithPlaceholderImages };
 

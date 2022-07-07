@@ -63,7 +63,7 @@
     "pm2": "5.2.0",
     "postcss": "8.4.14",
     "prettier": "2.7.1",
-    "prettier-plugin-tailwindcss": "0.1.11",
+    "prettier-plugin-tailwindcss": "0.1.12",
     "prisma": "4.0.0",
     "rimraf": "3.0.2",
     "shelljs": "0.8.5",

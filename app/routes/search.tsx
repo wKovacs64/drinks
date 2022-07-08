@@ -94,7 +94,7 @@ export const loader: LoaderFunction = async ({ request }) => {
     allDrinksQuery,
     {
       preview: CONTENTFUL_PREVIEW === 'true',
-      slugs: hits.map((hit) => hit.objectID),
+      slugs: hits.map((hit) => hit.slug),
     },
   );
 
@@ -178,12 +178,17 @@ interface AlgoliaSearchResponse {
 }
 
 interface AlgoliaDrinkHit
-  extends Pick<Drink, 'title' | 'ingredients' | 'notes'> {
+  extends Pick<Drink, 'title' | 'slug' | 'ingredients' | 'notes'> {
   createdAt: string;
-  imagePreviewSrc: string;
-  objectID: 'string';
+  objectID: string;
   _highlightResult: {
     title: {
+      value: string;
+      matchLevel: AlgoliaMatchLevel;
+      fullyHighlighted: boolean;
+      matchedWords: ReadonlyArray<string>;
+    };
+    slug: {
       value: string;
       matchLevel: AlgoliaMatchLevel;
       fullyHighlighted: boolean;
@@ -203,11 +208,6 @@ interface AlgoliaDrinkHit
       value: string;
       matchLevel: AlgoliaMatchLevel;
       fullyHighlighted: boolean;
-      matchedWords: ReadonlyArray<string>;
-    };
-    imagePreviewSrc: {
-      value: string;
-      matchLevel: AlgoliaMatchLevel;
       matchedWords: ReadonlyArray<string>;
     };
   };

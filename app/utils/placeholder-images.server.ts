@@ -1,7 +1,7 @@
 import { makeImageUrl } from '~/components/image';
 import type { Drink } from '~/types';
 
-export async function withPlaceholderImages(drinks: ReadonlyArray<Drink>) {
+export async function withPlaceholderImages(drinks: Array<Drink>) {
   return Promise.all(
     drinks.map(async (drink) => {
       const blurredImageUrl = makeImageUrl({

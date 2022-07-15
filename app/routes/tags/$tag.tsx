@@ -1,4 +1,4 @@
-import { json, type LoaderFunction, type MetaFunction } from '@remix-run/node';
+import { json, type LoaderArgs, type MetaFunction } from '@remix-run/node';
 import { useLoaderData, useParams } from '@remix-run/react';
 import lowerCase from 'lodash/lowerCase';
 import startCase from 'lodash/startCase';
@@ -12,16 +12,14 @@ import NavDivider from '~/components/nav-divider';
 import DrinkList from '~/components/drink-list';
 import type { DrinksResponse, EnhancedDrink } from '~/types';
 
-interface LoaderData {
-  drinks: ReadonlyArray<EnhancedDrink>;
-}
-
-export const loader: LoaderFunction = async ({ params, request }) => {
+export const loader = async ({ params, request }: LoaderArgs) => {
   if (!params.tag) throw json('Missing tag', 400);
 
   const cacheKey = new URL(request.url).pathname;
-  const cachedData: LoaderData = await cache.get(cacheKey);
-  if (cachedData) return json<LoaderData>(cachedData);
+  const cachedData: { drinks: Array<EnhancedDrink> } = await cache.get(
+    cacheKey,
+  );
+  if (cachedData) return json(cachedData);
 
   const { CONTENTFUL_ACCESS_TOKEN, CONTENTFUL_URL, CONTENTFUL_PREVIEW } =
     getEnvVars();
@@ -76,10 +74,10 @@ export const loader: LoaderFunction = async ({ params, request }) => {
   }
 
   const drinksWithPlaceholderImages = await withPlaceholderImages(drinks);
-  const loaderData: LoaderData = { drinks: drinksWithPlaceholderImages };
+  const loaderData = { drinks: drinksWithPlaceholderImages };
 
   await cache.put(cacheKey, loaderData);
-  return json<LoaderData>(loaderData);
+  return json(loaderData);
 };
 
 export const meta: MetaFunction = (metaArgs) => {
@@ -92,7 +90,7 @@ export const meta: MetaFunction = (metaArgs) => {
 };
 
 export default function TagPage() {
-  const { drinks } = useLoaderData<LoaderData>();
+  const { drinks } = useLoaderData<typeof loader>();
   const { tag } = useParams();
   const totalCount = drinks.length;
 

@@ -1,5 +1,5 @@
 export interface DrinksResponse {
-  errors?: ReadonlyArray<{
+  errors?: Array<{
     message: string;
     extensions: {
       contentful: {
@@ -7,15 +7,15 @@ export interface DrinksResponse {
         requestId: string;
       };
     };
-    locations: ReadonlyArray<{
+    locations: Array<{
       line: number;
       column: number;
     }>;
-    path: ReadonlyArray<string>;
+    path: Array<string>;
   }>;
   data: {
     drinkCollection: {
-      drinks: ReadonlyArray<Drink>;
+      drinks: Array<Drink>;
     } | null;
   };
 }
@@ -23,7 +23,7 @@ export interface DrinksResponse {
 export type DrinkTagsResponse = DrinksResponse & {
   data: {
     drinkCollection: {
-      drinks: ReadonlyArray<Pick<Drink, 'tags'>>;
+      drinks: Array<Pick<Drink, 'tags'>>;
     } | null;
   };
 };
@@ -34,10 +34,10 @@ export interface Drink {
   image: {
     url: string;
   };
-  ingredients: ReadonlyArray<string>;
+  ingredients: Array<string>;
   calories: number;
   notes?: string;
-  tags?: ReadonlyArray<string>;
+  tags?: Array<string>;
 }
 
 export interface EnhancedDrink extends Drink {

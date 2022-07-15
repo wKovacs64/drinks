@@ -1,4 +1,4 @@
-import { json, type LoaderFunction, type MetaFunction } from '@remix-run/node';
+import { json, type LoaderArgs, type MetaFunction } from '@remix-run/node';
 import { useLoaderData } from '@remix-run/react';
 import kebabCase from 'lodash/kebabCase';
 import Nav from '~/components/nav';
@@ -11,14 +11,10 @@ import { fetchGraphQL } from '~/utils/graphql.server';
 import { cache } from '~/utils/cache.server';
 import type { DrinkTagsResponse } from '~/types';
 
-export interface LoaderData {
-  tags: ReadonlyArray<string>;
-}
-
-export const loader: LoaderFunction = async ({ request }) => {
+export const loader = async ({ request }: LoaderArgs) => {
   const cacheKey = new URL(request.url).pathname;
-  const cachedData: LoaderData = await cache.get(cacheKey);
-  if (cachedData) return json<LoaderData>(cachedData);
+  const cachedData: { tags: Array<string> } = await cache.get(cacheKey);
+  if (cachedData) return json(cachedData);
 
   const { CONTENTFUL_ACCESS_TOKEN, CONTENTFUL_URL, CONTENTFUL_PREVIEW } =
     getEnvVars();
@@ -62,10 +58,10 @@ export const loader: LoaderFunction = async ({ request }) => {
     return acc;
   }, new Set());
 
-  const loaderData: LoaderData = { tags: Array.from(uniqueTags).sort() };
+  const loaderData = { tags: Array.from(uniqueTags).sort() };
 
   await cache.put(cacheKey, loaderData);
-  return json<LoaderData>(loaderData);
+  return json(loaderData);
 };
 
 export const meta: MetaFunction = () => {
@@ -76,7 +72,7 @@ export const meta: MetaFunction = () => {
 };
 
 export default function TagsPage() {
-  const { tags } = useLoaderData<LoaderData>();
+  const { tags } = useLoaderData<typeof loader>();
 
   return (
     <div>
@@ -94,7 +90,7 @@ export default function TagsPage() {
   );
 }
 
-function TagList({ tags }: { tags: ReadonlyArray<string> }) {
+function TagList({ tags }: { tags: Array<string> }) {
   return (
     <div
       // TODO: this needs work, particularly wrt horizontal margins

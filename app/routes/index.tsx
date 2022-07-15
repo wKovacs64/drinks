@@ -1,4 +1,4 @@
-import { json, type LoaderFunction } from '@remix-run/node';
+import { json, type LoaderArgs } from '@remix-run/node';
 import { useLoaderData } from '@remix-run/react';
 import { getEnvVars } from '~/utils/env.server';
 import { fetchGraphQL } from '~/utils/graphql.server';
@@ -8,14 +8,12 @@ import Nav from '~/components/nav';
 import DrinkList from '~/components/drink-list';
 import type { DrinksResponse, EnhancedDrink } from '~/types';
 
-export interface LoaderData {
-  drinks: ReadonlyArray<EnhancedDrink>;
-}
-
-export const loader: LoaderFunction = async ({ request }) => {
+export const loader = async ({ request }: LoaderArgs) => {
   const cacheKey = new URL(request.url).pathname;
-  const cachedData: LoaderData = await cache.get(cacheKey);
-  if (cachedData) return json<LoaderData>(cachedData);
+  const cachedData: { drinks: Array<EnhancedDrink> } = await cache.get(
+    cacheKey,
+  );
+  if (cachedData) return json(cachedData);
 
   const { CONTENTFUL_ACCESS_TOKEN, CONTENTFUL_URL, CONTENTFUL_PREVIEW } =
     getEnvVars();
@@ -64,14 +62,14 @@ export const loader: LoaderFunction = async ({ request }) => {
   } = queryResponseJson;
 
   const drinksWithPlaceholderImages = await withPlaceholderImages(drinks);
-  const loaderData: LoaderData = { drinks: drinksWithPlaceholderImages };
+  const loaderData = { drinks: drinksWithPlaceholderImages };
 
   await cache.put(cacheKey, loaderData);
-  return json<LoaderData>(loaderData);
+  return json(loaderData);
 };
 
 export default function HomePage() {
-  const { drinks } = useLoaderData<LoaderData>();
+  const { drinks } = useLoaderData<typeof loader>();
 
   return (
     <div>

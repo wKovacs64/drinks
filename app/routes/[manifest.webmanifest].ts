@@ -1,10 +1,10 @@
-import { json, type LoaderFunction } from '@remix-run/node';
+import { json } from '@remix-run/node';
 import icon192Url from '~/images/icon-192x192.png';
 import icon512Url from '~/images/icon-512x512.png';
 import iconMaskable192Url from '~/images/icon-maskable-192x192.png';
 import iconMaskable512Url from '~/images/icon-maskable-512x512.png';
 
-export const loader: LoaderFunction = () => {
+export const loader = async () => {
   return json(
     {
       name: 'drinks.fyi',

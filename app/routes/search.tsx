@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { json, type LoaderFunction, type MetaFunction } from '@remix-run/node';
+import { json, type LoaderArgs, type MetaFunction } from '@remix-run/node';
 import {
   useLoaderData,
   useSearchParams,
@@ -18,16 +18,12 @@ import {
   Searching,
 } from '~/components/search';
 import DrinkList from '~/components/drink-list';
-import type { Drink, DrinksResponse, EnhancedDrink } from '~/types';
+import type { Drink, DrinksResponse } from '~/types';
 
-interface LoaderData {
-  drinks: ReadonlyArray<EnhancedDrink>;
-}
-
-export const loader: LoaderFunction = async ({ request }) => {
+export const loader = async ({ request }: LoaderArgs) => {
   const q = new URL(request.url).searchParams.get('q');
   if (!q) {
-    return json<LoaderData>({ drinks: [] });
+    return json({ drinks: [] });
   }
 
   const {
@@ -64,7 +60,7 @@ export const loader: LoaderFunction = async ({ request }) => {
     (await algoliaSearchResponse.json()) as AlgoliaSearchResponse;
 
   if (hits.length === 0) {
-    return json<LoaderData>({ drinks: [] });
+    return json({ drinks: [] });
   }
 
   // query Contentful for drinks matching slugs in Algolia results
@@ -114,9 +110,9 @@ export const loader: LoaderFunction = async ({ request }) => {
   } = queryResponseJson;
 
   const drinksWithPlaceholderImages = await withPlaceholderImages(drinks);
-  const loaderData: LoaderData = { drinks: drinksWithPlaceholderImages };
+  const loaderData = { drinks: drinksWithPlaceholderImages };
 
-  return json<LoaderData>(loaderData);
+  return json(loaderData);
 };
 
 export const meta: MetaFunction = (metaArgs) => {
@@ -127,7 +123,7 @@ export const meta: MetaFunction = (metaArgs) => {
 };
 
 export default function SearchPage() {
-  const { drinks } = useLoaderData<LoaderData>();
+  const { drinks } = useLoaderData<typeof loader>();
   const [searchParams] = useSearchParams();
   const q = searchParams.get('q');
   const transition = useTransition();
@@ -166,7 +162,7 @@ export default function SearchPage() {
 }
 
 interface AlgoliaSearchResponse {
-  hits: ReadonlyArray<AlgoliaDrinkHit>;
+  hits: Array<AlgoliaDrinkHit>;
   page: number;
   nbHits: number;
   nbPages: number;
@@ -186,29 +182,29 @@ interface AlgoliaDrinkHit
       value: string;
       matchLevel: AlgoliaMatchLevel;
       fullyHighlighted: boolean;
-      matchedWords: ReadonlyArray<string>;
+      matchedWords: Array<string>;
     };
     slug: {
       value: string;
       matchLevel: AlgoliaMatchLevel;
       fullyHighlighted: boolean;
-      matchedWords: ReadonlyArray<string>;
+      matchedWords: Array<string>;
     };
-    ingredients: ReadonlyArray<{
+    ingredients: Array<{
       value: string;
       matchLevel: AlgoliaMatchLevel;
-      matchedWords: ReadonlyArray<string>;
+      matchedWords: Array<string>;
     }>;
     createdAt: {
       value: string;
       matchLevel: AlgoliaMatchLevel;
-      matchedWords: ReadonlyArray<string>;
+      matchedWords: Array<string>;
     };
     notes: {
       value: string;
       matchLevel: AlgoliaMatchLevel;
       fullyHighlighted: boolean;
-      matchedWords: ReadonlyArray<string>;
+      matchedWords: Array<string>;
     };
   };
 }

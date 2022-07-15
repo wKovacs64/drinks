@@ -1,7 +1,6 @@
-import type { LoaderFunction } from '@remix-run/node';
 import { prisma } from '~/utils/db.server';
 
-export const loader: LoaderFunction = async () => {
+export const loader = async () => {
   try {
     await prisma.cacheEntry.count();
     return new Response(null, { status: 200 });

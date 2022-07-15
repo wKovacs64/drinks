@@ -1,4 +1,4 @@
-import { json, type LoaderFunction, type MetaFunction } from '@remix-run/node';
+import { json, type LoaderArgs, type MetaFunction } from '@remix-run/node';
 import { useLoaderData } from '@remix-run/react';
 import { getEnvVars } from '~/utils/env.server';
 import { fetchGraphQL } from '~/utils/graphql.server';
@@ -14,16 +14,12 @@ import DrinkSummary from '~/components/drink-summary';
 import DrinkDetails from '~/components/drink-details';
 import type { DrinksResponse, EnhancedDrink } from '~/types';
 
-interface LoaderData {
-  drink: EnhancedDrink;
-}
-
-export const loader: LoaderFunction = async ({ params, request }) => {
+export const loader = async ({ params, request }: LoaderArgs) => {
   if (!params.slug) throw json('Missing slug', 400);
 
   const cacheKey = new URL(request.url).pathname;
-  const cachedData: LoaderData = await cache.get(cacheKey);
-  if (cachedData) return json<LoaderData>(cachedData);
+  const cachedData: { drink: EnhancedDrink } = await cache.get(cacheKey);
+  if (cachedData) return json(cachedData);
 
   const { CONTENTFUL_ACCESS_TOKEN, CONTENTFUL_URL, CONTENTFUL_PREVIEW } =
     getEnvVars();
@@ -84,10 +80,10 @@ export const loader: LoaderFunction = async ({ params, request }) => {
     enhancedDrink.notes = markdownToHtml(enhancedDrink.notes);
   }
 
-  const loaderData: LoaderData = { drink: enhancedDrink };
+  const loaderData = { drink: enhancedDrink };
 
   await cache.put(cacheKey, loaderData);
-  return json<LoaderData>(loaderData);
+  return json(loaderData);
 };
 
 export const meta: MetaFunction = (metaArgs) => {
@@ -123,7 +119,8 @@ export const meta: MetaFunction = (metaArgs) => {
 };
 
 export default function DrinkPage() {
-  const { drink } = useLoaderData<LoaderData>();
+  const { drink } = useLoaderData<typeof loader>();
+
   const imageWidths = [320, 400, 420, 480, 640, 800, 840, 960, 1280];
   const imageSizesPerViewport = [
     '(min-width: 1280px) 640px',

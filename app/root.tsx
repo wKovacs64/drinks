@@ -1,10 +1,5 @@
 import * as React from 'react';
-import {
-  json,
-  type LinksFunction,
-  type LoaderFunction,
-  type MetaFunction,
-} from '@remix-run/node';
+import { json, type LinksFunction, type MetaFunction } from '@remix-run/node';
 import {
   Links,
   LiveReload,
@@ -47,10 +42,10 @@ interface LoaderData {
   socialImageAlt: string;
 }
 
-export const loader: LoaderFunction = async () => {
+export const loader = async () => {
   const { SITE_IMAGE_URL, SITE_IMAGE_ALT } = getEnvVars();
 
-  return json<LoaderData>({
+  return json({
     socialImageUrl: SITE_IMAGE_URL,
     socialImageAlt: SITE_IMAGE_ALT,
   });

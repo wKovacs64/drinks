@@ -1,9 +1,9 @@
-import type { ActionFunction, LoaderFunction } from '@remix-run/node';
+import type { ActionArgs } from '@remix-run/node';
 import dns from '~/utils/dns.server';
 import { getEnvVars } from '~/utils/env.server';
 import { primeContentCache } from '~/utils/prime-content-cache.server';
 
-export const action: ActionFunction = async ({ request }) => {
+export const action = async ({ request }: ActionArgs) => {
   if (request.method !== 'POST') {
     return new Response(null, { status: 405 });
   }
@@ -34,7 +34,7 @@ export const action: ActionFunction = async ({ request }) => {
   return new Response(null, { status: 204 });
 };
 
-export const loader: LoaderFunction = async () => {
+export const loader = async () => {
   return new Response(null, { status: 405 });
 };
 

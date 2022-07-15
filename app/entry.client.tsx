@@ -1,7 +1,17 @@
+import * as React from 'react';
 import { RemixBrowser } from '@remix-run/react';
 import { hydrateRoot } from 'react-dom/client';
 
-hydrateRoot(document, <RemixBrowser />);
+requestIdleCallback(() => {
+  React.startTransition(() => {
+    hydrateRoot(
+      document,
+      <React.StrictMode>
+        <RemixBrowser />
+      </React.StrictMode>,
+    );
+  });
+});
 
 // credit: ShafSpecs/remix-pwa
 if ('serviceWorker' in navigator) {

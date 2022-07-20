@@ -23,6 +23,7 @@ module.exports = {
     {
       name: 'Server',
       script: './other/pm2-server.js',
+      // TODO: why doesn't this restart if .env is changed? 🤔
       watch: ['./mocks/**/*.ts', './server/**/*.ts', './.env'],
       env,
     },

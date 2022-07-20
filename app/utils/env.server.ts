@@ -1,52 +1,17 @@
-interface LoaderEnv {
-  ALGOLIA_APP_ID: string;
-  ALGOLIA_INDEX_NAME: string;
-  ALGOLIA_SEARCH_KEY: string;
-  CONTENTFUL_ACCESS_TOKEN: string;
-  CONTENTFUL_URL: string;
-  CONTENTFUL_PREVIEW?: string;
-  CONTENTFUL_WEBHOOK_TOKEN: string;
-  SITE_IMAGE_URL: string;
-  SITE_IMAGE_ALT: string;
-}
+import { z } from 'zod';
+
+const envSchema = z.object({
+  ALGOLIA_APP_ID: z.string().min(1),
+  ALGOLIA_INDEX_NAME: z.string().min(1),
+  ALGOLIA_SEARCH_KEY: z.string().min(1),
+  CONTENTFUL_ACCESS_TOKEN: z.string().min(1),
+  CONTENTFUL_URL: z.string().min(1),
+  CONTENTFUL_PREVIEW: z.string().optional(),
+  CONTENTFUL_WEBHOOK_TOKEN: z.string().min(1),
+  SITE_IMAGE_URL: z.string().min(1),
+  SITE_IMAGE_ALT: z.string().min(1),
+});
 
 export function getEnvVars() {
-  const {
-    ALGOLIA_APP_ID,
-    ALGOLIA_INDEX_NAME,
-    ALGOLIA_SEARCH_KEY,
-    CONTENTFUL_ACCESS_TOKEN,
-    CONTENTFUL_URL,
-    CONTENTFUL_PREVIEW,
-    CONTENTFUL_WEBHOOK_TOKEN,
-    SITE_IMAGE_URL,
-    SITE_IMAGE_ALT,
-  } = process.env;
-
-  if (!ALGOLIA_APP_ID) throw new Error(`ALGOLIA_APP_ID is not set`);
-  if (!ALGOLIA_INDEX_NAME) throw new Error(`ALGOLIA_INDEX_NAME is not set`);
-  if (!ALGOLIA_SEARCH_KEY) throw new Error(`ALGOLIA_SEARCH_KEY is not set`);
-  if (!CONTENTFUL_URL) throw new Error(`CONTENTFUL_URL is not set`);
-  if (!CONTENTFUL_ACCESS_TOKEN) {
-    throw new Error(`CONTENTFUL_ACCESS_TOKEN is not set`);
-  }
-  if (!CONTENTFUL_WEBHOOK_TOKEN) {
-    throw new Error(`CONTENTFUL_WEBHOOK_TOKEN is not set`);
-  }
-  if (!SITE_IMAGE_URL) throw new Error(`SITE_IMAGE_URL is not set`);
-  if (!SITE_IMAGE_ALT) throw new Error(`SITE_IMAGE_ALT is not set`);
-
-  const loaderEnv: LoaderEnv = {
-    ALGOLIA_APP_ID,
-    ALGOLIA_INDEX_NAME,
-    ALGOLIA_SEARCH_KEY,
-    CONTENTFUL_ACCESS_TOKEN,
-    CONTENTFUL_URL,
-    CONTENTFUL_PREVIEW,
-    CONTENTFUL_WEBHOOK_TOKEN,
-    SITE_IMAGE_URL,
-    SITE_IMAGE_ALT,
-  };
-
-  return loaderEnv;
+  return envSchema.parse(process.env);
 }

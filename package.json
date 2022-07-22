@@ -42,7 +42,7 @@
     "react-dom": "18.2.0",
     "react-icons": "4.4.0",
     "remix": "1.6.5",
-    "zod": "3.17.9"
+    "zod": "3.17.10"
   },
   "devDependencies": {
     "@remix-run/dev": "1.6.5",

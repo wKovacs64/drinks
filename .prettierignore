@@ -6,4 +6,4 @@ node_modules
 package*.json
 **/*.typegen.ts
 **/*.generated.css
-/public/entry.worker.js
+/public/sw.js

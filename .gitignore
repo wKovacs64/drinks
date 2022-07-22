@@ -255,4 +255,4 @@ app/fonts/**/*
 /prisma/*.db-journal
 
 # ShafSpecs/remix-pwa
-/public/entry.worker.js
+/public/sw.js

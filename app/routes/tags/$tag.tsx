@@ -6,10 +6,10 @@ import { getEnvVars } from '~/utils/env.server';
 import { fetchGraphQL } from '~/utils/graphql.server';
 import { cache } from '~/utils/cache.server';
 import { withPlaceholderImages } from '~/utils/placeholder-images.server';
-import Nav from '~/components/nav';
-import NavLink from '~/components/nav-link';
-import NavDivider from '~/components/nav-divider';
-import DrinkList from '~/components/drink-list';
+import Nav from '~/navigation/nav';
+import NavLink from '~/navigation/nav-link';
+import NavDivider from '~/navigation/nav-divider';
+import DrinkList from '~/drinks/drink-list';
 import type { DrinksResponse, EnhancedDrink } from '~/types';
 
 export const loader = async ({ params, request }: LoaderArgs) => {

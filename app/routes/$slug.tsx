@@ -5,13 +5,13 @@ import { fetchGraphQL } from '~/utils/graphql.server';
 import { cache } from '~/utils/cache.server';
 import { withPlaceholderImages } from '~/utils/placeholder-images.server';
 import { markdownToHtml } from '~/utils/markdown.server';
-import { makeImageUrl } from '~/components/image';
-import Nav from '~/components/nav';
-import NavDivider from '~/components/nav-divider';
-import NavLink from '~/components/nav-link';
-import Glass from '~/components/glass';
-import DrinkSummary from '~/components/drink-summary';
-import DrinkDetails from '~/components/drink-details';
+import { makeImageUrl } from '~/core/image';
+import Nav from '~/navigation/nav';
+import NavDivider from '~/navigation/nav-divider';
+import NavLink from '~/navigation/nav-link';
+import Glass from '~/drinks/glass';
+import DrinkSummary from '~/drinks/drink-summary';
+import DrinkDetails from '~/drinks/drink-details';
 import type { DrinksResponse, EnhancedDrink } from '~/types';
 
 export const loader = async ({ params, request }: LoaderArgs) => {

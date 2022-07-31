@@ -19,10 +19,10 @@ import appStylesUrl from '~/styles/app.generated.css';
 import { sourceSansProFontFaces } from '~/styles/font-faces';
 import { backgroundImageStyles } from '~/styles/background-image';
 import { getEnvVars } from '~/utils/env.server';
-import SkipNavLink from '~/components/skip-nav-link';
-import Header from '~/components/header';
-import Footer from '~/components/footer';
-import ErrorPage from '~/components/error-page';
+import SkipNavLink from '~/core/skip-nav-link';
+import Header from '~/core/header';
+import Footer from '~/core/footer';
+import ErrorPage from '~/core/error-page';
 import NotFoundPage from '~/routes/$';
 
 // HACK: this is a workaround for Remix issue 3414

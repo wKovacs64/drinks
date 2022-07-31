@@ -1,10 +1,9 @@
 import * as React from 'react';
 import { Form } from '@remix-run/react';
-import { MdArrowUpward, MdChevronRight, MdSearch } from 'react-icons/md';
-import AlgoliaIcon from '~/components/algolia-icon';
-import BrokenGlassIcon from '~/components/broken-glass-icon';
+import { MdChevronRight } from 'react-icons/md';
+import AlgoliaIcon from './algolia-icon';
 
-export function SearchForm({
+export default function SearchForm({
   initialSearchTerm,
 }: {
   initialSearchTerm?: HTMLInputElement['value'];
@@ -69,43 +68,5 @@ export function SearchForm({
         <MdChevronRight aria-hidden size={32} />
       </button>
     </Form>
-  );
-}
-
-export function NoSearchTerm() {
-  return (
-    <section className="text-center">
-      <MdArrowUpward
-        aria-label="Arrow Pointing Up"
-        className="my-[10vh] inline h-[20vh] w-[20vh] text-burnt-orange"
-      />
-      <p className="my-5 text-gray-100 md:text-xl">
-        Search all drinks by ingredient or description!
-      </p>
-    </section>
-  );
-}
-
-export function Searching() {
-  return (
-    <section className="text-center">
-      <MdSearch
-        aria-label="Magnifying Glass"
-        className="my-[10vh] inline h-[20vh] w-[20vh] text-burnt-orange"
-      />
-      <p className="my-5 text-gray-100 md:text-xl">Searching . . .</p>
-    </section>
-  );
-}
-
-export function NoDrinksFound() {
-  return (
-    <section className="text-center">
-      <BrokenGlassIcon
-        aria-label="Broken Glass"
-        className="my-[10vh] inline h-[20vh] w-[20vh] text-burnt-orange"
-      />
-      <p className="my-5 text-gray-100 md:text-xl">No matching drinks found.</p>
-    </section>
   );
 }

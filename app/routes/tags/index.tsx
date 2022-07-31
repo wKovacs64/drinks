@@ -1,11 +1,11 @@
 import { json, type LoaderArgs, type MetaFunction } from '@remix-run/node';
 import { useLoaderData } from '@remix-run/react';
 import kebabCase from 'lodash/kebabCase';
-import Nav from '~/components/nav';
-import NavDivider from '~/components/nav-divider';
-import NavLink from '~/components/nav-link';
-import TagLink from '~/components/tag-link';
-import Tag from '~/components/tag';
+import Nav from '~/navigation/nav';
+import NavDivider from '~/navigation/nav-divider';
+import NavLink from '~/navigation/nav-link';
+import TagLink from '~/tags/tag-link';
+import Tag from '~/tags/tag';
 import { getEnvVars } from '~/utils/env.server';
 import { fetchGraphQL } from '~/utils/graphql.server';
 import { cache } from '~/utils/cache.server';

@@ -1,4 +1,4 @@
-import { makeImageUrl } from '~/components/image';
+import { makeImageUrl } from '~/core/image';
 import type { Drink } from '~/types';
 
 export async function withPlaceholderImages(drinks: Array<Drink>) {

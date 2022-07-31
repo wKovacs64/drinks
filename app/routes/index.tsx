@@ -4,8 +4,8 @@ import { getEnvVars } from '~/utils/env.server';
 import { fetchGraphQL } from '~/utils/graphql.server';
 import { cache } from '~/utils/cache.server';
 import { withPlaceholderImages } from '~/utils/placeholder-images.server';
-import Nav from '~/components/nav';
-import DrinkList from '~/components/drink-list';
+import Nav from '~/navigation/nav';
+import DrinkList from '~/drinks/drink-list';
 import type { DrinksResponse, EnhancedDrink } from '~/types';
 
 export const loader = async ({ request }: LoaderArgs) => {

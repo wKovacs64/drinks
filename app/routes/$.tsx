@@ -1,6 +1,6 @@
 import type { MetaFunction } from '@remix-run/node';
 import { Link } from '@remix-run/react';
-import BrokenGlassIcon from '~/components/broken-glass-icon';
+import BrokenGlassIcon from '~/core/broken-glass-icon';
 
 export const meta: MetaFunction = () => ({
   title: 'Not Found',

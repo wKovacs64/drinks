@@ -1,7 +1,7 @@
 import { Link } from '@remix-run/react';
 import type { EnhancedDrink } from '~/types';
-import Glass from '~/components/glass';
-import DrinkSummary from '~/components/drink-summary';
+import Glass from './glass';
+import DrinkSummary from './drink-summary';
 
 export default function DrinkList({ drinks }: DrinkListProps) {
   const imageWidths = [320, 400, 420, 480, 640, 800, 840, 960, 1280];

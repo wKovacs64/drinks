@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import Image, { getImageProps } from '~/components/image';
+import Image, { getImageProps } from '~/core/image';
 import type { EnhancedDrink } from '~/types';
 
 export default function DrinkSummary({

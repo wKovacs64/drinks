@@ -8,16 +8,14 @@ import {
 import { getEnvVars } from '~/utils/env.server';
 import { fetchGraphQL } from '~/utils/graphql.server';
 import { withPlaceholderImages } from '~/utils/placeholder-images.server';
-import Nav from '~/components/nav';
-import NavLink from '~/components/nav-link';
-import NavDivider from '~/components/nav-divider';
-import {
-  NoDrinksFound,
-  NoSearchTerm,
-  SearchForm,
-  Searching,
-} from '~/components/search';
-import DrinkList from '~/components/drink-list';
+import Nav from '~/navigation/nav';
+import NavLink from '~/navigation/nav-link';
+import NavDivider from '~/navigation/nav-divider';
+import NoDrinksFound from '~/search/no-drinks-found';
+import NoSearchTerm from '~/search/no-search-term';
+import SearchForm from '~/search/search-form';
+import Searching from '~/search/searching';
+import DrinkList from '~/drinks/drink-list';
 import type { Drink, DrinksResponse } from '~/types';
 
 export const loader = async ({ request }: LoaderArgs) => {

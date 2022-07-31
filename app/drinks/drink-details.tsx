@@ -1,7 +1,7 @@
 import kebabCase from 'lodash/kebabCase';
 import type { EnhancedDrink } from '~/types';
-import Tag from '~/components/tag';
-import TagLink from '~/components/tag-link';
+import Tag from '~/tags/tag';
+import TagLink from '~/tags/tag-link';
 
 export default function DrinkDetails({ drink }: { drink: EnhancedDrink }) {
   return (

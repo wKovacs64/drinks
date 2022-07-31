@@ -11,8 +11,8 @@ export const loader = async () => {
       short_name: 'Drinks',
       start_url: '/',
       display: 'minimal-ui',
-      background_color: '#6b37bf',
-      theme_color: '#6b37bf',
+      background_color: '#137752',
+      theme_color: '#137752',
       icons: [
         {
           src: icon192Url,

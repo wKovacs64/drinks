@@ -8,6 +8,8 @@ import Nav from '~/navigation/nav';
 import DrinkList from '~/drinks/drink-list';
 import type { DrinksResponse, EnhancedDrink } from '~/types';
 
+export type LoaderData = ReturnType<typeof useLoaderData<typeof loader>>;
+
 export const loader = async ({ request }: LoaderArgs) => {
   const cacheKey = new URL(request.url).pathname;
   const cachedData: { drinks: Array<EnhancedDrink> } = await cache.get(

@@ -11,6 +11,8 @@ import { fetchGraphQL } from '~/utils/graphql.server';
 import { cache } from '~/utils/cache.server';
 import type { DrinkTagsResponse } from '~/types';
 
+export type LoaderData = ReturnType<typeof useLoaderData<typeof loader>>;
+
 export const loader = async ({ request }: LoaderArgs) => {
   const cacheKey = new URL(request.url).pathname;
   const cachedData: { tags: Array<string> } = await cache.get(cacheKey);

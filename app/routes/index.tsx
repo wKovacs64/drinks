@@ -8,7 +8,12 @@ import Nav from '~/navigation/nav';
 import DrinkList from '~/drinks/drink-list';
 import type { DrinksResponse, EnhancedDrink } from '~/types';
 
-export type LoaderData = ReturnType<typeof useLoaderData<typeof loader>>;
+// TODO: remove this workaround once Remix uses esbuild >= 0.14.26
+export type LoaderData = Awaited<
+  ReturnType<Awaited<ReturnType<typeof loader>>['json']>
+>;
+// More correct, but Remix (esbuild 0.14.22) doesn't support it yet
+// export type LoaderData = ReturnType<typeof useLoaderData<typeof loader>>;
 
 export const loader = async ({ request }: LoaderArgs) => {
   const cacheKey = new URL(request.url).pathname;

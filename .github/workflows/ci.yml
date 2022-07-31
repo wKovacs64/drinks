@@ -2,10 +2,6 @@ name: 🤖 CI
 
 on: [push]
 
-permissions:
-  actions: write
-  contents: read
-
 jobs:
   lint:
     name: ⬣ ESLint

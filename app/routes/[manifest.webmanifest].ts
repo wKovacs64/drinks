@@ -9,6 +9,7 @@ export const loader = async () => {
     {
       name: 'drinks.fyi',
       short_name: 'Drinks',
+      lang: 'en-US',
       start_url: '/',
       display: 'minimal-ui',
       background_color: '#137752',

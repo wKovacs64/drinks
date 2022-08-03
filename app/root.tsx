@@ -23,7 +23,7 @@ import SkipNavLink from '~/core/skip-nav-link';
 import Header from '~/core/header';
 import Footer from '~/core/footer';
 import ErrorPage from '~/core/error-page';
-import NotFoundPage from '~/routes/$';
+import NotFoundPage from '~/core/not-found-page';
 
 // HACK: this is a workaround for Remix issue 3414
 import icon192Url from '~/images/icon-192x192.png';

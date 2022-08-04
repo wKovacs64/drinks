@@ -7,7 +7,6 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
-  useCatch,
   useLocation,
   useMatches,
 } from '@remix-run/react';
@@ -22,8 +21,6 @@ import { getEnvVars } from '~/utils/env.server';
 import SkipNavLink from '~/core/skip-nav-link';
 import Header from '~/core/header';
 import Footer from '~/core/footer';
-import ErrorPage from '~/core/error-page';
-import NotFoundPage from '~/core/not-found-page';
 
 // HACK: this is a workaround for Remix issue 3414
 import icon192Url from '~/images/icon-192x192.png';
@@ -94,33 +91,6 @@ export const links: LinksFunction = () => [
   { rel: 'stylesheet', href: appStylesUrl },
 ];
 
-function Layout({ children }: { children: React.ReactNode }) {
-  return (
-    <html
-      lang="en"
-      className="m-0 min-h-screen bg-neutral-800 bg-cover bg-fixed bg-center bg-no-repeat p-0 leading-tight"
-    >
-      <head>
-        <Meta />
-        <Links />
-        <style dangerouslySetInnerHTML={{ __html: sourceSansProFontFaces }} />
-        <style dangerouslySetInnerHTML={{ __html: backgroundImageStyles }} />
-      </head>
-      <body className="relative flex min-h-screen flex-col font-sans font-light">
-        <SkipNavLink contentId="main" />
-        <Header />
-        <div className="flex-1 py-4 sm:w-[26rem] sm:self-center sm:py-8 lg:w-full lg:max-w-[60rem] xl:max-w-[80rem]">
-          {children}
-        </div>
-        <Footer />
-        <ScrollRestoration />
-        <Scripts />
-        <LiveReload />
-      </body>
-    </html>
-  );
-}
-
 export default function App() {
   const location = useLocation();
   const matches = useMatches();
@@ -162,18 +132,27 @@ export default function App() {
   }, [location, matches]);
 
   return (
-    <Layout>
-      <Outlet />
-    </Layout>
-  );
-}
-
-export function CatchBoundary() {
-  const caught = useCatch();
-
-  return (
-    <Layout>
-      {caught.status === 404 ? <NotFoundPage /> : <ErrorPage caught={caught} />}
-    </Layout>
+    <html
+      lang="en"
+      className="m-0 min-h-screen bg-neutral-800 bg-cover bg-fixed bg-center bg-no-repeat p-0 leading-tight"
+    >
+      <head>
+        <Meta />
+        <Links />
+        <style dangerouslySetInnerHTML={{ __html: sourceSansProFontFaces }} />
+        <style dangerouslySetInnerHTML={{ __html: backgroundImageStyles }} />
+      </head>
+      <body className="relative flex min-h-screen flex-col font-sans font-light">
+        <SkipNavLink contentId="main" />
+        <Header />
+        <div className="flex-1 py-4 sm:w-[26rem] sm:self-center sm:py-8 lg:w-full lg:max-w-[60rem] xl:max-w-[80rem]">
+          <Outlet />
+        </div>
+        <Footer />
+        <ScrollRestoration />
+        <Scripts />
+        <LiveReload />
+      </body>
+    </html>
   );
 }

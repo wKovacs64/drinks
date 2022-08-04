@@ -1,12 +1,12 @@
 import { Link, useCatch } from '@remix-run/react';
-import NotFoundPage from '~/core/not-found-page';
+import NotFound from '~/core/not-found';
 
 export function CatchBoundary() {
   const caught = useCatch();
   const hasErrorData = Boolean(caught.data);
 
   return caught.status === 404 ? (
-    <NotFoundPage />
+    <NotFound />
   ) : (
     <BoundaryContainer>
       <h1>

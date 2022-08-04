@@ -1,7 +1,7 @@
 import { Link } from '@remix-run/react';
 import BrokenGlassIcon from '~/core/broken-glass-icon';
 
-export default function NotFoundPage() {
+export default function NotFound() {
   return (
     <div className="m-4 flex flex-col items-center justify-evenly text-gray-100 md:mx-0 md:mt-8 md:mb-0">
       <p className="max-w-[23ch] text-center text-xl font-normal md:text-2xl md:font-light lg:text-4xl">

@@ -10,6 +10,16 @@ const isDev = process.env.NODE_ENV === 'development';
 
 const app = express();
 
+// redirect 'www' subdomain to the apex domain
+app.use((req, res, next) => {
+  if (req.hostname.startsWith('www')) {
+    const apexHostname = req.hostname.replace('www.', '');
+    res.redirect(301, `${req.protocol}://${apexHostname}${req.originalUrl}`);
+  } else {
+    next();
+  }
+});
+
 app.use((req, res, next) => {
   // miscellaneous headers
   res.set('X-Fly-Region', process.env.FLY_REGION ?? 'unknown');

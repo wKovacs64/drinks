@@ -14,7 +14,7 @@ const app = express();
 app.use((req, res, next) => {
   if (req.hostname.startsWith('www')) {
     const apexHostname = req.hostname.replace('www.', '');
-    res.redirect(301, `${req.protocol}://${apexHostname}${req.originalUrl}`);
+    res.redirect(301, `https://${apexHostname}${req.originalUrl}`);
   } else {
     next();
   }

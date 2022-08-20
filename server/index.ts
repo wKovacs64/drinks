@@ -92,21 +92,23 @@ app.use(
   }),
 );
 
-const MODE = process.env.NODE_ENV;
 const BUILD_DIR = path.join(process.cwd(), 'build');
 
 app.all(
   '*',
-  MODE === 'production'
-    ? createRequestHandler({ build: require(BUILD_DIR) })
-    : (...args) => {
+  process.env.NODE_ENV === 'development'
+    ? (req, res, next) => {
         purgeRequireCache();
-        const requestHandler = createRequestHandler({
+
+        return createRequestHandler({
           build: require(BUILD_DIR),
-          mode: MODE,
-        });
-        return requestHandler(...args);
-      },
+          mode: process.env.NODE_ENV,
+        })(req, res, next);
+      }
+    : createRequestHandler({
+        build: require(BUILD_DIR),
+        mode: process.env.NODE_ENV,
+      }),
 );
 
 const port = process.env.PORT || 3000;
@@ -123,8 +125,8 @@ function purgeRequireCache() {
   // purge require cache on requests for "server side HMR" this won't let
   // you have in-memory objects between requests in development,
   // alternatively you can set up nodemon/pm2-dev to restart the server on
-  // file changes, we prefer the DX of this though, so we've included it
-  // for you by default
+  // file changes, but then you'll have to reconnect to databases/etc on each
+  // change. We prefer the DX of this, so we've included it for you by default
   for (const key in require.cache) {
     if (key.startsWith(BUILD_DIR)) {
       // eslint-disable-next-line @typescript-eslint/no-dynamic-delete

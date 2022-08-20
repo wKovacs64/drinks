@@ -1,6 +1,13 @@
-import type { EntryContext, HandleDataRequestFunction } from '@remix-run/node';
+import { PassThrough } from 'stream';
+import {
+  Response,
+  type EntryContext,
+  type HandleDataRequestFunction,
+} from '@remix-run/node';
 import { RemixServer } from '@remix-run/react';
-import { renderToString } from 'react-dom/server';
+import { renderToPipeableStream } from 'react-dom/server';
+
+const ABORT_DELAY = 15_000;
 
 export default function handleRequest(
   request: Request,
@@ -8,15 +15,38 @@ export default function handleRequest(
   responseHeaders: Headers,
   remixContext: EntryContext,
 ) {
-  let markup = renderToString(
-    <RemixServer context={remixContext} url={request.url} />,
-  );
+  return new Promise((resolve, reject) => {
+    let didError = false;
 
-  responseHeaders.set('Content-Type', 'text/html');
+    const { pipe, abort } = renderToPipeableStream(
+      <RemixServer context={remixContext} url={request.url} />,
+      {
+        onShellReady: () => {
+          const body = new PassThrough();
 
-  return new Response('<!DOCTYPE html>' + markup, {
-    status: responseStatusCode,
-    headers: responseHeaders,
+          responseHeaders.set('Content-Type', 'text/html');
+
+          resolve(
+            new Response(body, {
+              headers: responseHeaders,
+              status: didError ? 500 : responseStatusCode,
+            }),
+          );
+
+          pipe(body);
+        },
+        onShellError: (err) => {
+          reject(err);
+        },
+        onError: (error) => {
+          didError = true;
+
+          console.error(error);
+        },
+      },
+    );
+
+    setTimeout(abort, ABORT_DELAY);
   });
 }
 

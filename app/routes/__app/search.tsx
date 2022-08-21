@@ -61,14 +61,12 @@ export const loader = async ({ request }: LoaderArgs) => {
     return json({ drinks: [] });
   }
 
+  const slugs = hits.map((hit) => hit.slug);
+
   // query Contentful for drinks matching slugs in Algolia results
   const allDrinksQuery = /* GraphQL */ `
     query ($preview: Boolean, $slugs: [String]) {
-      drinkCollection(
-        preview: $preview
-        order: [rank_DESC, sys_firstPublishedAt_DESC]
-        where: { slug_in: $slugs }
-      ) {
+      drinkCollection(preview: $preview, where: { slug_in: $slugs }) {
         drinks: items {
           title
           slug
@@ -88,7 +86,7 @@ export const loader = async ({ request }: LoaderArgs) => {
     allDrinksQuery,
     {
       preview: CONTENTFUL_PREVIEW === 'true',
-      slugs: hits.map((hit) => hit.slug),
+      slugs,
     },
   );
 
@@ -106,6 +104,9 @@ export const loader = async ({ request }: LoaderArgs) => {
       drinkCollection: { drinks },
     },
   } = queryResponseJson;
+
+  // sort results in the same order as slugs returned from Algolia
+  drinks.sort((a, b) => slugs.indexOf(a.slug) - slugs.indexOf(b.slug));
 
   const drinksWithPlaceholderImages = await withPlaceholderImages(drinks);
   const loaderData = { drinks: drinksWithPlaceholderImages };

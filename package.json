@@ -80,7 +80,7 @@
     "@wkovacs64/prettier-config": "3.0.2",
     "autoprefixer": "10.4.8",
     "commitizen": "4.2.5",
-    "cpy-cli": "4.1.0",
+    "cpy-cli": "4.2.0",
     "cz-conventional-changelog": "3.3.0",
     "esbuild": "0.15.5",
     "esbuild-register": "3.3.3",

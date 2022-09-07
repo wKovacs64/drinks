@@ -11,7 +11,7 @@ export const cache = {
       }
     }
   },
-  async put(key: string, value: any) {
+  async set(key: string, value: any) {
     try {
       await prisma.cacheEntry.create({
         data: { key, value: JSON.stringify(value) },
@@ -27,7 +27,7 @@ export const cache = {
       return false;
     }
   },
-  async del(key: string) {
+  async delete(key: string) {
     try {
       await prisma.cacheEntry.delete({ where: { key } });
     } catch {

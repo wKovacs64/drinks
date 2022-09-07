@@ -71,7 +71,7 @@ export const loader = async ({ request }: LoaderArgs) => {
   const drinksWithPlaceholderImages = await withPlaceholderImages(drinks);
   const loaderData = { drinks: drinksWithPlaceholderImages };
 
-  await cache.put(cacheKey, loaderData);
+  await cache.set(cacheKey, loaderData);
   return json(loaderData);
 };
 

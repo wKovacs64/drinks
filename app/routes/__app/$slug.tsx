@@ -82,7 +82,7 @@ export const loader = async ({ params, request }: LoaderArgs) => {
 
   const loaderData = { drink: enhancedDrink };
 
-  await cache.put(cacheKey, loaderData);
+  await cache.set(cacheKey, loaderData);
   return json(loaderData);
 };
 

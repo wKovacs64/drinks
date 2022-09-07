@@ -67,7 +67,7 @@ export const loader = async ({ request }: LoaderArgs) => {
 
   const loaderData = { tags: Array.from(uniqueTags).sort() };
 
-  await cache.put(cacheKey, loaderData);
+  await cache.set(cacheKey, loaderData);
   return json(loaderData);
 };
 

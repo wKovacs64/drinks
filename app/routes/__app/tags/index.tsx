@@ -1,4 +1,9 @@
-import { json, type LoaderArgs, type MetaFunction } from '@remix-run/node';
+import {
+  json,
+  type LoaderArgs,
+  type MetaFunction,
+  type SerializeFrom,
+} from '@remix-run/node';
 import { useLoaderData } from '@remix-run/react';
 import kebabCase from 'lodash/kebabCase';
 import Nav from '~/navigation/nav';
@@ -11,12 +16,7 @@ import { fetchGraphQL } from '~/utils/graphql.server';
 import { cache } from '~/utils/cache.server';
 import type { DrinkTagsResponse } from '~/types';
 
-// TODO: remove this workaround once Remix uses esbuild >= 0.14.26
-export type LoaderData = Awaited<
-  ReturnType<Awaited<ReturnType<typeof loader>>['json']>
->;
-// More correct, but Remix (esbuild 0.14.22) doesn't support it yet
-// export type LoaderData = ReturnType<typeof useLoaderData<typeof loader>>;
+export type LoaderData = SerializeFrom<typeof loader>;
 
 export const loader = async ({ request }: LoaderArgs) => {
   const cacheKey = new URL(request.url).pathname;

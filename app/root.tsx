@@ -1,5 +1,10 @@
 import * as React from 'react';
-import { json, type LinksFunction, type MetaFunction } from '@remix-run/node';
+import {
+  json,
+  type LinksFunction,
+  type MetaFunction,
+  type SerializeFrom,
+} from '@remix-run/node';
 import {
   Links,
   LiveReload,
@@ -34,11 +39,6 @@ console.assert(typeof iconMaskable192Url === 'string');
 console.assert(typeof iconMaskable512Url === 'string');
 // END HACK
 
-interface LoaderData {
-  socialImageUrl: string;
-  socialImageAlt: string;
-}
-
 export const loader = async () => {
   const { SITE_IMAGE_URL, SITE_IMAGE_ALT } = getEnvVars();
 
@@ -48,7 +48,11 @@ export const loader = async () => {
   });
 };
 
-export const meta: MetaFunction = ({ data }: { data: LoaderData }) => {
+export const meta: MetaFunction = ({
+  data,
+}: {
+  data: SerializeFrom<typeof loader>;
+}) => {
   const appName = 'Drinks';
   const title = 'drinks.fyi';
   const description = 'Craft Cocktail Gallery';

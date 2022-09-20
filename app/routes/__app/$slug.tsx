@@ -86,10 +86,10 @@ export const loader = async ({ params, request }: LoaderArgs) => {
   return json(loaderData);
 };
 
-export const meta: MetaFunction = (metaArgs) => {
-  if (!metaArgs.data?.drink) return {};
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
+  if (!data?.drink) return {};
 
-  const { drink } = metaArgs.data;
+  const { drink } = data;
   const { title, ingredients } = drink;
   const description = ingredients.join(', ');
   const socialImageUrl = makeImageUrl({

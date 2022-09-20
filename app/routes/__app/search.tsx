@@ -114,7 +114,7 @@ export const loader = async ({ request }: LoaderArgs) => {
   return json(loaderData);
 };
 
-export const meta: MetaFunction = (metaArgs) => {
+export const meta: MetaFunction<typeof loader> = () => {
   return {
     title: 'Search Drinks',
     description: 'Search all drinks by ingredient or description',

@@ -80,8 +80,8 @@ export const loader = async ({ params, request }: LoaderArgs) => {
   return json(loaderData);
 };
 
-export const meta: MetaFunction = (metaArgs) => {
-  const { tag } = metaArgs.params;
+export const meta: MetaFunction<typeof loader> = ({ params }) => {
+  const { tag } = params;
 
   return {
     title: `Drinks with ${startCase(tag)}`,

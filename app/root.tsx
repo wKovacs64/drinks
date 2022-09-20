@@ -1,10 +1,5 @@
 import * as React from 'react';
-import {
-  json,
-  type LinksFunction,
-  type MetaFunction,
-  type SerializeFrom,
-} from '@remix-run/node';
+import { json, type LinksFunction, type MetaFunction } from '@remix-run/node';
 import {
   Links,
   LiveReload,
@@ -48,11 +43,7 @@ export const loader = async () => {
   });
 };
 
-export const meta: MetaFunction = ({
-  data,
-}: {
-  data: SerializeFrom<typeof loader>;
-}) => {
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
   const appName = 'Drinks';
   const title = 'drinks.fyi';
   const description = 'Craft Cocktail Gallery';

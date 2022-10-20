@@ -22,18 +22,6 @@ import SkipNavLink from '~/core/skip-nav-link';
 import Header from '~/core/header';
 import Footer from '~/core/footer';
 
-// HACK: this is a workaround for Remix issue 3414
-import icon192Url from '~/images/icon-192x192.png';
-import icon512Url from '~/images/icon-512x512.png';
-import iconMaskable192Url from '~/images/icon-maskable-192x192.png';
-import iconMaskable512Url from '~/images/icon-maskable-512x512.png';
-// you must "use" the imported URL for this hack or the assets won't be built
-console.assert(typeof icon192Url === 'string');
-console.assert(typeof icon512Url === 'string');
-console.assert(typeof iconMaskable192Url === 'string');
-console.assert(typeof iconMaskable512Url === 'string');
-// END HACK
-
 export const loader = async () => {
   const { SITE_IMAGE_URL, SITE_IMAGE_ALT } = getEnvVars();
 

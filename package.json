@@ -75,7 +75,7 @@
     "@types/lodash": "4.14.186",
     "@types/marked": "4.0.7",
     "@types/morgan": "1.9.3",
-    "@types/react": "18.0.21",
+    "@types/react": "18.0.22",
     "@types/react-dom": "18.0.6",
     "@wkovacs64/prettier-config": "3.0.2",
     "autoprefixer": "10.4.12",

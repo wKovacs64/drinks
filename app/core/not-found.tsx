@@ -10,7 +10,7 @@ export default function NotFound() {
       <BrokenGlassIcon className="my-[10vh] inline h-[20vh] w-[20vh] text-burnt-orange" />
       <Link
         to="/"
-        className="border-b border-solid pb-1 transition-shadow ease-default hover:shadow-[inset_0_-2px_0_0] focus-visible:shadow-[inset_0_-2px_0_0] focus-visible:outline-none focus-visible:ring md:text-xl"
+        className="drinks-focusable border-b border-solid pb-1 hover:shadow-[inset_0_-2px_0_0] focus-visible:shadow-[inset_0_-2px_0_0] md:text-xl"
       >
         Back to Drinks
       </Link>

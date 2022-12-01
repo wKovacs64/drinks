@@ -8,13 +8,13 @@ export default function Footer() {
         {/* <button
           type="button"
           onClick={onFeedbackClick}
-          className="ease-default inline-block whitespace-nowrap border border-solid border-current p-2 transition-shadow hover:border-zinc-100 hover:text-zinc-100 focus:border-zinc-100 focus:text-zinc-100 focus-visible:outline-none focus-visible:ring md:p-4"
+          className="drinks-focusable inline-block whitespace-nowrap border border-solid border-current p-2 hover:border-zinc-100 hover:text-zinc-100 focus:border-zinc-100 focus:text-zinc-100 md:p-4"
         >
           Send Feedback
         </button> */}
         <div />
         <a
-          className="transition-shadow ease-default hover:text-zinc-100 focus:text-zinc-100 focus-visible:outline-none focus-visible:ring"
+          className="drinks-focusable hover:text-zinc-100 focus:text-zinc-100"
           href="https://github.com/wKovacs64/drinks"
           target="_blank"
           rel="nofollow noopener noreferrer"

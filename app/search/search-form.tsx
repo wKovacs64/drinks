@@ -40,7 +40,7 @@ export default function SearchForm({
         title="Search by Algolia"
         target="_blank"
         rel="nofollow noopener noreferrer"
-        className="group p-2 transition-shadow ease-default focus-visible:outline-none focus-visible:ring"
+        className="drinks-focusable group p-2"
       >
         <AlgoliaIcon
           aria-label="Search by Algolia"
@@ -57,10 +57,10 @@ export default function SearchForm({
         autoComplete="off"
         autoCorrect="off"
         // horizontal margin to account for 3px box-shadow on focus
-        className="mx-[3px] w-full p-4 transition-shadow ease-default placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring"
+        className="drinks-focusable mx-[3px] w-full p-4 placeholder:text-slate-500"
       />
       <button
-        className="bg-maroon px-2 text-cream transition-shadow ease-default hover:bg-cream hover:text-maroon focus-visible:bg-cream focus-visible:text-maroon focus-visible:outline-none focus-visible:ring"
+        className="drinks-focusable bg-maroon px-2 text-cream hover:bg-cream hover:text-maroon focus-visible:bg-cream focus-visible:text-maroon"
         title="Search"
         type="submit"
       >

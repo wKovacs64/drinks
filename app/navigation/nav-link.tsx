@@ -4,7 +4,7 @@ export default function NavLink({ children, to }: NavLinkProps) {
   return (
     <li className="inline">
       <Link
-        className="border-b border-dotted pb-1 transition ease-default hover:border-solid focus:border-solid focus-visible:outline-none focus-visible:ring"
+        className="drinks-focusable border-b border-dotted pb-1 transition hover:border-solid focus:border-solid"
         to={to}
         prefetch="intent"
       >

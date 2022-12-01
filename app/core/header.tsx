@@ -22,7 +22,7 @@ function HeaderLink({ children, ...props }: LinkProps) {
   return (
     <Link
       {...props}
-      className="transition-shadow ease-default hover:text-zinc-100 focus:text-zinc-100 focus-visible:outline-none focus-visible:ring"
+      className="drinks-focusable hover:text-zinc-100 focus:text-zinc-100"
     >
       {children}
     </Link>

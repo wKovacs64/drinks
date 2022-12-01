@@ -25,3 +25,7 @@ html > body {
   overflow-y: scroll !important;
   margin: 0 !important;
 }
+
+.drinks-focusable {
+  @apply transition-shadow ease-default focus-visible:outline-none focus-visible:ring;
+}

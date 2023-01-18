@@ -1,5 +1,6 @@
 // credit: ShafSpecs/remix-pwa
 /// <reference lib="WebWorker" />
+
 import { json } from '@remix-run/server-runtime';
 
 export type {};
@@ -147,7 +148,7 @@ async function handleFetch(event: FetchEvent): Promise<Response> {
   return fetch(event.request.clone());
 }
 
-const handlePush = (event: PushEvent) => {
+const handlePush = async (event: PushEvent) => {
   const data = JSON.parse(event?.data!.text());
   const title = data.title ? data.title : 'Remix PWA';
 

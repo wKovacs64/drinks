@@ -3,7 +3,7 @@ import { json, type LoaderArgs, type MetaFunction } from '@remix-run/node';
 import {
   useLoaderData,
   useSearchParams,
-  useTransition,
+  useNavigation,
 } from '@remix-run/react';
 import { getEnvVars } from '~/utils/env.server';
 import { fetchGraphQL } from '~/utils/graphql.server';
@@ -125,12 +125,12 @@ export default function SearchPage() {
   const { drinks } = useLoaderData<typeof loader>();
   const [searchParams] = useSearchParams();
   const q = searchParams.get('q');
-  const transition = useTransition();
+  const navigation = useNavigation();
 
-  const isIdle = transition.state === 'idle' && !q;
-  const isSearching = transition.state === 'submitting';
-  const hasNoResults = transition.state === 'idle' && q && drinks.length === 0;
-  const hasResults = transition.state === 'idle' && drinks.length > 0;
+  const isIdle = navigation.state === 'idle' && !q;
+  const isSearching = navigation.state === 'submitting';
+  const hasNoResults = navigation.state === 'idle' && q && drinks.length === 0;
+  const hasResults = navigation.state === 'idle' && drinks.length > 0;
 
   return (
     <div>

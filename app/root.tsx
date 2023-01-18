@@ -31,6 +31,11 @@ export const loader = async () => {
   });
 };
 
+export function shouldRevalidate() {
+  // only need the root loader to run once, no need to revalidate
+  return false;
+}
+
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   const appName = 'Drinks';
   const title = 'drinks.fyi';

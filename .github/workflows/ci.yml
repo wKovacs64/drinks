@@ -152,6 +152,10 @@ jobs:
 
       - name: 🐳 Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
+        # Temporary workaround
+        # https://community.fly.io/t/deploying-to-fly-via-github-action-failing/10171
+        with:
+          version: v0.9.1
 
       # Setup cache
       - name: ⚡️ Cache Docker layers

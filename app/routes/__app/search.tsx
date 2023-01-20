@@ -128,7 +128,7 @@ export default function SearchPage() {
   const navigation = useNavigation();
 
   const isIdle = navigation.state === 'idle' && !q;
-  const isSearching = navigation.state === 'submitting';
+  const isSearching = navigation.state === 'loading';
   const hasNoResults = navigation.state === 'idle' && q && drinks.length === 0;
   const hasResults = navigation.state === 'idle' && drinks.length > 0;
 

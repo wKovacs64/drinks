@@ -10,12 +10,17 @@ import {
   useLocation,
   useMatches,
 } from '@remix-run/react';
+import sourceSansPro200 from '@fontsource/source-sans-pro/latin-200.css';
+import sourceSansPro300 from '@fontsource/source-sans-pro/latin-300.css';
+import sourceSansPro400 from '@fontsource/source-sans-pro/latin-400.css';
+import sourceSansPro600 from '@fontsource/source-sans-pro/latin-600.css';
+import sourceSansPro700 from '@fontsource/source-sans-pro/latin-700.css';
+import sourceSansPro900 from '@fontsource/source-sans-pro/latin-900.css';
 // @ts-ignore
 import faviconIcoUrl from '../public/favicon.ico';
 import icon32Url from '~/images/icon-32x32.png';
 import appleTouchIconUrl from '~/images/apple-touch-icon.png';
 import appStylesUrl from '~/styles/app.generated.css';
-import { sourceSansProFontFaces } from '~/styles/font-faces';
 import { backgroundImageStyles } from '~/styles/background-image';
 import { getEnvVars } from '~/utils/env.server';
 import SkipNavLink from '~/core/skip-nav-link';
@@ -76,6 +81,12 @@ export const links: LinksFunction = () => [
   { rel: 'icon', type: 'image/png', sizes: '32x32', href: icon32Url },
   { rel: 'apple-touch-icon', sizes: '180x180', href: appleTouchIconUrl },
   { rel: 'manifest', href: '/manifest.webmanifest' },
+  { rel: 'stylesheet', href: sourceSansPro200 },
+  { rel: 'stylesheet', href: sourceSansPro300 },
+  { rel: 'stylesheet', href: sourceSansPro400 },
+  { rel: 'stylesheet', href: sourceSansPro600 },
+  { rel: 'stylesheet', href: sourceSansPro700 },
+  { rel: 'stylesheet', href: sourceSansPro900 },
   { rel: 'stylesheet', href: appStylesUrl },
 ];
 
@@ -127,7 +138,6 @@ export default function App() {
       <head>
         <Meta />
         <Links />
-        <style dangerouslySetInnerHTML={{ __html: sourceSansProFontFaces }} />
         <style dangerouslySetInnerHTML={{ __html: backgroundImageStyles }} />
       </head>
       <body className="relative flex min-h-screen flex-col font-sans font-light">

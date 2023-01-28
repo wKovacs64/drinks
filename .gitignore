@@ -246,7 +246,6 @@ $RECYCLE.BIN/
 .env
 
 # Generated stuff
-app/fonts/**/*
 **/*.generated.css
 !**/.gitkeep
 

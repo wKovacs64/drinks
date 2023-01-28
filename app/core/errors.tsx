@@ -1,32 +1,35 @@
-import { Link, useCatch } from '@remix-run/react';
+import { Link, isRouteErrorResponse, useRouteError } from '@remix-run/react';
 import NotFound from '~/core/not-found';
 
-export function CatchBoundary() {
-  const caught = useCatch();
-  const hasErrorData = Boolean(caught.data);
+export function ErrorBoundary() {
+  const error = useRouteError();
 
-  return caught.status === 404 ? (
-    <NotFound />
-  ) : (
-    <BoundaryContainer>
-      <h1>
-        <span>
-          {caught.status} {caught.statusText}
-        </span>
-      </h1>
-      <section className="flex flex-col gap-4">
-        <p>We knew this might happen one day.</p>
-        {hasErrorData ? <p>The error message was as follows:</p> : null}
-      </section>
-      {hasErrorData ? (
-        <BoundaryError>{JSON.stringify(caught.data, null, 2)}</BoundaryError>
-      ) : null}
-      <StartOverLink />
-    </BoundaryContainer>
-  );
-}
+  console.log('isRouteErrorResponse(error)', isRouteErrorResponse(error));
 
-export function ErrorBoundary({ error }: { error: Error }) {
+  if (isRouteErrorResponse(error)) {
+    if (error.status === 404) {
+      return <NotFound />;
+    }
+
+    return (
+      <BoundaryContainer>
+        <h1>
+          <span>
+            {error.status} {error.statusText}
+          </span>
+        </h1>
+        <section className="flex flex-col gap-4">
+          <p>We knew this might happen one day.</p>
+          {error.data ? <p>The error message was as follows:</p> : null}
+        </section>
+        {error.data ? (
+          <BoundaryError>{JSON.stringify(error.data, null, 2)}</BoundaryError>
+        ) : null}
+        <StartOverLink />
+      </BoundaryContainer>
+    );
+  }
+
   return (
     <BoundaryContainer>
       <h1 className="flex gap-2">
@@ -45,7 +48,9 @@ export function ErrorBoundary({ error }: { error: Error }) {
         </p>
         <p>The error message was as follows:</p>
       </section>
-      <BoundaryError>{error.message}</BoundaryError>
+      <BoundaryError>
+        {error instanceof Error ? error.message : 'Unknown Error'}
+      </BoundaryError>
       <StartOverLink />
     </BoundaryContainer>
   );

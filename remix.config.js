@@ -12,5 +12,6 @@ module.exports = {
   // publicPath: "/build/",
   future: {
     unstable_cssSideEffectImports: true,
+    v2_errorBoundary: true,
   },
 };

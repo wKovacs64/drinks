@@ -12,5 +12,6 @@ module.exports = {
     unstable_cssSideEffectImports: true,
     unstable_dev: true,
     v2_errorBoundary: true,
+    v2_routeConvention: true,
   },
 };

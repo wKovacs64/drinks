@@ -4,8 +4,6 @@ import NotFound from '~/core/not-found';
 export function ErrorBoundary() {
   const error = useRouteError();
 
-  console.log('isRouteErrorResponse(error)', isRouteErrorResponse(error));
-
   if (isRouteErrorResponse(error)) {
     if (error.status === 404) {
       return <NotFound />;

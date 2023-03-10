@@ -13,7 +13,9 @@ export default function SearchForm({
 
   React.useEffect(() => {
     if (inputRef.current) {
-      inputRef.current.value = initialSearchTerm ?? '';
+      if (!inputRef.current.value && initialSearchTerm) {
+        inputRef.current.value = initialSearchTerm;
+      }
       inputRef.current.focus();
     }
   }, [initialSearchTerm]);

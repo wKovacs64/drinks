@@ -6,13 +6,13 @@ import { cache } from '~/utils/cache.server';
 import {
   loader as allDrinksLoader,
   type LoaderData as AllDrinksLoaderData,
-} from '~/routes/_app._index';
-import { loader as drinkLoader } from '~/routes/_app.$slug';
+} from '~/routes/_app._index/route';
+import { loader as drinkLoader } from '~/routes/_app.$slug/route';
 import {
   loader as allTagsLoader,
   type LoaderData as AllTagsLoaderData,
-} from '~/routes/_app.tags._index';
-import { loader as tagLoader } from '~/routes/_app.tags.$tag';
+} from '~/routes/_app.tags._index/route';
+import { loader as tagLoader } from '~/routes/_app.tags.$tag/route';
 
 const { CONTENTFUL_PREVIEW } = getEnvVars();
 

@@ -26,7 +26,7 @@
     "deploy": "flyctl deploy --remote-only",
     "dev": "npm run clean && run-p build:css && pm2-dev ./other/pm2.config.js",
     "dev:css": "npm run generate:css -- --watch",
-    "dev:remix": "cross-env NODE_ENV=development remix watch",
+    "dev:remix": "cross-env NODE_ENV=development remix dev",
     "dev:server": "wait-on ./build/index.js && cross-env NODE_ENV=development node --inspect --require esbuild-register --require dotenv/config ./server/index.ts",
     "dev:worker": "esbuild --watch --bundle --format=esm --define:process.env.NODE_ENV='\"development\"' ./app/entry.worker.ts --outfile=./public/sw.js ",
     "generate:css": "tailwindcss --input ./app/styles/app.css --output ./app/styles/app.generated.css",

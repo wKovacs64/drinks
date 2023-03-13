@@ -20,7 +20,7 @@ import sourceSansPro900 from '@fontsource/source-sans-pro/latin-900.css';
 import faviconIcoUrl from '../public/favicon.ico';
 import icon32Url from '~/images/icon-32x32.png';
 import appleTouchIconUrl from '~/images/apple-touch-icon.png';
-import appStylesUrl from '~/styles/app.generated.css';
+import appStylesUrl from '~/styles/app.css';
 import { backgroundImageStyles } from '~/styles/background-image';
 import { getEnvVars } from '~/utils/env.server';
 import SkipNavLink from '~/core/skip-nav-link';

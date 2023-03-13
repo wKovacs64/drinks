@@ -5,5 +5,4 @@ node_modules
 
 package*.json
 **/*.typegen.ts
-**/*.generated.css
 /public/sw.js

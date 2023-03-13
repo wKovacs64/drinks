@@ -8,13 +8,6 @@ const env = {
 module.exports = {
   apps: [
     {
-      name: 'Tailwind',
-      script: './other/pm2-tailwind.js',
-      autorestart: false,
-      watch: ['./tailwind.config.js'],
-      env,
-    },
-    {
       name: 'Remix',
       script: './other/pm2-remix.js',
       ignore_watch: ['.'],

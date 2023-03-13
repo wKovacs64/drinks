@@ -11,7 +11,7 @@ module.exports = {
   future: {
     unstable_cssSideEffectImports: true,
     unstable_dev: true,
-    unstable_tailwind: true,
+    unstable_postcss: true,
     v2_errorBoundary: true,
     v2_routeConvention: true,
   },

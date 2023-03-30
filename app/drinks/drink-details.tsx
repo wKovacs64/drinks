@@ -25,7 +25,7 @@ export default function DrinkDetails({ drink }: { drink: EnhancedDrink }) {
         <div className="flex flex-wrap border-t border-dotted border-t-stone-300 pt-4 lg:justify-end">
           {drink.tags.map((tag) => (
             <TagLink
-              className="mt-4 mr-4 ml-0 leading-tight lg:ml-4 lg:mr-0"
+              className="ml-0 mr-4 mt-4 leading-tight lg:ml-4 lg:mr-0"
               aria-label={`Find all drinks containing ${tag}`}
               to={`/tags/${kebabCase(tag)}`}
               key={tag}

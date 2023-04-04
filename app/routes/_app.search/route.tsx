@@ -11,12 +11,12 @@ import { withPlaceholderImages } from '~/utils/placeholder-images.server';
 import Nav from '~/navigation/nav';
 import NavLink from '~/navigation/nav-link';
 import NavDivider from '~/navigation/nav-divider';
-import NoDrinksFound from '~/search/no-drinks-found';
-import NoSearchTerm from '~/search/no-search-term';
-import SearchForm from '~/search/search-form';
-import Searching from '~/search/searching';
 import DrinkList from '~/drinks/drink-list';
 import type { Drink, DrinksResponse } from '~/types';
+import NoDrinksFound from './no-drinks-found';
+import NoSearchTerm from './no-search-term';
+import SearchForm from './search-form';
+import Searching from './searching';
 
 export const loader = async ({ request }: LoaderArgs) => {
   const q = new URL(request.url).searchParams.get('q');

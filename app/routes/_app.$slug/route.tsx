@@ -1,11 +1,13 @@
-import { json, type LoaderArgs, type MetaFunction } from '@remix-run/node';
+import { json, type LoaderArgs } from '@remix-run/node';
 import { useLoaderData } from '@remix-run/react';
 import { getEnvVars } from '~/utils/env.server';
+import { mergeMeta } from '~/utils/meta';
 import { fetchGraphQL } from '~/utils/graphql.server';
 import { cache } from '~/utils/cache.server';
 import { withPlaceholderImages } from '~/utils/placeholder-images.server';
 import { markdownToHtml } from '~/utils/markdown.server';
 import { makeImageUrl } from '~/core/image';
+import { notFoundMeta } from '~/routes/_app.$/route';
 import Nav from '~/navigation/nav';
 import NavDivider from '~/navigation/nav-divider';
 import NavLink from '~/navigation/nav-link';
@@ -86,8 +88,8 @@ export const loader = async ({ params, request }: LoaderArgs) => {
   return json(loaderData);
 };
 
-export const meta: MetaFunction<typeof loader> = ({ data }) => {
-  if (!data?.drink) return {};
+export const meta = mergeMeta<typeof loader>(({ data }) => {
+  if (!data) return notFoundMeta;
 
   const { drink } = data;
   const { title, ingredients } = drink;
@@ -103,20 +105,19 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   });
   const socialImageAlt = `${title} in a glass`;
 
-  return {
-    title,
-    description,
-    'og:title': title,
-    'og:description': description,
-    'og:image': socialImageUrl,
-    'og:image:alt': socialImageAlt,
-    'twitter:card': 'summary_large_image',
-    'twitter:title': title,
-    'twitter:description': description,
-    'twitter:image': socialImageUrl,
-    'twitter:image:alt': socialImageAlt,
-  };
-};
+  return [
+    { title },
+    { name: 'description', content: description },
+    { property: 'og:title', content: title },
+    { property: 'og:description', content: description },
+    { property: 'og:image', content: socialImageUrl },
+    { property: 'og:image:alt', content: socialImageAlt },
+    { name: 'twitter:title', content: title },
+    { name: 'twitter:description', content: description },
+    { name: 'twitter:image', content: socialImageUrl },
+    { name: 'twitter:image:alt', content: socialImageAlt },
+  ];
+});
 
 export default function DrinkPage() {
   const { drink } = useLoaderData<typeof loader>();

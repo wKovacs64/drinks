@@ -1,11 +1,11 @@
-import type { MetaFunction } from '@remix-run/node';
+import { mergeMeta } from '~/utils/meta';
 import NotFound from '~/core/not-found';
 
-export const meta: MetaFunction = () => {
-  return {
-    title: 'Not Found',
-    description: `There's nothing of interest here.`,
-  };
-};
+export const notFoundMeta = [
+  { title: 'Not Found' },
+  { name: 'description', content: "There's nothing of interest here." },
+];
+
+export const meta = mergeMeta(() => notFoundMeta);
 
 export default NotFound;

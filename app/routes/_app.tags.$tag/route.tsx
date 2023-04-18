@@ -1,11 +1,13 @@
-import { json, type LoaderArgs, type MetaFunction } from '@remix-run/node';
+import { json, type LoaderArgs } from '@remix-run/node';
 import { useLoaderData, useParams } from '@remix-run/react';
 import lowerCase from 'lodash/lowerCase';
 import startCase from 'lodash/startCase';
 import { getEnvVars } from '~/utils/env.server';
+import { mergeMeta } from '~/utils/meta';
 import { fetchGraphQL } from '~/utils/graphql.server';
 import { cache } from '~/utils/cache.server';
 import { withPlaceholderImages } from '~/utils/placeholder-images.server';
+import { notFoundMeta } from '~/routes/_app.$/route';
 import Nav from '~/navigation/nav';
 import NavLink from '~/navigation/nav-link';
 import NavDivider from '~/navigation/nav-divider';
@@ -80,14 +82,16 @@ export const loader = async ({ params, request }: LoaderArgs) => {
   return json(loaderData);
 };
 
-export const meta: MetaFunction<typeof loader> = ({ params }) => {
+export const meta = mergeMeta<typeof loader>(({ data, params }) => {
+  if (!data) return notFoundMeta;
+
   const { tag } = params;
 
-  return {
-    title: `Drinks with ${startCase(tag)}`,
-    description: `All drinks containing ${lowerCase(tag)}`,
-  };
-};
+  return [
+    { title: `Drinks with ${startCase(tag)}` },
+    { name: 'description', content: `All drinks containing ${lowerCase(tag)}` },
+  ];
+});
 
 export default function TagPage() {
   const { drinks } = useLoaderData<typeof loader>();

@@ -1,5 +1,3 @@
-const defaultTheme = require('tailwindcss/defaultTheme');
-
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: ['./app/**/*.{js,ts,jsx,tsx}'],
@@ -11,7 +9,7 @@ module.exports = {
         cream: '#eedebf', // closest: orange-200
       },
       fontFamily: {
-        sans: ['Source Sans Pro', ...defaultTheme.fontFamily.sans],
+        sans: ['Source Sans Pro', 'Source Sans Pro Fallback'],
       },
       transitionTimingFunction: {
         default: 'ease',

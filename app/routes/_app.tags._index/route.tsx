@@ -1,9 +1,4 @@
-import {
-  json,
-  type LoaderArgs,
-  type MetaFunction,
-  type SerializeFrom,
-} from '@remix-run/node';
+import { json, type LoaderArgs, type SerializeFrom } from '@remix-run/node';
 import { useLoaderData } from '@remix-run/react';
 import kebabCase from 'lodash/kebabCase';
 import Nav from '~/navigation/nav';
@@ -12,6 +7,7 @@ import NavLink from '~/navigation/nav-link';
 import TagLink from '~/tags/tag-link';
 import Tag from '~/tags/tag';
 import { getEnvVars } from '~/utils/env.server';
+import { mergeMeta } from '~/utils/meta';
 import { fetchGraphQL } from '~/utils/graphql.server';
 import { cache } from '~/utils/cache.server';
 import type { DrinkTagsResponse } from '~/types';
@@ -71,12 +67,12 @@ export const loader = async ({ request }: LoaderArgs) => {
   return json(loaderData);
 };
 
-export const meta: MetaFunction<typeof loader> = () => {
-  return {
-    title: 'Ingredient Tags',
-    description: 'Discover drinks by ingredient',
-  };
-};
+export const meta = mergeMeta<typeof loader>(() => {
+  return [
+    { title: 'Ingredient Tags' },
+    { name: 'description', content: 'Discover drinks by ingredient' },
+  ];
+});
 
 export default function TagsPage() {
   const { tags } = useLoaderData<typeof loader>();

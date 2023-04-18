@@ -1,5 +1,9 @@
 import * as React from 'react';
-import { json, type LinksFunction, type MetaFunction } from '@remix-run/node';
+import {
+  json,
+  type LinksFunction,
+  type V2_MetaFunction,
+} from '@remix-run/node';
 import {
   Links,
   LiveReload,
@@ -41,33 +45,29 @@ export function shouldRevalidate() {
   return false;
 }
 
-export const meta: MetaFunction<typeof loader> = ({ data }) => {
+export const meta: V2_MetaFunction<typeof loader> = ({ data }) => {
   const appName = 'Drinks';
   const title = 'drinks.fyi';
   const description = 'Craft Cocktail Gallery';
   const themeColor = '#137752';
   const { socialImageUrl, socialImageAlt } = data;
 
-  return {
-    charset: 'utf-8',
-    title: title,
-    description: description,
-    viewport: 'width=device-width,initial-scale=1',
-    'og:type': 'website',
-    'og:title': title,
-    'og:description': description,
-    'og:image': socialImageUrl,
-    'og:image:alt': socialImageAlt,
-    'twitter:card': 'summary_large_image',
-    'twitter:title': title,
-    'twitter:description': description,
-    'twitter:image': socialImageUrl,
-    'twitter:image:alt': socialImageAlt,
-    'application-name': appName,
-    'apple-mobile-web-app-title': appName,
-    'msapplication-TileColor': themeColor,
-    'theme-color': themeColor,
-  };
+  return [
+    { title },
+    { name: 'description', content: description },
+    { property: 'og:title', content: title },
+    { property: 'og:description', content: description },
+    { property: 'og:image', content: socialImageUrl },
+    { property: 'og:image:alt', content: socialImageAlt },
+    { name: 'twitter:title', content: title },
+    { name: 'twitter:description', content: description },
+    { name: 'twitter:image', content: socialImageUrl },
+    { name: 'twitter:image:alt', content: socialImageAlt },
+    { name: 'application-name', content: appName },
+    { name: 'apple-mobile-web-app-title', content: appName },
+    { name: 'msapplication-TileColor', content: themeColor },
+    { name: 'theme-color', content: themeColor },
+  ];
 };
 
 export const links: LinksFunction = () => [
@@ -136,6 +136,10 @@ export default function App() {
       className="m-0 min-h-screen bg-neutral-800 bg-cover bg-fixed bg-center bg-no-repeat p-0 leading-tight"
     >
       <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
         <Meta />
         <Links />
         <style dangerouslySetInnerHTML={{ __html: backgroundImageStyles }} />

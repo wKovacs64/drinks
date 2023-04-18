@@ -1,11 +1,12 @@
 import * as React from 'react';
-import { json, type LoaderArgs, type MetaFunction } from '@remix-run/node';
+import { json, type LoaderArgs } from '@remix-run/node';
 import {
   useLoaderData,
   useSearchParams,
   useNavigation,
 } from '@remix-run/react';
 import { getEnvVars } from '~/utils/env.server';
+import { mergeMeta } from '~/utils/meta';
 import { fetchGraphQL } from '~/utils/graphql.server';
 import { withPlaceholderImages } from '~/utils/placeholder-images.server';
 import Nav from '~/navigation/nav';
@@ -114,12 +115,15 @@ export const loader = async ({ request }: LoaderArgs) => {
   return json(loaderData);
 };
 
-export const meta: MetaFunction<typeof loader> = () => {
-  return {
-    title: 'Search Drinks',
-    description: 'Search all drinks by ingredient or description',
-  };
-};
+export const meta = mergeMeta<typeof loader>(() => {
+  return [
+    { title: 'Search Drinks' },
+    {
+      name: 'description',
+      content: 'Search all drinks by ingredient or description',
+    },
+  ];
+});
 
 export default function SearchPage() {
   const { drinks } = useLoaderData<typeof loader>();

@@ -2,6 +2,29 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Customized fallback fonts to avoid CLS, values courtsey of fontpie */
+@font-face {
+  font-family: 'Source Sans Pro Fallback';
+  font-style: normal;
+  font-weight: theme('fontWeight.light');
+  src: local('Arial');
+  ascent-override: 108.45%;
+  descent-override: 30.09%;
+  line-gap-override: 0%;
+  size-adjust: 90.73%;
+}
+
+@font-face {
+  font-family: 'Source Sans Pro Fallback';
+  font-style: normal;
+  font-weight: theme('fontWeight.normal');
+  src: local('Arial');
+  ascent-override: 104.47%;
+  descent-override: 28.98%;
+  line-gap-override: 0%;
+  size-adjust: 94.19%;
+}
+
 :not(output):-moz-ui-invalid,
 :not(output):-moz-ui-invalid:-moz-focusring {
   box-shadow: none;

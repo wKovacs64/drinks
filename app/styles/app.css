@@ -39,16 +39,6 @@ h6 {
   font-weight: theme('fontWeight.normal');
 }
 
-/*
- * HACK: abuse specificity to force styles overridden by
- * @reach/dialog -> react-remove-scroll -> react-remove-scroll-bar
- * to avoid a content jump when showing the feedback form.
- */
-html > body {
-  overflow-y: scroll !important;
-  margin: 0 !important;
-}
-
 .drinks-focusable {
   @apply transition-shadow ease-default focus-visible:outline-none focus-visible:ring;
 }

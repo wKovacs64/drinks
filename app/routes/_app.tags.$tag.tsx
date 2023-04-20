@@ -3,7 +3,7 @@ import { useLoaderData, useParams } from '@remix-run/react';
 import lowerCase from 'lodash/lowerCase';
 import startCase from 'lodash/startCase';
 import { getEnvVars } from '~/utils/env.server';
-import { mergeMeta } from '~/utils/meta';
+import { mergeMeta } from '~/utils/meta.server';
 import { fetchGraphQL } from '~/utils/graphql.server';
 import { cache } from '~/utils/cache.server';
 import { withPlaceholderImages } from '~/utils/placeholder-images.server';

@@ -1,4 +1,4 @@
-import { mergeMeta } from '~/utils/meta';
+import { mergeMeta } from '~/utils/meta.server';
 import NotFound from '~/core/not-found';
 
 export const notFoundMeta = [

@@ -6,7 +6,7 @@ import {
   useNavigation,
 } from '@remix-run/react';
 import { getEnvVars } from '~/utils/env.server';
-import { mergeMeta } from '~/utils/meta';
+import { mergeMeta } from '~/utils/meta.server';
 import { fetchGraphQL } from '~/utils/graphql.server';
 import { withPlaceholderImages } from '~/utils/placeholder-images.server';
 import Nav from '~/navigation/nav';

@@ -7,7 +7,7 @@ import NavLink from '~/navigation/nav-link';
 import TagLink from '~/tags/tag-link';
 import Tag from '~/tags/tag';
 import { getEnvVars } from '~/utils/env.server';
-import { mergeMeta } from '~/utils/meta';
+import { mergeMeta } from '~/utils/meta.server';
 import { fetchGraphQL } from '~/utils/graphql.server';
 import { cache } from '~/utils/cache.server';
 import type { DrinkTagsResponse } from '~/types';

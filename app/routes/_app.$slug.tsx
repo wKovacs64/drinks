@@ -7,7 +7,7 @@ import { cache } from '~/utils/cache.server';
 import { withPlaceholderImages } from '~/utils/placeholder-images.server';
 import { markdownToHtml } from '~/utils/markdown.server';
 import { makeImageUrl } from '~/core/image';
-import { notFoundMeta } from '~/routes/_app.$/route';
+import { notFoundMeta } from '~/routes/_app.$';
 import Nav from '~/navigation/nav';
 import NavDivider from '~/navigation/nav-divider';
 import NavLink from '~/navigation/nav-link';

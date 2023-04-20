@@ -7,7 +7,7 @@ import { mergeMeta } from '~/utils/meta';
 import { fetchGraphQL } from '~/utils/graphql.server';
 import { cache } from '~/utils/cache.server';
 import { withPlaceholderImages } from '~/utils/placeholder-images.server';
-import { notFoundMeta } from '~/routes/_app.$/route';
+import { notFoundMeta } from '~/routes/_app.$';
 import Nav from '~/navigation/nav';
 import NavLink from '~/navigation/nav-link';
 import NavDivider from '~/navigation/nav-divider';

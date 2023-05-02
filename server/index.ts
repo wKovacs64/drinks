@@ -3,6 +3,7 @@ import path from 'path';
 import express from 'express';
 import compression from 'compression';
 import morgan from 'morgan';
+import { broadcastDevReady } from '@remix-run/node';
 import { createRequestHandler } from '@remix-run/express';
 import { primeContentCache } from '~/utils/prime-content-cache.server';
 
@@ -25,23 +26,25 @@ app.use((req, res, next) => {
   res.set('X-Fly-Region', process.env.FLY_REGION ?? 'unknown');
 
   // security headers
-  res.set(
-    'Content-Security-Policy',
-    [
-      `base-uri 'none'`,
-      `frame-ancestors 'none'`,
-      `form-action 'self'`,
-      `default-src 'self'`,
-      `connect-src 'self' ${
-        isDev ? 'ws:' : ''
-      } https://images.ctfassets.net/ https://*.algolianet.com https://*.algolia.net`,
-      `img-src 'self' data: https:`,
-      `object-src 'none'`,
-      `script-src 'self' 'unsafe-inline' https://*.algolianet.com`,
-      `style-src 'self' 'unsafe-inline'`,
-      `worker-src 'self'`,
-    ].join('; ') + ';',
-  );
+  if (!isDev) {
+    // TODO: figure out a way to make this work in development with Remix's new
+    // dev server
+    res.set(
+      'Content-Security-Policy',
+      [
+        `base-uri 'none'`,
+        `frame-ancestors 'none'`,
+        `form-action 'self'`,
+        `default-src 'self'`,
+        `connect-src 'self' https://images.ctfassets.net/ https://*.algolianet.com https://*.algolia.net`,
+        `img-src 'self' data: https:`,
+        `object-src 'none'`,
+        `script-src 'self' 'unsafe-inline' https://*.algolianet.com`,
+        `style-src 'self' 'unsafe-inline'`,
+        `worker-src 'self'`,
+      ].join('; ') + ';',
+    );
+  }
   res.set(
     'Permissions-Policy',
     [
@@ -96,7 +99,7 @@ const BUILD_DIR = path.join(process.cwd(), 'build');
 
 app.all(
   '*',
-  process.env.NODE_ENV === 'development'
+  isDev
     ? (req, res, next) => {
         purgeRequireCache();
 
@@ -116,8 +119,10 @@ const port = process.env.PORT || 3000;
 primeContentCache().then(() => {
   app.listen(port, () => {
     // require the built app so we're ready when the first request comes in
-    require(BUILD_DIR);
+    const build = require(BUILD_DIR);
     console.log(`✅ app ready: http://localhost:${port}`);
+    // in dev, call `broadcastDevReady` _after_ your server is up and running
+    if (isDev) broadcastDevReady(build);
   });
 });
 

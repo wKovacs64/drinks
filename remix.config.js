@@ -5,7 +5,6 @@ module.exports = {
   ignoredRouteFiles: ['**/.*'],
   postcss: true,
   serverDependenciesToBundle: ['marked', 'p-throttle'],
-  serverModuleFormat: 'esm',
   // appDirectory: "app",
   // assetsBuildDirectory: "public/build",
   // serverBuildPath: "build/index.js",

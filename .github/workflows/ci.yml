@@ -124,8 +124,8 @@ jobs:
 
   build:
     name: 🐳 Build
-    # only build main and dev branches on push
-    if: ${{ (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') && github.event_name == 'push' }}
+    # only build main and dev branches
+    if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev' }}
     runs-on: ubuntu-latest
     steps:
       - name: ⬇️ Checkout repo
@@ -183,8 +183,8 @@ jobs:
     runs-on: ubuntu-latest
     # needs: [lint, typecheck, vitest, cypress, build]
     needs: [prettier, lint, build]
-    # only deploy main and dev branches on push
-    if: ${{ (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') && github.event_name == 'push' }}
+    # only deploy main and dev branches
+    if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev' }}
 
     steps:
       - name: ⬇️ Checkout repo

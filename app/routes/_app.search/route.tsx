@@ -18,6 +18,7 @@ import NoDrinksFound from './no-drinks-found';
 import NoSearchTerm from './no-search-term';
 import SearchForm from './search-form';
 import Searching from './searching';
+import { drinksIndex } from './algolia.server';
 
 export const loader = async ({ request }: LoaderArgs) => {
   const q = new URL(request.url).searchParams.get('q');
@@ -25,38 +26,17 @@ export const loader = async ({ request }: LoaderArgs) => {
     return json({ drinks: [] });
   }
 
-  const {
-    ALGOLIA_APP_ID,
-    ALGOLIA_SEARCH_KEY,
-    ALGOLIA_INDEX_NAME,
-    CONTENTFUL_ACCESS_TOKEN,
-    CONTENTFUL_URL,
-    CONTENTFUL_PREVIEW,
-  } = getEnvVars();
+  const { CONTENTFUL_ACCESS_TOKEN, CONTENTFUL_URL, CONTENTFUL_PREVIEW } =
+    getEnvVars();
 
   // query Algolia for the search results based on q
-  const algoliaSearchResponse = await fetch(
-    `https://${ALGOLIA_APP_ID}-dsn.algolia.net/1/indexes/${ALGOLIA_INDEX_NAME}/query`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Algolia-Application-Id': ALGOLIA_APP_ID,
-        'X-Algolia-API-Key': ALGOLIA_SEARCH_KEY,
-      },
-      body: JSON.stringify({
-        params: `query=${encodeURIComponent(q)}`,
-      }),
-    },
-  );
-
-  if (!algoliaSearchResponse.ok) {
-    const errMessage: string = (await algoliaSearchResponse.json()).message;
+  const hits = [];
+  try {
+    hits.push(...(await drinksIndex.search<AlgoliaDrinkHit>(q)).hits);
+  } catch (err) {
+    const errMessage = err instanceof Error ? err.message : 'unknown reason';
     throw json({ message: `Search failed: ${errMessage}` }, { status: 500 });
   }
-
-  const { hits } =
-    (await algoliaSearchResponse.json()) as AlgoliaSearchResponse;
 
   if (hits.length === 0) {
     return json({ drinks: [] });
@@ -162,18 +142,6 @@ export default function SearchPage() {
       </main>
     </div>
   );
-}
-
-interface AlgoliaSearchResponse {
-  hits: Array<AlgoliaDrinkHit>;
-  page: number;
-  nbHits: number;
-  nbPages: number;
-  hitsPerPage: number;
-  processingTimeMS: number;
-  query: string;
-  parsed_query: string;
-  params: string;
 }
 
 interface AlgoliaDrinkHit

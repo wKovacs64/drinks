@@ -45,25 +45,24 @@ jobs:
       - name: 🔬 Lint
         run: npm run lint
 
-  ### Disabled until I can solve for `"skipLibCheck": false` in tsconfig.json
-  # typecheck:
-  #   name: ʦ TypeScript
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: ⬇️ Checkout repo
-  #       uses: actions/checkout@v3
+  typecheck:
+    name: ʦ TypeScript
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v3
 
-  #     - name: ⎔ Setup node
-  #       uses: actions/setup-node@v3
-  #       with:
-  #         cache: npm
-  #         node-version-file: '.nvmrc'
+      - name: ⎔ Setup node
+        uses: actions/setup-node@v3
+        with:
+          cache: npm
+          node-version-file: '.nvmrc'
 
-  #     - name: 📥 Install deps
-  #       run: npm install
+      - name: 📥 Install deps
+        run: npm install
 
-  #     - name: 🔎 Type check
-  #       run: npm run typecheck --if-present
+      - name: 🔎 Type check
+        run: npm run typecheck --if-present
 
   # vitest:
   #   name: ⚡ Vitest
@@ -121,7 +120,7 @@ jobs:
     name: 🚀 Deploy
     runs-on: ubuntu-latest
     # needs: [prettier, lint, typecheck, vitest, cypress]
-    needs: [prettier, lint]
+    needs: [prettier, lint, typecheck]
     # only deploy main and dev branches
     if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev' }}
 

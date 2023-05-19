@@ -28,6 +28,7 @@
     "dev:worker": "esbuild --watch --bundle --format=esm --define:process.env.NODE_ENV='\"development\"' ./app/entry.worker.ts --outfile=./public/sw.js ",
     "format": "prettier --cache --write .",
     "lint": "eslint .",
+    "typecheck": "tsc",
     "setup": "prisma migrate dev",
     "start": "cross-env NODE_ENV=production node ./build/server/index.js"
   },

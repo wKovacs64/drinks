@@ -46,7 +46,8 @@ export const meta: V2_MetaFunction<typeof loader> = ({ data }) => {
   const title = 'drinks.fyi';
   const description = 'Craft Cocktail Gallery';
   const themeColor = '#137752';
-  const { socialImageUrl, socialImageAlt } = data;
+  const socialImageUrl = data?.socialImageUrl || '';
+  const socialImageAlt = data?.socialImageAlt || '';
 
   return [
     { title },

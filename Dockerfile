@@ -2,7 +2,7 @@
 FROM node:18-bullseye-slim as base
 
 # Install openssl for Prisma
-RUN apt-get update && apt-get install -y openssl
+RUN apt-get update && apt-get install -y openssl fuse3 ca-certificates
 
 ENV NODE_ENV production
 
@@ -42,15 +42,25 @@ RUN npm run build
 # Finally, build the production image with minimal footprint
 FROM base
 
-ENV NODE_ENV production
+ENV NODE_ENV="production"
 
-RUN mkdir /app
 WORKDIR /app
 
 COPY --from=production-deps /app/node_modules /app/node_modules
 COPY --from=build /app/node_modules/.prisma /app/node_modules/.prisma
 COPY --from=build /app/build /app/build
 COPY --from=build /app/public /app/public
+
+# prepare litefs
+ENV LITEFS_DIR="/litefs"
+ENV DATABASE_FILE_PATH="$LITEFS_DIR/cache.db"
+ENV DATABASE_URL="file:$DATABASE_FILE_PATH"
+ENV INTERNAL_PORT="8080"
+ENV PORT="8081"
+COPY --from=flyio/litefs:0.4 /usr/local/bin/litefs /usr/local/bin/litefs
+ADD litefs.yml /etc/litefs.yml
+RUN mkdir -p /data ${LITEFS_DIR}
+
 ADD . .
 
-ENTRYPOINT [ "./start.sh" ]
+ENTRYPOINT [ "litefs", "mount", "--", "node", "./start.js" ]

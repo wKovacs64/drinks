@@ -5,6 +5,7 @@ import compression from 'compression';
 import morgan from 'morgan';
 import { broadcastDevReady } from '@remix-run/node';
 import { createRequestHandler } from '@remix-run/express';
+import { getInstanceInfo } from 'litefs-js';
 import { primeContentCache } from '~/utils/prime-content-cache.server';
 
 const isDev = process.env.NODE_ENV === 'development';
@@ -116,7 +117,7 @@ app.all(
 
 const port = process.env.PORT || 3000;
 
-primeContentCache().then(() => {
+primeContentCacheIfAppropriate().then(() => {
   app.listen(port, () => {
     // require the built app so we're ready when the first request comes in
     const build = require(BUILD_DIR);
@@ -125,6 +126,18 @@ primeContentCache().then(() => {
     if (isDev) broadcastDevReady(build);
   });
 });
+
+async function primeContentCacheIfAppropriate() {
+  // If LiteFS is present (i.e., when running on Fly), we only want to prime the
+  // content cache on the primary instance. If LiteFS is not present (i.e., when
+  // running locally), we always want to prime the content cache.
+  if (process.env.LITEFS_DIR) {
+    const { currentIsPrimary } = await getInstanceInfo();
+    if (currentIsPrimary) await primeContentCache();
+  } else {
+    await primeContentCache();
+  }
+}
 
 function purgeRequireCache() {
   // purge require cache on requests for "server side HMR" this won't let

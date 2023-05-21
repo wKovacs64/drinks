@@ -21,7 +21,7 @@ lease:
   promote: true
 
   # The API URL that other nodes will use to connect to this node.
-  advertise-url: 'http://${FLY_ALLOC_ID}.vm.${FLY_APP_NAME}.internal:20202'
+  advertise-url: 'http://${HOSTNAME}.vm.${FLY_APP_NAME}.internal:20202'
 
   consul:
     # The URL of the Consul cluster.

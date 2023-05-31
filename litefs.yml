@@ -50,3 +50,12 @@ proxy:
 # It makes it easy to ssh in and debug any issues you might be having rather
 # than continually restarting on initialization failure.
 exit-on-error: false
+
+exec:
+  # Only run migrations on candidate nodes. Combined with `promote: true` above,
+  # this ensures that migrations are only run on the primary node.
+  - cmd: npx prisma migrate deploy
+    if-candidate: true
+
+  # Then run the application on all nodes.
+  - cmd: npm run start

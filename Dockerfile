@@ -63,4 +63,4 @@ RUN mkdir -p /data ${LITEFS_DIR}
 
 ADD . .
 
-ENTRYPOINT [ "litefs", "mount", "--", "node", "./start.js" ]
+ENTRYPOINT [ "litefs", "mount" ]

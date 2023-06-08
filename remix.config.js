@@ -1,10 +1,11 @@
 /**
  * @type {import('@remix-run/dev').AppConfig}
  */
-module.exports = {
+const remixConfig = {
   ignoredRouteFiles: ['**/.*'],
   postcss: true,
   serverDependenciesToBundle: ['marked', 'p-throttle'],
+  serverModuleFormat: 'esm',
   // appDirectory: "app",
   // assetsBuildDirectory: "public/build",
   // serverBuildPath: "build/index.js",
@@ -18,3 +19,5 @@ module.exports = {
     v2_routeConvention: true,
   },
 };
+
+export default remixConfig;

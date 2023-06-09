@@ -1,5 +1,5 @@
 import { Link } from '@remix-run/react';
-import BrokenGlassIcon from '~/core/broken-glass-icon';
+import BrokenGlassIcon from '~/core/broken-glass-icon.tsx';
 
 export default function NotFound() {
   return (

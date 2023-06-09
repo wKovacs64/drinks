@@ -10,7 +10,7 @@ import {
   type ServerBuild,
 } from '@remix-run/node';
 import { getInstanceInfo } from 'litefs-js';
-import { primeContentCache } from '~/utils/prime-content-cache.server';
+import { primeContentCache } from '~/utils/prime-content-cache.server.ts';
 
 // @ts-ignore - this file may not exist if you haven't built yet, but it will
 // definitely exist by the time the dev or prod server actually runs.

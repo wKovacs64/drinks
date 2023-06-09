@@ -1,4 +1,4 @@
-import { prisma } from '~/utils/db.server';
+import { prisma } from '~/utils/db.server.ts';
 
 export const loader = async () => {
   try {

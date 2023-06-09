@@ -1,4 +1,4 @@
-import BrokenGlassIcon from '~/core/broken-glass-icon';
+import BrokenGlassIcon from '~/core/broken-glass-icon.tsx';
 
 export default function NoDrinksFound() {
   return (

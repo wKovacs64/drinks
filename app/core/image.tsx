@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/alt-text */
 import * as React from 'react';
-import clsx from 'clsx';
+import { clsx } from 'clsx';
 
 export default function Image({
   containerClassName,

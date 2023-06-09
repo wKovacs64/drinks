@@ -1,18 +1,18 @@
 import { json, type LoaderArgs } from '@remix-run/node';
 import { useLoaderData, useParams } from '@remix-run/react';
-import lowerCase from 'lodash/lowerCase';
-import startCase from 'lodash/startCase';
-import { getEnvVars } from '~/utils/env.server';
-import { mergeMeta } from '~/utils/meta';
-import { fetchGraphQL } from '~/utils/graphql.server';
-import { cache } from '~/utils/cache.server';
-import { withPlaceholderImages } from '~/utils/placeholder-images.server';
-import { notFoundMeta } from '~/routes/_app.$';
-import Nav from '~/navigation/nav';
-import NavLink from '~/navigation/nav-link';
-import NavDivider from '~/navigation/nav-divider';
-import DrinkList from '~/drinks/drink-list';
-import type { DrinksResponse, EnhancedDrink } from '~/types';
+import lowerCase from 'lodash/lowerCase.js';
+import startCase from 'lodash/startCase.js';
+import { getEnvVars } from '~/utils/env.server.ts';
+import { mergeMeta } from '~/utils/meta.ts';
+import { fetchGraphQL } from '~/utils/graphql.server.ts';
+import { cache } from '~/utils/cache.server.ts';
+import { withPlaceholderImages } from '~/utils/placeholder-images.server.ts';
+import { notFoundMeta } from '~/routes/_app.$.tsx';
+import Nav from '~/navigation/nav.tsx';
+import NavLink from '~/navigation/nav-link.tsx';
+import NavDivider from '~/navigation/nav-divider.tsx';
+import DrinkList from '~/drinks/drink-list.tsx';
+import type { DrinksResponse, EnhancedDrink } from '~/types.ts';
 
 export const loader = async ({ params, request }: LoaderArgs) => {
   if (!params.tag) throw json('Missing tag', 400);

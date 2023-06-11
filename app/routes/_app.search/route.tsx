@@ -5,20 +5,20 @@ import {
   useSearchParams,
   useNavigation,
 } from '@remix-run/react';
-import { getEnvVars } from '~/utils/env.server';
-import { mergeMeta } from '~/utils/meta';
-import { fetchGraphQL } from '~/utils/graphql.server';
-import { withPlaceholderImages } from '~/utils/placeholder-images.server';
-import Nav from '~/navigation/nav';
-import NavLink from '~/navigation/nav-link';
-import NavDivider from '~/navigation/nav-divider';
-import DrinkList from '~/drinks/drink-list';
-import type { Drink, DrinksResponse } from '~/types';
-import NoDrinksFound from './no-drinks-found';
-import NoSearchTerm from './no-search-term';
-import SearchForm from './search-form';
-import Searching from './searching';
-import { drinksIndex } from './algolia.server';
+import { getEnvVars } from '~/utils/env.server.ts';
+import { mergeMeta } from '~/utils/meta.ts';
+import { fetchGraphQL } from '~/utils/graphql.server.ts';
+import { withPlaceholderImages } from '~/utils/placeholder-images.server.ts';
+import Nav from '~/navigation/nav.tsx';
+import NavLink from '~/navigation/nav-link.tsx';
+import NavDivider from '~/navigation/nav-divider.tsx';
+import DrinkList from '~/drinks/drink-list.tsx';
+import type { Drink, DrinksResponse } from '~/types.ts';
+import NoDrinksFound from './no-drinks-found.tsx';
+import NoSearchTerm from './no-search-term.tsx';
+import SearchForm from './search-form.tsx';
+import Searching from './searching.tsx';
+import { drinksIndex } from './algolia.server.ts';
 
 export const loader = async ({ request }: LoaderArgs) => {
   const q = new URL(request.url).searchParams.get('q');

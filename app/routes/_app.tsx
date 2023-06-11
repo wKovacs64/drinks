@@ -12,4 +12,4 @@ export default function AppLayout() {
   return <Outlet />;
 }
 
-export { ErrorBoundary } from '~/core/errors';
+export { ErrorBoundary } from '~/core/errors.tsx';

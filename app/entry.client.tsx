@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { RemixBrowser } from '@remix-run/react';
 import { hydrateRoot } from 'react-dom/client';
-import { requestIdleCallbackShim } from '~/utils/request-idle-callback-shim';
+import { requestIdleCallbackShim } from '~/utils/request-idle-callback-shim.ts';
 
 requestIdleCallbackShim(() => {
   React.startTransition(() => {

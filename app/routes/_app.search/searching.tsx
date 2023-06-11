@@ -1,4 +1,4 @@
-import { MdSearch } from 'react-icons/md';
+import { MdSearch } from '~/vendor/react-icons.cjs';
 
 export default function Searching() {
   return (

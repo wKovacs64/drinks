@@ -1,6 +1,6 @@
 import type { ActionArgs } from '@remix-run/node';
-import { getEnvVars } from '~/utils/env.server.ts';
-import { primeContentCache } from '~/utils/prime-content-cache.server.ts';
+import { getEnvVars } from '~/utils/env.server';
+import { primeContentCache } from '~/utils/prime-content-cache.server';
 
 export const loader = async () => {
   return new Response(null, { status: 405 });

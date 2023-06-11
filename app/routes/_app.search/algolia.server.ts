@@ -1,5 +1,5 @@
-import { algoliaSearch } from '~/vendor/algoliasearch.cjs';
-import { getEnvVars } from '~/utils/env.server.ts';
+import algoliaSearch from 'algoliasearch/lite';
+import { getEnvVars } from '~/utils/env.server';
 
 const { ALGOLIA_APP_ID, ALGOLIA_SEARCH_KEY, ALGOLIA_INDEX_NAME } = getEnvVars();
 const searchClient = algoliaSearch(ALGOLIA_APP_ID, ALGOLIA_SEARCH_KEY);

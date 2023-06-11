@@ -1,18 +1,18 @@
 import type { DataFunctionArgs } from '@remix-run/node';
+import kebabCase from 'lodash/kebabCase';
 import pThrottle from 'p-throttle';
-import kebabCase from 'lodash/kebabCase.js';
-import { getEnvVars } from '~/utils/env.server.ts';
-import { cache } from '~/utils/cache.server.ts';
+import { getEnvVars } from '~/utils/env.server';
+import { cache } from '~/utils/cache.server';
 import {
   loader as allDrinksLoader,
   type LoaderData as AllDrinksLoaderData,
-} from '~/routes/_app._index.tsx';
-import { loader as drinkLoader } from '~/routes/_app.$slug.tsx';
+} from '~/routes/_app._index';
+import { loader as drinkLoader } from '~/routes/_app.$slug';
 import {
   loader as allTagsLoader,
   type LoaderData as AllTagsLoaderData,
-} from '~/routes/_app.tags._index.tsx';
-import { loader as tagLoader } from '~/routes/_app.tags.$tag.tsx';
+} from '~/routes/_app.tags._index';
+import { loader as tagLoader } from '~/routes/_app.tags.$tag';
 
 const { CONTENTFUL_PREVIEW } = getEnvVars();
 

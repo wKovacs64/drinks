@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Form } from '@remix-run/react';
-import { MdChevronRight } from '~/vendor/react-icons.cjs';
-import AlgoliaIcon from './algolia-icon.tsx';
+import { MdChevronRight } from 'react-icons/md';
+import AlgoliaIcon from './algolia-icon';
 
 export default function SearchForm({
   initialSearchTerm,

@@ -1,5 +1,5 @@
-import { mergeMeta } from '~/utils/meta.ts';
-import NotFound from '~/core/not-found.tsx';
+import { mergeMeta } from '~/utils/meta';
+import NotFound from '~/core/not-found';
 
 export const notFoundMeta = [
   { title: 'Not Found' },

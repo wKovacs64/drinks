@@ -1,20 +1,20 @@
 import { json, type LoaderArgs } from '@remix-run/node';
 import { useLoaderData } from '@remix-run/react';
-import { getEnvVars } from '~/utils/env.server.ts';
-import { mergeMeta } from '~/utils/meta.ts';
-import { fetchGraphQL } from '~/utils/graphql.server.ts';
-import { cache } from '~/utils/cache.server.ts';
-import { withPlaceholderImages } from '~/utils/placeholder-images.server.ts';
-import { markdownToHtml } from '~/utils/markdown.server.ts';
-import { makeImageUrl } from '~/core/image.tsx';
-import { notFoundMeta } from '~/routes/_app.$.tsx';
-import Nav from '~/navigation/nav.tsx';
-import NavDivider from '~/navigation/nav-divider.tsx';
-import NavLink from '~/navigation/nav-link.tsx';
-import Glass from '~/drinks/glass.tsx';
-import DrinkSummary from '~/drinks/drink-summary.tsx';
-import DrinkDetails from '~/drinks/drink-details.tsx';
-import type { DrinksResponse, EnhancedDrink } from '~/types.ts';
+import { getEnvVars } from '~/utils/env.server';
+import { mergeMeta } from '~/utils/meta';
+import { fetchGraphQL } from '~/utils/graphql.server';
+import { cache } from '~/utils/cache.server';
+import { withPlaceholderImages } from '~/utils/placeholder-images.server';
+import { markdownToHtml } from '~/utils/markdown.server';
+import { makeImageUrl } from '~/core/image';
+import { notFoundMeta } from '~/routes/_app.$';
+import Nav from '~/navigation/nav';
+import NavDivider from '~/navigation/nav-divider';
+import NavLink from '~/navigation/nav-link';
+import Glass from '~/drinks/glass';
+import DrinkSummary from '~/drinks/drink-summary';
+import DrinkDetails from '~/drinks/drink-details';
+import type { DrinksResponse, EnhancedDrink } from '~/types';
 
 export const loader = async ({ params, request }: LoaderArgs) => {
   if (!params.slug) throw json('Missing slug', 400);

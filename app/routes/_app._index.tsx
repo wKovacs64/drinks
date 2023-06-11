@@ -1,12 +1,12 @@
 import { json, type LoaderArgs, type SerializeFrom } from '@remix-run/node';
 import { useLoaderData } from '@remix-run/react';
-import { getEnvVars } from '~/utils/env.server.ts';
-import { fetchGraphQL } from '~/utils/graphql.server.ts';
-import { cache } from '~/utils/cache.server.ts';
-import { withPlaceholderImages } from '~/utils/placeholder-images.server.ts';
-import Nav from '~/navigation/nav.tsx';
-import DrinkList from '~/drinks/drink-list.tsx';
-import type { DrinksResponse, EnhancedDrink } from '~/types.ts';
+import { getEnvVars } from '~/utils/env.server';
+import { fetchGraphQL } from '~/utils/graphql.server';
+import { cache } from '~/utils/cache.server';
+import { withPlaceholderImages } from '~/utils/placeholder-images.server';
+import Nav from '~/navigation/nav';
+import DrinkList from '~/drinks/drink-list';
+import type { DrinksResponse, EnhancedDrink } from '~/types';
 
 export type LoaderData = SerializeFrom<typeof loader>;
 

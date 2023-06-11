@@ -1,5 +1,5 @@
 import { Link, type LinkProps } from '@remix-run/react';
-import { MdSearch } from '~/vendor/react-icons.cjs';
+import { MdSearch } from 'react-icons/md';
 
 export default function Header() {
   return (

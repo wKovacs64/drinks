@@ -1,4 +1,4 @@
-import { prisma } from '~/utils/db.server.ts';
+import { prisma } from '~/utils/db.server';
 
 export const cache = {
   async get(key: string) {

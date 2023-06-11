@@ -1,16 +1,16 @@
 import { json, type LoaderArgs, type SerializeFrom } from '@remix-run/node';
 import { useLoaderData } from '@remix-run/react';
-import kebabCase from 'lodash/kebabCase.js';
-import Nav from '~/navigation/nav.tsx';
-import NavDivider from '~/navigation/nav-divider.tsx';
-import NavLink from '~/navigation/nav-link.tsx';
-import TagLink from '~/tags/tag-link.tsx';
-import Tag from '~/tags/tag.tsx';
-import { getEnvVars } from '~/utils/env.server.ts';
-import { mergeMeta } from '~/utils/meta.ts';
-import { fetchGraphQL } from '~/utils/graphql.server.ts';
-import { cache } from '~/utils/cache.server.ts';
-import type { DrinkTagsResponse } from '~/types.ts';
+import kebabCase from 'lodash/kebabCase';
+import Nav from '~/navigation/nav';
+import NavDivider from '~/navigation/nav-divider';
+import NavLink from '~/navigation/nav-link';
+import TagLink from '~/tags/tag-link';
+import Tag from '~/tags/tag';
+import { getEnvVars } from '~/utils/env.server';
+import { mergeMeta } from '~/utils/meta';
+import { fetchGraphQL } from '~/utils/graphql.server';
+import { cache } from '~/utils/cache.server';
+import type { DrinkTagsResponse } from '~/types';
 
 export type LoaderData = SerializeFrom<typeof loader>;
 

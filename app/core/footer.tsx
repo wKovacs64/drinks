@@ -1,4 +1,4 @@
-import { FaGithub } from '~/vendor/react-icons.cjs';
+import { FaGithub } from 'react-icons/fa';
 
 export default function Footer() {
   return (

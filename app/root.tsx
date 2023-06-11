@@ -21,11 +21,11 @@ import faviconIcoUrl from '../public/favicon.ico';
 import icon32Url from '~/images/icon-32x32.png';
 import appleTouchIconUrl from '~/images/apple-touch-icon.png';
 import appStylesUrl from '~/styles/app.css';
-import { backgroundImageStyles } from '~/styles/background-image.ts';
-import { getEnvVars } from '~/utils/env.server.ts';
-import SkipNavLink from '~/core/skip-nav-link.tsx';
-import Header from '~/core/header.tsx';
-import Footer from '~/core/footer.tsx';
+import { backgroundImageStyles } from '~/styles/background-image';
+import { getEnvVars } from '~/utils/env.server';
+import SkipNavLink from '~/core/skip-nav-link';
+import Header from '~/core/header';
+import Footer from '~/core/footer';
 
 export const loader = async () => {
   const { SITE_IMAGE_URL, SITE_IMAGE_ALT } = getEnvVars();

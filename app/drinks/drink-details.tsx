@@ -1,7 +1,7 @@
-import kebabCase from 'lodash/kebabCase.js';
-import type { EnhancedDrink } from '~/types.ts';
-import Tag from '~/tags/tag.tsx';
-import TagLink from '~/tags/tag-link.tsx';
+import kebabCase from 'lodash/kebabCase';
+import type { EnhancedDrink } from '~/types';
+import Tag from '~/tags/tag';
+import TagLink from '~/tags/tag-link';
 
 export default function DrinkDetails({ drink }: { drink: EnhancedDrink }) {
   return (

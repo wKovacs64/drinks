@@ -1,4 +1,4 @@
-import { MdArrowUpward } from '~/vendor/react-icons.cjs';
+import { MdArrowUpward } from 'react-icons/md';
 
 export default function NoSearchTerm() {
   return (

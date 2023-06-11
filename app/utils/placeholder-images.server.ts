@@ -1,5 +1,5 @@
-import { makeImageUrl } from '~/core/image.tsx';
-import type { Drink } from '~/types.ts';
+import { makeImageUrl } from '~/core/image';
+import type { Drink } from '~/types';
 
 export async function withPlaceholderImages(drinks: Array<Drink>) {
   return Promise.all(

@@ -1,6 +1,6 @@
-import { clsx } from 'clsx';
-import Image, { getImageProps } from '~/core/image.tsx';
-import type { EnhancedDrink } from '~/types.ts';
+import clsx from 'clsx';
+import Image, { getImageProps } from '~/core/image';
+import type { EnhancedDrink } from '~/types';
 
 export default function DrinkSummary({
   className,

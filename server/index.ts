@@ -152,7 +152,6 @@ function createDevRequestHandler() {
 
   const requestHandler: RequestHandler = async (req, res, next) => {
     try {
-      //
       return createRequestHandler({
         build: await build,
         mode: 'development',

@@ -1,12 +1,19 @@
 // Adapted from https://github.com/smerchek/synth-stack/blob/5cd58a07aa4e80bd345d7da5c69099e99ae466af/server.ts
 import path from 'path';
-import express from 'express';
+import chokidar from 'chokidar';
+import express, { type RequestHandler } from 'express';
 import compression from 'compression';
 import morgan from 'morgan';
 import { broadcastDevReady } from '@remix-run/node';
 import { createRequestHandler } from '@remix-run/express';
 import { getInstanceInfo } from 'litefs-js';
 import { primeContentCache } from '~/utils/prime-content-cache.server';
+
+const BUILD_DIR = path.join(process.cwd(), 'build');
+/**
+ * @type { import('@remix-run/node').ServerBuild | Promise<import('@remix-run/node').ServerBuild> }
+ */
+let build = require(BUILD_DIR);
 
 const isDev = process.env.NODE_ENV === 'development';
 
@@ -96,21 +103,12 @@ app.use(
   }),
 );
 
-const BUILD_DIR = path.join(process.cwd(), 'build');
-
 app.all(
   '*',
   isDev
-    ? (req, res, next) => {
-        purgeRequireCache();
-
-        return createRequestHandler({
-          build: require(BUILD_DIR),
-          mode: process.env.NODE_ENV,
-        })(req, res, next);
-      }
+    ? createDevRequestHandler()
     : createRequestHandler({
-        build: require(BUILD_DIR),
+        build,
         mode: process.env.NODE_ENV,
       }),
 );
@@ -119,8 +117,6 @@ const port = process.env.PORT || 3000;
 
 primeContentCacheIfAppropriate().then(() => {
   app.listen(port, () => {
-    // require the built app so we're ready when the first request comes in
-    const build = require(BUILD_DIR);
     console.log(`✅ app ready: http://localhost:${port}`);
     // in dev, call `broadcastDevReady` _after_ your server is up and running
     if (isDev) broadcastDevReady(build);
@@ -139,16 +135,32 @@ async function primeContentCacheIfAppropriate() {
   }
 }
 
-function purgeRequireCache() {
-  // purge require cache on requests for "server side HMR" this won't let
-  // you have in-memory objects between requests in development,
-  // alternatively you can set up nodemon/pm2-dev to restart the server on
-  // file changes, but then you'll have to reconnect to databases/etc on each
-  // change. We prefer the DX of this, so we've included it for you by default
-  for (const key in require.cache) {
-    if (key.startsWith(BUILD_DIR)) {
-      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-      delete require.cache[key];
+function createDevRequestHandler() {
+  const watcher = chokidar.watch(BUILD_DIR, { ignoreInitial: true });
+
+  watcher.on('all', async () => {
+    // 1. purge require cache && load updated server build
+    for (const key in require.cache) {
+      if (key.startsWith(BUILD_DIR)) {
+        delete require.cache[key];
+      }
     }
-  }
+    build = require(BUILD_DIR);
+    // 2. tell dev server that this app server is now ready
+    broadcastDevReady(await build);
+  });
+
+  const requestHandler: RequestHandler = async (req, res, next) => {
+    try {
+      //
+      return createRequestHandler({
+        build: await build,
+        mode: 'development',
+      })(req, res, next);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  return requestHandler;
 }

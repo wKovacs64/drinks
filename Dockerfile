@@ -57,7 +57,7 @@ ENV DATABASE_FILE_PATH="$LITEFS_DIR/cache.db"
 ENV DATABASE_URL="file:$DATABASE_FILE_PATH"
 ENV INTERNAL_PORT="8080"
 ENV PORT="8081"
-COPY --from=flyio/litefs:0.4 /usr/local/bin/litefs /usr/local/bin/litefs
+COPY --from=flyio/litefs:0.5 /usr/local/bin/litefs /usr/local/bin/litefs
 ADD litefs.yml /etc/litefs.yml
 RUN mkdir -p /data ${LITEFS_DIR}
 

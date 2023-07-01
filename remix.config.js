@@ -4,7 +4,12 @@
 module.exports = {
   ignoredRouteFiles: ['**/.*'],
   postcss: true,
-  serverDependenciesToBundle: ['marked', 'p-throttle'],
+  serverDependenciesToBundle: [
+    // Styling docs indicate this is needed, but I don't notice any difference?
+    '@fontsource/source-sans-3',
+    'marked',
+    'p-throttle',
+  ],
   serverModuleFormat: 'cjs',
   // appDirectory: "app",
   // assetsBuildDirectory: "public/build",

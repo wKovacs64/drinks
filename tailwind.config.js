@@ -9,7 +9,8 @@ module.exports = {
         cream: '#eedebf', // closest: orange-200
       },
       fontFamily: {
-        sans: ['Source Sans Pro', 'Source Sans Pro Fallback'],
+        // Note: must be double-quoted strings if there's a number in the name
+        sans: ['"Source Sans 3"', '"Source Sans 3 Fallback"'],
       },
       transitionTimingFunction: {
         default: 'ease',

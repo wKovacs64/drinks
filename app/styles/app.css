@@ -4,23 +4,23 @@
 
 /* Customized fallback fonts to avoid CLS, values courtsey of fontpie */
 @font-face {
-  font-family: 'Source Sans Pro Fallback';
+  font-family: 'Source Sans 3 Fallback';
   font-style: normal;
   font-weight: theme('fontWeight.light');
   src: local('Arial');
-  ascent-override: 108.45%;
-  descent-override: 30.09%;
+  ascent-override: 112.86%;
+  descent-override: 44.08%;
   line-gap-override: 0%;
   size-adjust: 90.73%;
 }
 
 @font-face {
-  font-family: 'Source Sans Pro Fallback';
+  font-family: 'Source Sans 3 Fallback';
   font-style: normal;
   font-weight: theme('fontWeight.normal');
   src: local('Arial');
-  ascent-override: 104.47%;
-  descent-override: 28.98%;
+  ascent-override: 108.71%;
+  descent-override: 42.47%;
   line-gap-override: 0%;
   size-adjust: 94.19%;
 }

@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { cssBundleHref } from '@remix-run/css-bundle';
 import {
   json,
   type LinksFunction,
@@ -14,8 +15,8 @@ import {
   useLocation,
   useMatches,
 } from '@remix-run/react';
-import sourceSansPro300 from '@fontsource/source-sans-pro/latin-300.css';
-import sourceSansPro400 from '@fontsource/source-sans-pro/latin-400.css';
+import sourceSans3Latin300 from '@fontsource/source-sans-3/latin-300.css';
+import sourceSans3Latin400 from '@fontsource/source-sans-3/latin-400.css';
 // @ts-ignore
 import faviconIcoUrl from '../public/favicon.ico';
 import icon32Url from '~/images/icon-32x32.png';
@@ -68,6 +69,7 @@ export const meta: V2_MetaFunction<typeof loader> = ({ data }) => {
 };
 
 export const links: LinksFunction = () => [
+  ...(cssBundleHref ? [{ rel: 'stylesheet', href: cssBundleHref }] : []),
   {
     rel: 'preconnect',
     href: 'https://images.ctfassets.net/',
@@ -78,8 +80,8 @@ export const links: LinksFunction = () => [
   { rel: 'icon', type: 'image/png', sizes: '32x32', href: icon32Url },
   { rel: 'apple-touch-icon', sizes: '180x180', href: appleTouchIconUrl },
   { rel: 'manifest', href: '/manifest.webmanifest' },
-  { rel: 'stylesheet', href: sourceSansPro300 },
-  { rel: 'stylesheet', href: sourceSansPro400 },
+  { rel: 'stylesheet', href: sourceSans3Latin300 },
+  { rel: 'stylesheet', href: sourceSans3Latin400 },
   { rel: 'stylesheet', href: appStylesUrl },
 ];
 

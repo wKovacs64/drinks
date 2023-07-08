@@ -110,11 +110,15 @@ export default function SearchPage() {
   const [searchParams] = useSearchParams();
   const q = searchParams.get('q');
   const navigation = useNavigation();
+  const futureQ = new URLSearchParams(navigation.location?.search).get('q');
+  const isIdle = navigation.state === 'idle';
+  const isLoading = navigation.state === 'loading';
 
-  const isIdle = navigation.state === 'idle' && !q;
-  const isSearching = navigation.state === 'loading';
-  const hasNoResults = navigation.state === 'idle' && q && drinks.length === 0;
-  const hasResults = navigation.state === 'idle' && drinks.length > 0;
+  const hasNoSearchTerm = isLoading ? !futureQ : !q;
+  const isSearching =
+    isLoading && navigation.location?.pathname === '/search' && futureQ;
+  const hasNoResults = isIdle && q && drinks.length === 0;
+  const hasResults = isIdle && drinks.length > 0;
 
   return (
     <div>
@@ -135,7 +139,7 @@ export default function SearchPage() {
       </Nav>
       <main id="main">
         <SearchForm initialSearchTerm={q ?? ''} />
-        {isIdle && <NoSearchTerm />}
+        {hasNoSearchTerm && <NoSearchTerm />}
         {isSearching && <Searching />}
         {hasNoResults && <NoDrinksFound />}
         {hasResults && <DrinkList drinks={drinks} />}

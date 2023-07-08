@@ -20,7 +20,7 @@ export default function DrinkList({ drinks }: DrinkListProps) {
           to={`/${drink.slug}`}
           aria-label={drink.title}
           className="group focus-visible:outline-none"
-          prefetch="intent"
+          prefetch="viewport"
         >
           <Glass className="h-full transition group-hover:border-orange-800 group-hover:shadow-lg group-hover:shadow-orange-800 group-focus:border-orange-800 group-focus:shadow-lg group-focus:shadow-orange-800 lg:group-hover:-translate-y-2 lg:group-focus:-translate-y-2">
             <DrinkSummary

@@ -6,7 +6,7 @@ export default function NavLink({ children, to }: NavLinkProps) {
       <Link
         className="drinks-focusable border-b border-dotted pb-1 transition hover:border-solid focus:border-solid"
         to={to}
-        prefetch="intent"
+        prefetch="viewport"
       >
         {children}
       </Link>

@@ -1,8 +1,4 @@
-node_modules
-/.cache
-/build
-/public/build
+# .gitignore and...
 
 package*.json
 **/*.typegen.ts
-/public/sw.js

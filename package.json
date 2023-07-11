@@ -34,7 +34,7 @@
   },
   "dependencies": {
     "@fontsource/source-sans-3": "5.0.5",
-    "@prisma/client": "4.16.2",
+    "@prisma/client": "5.0.0",
     "@remix-run/css-bundle": "1.18.1",
     "@remix-run/express": "1.18.1",
     "@remix-run/node": "1.18.1",
@@ -78,13 +78,13 @@
     "postcss": "8.4.25",
     "prettier": "3.0.0",
     "prettier-plugin-tailwindcss": "0.4.0",
-    "prisma": "4.16.2",
+    "prisma": "5.0.0",
     "semantic-release": "21.0.7",
     "shelljs": "0.8.5",
     "tailwindcss": "3.3.2",
     "typescript": "5.1.6"
   },
   "engines": {
-    "node": ">=14"
+    "node": ">=16.13.0"
   }
 }

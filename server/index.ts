@@ -99,7 +99,9 @@ app.use(express.static('public', { maxAge: '1d' }));
 
 app.use(
   morgan('tiny', {
-    skip: (req, res) => req.url === '/_/healthcheck',
+    skip: (req, res) =>
+      req.url === '/_/healthcheck' ||
+      Boolean(req.headers['x-from-healthcheck']),
   }),
 );
 

@@ -9,9 +9,11 @@ export async function loader({ request }: LoaderArgs) {
   try {
     await Promise.all([
       prisma.cacheEntry.count(),
-      fetch(url.toString()).then((response) => {
-        if (!response.ok) return Promise.reject(response);
-      }),
+      fetch(url.toString(), { headers: { 'x-from-healthcheck': 'true' } }).then(
+        (response) => {
+          if (!response.ok) return Promise.reject(response);
+        },
+      ),
     ]);
     return new Response('OK', { status: 200 });
   } catch (error: unknown) {

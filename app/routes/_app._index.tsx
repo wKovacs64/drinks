@@ -6,7 +6,7 @@ import { cache } from '~/utils/cache.server';
 import { withPlaceholderImages } from '~/utils/placeholder-images.server';
 import Nav from '~/navigation/nav';
 import DrinkList from '~/drinks/drink-list';
-import type { DrinksResponse, EnhancedDrink } from '~/types';
+import type { Drink, DrinksResponse, EnhancedDrink } from '~/types';
 
 export type LoaderData = SerializeFrom<typeof loader>;
 
@@ -59,10 +59,11 @@ export const loader = async ({ request }: LoaderArgs) => {
 
   const {
     data: {
-      drinkCollection: { drinks },
+      drinkCollection: { drinks: maybeDrinks },
     },
   } = queryResponseJson;
 
+  const drinks = maybeDrinks.filter((drink): drink is Drink => Boolean(drink));
   const drinksWithPlaceholderImages = await withPlaceholderImages(drinks);
   const loaderData = { drinks: drinksWithPlaceholderImages };
 

@@ -12,7 +12,7 @@ import Nav from '~/navigation/nav';
 import NavLink from '~/navigation/nav-link';
 import NavDivider from '~/navigation/nav-divider';
 import DrinkList from '~/drinks/drink-list';
-import type { DrinksResponse, EnhancedDrink } from '~/types';
+import type { Drink, DrinksResponse, EnhancedDrink } from '~/types';
 
 export const loader = async ({ params, request }: LoaderArgs) => {
   if (!params.tag) throw json('Missing tag', 400);
@@ -67,9 +67,11 @@ export const loader = async ({ params, request }: LoaderArgs) => {
 
   const {
     data: {
-      drinkCollection: { drinks },
+      drinkCollection: { drinks: maybeDrinks },
     },
   } = queryResponseJson;
+
+  const drinks = maybeDrinks.filter((drink): drink is Drink => Boolean(drink));
 
   if (drinks.length === 0) {
     throw json({ message: 'No drinks found' }, 404);

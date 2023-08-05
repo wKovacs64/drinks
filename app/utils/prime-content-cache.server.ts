@@ -40,7 +40,7 @@ export async function primeContentCache() {
       allDrinksDataFnArgs,
     );
     const allDrinksData: AllDrinksLoaderData = await allDrinksResponse.json();
-    const { drinks } = allDrinksData;
+    const drinks = allDrinksData.drinks.filter(Boolean);
 
     // 3. Load and cache each individual drink
     const allSlugs = drinks.map(({ slug }) => slug);

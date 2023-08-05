@@ -14,7 +14,7 @@ import NavLink from '~/navigation/nav-link';
 import Glass from '~/drinks/glass';
 import DrinkSummary from '~/drinks/drink-summary';
 import DrinkDetails from '~/drinks/drink-details';
-import type { DrinksResponse, EnhancedDrink } from '~/types';
+import type { Drink, DrinksResponse, EnhancedDrink } from '~/types';
 
 export const loader = async ({ params, request }: LoaderArgs) => {
   if (!params.slug) throw json('Missing slug', 400);
@@ -65,17 +65,17 @@ export const loader = async ({ params, request }: LoaderArgs) => {
 
   const {
     data: {
-      drinkCollection: { drinks },
+      drinkCollection: { drinks: maybeDrinks },
     },
   } = queryResponseJson;
+
+  const drinks = maybeDrinks.filter((drink): drink is Drink => Boolean(drink));
 
   if (drinks.length === 0) {
     throw json({ message: 'Drink not found' }, 404);
   }
 
-  const drinksWithPlaceholderImages: Array<EnhancedDrink> =
-    await withPlaceholderImages(drinks);
-
+  const drinksWithPlaceholderImages = await withPlaceholderImages(drinks);
   const [enhancedDrink] = drinksWithPlaceholderImages;
 
   if (enhancedDrink.notes) {

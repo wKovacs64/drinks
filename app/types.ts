@@ -15,7 +15,7 @@ export interface DrinksResponse {
   }>;
   data: {
     drinkCollection: {
-      drinks: Array<Drink>;
+      drinks: Array<Drink | null>;
     } | null;
   };
 }
@@ -28,20 +28,28 @@ export type DrinkTagsResponse = DrinksResponse & {
   };
 };
 
+// Most of the fields will be null if you start to create a new Drink in
+// Contentful without finishing it.
 export interface Drink {
-  title: string;
+  title: string | null;
   slug: string;
   image: {
     url: string;
-  };
-  ingredients: Array<string>;
-  calories: number;
+  } | null;
+  ingredients: Array<string> | null;
+  calories: number | null;
   notes?: string;
   tags?: Array<string>;
 }
 
-export interface EnhancedDrink extends Drink {
-  image: Drink['image'] & {
+export interface EnhancedDrink {
+  title: NonNullable<Drink['title']>;
+  slug: Drink['slug'];
+  image: NonNullable<Drink['image']> & {
     blurDataUrl: string;
   };
+  ingredients: NonNullable<Drink['ingredients']>;
+  calories: NonNullable<Drink['calories']>;
+  notes?: Drink['notes'];
+  tags?: Drink['tags'];
 }

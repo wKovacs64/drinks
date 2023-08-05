@@ -10,7 +10,7 @@ import { getEnvVars } from '~/utils/env.server';
 import { mergeMeta } from '~/utils/meta';
 import { fetchGraphQL } from '~/utils/graphql.server';
 import { cache } from '~/utils/cache.server';
-import type { DrinkTagsResponse } from '~/types';
+import type { Drink, DrinkTagsResponse } from '~/types';
 
 export type LoaderData = SerializeFrom<typeof loader>;
 
@@ -52,10 +52,11 @@ export const loader = async ({ request }: LoaderArgs) => {
 
   const {
     data: {
-      drinkCollection: { drinks },
+      drinkCollection: { drinks: maybeDrinks },
     },
   } = queryResponseJson;
 
+  const drinks = maybeDrinks.filter((drink): drink is Drink => Boolean(drink));
   const uniqueTags = drinks.reduce<Set<string>>((acc, drink) => {
     drink.tags?.forEach((tag) => acc.add(tag));
     return acc;

@@ -1,29 +1,43 @@
 import { makeImageUrl } from '~/core/image';
-import type { Drink } from '~/types';
+import type { Drink, EnhancedDrink } from '~/types';
 
-export async function withPlaceholderImages(drinks: Array<Drink>) {
-  return Promise.all(
-    drinks.map(async (drink) => {
-      const blurredImageUrl = makeImageUrl({
-        baseImageUrl: drink.image.url,
-        width: 10,
-        quality: 90,
-        format: 'webp',
-      });
-      const blurredImageResponse = await fetch(blurredImageUrl);
-      const blurredImageArrayBuffer = await blurredImageResponse.arrayBuffer();
-      const blurredImageBase64String = btoa(
-        String.fromCharCode(...new Uint8Array(blurredImageArrayBuffer)),
-      );
-      const blurDataUrl = `data:image/webp;base64,${blurredImageBase64String}`;
+export async function withPlaceholderImages(
+  drinks: Array<Drink>,
+): Promise<Array<EnhancedDrink>> {
+  return (
+    await Promise.all(
+      drinks.map(async (drink) => {
+        if (
+          drink.title === null ||
+          drink.ingredients === null ||
+          drink.calories === null ||
+          !drink.image?.url
+        ) {
+          return null;
+        }
 
-      return {
-        ...drink,
-        image: {
-          ...drink.image,
-          blurDataUrl,
-        },
-      };
-    }),
-  );
+        const blurredImageUrl = makeImageUrl({
+          baseImageUrl: drink.image.url,
+          width: 10,
+          quality: 90,
+          format: 'webp',
+        });
+        const blurredImageResponse = await fetch(blurredImageUrl);
+        const blurredImageArrayBuffer =
+          await blurredImageResponse.arrayBuffer();
+        const blurredImageBase64String = btoa(
+          String.fromCharCode(...new Uint8Array(blurredImageArrayBuffer)),
+        );
+        const blurDataUrl = `data:image/webp;base64,${blurredImageBase64String}`;
+
+        return {
+          ...drink,
+          image: {
+            ...drink.image,
+            blurDataUrl,
+          },
+        };
+      }),
+    )
+  ).filter((drink): drink is EnhancedDrink => drink !== null);
 }

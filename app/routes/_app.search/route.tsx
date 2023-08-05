@@ -82,10 +82,11 @@ export const loader = async ({ request }: LoaderArgs) => {
 
   const {
     data: {
-      drinkCollection: { drinks },
+      drinkCollection: { drinks: maybeDrinks },
     },
   } = queryResponseJson;
 
+  const drinks = maybeDrinks.filter((drink): drink is Drink => Boolean(drink));
   // sort results in the same order as slugs returned from Algolia
   drinks.sort((a, b) => slugs.indexOf(a.slug) - slugs.indexOf(b.slug));
 

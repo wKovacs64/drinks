@@ -33,7 +33,7 @@
     "start": "cross-env NODE_ENV=production node ./build/server/index.js"
   },
   "dependencies": {
-    "@fontsource/source-sans-3": "5.0.7",
+    "@fontsource/source-sans-3": "5.0.8",
     "@prisma/client": "5.1.1",
     "@remix-run/css-bundle": "1.19.2",
     "@remix-run/express": "1.19.2",

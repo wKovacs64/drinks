@@ -18,9 +18,8 @@ export const loader = async ({ params, request }: LoaderArgs) => {
   if (!params.tag) throw json('Missing tag', 400);
 
   const cacheKey = new URL(request.url).pathname;
-  const cachedData: { drinks: Array<EnhancedDrink> } = await cache.get(
-    cacheKey,
-  );
+  const cachedData: { drinks: Array<EnhancedDrink> } =
+    await cache.get(cacheKey);
   if (cachedData) return json(cachedData);
 
   const { CONTENTFUL_ACCESS_TOKEN, CONTENTFUL_URL, CONTENTFUL_PREVIEW } =

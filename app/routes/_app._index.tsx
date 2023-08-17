@@ -12,9 +12,8 @@ export type LoaderData = SerializeFrom<typeof loader>;
 
 export const loader = async ({ request }: LoaderArgs) => {
   const cacheKey = new URL(request.url).pathname;
-  const cachedData: { drinks: Array<EnhancedDrink> } = await cache.get(
-    cacheKey,
-  );
+  const cachedData: { drinks: Array<EnhancedDrink> } =
+    await cache.get(cacheKey);
   if (cachedData) return json(cachedData);
 
   const { CONTENTFUL_ACCESS_TOKEN, CONTENTFUL_URL, CONTENTFUL_PREVIEW } =

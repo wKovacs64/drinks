@@ -70,7 +70,7 @@
     "@wkovacs64/prettier-config": "3.0.3",
     "autoprefixer": "10.4.15",
     "chokidar": "3.5.3",
-    "del-cli": "5.0.0",
+    "del-cli": "5.0.1",
     "esbuild": "0.19.2",
     "esbuild-register": "3.4.2",
     "eslint": "8.47.0",

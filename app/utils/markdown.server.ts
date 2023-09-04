@@ -13,6 +13,5 @@ export function markdownToHtml(markdownString: string) {
   };
 
   // TODO: sanitize resulting HTML
-  // TODO: remove `headerIds` and `mangle` in next major version
-  return marked(markdownString, { renderer, headerIds: false, mangle: false });
+  return marked(markdownString, { renderer });
 }

@@ -1,4 +1,4 @@
-import { json, type LoaderArgs } from '@remix-run/node';
+import { json, type LoaderFunctionArgs } from '@remix-run/node';
 import { useLoaderData } from '@remix-run/react';
 import { getEnvVars } from '~/utils/env.server';
 import { mergeMeta } from '~/utils/meta';
@@ -16,7 +16,7 @@ import DrinkSummary from '~/drinks/drink-summary';
 import DrinkDetails from '~/drinks/drink-details';
 import type { Drink, DrinksResponse, EnhancedDrink } from '~/types';
 
-export const loader = async ({ params, request }: LoaderArgs) => {
+export const loader = async ({ params, request }: LoaderFunctionArgs) => {
   if (!params.slug) throw json('Missing slug', 400);
 
   const cacheKey = new URL(request.url).pathname;

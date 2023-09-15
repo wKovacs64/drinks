@@ -1,4 +1,8 @@
-import { json, type LoaderArgs, type SerializeFrom } from '@remix-run/node';
+import {
+  json,
+  type LoaderFunctionArgs,
+  type SerializeFrom,
+} from '@remix-run/node';
 import { useLoaderData } from '@remix-run/react';
 import kebabCase from 'lodash/kebabCase';
 import Nav from '~/navigation/nav';
@@ -14,7 +18,7 @@ import type { Drink, DrinkTagsResponse } from '~/types';
 
 export type LoaderData = SerializeFrom<typeof loader>;
 
-export const loader = async ({ request }: LoaderArgs) => {
+export const loader = async ({ request }: LoaderFunctionArgs) => {
   const cacheKey = new URL(request.url).pathname;
   const cachedData: { tags: Array<string> } = await cache.get(cacheKey);
   if (cachedData) return json(cachedData);

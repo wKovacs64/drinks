@@ -1,4 +1,8 @@
-import { json, type LoaderArgs, type SerializeFrom } from '@remix-run/node';
+import {
+  json,
+  type LoaderFunctionArgs,
+  type SerializeFrom,
+} from '@remix-run/node';
 import { useLoaderData } from '@remix-run/react';
 import { getEnvVars } from '~/utils/env.server';
 import { fetchGraphQL } from '~/utils/graphql.server';
@@ -10,7 +14,7 @@ import type { Drink, DrinksResponse, EnhancedDrink } from '~/types';
 
 export type LoaderData = SerializeFrom<typeof loader>;
 
-export const loader = async ({ request }: LoaderArgs) => {
+export const loader = async ({ request }: LoaderFunctionArgs) => {
   const cacheKey = new URL(request.url).pathname;
   const cachedData: { drinks: Array<EnhancedDrink> } =
     await cache.get(cacheKey);

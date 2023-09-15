@@ -1,10 +1,6 @@
 import * as React from 'react';
 import { cssBundleHref } from '@remix-run/css-bundle';
-import {
-  json,
-  type LinksFunction,
-  type V2_MetaFunction,
-} from '@remix-run/node';
+import { json, type LinksFunction, type MetaFunction } from '@remix-run/node';
 import {
   Links,
   LiveReload,
@@ -42,7 +38,7 @@ export function shouldRevalidate() {
   return false;
 }
 
-export const meta: V2_MetaFunction<typeof loader> = ({ data }) => {
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
   const appName = 'Drinks';
   const title = 'drinks.fyi';
   const description = 'Craft Cocktail Gallery';

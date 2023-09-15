@@ -1,4 +1,4 @@
-import type { ActionArgs } from '@remix-run/node';
+import type { ActionFunctionArgs } from '@remix-run/node';
 import { getEnvVars } from '~/utils/env.server';
 import { primeContentCache } from '~/utils/prime-content-cache.server';
 
@@ -6,7 +6,7 @@ export const loader = async () => {
   return new Response(null, { status: 405 });
 };
 
-export const action = async ({ request }: ActionArgs) => {
+export const action = async ({ request }: ActionFunctionArgs) => {
   if (request.method !== 'POST') {
     return new Response(null, { status: 405 });
   }

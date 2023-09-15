@@ -1,4 +1,4 @@
-import { json, type LoaderArgs } from '@remix-run/node';
+import { json, type LoaderFunctionArgs } from '@remix-run/node';
 import { useLoaderData, useParams } from '@remix-run/react';
 import lowerCase from 'lodash/lowerCase';
 import startCase from 'lodash/startCase';
@@ -14,7 +14,7 @@ import NavDivider from '~/navigation/nav-divider';
 import DrinkList from '~/drinks/drink-list';
 import type { Drink, DrinksResponse, EnhancedDrink } from '~/types';
 
-export const loader = async ({ params, request }: LoaderArgs) => {
+export const loader = async ({ params, request }: LoaderFunctionArgs) => {
   if (!params.tag) throw json('Missing tag', 400);
 
   const cacheKey = new URL(request.url).pathname;

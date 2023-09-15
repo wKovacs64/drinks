@@ -5,12 +5,13 @@ import chokidar from 'chokidar';
 import express, { type RequestHandler } from 'express';
 import compression from 'compression';
 import morgan from 'morgan';
-import { broadcastDevReady } from '@remix-run/node';
+import { broadcastDevReady, installGlobals } from '@remix-run/node';
 import { createRequestHandler } from '@remix-run/express';
 import { getInstanceInfo } from 'litefs-js';
 import { primeContentCache } from '~/utils/prime-content-cache.server';
 
 sourceMapSupport.install();
+installGlobals();
 
 const BUILD_DIR = path.join(process.cwd(), 'build');
 /**
@@ -114,7 +115,7 @@ app.all(
     ? createDevRequestHandler()
     : createRequestHandler({
         build,
-        mode: process.env.NODE_ENV,
+        mode: build.mode,
       }),
 );
 

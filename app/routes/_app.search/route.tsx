@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { json, type LoaderArgs } from '@remix-run/node';
+import { json, type LoaderFunctionArgs } from '@remix-run/node';
 import {
   useLoaderData,
   useSearchParams,
@@ -20,7 +20,7 @@ import SearchForm from './search-form';
 import Searching from './searching';
 import { drinksIndex } from './algolia.server';
 
-export const loader = async ({ request }: LoaderArgs) => {
+export const loader = async ({ request }: LoaderFunctionArgs) => {
   const q = new URL(request.url).searchParams.get('q');
   if (!q) {
     return json({ drinks: [] });

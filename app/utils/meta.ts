@@ -1,20 +1,20 @@
 // Adapted from: https://gist.github.com/ryanflorence/ec1849c6d690cfbffcb408ecd633e069
 import type {
   LoaderFunction,
-  V2_HtmlMetaDescriptor,
-  V2_MetaFunction,
+  MetaDescriptor,
+  MetaFunction,
 } from '@remix-run/node';
 
 export const mergeMeta = <
   TLoader extends LoaderFunction | unknown = unknown,
   TParentsLoaders extends Record<string, LoaderFunction> = {},
 >(
-  overrideFn: V2_MetaFunction<TLoader, TParentsLoaders>,
-  appendFn?: V2_MetaFunction<TLoader, TParentsLoaders>,
-): V2_MetaFunction<TLoader, TParentsLoaders> => {
+  overrideFn: MetaFunction<TLoader, TParentsLoaders>,
+  appendFn?: MetaFunction<TLoader, TParentsLoaders>,
+): MetaFunction<TLoader, TParentsLoaders> => {
   return (arg) => {
     // meta from ancestor routes (will contain dupes from _app layout route)
-    const ancestralMeta = arg.matches.reduce<Array<V2_HtmlMetaDescriptor>>(
+    const ancestralMeta = arg.matches.reduce<Array<MetaDescriptor>>(
       (descriptors, match) => descriptors.concat(match.meta || []),
       [],
     );

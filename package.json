@@ -55,6 +55,7 @@
     "react-dom": "18.2.0",
     "react-icons": "4.11.0",
     "remix": "2.0.0",
+    "source-map-support": "0.5.21",
     "zod": "3.22.2"
   },
   "devDependencies": {
@@ -67,6 +68,7 @@
     "@types/morgan": "1.9.5",
     "@types/react": "18.2.21",
     "@types/react-dom": "18.2.7",
+    "@types/source-map-support": "0.5.7",
     "@wkovacs64/prettier-config": "3.0.3",
     "autoprefixer": "10.4.15",
     "chokidar": "3.5.3",

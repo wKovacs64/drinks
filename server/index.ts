@@ -1,5 +1,6 @@
 // Adapted from https://github.com/smerchek/synth-stack/blob/5cd58a07aa4e80bd345d7da5c69099e99ae466af/server.ts
 import path from 'path';
+import sourceMapSupport from 'source-map-support';
 import chokidar from 'chokidar';
 import express, { type RequestHandler } from 'express';
 import compression from 'compression';
@@ -8,6 +9,8 @@ import { broadcastDevReady } from '@remix-run/node';
 import { createRequestHandler } from '@remix-run/express';
 import { getInstanceInfo } from 'litefs-js';
 import { primeContentCache } from '~/utils/prime-content-cache.server';
+
+sourceMapSupport.install();
 
 const BUILD_DIR = path.join(process.cwd(), 'build');
 /**

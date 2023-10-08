@@ -1,11 +1,17 @@
 /**
- * @type {import('@remix-run/dev').AppConfig}
+ * @type {import('@remix-pwa/dev').WorkerConfig}
  */
 module.exports = {
+  //
+  // Remix Settings
+  //
   ignoredRouteFiles: ['**/.*'],
   serverDependenciesToBundle: [
     // Styling docs indicate this is needed, but I don't notice any difference?
     '@fontsource/source-sans-3',
+    '@remix-pwa/cache',
+    '@remix-pwa/strategy',
+    '@remix-pwa/sw',
     'marked',
     'p-throttle',
   ],
@@ -15,4 +21,9 @@ module.exports = {
   // serverBuildPath: "build/index.js",
   // publicPath: "/build/",
   future: {},
+  //
+  // Remix PWA Settings
+  //
+  workerName: 'sw',
+  workerMinify: true,
 };

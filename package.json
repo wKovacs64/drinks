@@ -37,7 +37,7 @@
     "@prisma/client": "5.4.2",
     "@remix-pwa/cache": "2.0.12",
     "@remix-pwa/strategy": "2.1.9",
-    "@remix-pwa/sw": "2.1.11",
+    "@remix-pwa/sw": "2.1.12",
     "@remix-run/css-bundle": "2.1.0",
     "@remix-run/express": "2.1.0",
     "@remix-run/node": "2.1.0",

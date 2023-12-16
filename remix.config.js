@@ -20,7 +20,10 @@ module.exports = {
   // assetsBuildDirectory: "public/build",
   // serverBuildPath: "build/index.js",
   // publicPath: "/build/",
-  future: {},
+  future: {
+    v3_fetcherPersist: true,
+    v3_relativeSplatPath: true,
+  },
   //
   // Remix PWA Settings
   //

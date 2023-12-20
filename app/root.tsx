@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { cssBundleHref } from '@remix-run/css-bundle';
 import { json, type LinksFunction, type MetaFunction } from '@remix-run/node';
 import {
@@ -20,6 +19,8 @@ import { getEnvVars } from '~/utils/env.server';
 import SkipNavLink from '~/core/skip-nav-link';
 import Header from '~/core/header';
 import Footer from '~/core/footer';
+import Breadcrumbs from '~/navigation/breadcrumbs';
+import type { AppRouteHandle } from './types';
 
 export const loader = async () => {
   const { SITE_IMAGE_URL, SITE_IMAGE_ALT } = getEnvVars();
@@ -61,6 +62,10 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   ];
 };
 
+export const handle: AppRouteHandle = {
+  breadcrumb: () => ({ title: 'All Drinks' }),
+};
+
 export const links: LinksFunction = () => [
   ...(cssBundleHref ? [{ rel: 'stylesheet', href: cssBundleHref }] : []),
   {
@@ -98,8 +103,11 @@ export default function App() {
       <body className="relative flex min-h-screen flex-col font-sans font-light">
         <SkipNavLink contentId="main" />
         <Header />
-        <div className="flex-1 py-4 sm:w-[26rem] sm:self-center sm:py-8 lg:w-full lg:max-w-[60rem] xl:max-w-[80rem]">
-          <Outlet />
+        <div className="flex-1 py-4 sm:w-[26rem] sm:self-center sm:py-8 lg:w-full lg:max-w-[60rem] xl:max-w-[80rem] flex flex-col gap-6 sm:gap-8">
+          <Breadcrumbs />
+          <main id="main">
+            <Outlet />
+          </main>
         </div>
         <Footer />
         <ScrollRestoration />

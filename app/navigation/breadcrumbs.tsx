@@ -1,3 +1,4 @@
+import * as React from 'react';
 import {
   useLocation,
   useMatches,
@@ -27,7 +28,7 @@ export default function Breadcrumbs() {
           return (
             <li key={match.id} className="inline">
               {isActive ? (
-                <span>{title}</span>
+                title
               ) : (
                 <NavLink to={match.pathname}>{title}</NavLink>
               )}
@@ -49,7 +50,9 @@ export default function Breadcrumbs() {
 }
 
 export type BreadcrumbHandle = {
-  breadcrumb: (matches: ReturnType<typeof useMatches>) => { title: string };
+  breadcrumb: (matches: ReturnType<typeof useMatches>) => {
+    title: string | React.ReactElement;
+  };
 };
 
 function hasHandleWithBreadcrumb(

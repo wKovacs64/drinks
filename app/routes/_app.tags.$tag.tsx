@@ -93,9 +93,12 @@ export const handle: AppRouteHandle = {
       matches,
     );
     return {
-      title: `${lowerCase(matches.at(-1)?.params.tag)} ( ${
-        data.drinks.length
-      } )`,
+      title: (
+        <div className="inline-flex gap-2">
+          <span>{lowerCase(matches.at(-1)?.params.tag)}</span>
+          <span>( {data.drinks.length} )</span>
+        </div>
+      ),
     };
   },
 };

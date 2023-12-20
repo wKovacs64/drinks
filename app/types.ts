@@ -1,3 +1,5 @@
+import type { BreadcrumbHandle } from '~/navigation/breadcrumbs';
+
 export interface DrinksResponse {
   errors?: Array<{
     message: string;
@@ -53,3 +55,8 @@ export interface EnhancedDrink {
   notes?: Drink['notes'];
   tags?: Drink['tags'];
 }
+
+// While this only includes BreadcrumbHandle at the moment, they are
+// semantically different and it may end up an intersection of multiple types in
+// the future.
+export type AppRouteHandle = BreadcrumbHandle;

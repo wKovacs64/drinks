@@ -1,5 +1,5 @@
 import { json, type LoaderFunctionArgs } from '@remix-run/node';
-import { useLoaderData, useParams } from '@remix-run/react';
+import { useLoaderData } from '@remix-run/react';
 import lowerCase from 'lodash/lowerCase';
 import startCase from 'lodash/startCase';
 import { getEnvVars } from '~/utils/env.server';
@@ -8,11 +8,14 @@ import { fetchGraphQL } from '~/utils/graphql.server';
 import { cache } from '~/utils/cache.server';
 import { withPlaceholderImages } from '~/utils/placeholder-images.server';
 import { notFoundMeta } from '~/routes/_app.$';
-import Nav from '~/navigation/nav';
-import NavLink from '~/navigation/nav-link';
-import NavDivider from '~/navigation/nav-divider';
+import { getLoaderDataForHandle } from '~/navigation/breadcrumbs';
 import DrinkList from '~/drinks/drink-list';
-import type { Drink, DrinksResponse, EnhancedDrink } from '~/types';
+import type {
+  AppRouteHandle,
+  Drink,
+  DrinksResponse,
+  EnhancedDrink,
+} from '~/types';
 
 export const loader = async ({ params, request }: LoaderFunctionArgs) => {
   if (!params.tag) throw json('Missing tag', 400);
@@ -83,6 +86,23 @@ export const loader = async ({ params, request }: LoaderFunctionArgs) => {
   return json(loaderData);
 };
 
+export const handle: AppRouteHandle = {
+  breadcrumb: (matches) => {
+    const data = getLoaderDataForHandle<typeof loader>(
+      'routes/_app.tags.$tag',
+      matches,
+    );
+    return {
+      title: (
+        <div className="inline-flex gap-2">
+          <span>{lowerCase(matches.at(-1)?.params.tag)}</span>
+          <span>( {data.drinks.length} )</span>
+        </div>
+      ),
+    };
+  },
+};
+
 export const meta = mergeMeta<typeof loader>(({ data, params }) => {
   if (!data) return notFoundMeta;
 
@@ -96,24 +116,6 @@ export const meta = mergeMeta<typeof loader>(({ data, params }) => {
 
 export default function TagPage() {
   const { drinks } = useLoaderData<typeof loader>();
-  const { tag } = useParams();
-  const totalCount = drinks.length;
 
-  return (
-    <div>
-      <Nav>
-        <ul>
-          <NavLink to="/">All Drinks</NavLink>
-          <NavDivider />
-          <NavLink to="/tags">Tags</NavLink>
-          <NavDivider />
-          <li className="inline">{lowerCase(tag)}</li>
-          <li className="ml-2 inline">( {totalCount} )</li>
-        </ul>
-      </Nav>
-      <main id="main">
-        <DrinkList drinks={drinks} />
-      </main>
-    </div>
-  );
+  return <DrinkList drinks={drinks} />;
 }

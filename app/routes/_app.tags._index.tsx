@@ -5,9 +5,6 @@ import {
 } from '@remix-run/node';
 import { useLoaderData } from '@remix-run/react';
 import kebabCase from 'lodash/kebabCase';
-import Nav from '~/navigation/nav';
-import NavDivider from '~/navigation/nav-divider';
-import NavLink from '~/navigation/nav-link';
 import TagLink from '~/tags/tag-link';
 import Tag from '~/tags/tag';
 import { getEnvVars } from '~/utils/env.server';
@@ -82,20 +79,7 @@ export const meta = mergeMeta<typeof loader>(() => {
 export default function TagsPage() {
   const { tags } = useLoaderData<typeof loader>();
 
-  return (
-    <div>
-      <Nav>
-        <ul>
-          <NavLink to="/">All Drinks</NavLink>
-          <NavDivider />
-          <li className="inline">Tags</li>
-        </ul>
-      </Nav>
-      <main id="main">
-        <TagList tags={tags} />
-      </main>
-    </div>
-  );
+  return <TagList tags={tags} />;
 }
 
 function TagList({ tags }: { tags: Array<string> }) {

@@ -8,7 +8,6 @@ import { getEnvVars } from '~/utils/env.server';
 import { fetchGraphQL } from '~/utils/graphql.server';
 import { cache } from '~/utils/cache.server';
 import { withPlaceholderImages } from '~/utils/placeholder-images.server';
-import Nav from '~/navigation/nav';
 import DrinkList from '~/drinks/drink-list';
 import type { Drink, DrinksResponse, EnhancedDrink } from '~/types';
 
@@ -77,16 +76,5 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 export default function HomePage() {
   const { drinks } = useLoaderData<typeof loader>();
 
-  return (
-    <div>
-      <Nav>
-        <ul>
-          <li>All Drinks</li>
-        </ul>
-      </Nav>
-      <main id="main">
-        <DrinkList drinks={drinks} />
-      </main>
-    </div>
-  );
+  return <DrinkList drinks={drinks} />;
 }

@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { json, type LoaderFunctionArgs } from '@remix-run/node';
 import {
   useLoaderData,
@@ -9,11 +8,8 @@ import { getEnvVars } from '~/utils/env.server';
 import { mergeMeta } from '~/utils/meta';
 import { fetchGraphQL } from '~/utils/graphql.server';
 import { withPlaceholderImages } from '~/utils/placeholder-images.server';
-import Nav from '~/navigation/nav';
-import NavLink from '~/navigation/nav-link';
-import NavDivider from '~/navigation/nav-divider';
 import DrinkList from '~/drinks/drink-list';
-import type { Drink, DrinksResponse } from '~/types';
+import type { AppRouteHandle, Drink, DrinksResponse } from '~/types';
 import NoDrinksFound from './no-drinks-found';
 import NoSearchTerm from './no-search-term';
 import SearchForm from './search-form';
@@ -96,6 +92,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   return json(loaderData);
 };
 
+export const handle: AppRouteHandle = {
+  breadcrumb: () => ({ title: 'Search' }),
+};
+
 export const meta = mergeMeta<typeof loader>(() => {
   return [
     { title: 'Search Drinks' },
@@ -122,30 +122,13 @@ export default function SearchPage() {
   const hasResults = isIdle && drinks.length > 0;
 
   return (
-    <div>
-      <Nav>
-        <ul>
-          <NavLink to="/">All Drinks</NavLink>
-          <NavDivider />
-          {q ? (
-            <React.Fragment>
-              <NavLink to="/search">Search</NavLink>
-              <NavDivider />
-              <li className="inline">"{q}"</li>
-            </React.Fragment>
-          ) : (
-            <li className="inline">Search</li>
-          )}
-        </ul>
-      </Nav>
-      <main id="main">
-        <SearchForm initialSearchTerm={q ?? ''} />
-        {hasNoSearchTerm && <NoSearchTerm />}
-        {isSearching && <Searching />}
-        {hasNoResults && <NoDrinksFound />}
-        {hasResults && <DrinkList drinks={drinks} />}
-      </main>
-    </div>
+    <>
+      <SearchForm initialSearchTerm={q ?? ''} />
+      {hasNoSearchTerm && <NoSearchTerm />}
+      {isSearching && <Searching />}
+      {hasNoResults && <NoDrinksFound />}
+      {hasResults && <DrinkList drinks={drinks} />}
+    </>
   );
 }
 

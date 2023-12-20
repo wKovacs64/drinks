@@ -8,13 +8,16 @@ import { withPlaceholderImages } from '~/utils/placeholder-images.server';
 import { markdownToHtml } from '~/utils/markdown.server';
 import { makeImageUrl } from '~/core/image';
 import { notFoundMeta } from '~/routes/_app.$';
-import Nav from '~/navigation/nav';
-import NavDivider from '~/navigation/nav-divider';
-import NavLink from '~/navigation/nav-link';
+import { getLoaderDataForHandle } from '~/navigation/breadcrumbs';
 import Glass from '~/drinks/glass';
 import DrinkSummary from '~/drinks/drink-summary';
 import DrinkDetails from '~/drinks/drink-details';
-import type { Drink, DrinksResponse, EnhancedDrink } from '~/types';
+import type {
+  AppRouteHandle,
+  Drink,
+  DrinksResponse,
+  EnhancedDrink,
+} from '~/types';
 
 export const loader = async ({ params, request }: LoaderFunctionArgs) => {
   if (!params.slug) throw json('Missing slug', 400);
@@ -88,6 +91,16 @@ export const loader = async ({ params, request }: LoaderFunctionArgs) => {
   return json(loaderData);
 };
 
+export const handle: AppRouteHandle = {
+  breadcrumb: (matches) => {
+    const data = getLoaderDataForHandle<typeof loader>(
+      'routes/_app.$slug',
+      matches,
+    );
+    return { title: data.drink.title };
+  },
+};
+
 export const meta = mergeMeta<typeof loader>(({ data }) => {
   if (!data) return notFoundMeta;
 
@@ -131,26 +144,15 @@ export default function DrinkPage() {
   ];
 
   return (
-    <div>
-      <Nav>
-        <ul>
-          <NavLink to="/">All Drinks</NavLink>
-          <NavDivider />
-          <li className="inline">{drink.title}</li>
-        </ul>
-      </Nav>
-      <main id="main">
-        <Glass>
-          <DrinkSummary
-            className="lg:flex-row"
-            drink={drink}
-            imageWidths={imageWidths}
-            imageSizesPerViewport={imageSizesPerViewport}
-            stacked
-          />
-          <DrinkDetails drink={drink} />
-        </Glass>
-      </main>
-    </div>
+    <Glass>
+      <DrinkSummary
+        className="lg:flex-row"
+        drink={drink}
+        imageWidths={imageWidths}
+        imageSizesPerViewport={imageSizesPerViewport}
+        stacked
+      />
+      <DrinkDetails drink={drink} />
+    </Glass>
   );
 }

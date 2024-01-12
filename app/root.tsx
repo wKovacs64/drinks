@@ -11,7 +11,6 @@ import sourceSans3Latin300 from '@fontsource/source-sans-3/latin-300.css';
 import sourceSans3Latin400 from '@fontsource/source-sans-3/latin-400.css';
 import { useSWEffect, LiveReload } from '@remix-pwa/sw';
 import faviconIcoUrl from '../public/favicon.ico';
-import iconsSpriteHref from '~/icons/icons-sprite.svg';
 import icon32Url from '~/images/icon-32x32.png';
 import appleTouchIconUrl from '~/images/apple-touch-icon.png';
 import appStylesUrl from '~/styles/app.css';
@@ -69,7 +68,6 @@ export const handle: AppRouteHandle = {
 
 export const links: LinksFunction = () => [
   ...(cssBundleHref ? [{ rel: 'stylesheet', href: cssBundleHref }] : []),
-  { rel: 'preload', href: iconsSpriteHref, as: 'image' },
   {
     rel: 'preconnect',
     href: 'https://images.ctfassets.net/',

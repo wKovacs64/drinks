@@ -1,10 +1,9 @@
-import { Icon } from '~/icons/icon';
+import BrokenGlassIcon from '~/core/broken-glass-icon';
 
 export default function NoDrinksFound() {
   return (
     <section className="text-center">
-      <Icon
-        name="broken_glass"
+      <BrokenGlassIcon
         aria-label="Broken Glass"
         className="my-[10vh] inline h-[20vh] w-[20vh] text-burnt-orange"
       />

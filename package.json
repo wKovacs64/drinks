@@ -92,7 +92,7 @@
     "prisma": "5.8.0",
     "remix-pwa": "3.0.19",
     "rmx-cli": "0.4.15",
-    "semantic-release": "22.0.12",
+    "semantic-release": "23.0.0",
     "shelljs": "0.8.5",
     "tailwindcss": "3.4.1",
     "typescript": "5.3.3"

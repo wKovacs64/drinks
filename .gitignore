@@ -254,3 +254,6 @@ $RECYCLE.BIN/
 
 # ShafSpecs/remix-pwa
 /public/sw.js
+
+# Generated SVG icons sprite and component
+/app/icons

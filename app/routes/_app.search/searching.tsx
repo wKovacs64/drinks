@@ -1,9 +1,10 @@
-import { MdSearch } from 'react-icons/md';
+import { Icon } from '~/icons/icon';
 
 export default function Searching() {
   return (
     <section className="text-center">
-      <MdSearch
+      <Icon
+        name="search-filled"
         aria-label="Magnifying Glass"
         className="my-[10vh] inline h-[20vh] w-[20vh] text-burnt-orange"
       />

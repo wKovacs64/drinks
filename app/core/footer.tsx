@@ -1,4 +1,4 @@
-import { Icon } from '~/icons/icon';
+import { FaGithub } from 'react-icons/fa';
 
 export default function Footer() {
   return (
@@ -19,7 +19,7 @@ export default function Footer() {
           target="_blank"
           rel="nofollow noopener noreferrer"
         >
-          <Icon name="github" aria-label="View source on GitHub" size={32} />
+          <FaGithub aria-label="View source on GitHub" size={32} />
         </a>
       </section>
     </footer>

@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Form } from '@remix-run/react';
-import { Icon } from '~/icons/icon';
+import { MdChevronRight } from 'react-icons/md';
+import AlgoliaIcon from './algolia-icon';
 
 export default function SearchForm({
   initialSearchTerm,
@@ -43,10 +44,9 @@ export default function SearchForm({
         rel="nofollow noopener noreferrer"
         className="drinks-focusable group p-2"
       >
-        <Icon
-          name="algolia"
+        <AlgoliaIcon
           aria-label="Search by Algolia"
-          className="h-8 w-8 opacity-90 group-hover:opacity-100 group-focus-visible:opacity-100 text-[#003dff]"
+          className="h-8 w-8 opacity-90 group-hover:opacity-100 group-focus-visible:opacity-100"
         />
       </a>
       <input
@@ -67,7 +67,7 @@ export default function SearchForm({
         type="submit"
       >
         <span className="sr-only">Search</span>
-        <Icon name="chevron_right-filled" size={32} aria-hidden />
+        <MdChevronRight aria-hidden size={32} />
       </button>
     </Form>
   );

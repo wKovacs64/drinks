@@ -61,11 +61,8 @@ jobs:
       - name: 📥 Install deps
         run: npm install
 
-      - name: 🖼 Build icons
-        run: npm run build:icons
-
       - name: 🔎 Type check
-        run: npm run typecheck
+        run: npm run typecheck --if-present
 
   # vitest:
   #   name: ⚡ Vitest

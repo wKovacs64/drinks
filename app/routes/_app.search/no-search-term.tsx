@@ -1,10 +1,9 @@
-import { Icon } from '~/icons/icon';
+import { MdArrowUpward } from 'react-icons/md';
 
 export default function NoSearchTerm() {
   return (
     <section className="text-center">
-      <Icon
-        name="arrow_upward-filled"
+      <MdArrowUpward
         aria-label="Arrow Pointing Up"
         className="my-[10vh] inline h-[20vh] w-[20vh] text-burnt-orange"
       />

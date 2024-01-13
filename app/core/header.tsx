@@ -1,5 +1,5 @@
 import { Link, type LinkProps } from '@remix-run/react';
-import { Icon } from '~/icons/icon';
+import { MdSearch } from 'react-icons/md';
 
 export default function Header() {
   return (
@@ -11,7 +11,7 @@ export default function Header() {
         </h1>
         <HeaderLink to="/search">
           <span className="sr-only">Search</span>
-          <Icon name="search-filled" size={32} aria-hidden />
+          <MdSearch aria-hidden size={32} />
         </HeaderLink>
       </section>
     </header>

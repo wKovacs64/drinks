@@ -57,7 +57,7 @@
     "p-throttle": "6.1.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "react-icons": "4.12.0",
+    "react-icons": "5.0.1",
     "remix": "2.5.0",
     "source-map-support": "0.5.21",
     "zod": "3.22.4"

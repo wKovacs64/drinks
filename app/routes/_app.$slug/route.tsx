@@ -17,7 +17,7 @@ export const handle: AppRouteHandle = {
       'routes/_app.$slug',
       matches,
     );
-    return { title: data.drink.title };
+    return { title: data?.drink.title ?? 'Not Found' };
   },
 };
 

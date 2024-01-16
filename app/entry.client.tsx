@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { RemixBrowser } from '@remix-run/react';
 import { hydrateRoot } from 'react-dom/client';
-import { loadServiceWorker } from '@remix-pwa/sw';
+// import { loadServiceWorker } from '@remix-pwa/sw';
 import { requestIdleCallbackShim } from '~/utils/request-idle-callback-shim';
 
 requestIdleCallbackShim(() => {
@@ -15,4 +15,4 @@ requestIdleCallbackShim(() => {
   });
 });
 
-loadServiceWorker({ serviceWorkerUrl: '/sw.js' });
+// loadServiceWorker({ serviceWorkerUrl: '/sw.js' });

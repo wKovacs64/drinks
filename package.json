@@ -18,20 +18,20 @@
     "url": "https://github.com/wKovacs64/drinks/issues"
   },
   "scripts": {
-    "clean": "del-cli .cache ./app/icons ./build ./public/build ./public/sw.js",
+    "clean": "del-cli .cache ./app/icons ./build ./public/sw.js",
     "build": "run-s build:*",
     "build:icons": "rmx svg-sprite ./other/svg-icons ./app/icons --sprite=icons-sprite.svg --template=./other/svg-icons/template.tsx",
-    "build:remix": "remix build",
-    "build:worker": "remix-pwa build",
+    "build:remix": "remix vite:build",
+    "// build:worker": "remix-pwa build",
     "deploy": "flyctl deploy --remote-only",
     "dev": "run-s clean build:icons && run-p dev:*",
-    "dev:remix": "remix dev --manual --command \"tsx watch --clear-screen=false --inspect --require dotenv/config --watch-path ./server ./server/index.ts\"",
-    "dev:worker": "remix-pwa dev",
+    "dev:remix": "tsx watch --clear-screen=false --inspect --watch-path ./server.ts ./server.ts",
+    "// dev:worker": "remix-pwa dev",
     "format": "prettier --cache --write .",
     "format:check": "prettier --cache --check .",
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
     "setup": "prisma migrate dev",
-    "start": "cross-env NODE_ENV=production tsx ./server/index.ts",
+    "start": "cross-env NODE_ENV=production tsx ./server.ts",
     "typecheck": "tsc"
   },
   "dependencies": {
@@ -41,7 +41,6 @@
     "@remix-pwa/cache": "2.0.12",
     "@remix-pwa/strategy": "2.1.9",
     "@remix-pwa/sw": "2.1.12",
-    "@remix-run/css-bundle": "2.7.2",
     "@remix-run/express": "2.7.2",
     "@remix-run/node": "2.7.2",
     "@remix-run/react": "2.7.2",
@@ -81,7 +80,6 @@
     "@typescript-eslint/parser": "7.1.0",
     "@wkovacs64/prettier-config": "3.0.3",
     "autoprefixer": "10.4.17",
-    "chokidar": "3.6.0",
     "del-cli": "5.1.0",
     "eslint": "8.57.0",
     "eslint-config-prettier": "9.1.0",
@@ -102,7 +100,9 @@
     "semantic-release": "23.0.2",
     "shelljs": "0.8.5",
     "tailwindcss": "3.4.1",
-    "typescript": "5.3.3"
+    "typescript": "5.3.3",
+    "vite": "5.1.4",
+    "vite-tsconfig-paths": "4.3.1"
   },
   "engines": {
     "node": ">=20"

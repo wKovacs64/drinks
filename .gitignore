@@ -242,10 +242,9 @@ $RECYCLE.BIN/
 # Manual exclusions
 !**/.gitkeep
 
-# Remix on fly.io
+# Remix
 /.cache
 /build
-/public/build
 .env
 
 # Prisma

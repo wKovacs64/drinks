@@ -1,12 +1,7 @@
 import * as fs from 'node:fs';
-import * as path from 'node:path';
 import * as url from 'node:url';
-import { createRequestHandler, type RequestHandler } from '@remix-run/express';
-import {
-  broadcastDevReady,
-  installGlobals,
-  type ServerBuild,
-} from '@remix-run/node';
+import { createRequestHandler } from '@remix-run/express';
+import { installGlobals } from '@remix-run/node';
 import compression from 'compression';
 import express from 'express';
 import morgan from 'morgan';
@@ -30,21 +25,17 @@ sourceMapSupport.install({
     return null;
   },
 });
+
 installGlobals();
 
-const BUILD_PATH = path.resolve('build/index.js');
-const VERSION_PATH = path.resolve('build/version.txt');
-
-const initialBuild: ServerBuild = await reimportServer();
-const remixHandler =
-  process.env.NODE_ENV === 'development'
-    ? await createDevRequestHandler(initialBuild)
-    : createRequestHandler({
-        build: initialBuild,
-        mode: initialBuild.mode,
-      });
-
-const isDev = process.env.NODE_ENV === 'development';
+const viteDevServer =
+  process.env.NODE_ENV === 'production'
+    ? undefined
+    : await import('vite').then((vite) =>
+        vite.createServer({
+          server: { middlewareMode: true },
+        }),
+      );
 
 const app = express();
 
@@ -63,9 +54,7 @@ app.use((req, res, next) => {
   res.set('X-Fly-Region', process.env.FLY_REGION ?? 'unknown');
 
   // security headers
-  if (!isDev) {
-    // TODO: figure out a way to make this work in development with Remix dev
-    // server
+  if (process.env.NODE_ENV === 'production') {
     res.set(
       'Content-Security-Policy',
       [
@@ -116,15 +105,20 @@ app.use(compression());
 // https://expressjs.com/en/advanced/best-practice-security.html#reduce-fingerprinting
 app.disable('x-powered-by');
 
-// Remix fingerprints its assets so we can cache forever.
-app.use(
-  '/build',
-  express.static('public/build', { immutable: true, maxAge: '1y' }),
-);
+// handle asset requests
+if (viteDevServer) {
+  app.use(viteDevServer.middlewares);
+} else {
+  // Remix fingerprints its assets so we can cache forever.
+  app.use(
+    '/assets',
+    express.static('build/client/assets', { immutable: true, maxAge: '1y' }),
+  );
+}
 
 // Everything else (like favicon.ico) is cached for less than forever but still
 // a long time.
-app.use(express.static('public', { maxAge: '1d' }));
+app.use(express.static('build/client', { maxAge: '1d' }));
 
 app.use(
   morgan('tiny', {
@@ -134,16 +128,23 @@ app.use(
   }),
 );
 
-app.all('*', remixHandler);
+app.all(
+  '*',
+  createRequestHandler({
+    // @ts-ignore - might be able to remove this if Remix figures out types here
+    build: viteDevServer
+      ? () => viteDevServer.ssrLoadModule('virtual:remix/server-build')
+      : // @ts-ignore - server build output may not always be there
+        await import('./build/server/index.js'),
+  }),
+);
+
+await primeContentCacheIfAppropriate();
 
 const port = process.env.PORT || 3000;
 
-primeContentCacheIfAppropriate().then(() => {
-  app.listen(port, () => {
-    console.log(`✅ app ready: http://localhost:${port}`);
-    // in dev, call `broadcastDevReady` _after_ your server is up and running
-    if (isDev) broadcastDevReady(initialBuild);
-  });
+app.listen(port, () => {
+  console.log(`✅ app ready: http://localhost:${port}`);
 });
 
 async function primeContentCacheIfAppropriate() {
@@ -156,43 +157,4 @@ async function primeContentCacheIfAppropriate() {
   } else {
     await primeContentCache();
   }
-}
-
-async function reimportServer(): Promise<ServerBuild> {
-  const stat = fs.statSync(BUILD_PATH);
-
-  // convert build path to URL for Windows compatibility with dynamic `import`
-  const BUILD_URL = url.pathToFileURL(BUILD_PATH).href;
-
-  // use a timestamp query parameter to bust the import cache
-  return import(BUILD_URL + '?t=' + stat.mtimeMs);
-}
-
-async function createDevRequestHandler(theInitialBuild: ServerBuild) {
-  let build = theInitialBuild;
-  async function handleServerUpdate() {
-    // 1. re-import the server build
-    build = await reimportServer();
-    // 2. tell Remix that this app server is now up-to-date and ready
-    broadcastDevReady(build);
-  }
-  const chokidar = await import('chokidar');
-  chokidar
-    .watch(VERSION_PATH, { ignoreInitial: true })
-    .on('add', handleServerUpdate)
-    .on('change', handleServerUpdate);
-
-  // wrap request handler to make sure its recreated with the latest build for every request
-  const requestHandler: RequestHandler = async (req, res, next) => {
-    try {
-      return createRequestHandler({
-        build,
-        mode: 'development',
-      })(req, res, next);
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  return requestHandler;
 }

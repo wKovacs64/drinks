@@ -5,10 +5,10 @@ import {
   useSearchParams,
   type UIMatch,
 } from '@remix-run/react';
+import type { SerializeFrom } from '@remix-run/node';
 import Nav from './nav';
 import NavLink from './nav-link';
 import NavDivider from './nav-divider';
-import type { SerializeFrom } from '@remix-run/node';
 
 export default function Breadcrumbs() {
   const matches = useMatches();
@@ -41,7 +41,7 @@ export default function Breadcrumbs() {
         {isSearching ? (
           <>
             <NavDivider />
-            <span>"{q}"</span>
+            <span>&quot;{q}&quot;</span>
           </>
         ) : null}
       </ul>
@@ -57,7 +57,7 @@ export type BreadcrumbHandle = {
 
 function hasHandleWithBreadcrumb(
   match: UIMatch,
-): match is UIMatch<any, BreadcrumbHandle> {
+): match is UIMatch<unknown, BreadcrumbHandle> {
   return (
     match.handle !== null &&
     typeof match.handle === 'object' &&

@@ -1,23 +1,48 @@
-// Adapted from https://github.com/smerchek/synth-stack/blob/5cd58a07aa4e80bd345d7da5c69099e99ae466af/server.ts
-import path from 'path';
-import sourceMapSupport from 'source-map-support';
-import chokidar from 'chokidar';
-import express, { type RequestHandler } from 'express';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import * as url from 'node:url';
+import { createRequestHandler, type RequestHandler } from '@remix-run/express';
+import {
+  broadcastDevReady,
+  installGlobals,
+  type ServerBuild,
+} from '@remix-run/node';
 import compression from 'compression';
+import express from 'express';
 import morgan from 'morgan';
-import { broadcastDevReady, installGlobals } from '@remix-run/node';
-import { createRequestHandler } from '@remix-run/express';
+import sourceMapSupport from 'source-map-support';
 import { getInstanceInfo } from 'litefs-js';
 import { primeContentCache } from '~/utils/prime-content-cache.server';
 
-sourceMapSupport.install();
+sourceMapSupport.install({
+  retrieveSourceMap: function (source) {
+    const match = source.startsWith('file://');
+    if (match) {
+      const filePath = url.fileURLToPath(source);
+      const sourceMapPath = `${filePath}.map`;
+      if (fs.existsSync(sourceMapPath)) {
+        return {
+          url: source,
+          map: fs.readFileSync(sourceMapPath, 'utf8'),
+        };
+      }
+    }
+    return null;
+  },
+});
 installGlobals();
 
-const BUILD_DIR = path.join(process.cwd(), 'build');
-/**
- * @type { import('@remix-run/node').ServerBuild | Promise<import('@remix-run/node').ServerBuild> }
- */
-let build = require(BUILD_DIR);
+const BUILD_PATH = path.resolve('build/index.js');
+const VERSION_PATH = path.resolve('build/version.txt');
+
+const initialBuild: ServerBuild = await reimportServer();
+const remixHandler =
+  process.env.NODE_ENV === 'development'
+    ? await createDevRequestHandler(initialBuild)
+    : createRequestHandler({
+        build: initialBuild,
+        mode: initialBuild.mode,
+      });
 
 const isDev = process.env.NODE_ENV === 'development';
 
@@ -39,8 +64,8 @@ app.use((req, res, next) => {
 
   // security headers
   if (!isDev) {
-    // TODO: figure out a way to make this work in development with Remix's new
-    // dev server
+    // TODO: figure out a way to make this work in development with Remix dev
+    // server
     res.set(
       'Content-Security-Policy',
       [
@@ -109,15 +134,7 @@ app.use(
   }),
 );
 
-app.all(
-  '*',
-  isDev
-    ? createDevRequestHandler()
-    : createRequestHandler({
-        build,
-        mode: build.mode,
-      }),
-);
+app.all('*', remixHandler);
 
 const port = process.env.PORT || 3000;
 
@@ -125,7 +142,7 @@ primeContentCacheIfAppropriate().then(() => {
   app.listen(port, () => {
     console.log(`✅ app ready: http://localhost:${port}`);
     // in dev, call `broadcastDevReady` _after_ your server is up and running
-    if (isDev) broadcastDevReady(build);
+    if (isDev) broadcastDevReady(initialBuild);
   });
 });
 
@@ -141,25 +158,35 @@ async function primeContentCacheIfAppropriate() {
   }
 }
 
-function createDevRequestHandler() {
-  const watcher = chokidar.watch(BUILD_DIR, { ignoreInitial: true });
+async function reimportServer(): Promise<ServerBuild> {
+  const stat = fs.statSync(BUILD_PATH);
 
-  watcher.on('all', async () => {
-    // 1. purge require cache && load updated server build
-    for (const key in require.cache) {
-      if (key.startsWith(BUILD_DIR)) {
-        delete require.cache[key];
-      }
-    }
-    build = require(BUILD_DIR);
-    // 2. tell dev server that this app server is now ready
-    broadcastDevReady(await build);
-  });
+  // convert build path to URL for Windows compatibility with dynamic `import`
+  const BUILD_URL = url.pathToFileURL(BUILD_PATH).href;
 
+  // use a timestamp query parameter to bust the import cache
+  return import(BUILD_URL + '?t=' + stat.mtimeMs);
+}
+
+async function createDevRequestHandler(initialBuild: ServerBuild) {
+  let build = initialBuild;
+  async function handleServerUpdate() {
+    // 1. re-import the server build
+    build = await reimportServer();
+    // 2. tell Remix that this app server is now up-to-date and ready
+    broadcastDevReady(build);
+  }
+  const chokidar = await import('chokidar');
+  chokidar
+    .watch(VERSION_PATH, { ignoreInitial: true })
+    .on('add', handleServerUpdate)
+    .on('change', handleServerUpdate);
+
+  // wrap request handler to make sure its recreated with the latest build for every request
   const requestHandler: RequestHandler = async (req, res, next) => {
     try {
       return createRequestHandler({
-        build: await build,
+        build,
         mode: 'development',
       })(req, res, next);
     } catch (error) {

@@ -11,7 +11,7 @@ export const cache = {
       }
     }
   },
-  async set(key: string, value: any) {
+  async set(key: string, value: Parameters<typeof JSON.stringify>[0]) {
     try {
       await prisma.cacheEntry.create({
         data: { key, value: JSON.stringify(value) },

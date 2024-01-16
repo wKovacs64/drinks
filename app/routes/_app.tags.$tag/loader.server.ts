@@ -1,23 +1,18 @@
-import { json, type LoaderFunctionArgs } from '@remix-run/node';
-import { useLoaderData } from '@remix-run/react';
-import lowerCase from 'lodash/lowerCase';
-import startCase from 'lodash/startCase';
+import {
+  json,
+  type LoaderFunctionArgs,
+  type SerializeFrom,
+} from '@remix-run/node';
+import { lowerCase } from 'lodash-es';
 import { getEnvVars } from '~/utils/env.server';
-import { mergeMeta } from '~/utils/meta';
 import { fetchGraphQL } from '~/utils/graphql.server';
 import { cache } from '~/utils/cache.server';
 import { withPlaceholderImages } from '~/utils/placeholder-images.server';
-import { notFoundMeta } from '~/routes/_app.$';
-import { getLoaderDataForHandle } from '~/navigation/breadcrumbs';
-import DrinkList from '~/drinks/drink-list';
-import type {
-  AppRouteHandle,
-  Drink,
-  DrinksResponse,
-  EnhancedDrink,
-} from '~/types';
+import type { Drink, DrinksResponse, EnhancedDrink } from '~/types';
 
-export const loader = async ({ params, request }: LoaderFunctionArgs) => {
+export type LoaderData = SerializeFrom<typeof loader>;
+
+export async function loader({ params, request }: LoaderFunctionArgs) {
   if (!params.tag) throw json('Missing tag', 400);
 
   const cacheKey = new URL(request.url).pathname;
@@ -84,38 +79,4 @@ export const loader = async ({ params, request }: LoaderFunctionArgs) => {
 
   await cache.set(cacheKey, loaderData);
   return json(loaderData);
-};
-
-export const handle: AppRouteHandle = {
-  breadcrumb: (matches) => {
-    const data = getLoaderDataForHandle<typeof loader>(
-      'routes/_app.tags.$tag',
-      matches,
-    );
-    return {
-      title: (
-        <div className="inline-flex gap-2">
-          <span>{lowerCase(matches.at(-1)?.params.tag)}</span>
-          <span>( {data.drinks.length} )</span>
-        </div>
-      ),
-    };
-  },
-};
-
-export const meta = mergeMeta<typeof loader>(({ data, params }) => {
-  if (!data) return notFoundMeta;
-
-  const { tag } = params;
-
-  return [
-    { title: `Drinks with ${startCase(tag)}` },
-    { name: 'description', content: `All drinks containing ${lowerCase(tag)}` },
-  ];
-});
-
-export default function TagPage() {
-  const { drinks } = useLoaderData<typeof loader>();
-
-  return <DrinkList drinks={drinks} />;
 }

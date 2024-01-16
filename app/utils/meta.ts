@@ -7,7 +7,10 @@ import type {
 
 export const mergeMeta = <
   TLoader extends LoaderFunction | unknown = unknown,
-  TParentsLoaders extends Record<string, LoaderFunction> = {},
+  TParentsLoaders extends Record<string, LoaderFunction> = Record<
+    string,
+    LoaderFunction
+  >,
 >(
   overrideFn: MetaFunction<TLoader, TParentsLoaders>,
   appendFn?: MetaFunction<TLoader, TParentsLoaders>,
@@ -29,6 +32,7 @@ export const mergeMeta = <
         // 'title' and 'charSet' are special cases that automatically get
         // handled by defaulting isDuplicate to true
         ['name', 'property', 'httpEquiv'].forEach((k) => {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           if (inner[k] !== outer[k]) {
             isDuplicate = false;

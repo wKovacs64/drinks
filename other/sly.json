@@ -1,0 +1,11 @@
+{
+  "$schema": "https://sly-cli.fly.dev/registry/config.json",
+  "libraries": [
+    {
+      "name": "material-design-icons",
+      "directory": "./svg-icons",
+      "postinstall": ["npm", "run", "build:icons"],
+      "transformers": ["transform-svg.ts"]
+    }
+  ]
+}

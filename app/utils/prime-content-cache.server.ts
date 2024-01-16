@@ -1,18 +1,18 @@
-import type { DataFunctionArgs } from '@remix-run/node';
-import kebabCase from 'lodash/kebabCase';
+import type { LoaderFunctionArgs } from '@remix-run/node';
+import { kebabCase } from 'lodash-es';
 import pThrottle from 'p-throttle';
 import { getEnvVars } from '~/utils/env.server';
 import { cache } from '~/utils/cache.server';
 import {
   loader as allDrinksLoader,
   type LoaderData as AllDrinksLoaderData,
-} from '~/routes/_app._index';
-import { loader as drinkLoader } from '~/routes/_app.$slug';
+} from '~/routes/_app._index/loader.server';
+import { loader as drinkLoader } from '~/routes/_app.$slug/loader.server';
 import {
   loader as allTagsLoader,
   type LoaderData as AllTagsLoaderData,
-} from '~/routes/_app.tags._index';
-import { loader as tagLoader } from '~/routes/_app.tags.$tag';
+} from '~/routes/_app.tags._index/loader.server';
+import { loader as tagLoader } from '~/routes/_app.tags.$tag/loader.server';
 
 const { CONTENTFUL_PREVIEW } = getEnvVars();
 
@@ -30,7 +30,7 @@ export async function primeContentCache() {
     await cache.clear();
 
     // 2. Load and cache all drinks
-    const allDrinksDataFnArgs: DataFunctionArgs = {
+    const allDrinksDataFnArgs: LoaderFunctionArgs = {
       context: {},
       params: {},
       request: new Request('https://drinks.fyi'),
@@ -46,7 +46,7 @@ export async function primeContentCache() {
     const throttledDrinkLoader = throttle(drinkLoader);
     await Promise.all(
       allSlugs.map(async (slug) => {
-        const drinkDataFnArgs: DataFunctionArgs = {
+        const drinkDataFnArgs: LoaderFunctionArgs = {
           context: {},
           params: { slug },
           request: new Request(`https://drinks.fyi/${slug}`),
@@ -56,7 +56,7 @@ export async function primeContentCache() {
     );
 
     // 4. Load and cache all tags
-    const allTagsDataFnArgs: DataFunctionArgs = {
+    const allTagsDataFnArgs: LoaderFunctionArgs = {
       context: {},
       params: {},
       request: new Request('https://drinks.fyi/tags'),
@@ -72,7 +72,7 @@ export async function primeContentCache() {
     await Promise.all(
       tags.map(async (tag) => {
         const tagSlug = kebabCase(tag);
-        const tagDataFnArgs: DataFunctionArgs = {
+        const tagDataFnArgs: LoaderFunctionArgs = {
           context: {},
           params: { tag: tagSlug },
           request: new Request(`https://drinks.fyi/tags/${tagSlug}`),

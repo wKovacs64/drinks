@@ -3,39 +3,26 @@ import {
   type LoaderFunctionArgs,
   type SerializeFrom,
 } from '@remix-run/node';
-import { useLoaderData } from '@remix-run/react';
 import { getEnvVars } from '~/utils/env.server';
 import { fetchGraphQL } from '~/utils/graphql.server';
 import { cache } from '~/utils/cache.server';
-import { withPlaceholderImages } from '~/utils/placeholder-images.server';
-import DrinkList from '~/drinks/drink-list';
-import type { Drink, DrinksResponse, EnhancedDrink } from '~/types';
+import type { Drink, DrinkTagsResponse } from '~/types';
 
 export type LoaderData = SerializeFrom<typeof loader>;
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
+export async function loader({ request }: LoaderFunctionArgs) {
   const cacheKey = new URL(request.url).pathname;
-  const cachedData: { drinks: Array<EnhancedDrink> } =
-    await cache.get(cacheKey);
+  const cachedData: { tags: Array<string> } = await cache.get(cacheKey);
   if (cachedData) return json(cachedData);
 
   const { CONTENTFUL_ACCESS_TOKEN, CONTENTFUL_URL, CONTENTFUL_PREVIEW } =
     getEnvVars();
 
-  const allDrinksQuery = /* GraphQL */ `
+  const allDrinkTagsQuery = /* GraphQL */ `
     query ($preview: Boolean) {
-      drinkCollection(
-        preview: $preview
-        order: [rank_DESC, sys_firstPublishedAt_DESC]
-      ) {
+      drinkCollection(preview: $preview) {
         drinks: items {
-          title
-          slug
-          image {
-            url
-          }
-          ingredients
-          calories
+          tags
         }
       }
     }
@@ -44,13 +31,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const queryResponse = await fetchGraphQL(
     CONTENTFUL_URL,
     CONTENTFUL_ACCESS_TOKEN,
-    allDrinksQuery,
+    allDrinkTagsQuery,
     {
       preview: CONTENTFUL_PREVIEW === 'true',
     },
   );
 
-  const queryResponseJson: DrinksResponse = await queryResponse.json();
+  const queryResponseJson: DrinkTagsResponse = await queryResponse.json();
 
   if (
     queryResponseJson.errors?.length ||
@@ -66,15 +53,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   } = queryResponseJson;
 
   const drinks = maybeDrinks.filter((drink): drink is Drink => Boolean(drink));
-  const drinksWithPlaceholderImages = await withPlaceholderImages(drinks);
-  const loaderData = { drinks: drinksWithPlaceholderImages };
+  const uniqueTags = drinks.reduce<Set<string>>((acc, drink) => {
+    drink.tags?.forEach((tag) => acc.add(tag));
+    return acc;
+  }, new Set());
+
+  const loaderData = { tags: Array.from(uniqueTags).sort() };
 
   await cache.set(cacheKey, loaderData);
   return json(loaderData);
-};
-
-export default function HomePage() {
-  const { drinks } = useLoaderData<typeof loader>();
-
-  return <DrinkList drinks={drinks} />;
 }

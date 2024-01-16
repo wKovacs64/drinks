@@ -16,7 +16,7 @@ import SearchForm from './search-form';
 import Searching from './searching';
 import { drinksIndex } from './algolia.server';
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
+export async function loader({ request }: LoaderFunctionArgs) {
   const q = new URL(request.url).searchParams.get('q');
   if (!q) {
     return json({ drinks: [] });
@@ -90,7 +90,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const loaderData = { drinks: drinksWithPlaceholderImages };
 
   return json(loaderData);
-};
+}
 
 export const handle: AppRouteHandle = {
   breadcrumb: () => ({ title: 'Search' }),

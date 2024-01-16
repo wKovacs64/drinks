@@ -4,7 +4,7 @@ import icon512Url from '~/images/icon-512x512.png';
 import iconMaskable192Url from '~/images/icon-maskable-192x192.png';
 import iconMaskable512Url from '~/images/icon-maskable-512x512.png';
 
-export const loader = async () => {
+export async function loader() {
   return json(
     {
       name: 'drinks.fyi',
@@ -46,4 +46,4 @@ export const loader = async () => {
       },
     },
   );
-};
+}

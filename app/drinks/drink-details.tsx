@@ -1,4 +1,4 @@
-import kebabCase from 'lodash/kebabCase';
+import { kebabCase } from 'lodash-es';
 import type { EnhancedDrink } from '~/types';
 import Tag from '~/tags/tag';
 import TagLink from '~/tags/tag-link';

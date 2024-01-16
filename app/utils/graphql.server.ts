@@ -4,7 +4,7 @@ export async function fetchGraphQL(
   query: string,
   variables: Record<
     string,
-    string | number | boolean | null | Array<string> | Array<number>
+    string | number | boolean | null | string[] | number[]
   >,
 ) {
   return fetch(url, {

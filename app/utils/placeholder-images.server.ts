@@ -2,8 +2,8 @@ import { makeImageUrl } from '~/core/image';
 import type { Drink, EnhancedDrink } from '~/types';
 
 export async function withPlaceholderImages(
-  drinks: Array<Drink>,
-): Promise<Array<EnhancedDrink>> {
+  drinks: Drink[],
+): Promise<EnhancedDrink[]> {
   return (
     await Promise.all(
       drinks.map(async (drink) => {

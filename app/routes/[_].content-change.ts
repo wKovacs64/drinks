@@ -2,11 +2,11 @@ import type { ActionFunctionArgs } from '@remix-run/node';
 import { getEnvVars } from '~/utils/env.server';
 import { primeContentCache } from '~/utils/prime-content-cache.server';
 
-export const loader = async () => {
+export async function loader() {
   return new Response(null, { status: 405 });
-};
+}
 
-export const action = async ({ request }: ActionFunctionArgs) => {
+export async function action({ request }: ActionFunctionArgs) {
   if (request.method !== 'POST') {
     return new Response(null, { status: 405 });
   }
@@ -32,4 +32,4 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   await primeContentCache();
 
   return new Response(null, { status: 204 });
-};
+}

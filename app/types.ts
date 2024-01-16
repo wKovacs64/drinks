@@ -1,7 +1,7 @@
 import type { BreadcrumbHandle } from '~/navigation/breadcrumbs';
 
 export interface DrinksResponse {
-  errors?: Array<{
+  errors?: {
     message: string;
     extensions: {
       contentful: {
@@ -9,15 +9,15 @@ export interface DrinksResponse {
         requestId: string;
       };
     };
-    locations: Array<{
+    locations: {
       line: number;
       column: number;
-    }>;
-    path: Array<string>;
-  }>;
+    }[];
+    path: string[];
+  }[];
   data: {
     drinkCollection: {
-      drinks: Array<Drink | null>;
+      drinks: (Drink | null)[];
     } | null;
   };
 }
@@ -25,7 +25,7 @@ export interface DrinksResponse {
 export type DrinkTagsResponse = DrinksResponse & {
   data: {
     drinkCollection: {
-      drinks: Array<Pick<Drink, 'tags'>>;
+      drinks: Pick<Drink, 'tags'>[];
     } | null;
   };
 };
@@ -38,10 +38,10 @@ export interface Drink {
   image: {
     url: string;
   } | null;
-  ingredients: Array<string> | null;
+  ingredients: string[] | null;
   calories: number | null;
   notes?: string;
-  tags?: Array<string>;
+  tags?: string[];
 }
 
 export interface EnhancedDrink {

@@ -36,5 +36,5 @@ export default function DrinkList({ drinks }: DrinkListProps) {
 }
 
 interface DrinkListProps {
-  drinks: Array<EnhancedDrink>;
+  drinks: EnhancedDrink[];
 }

@@ -16,7 +16,7 @@ import SearchForm from './search-form';
 import Searching from './searching';
 import { drinksIndex } from './algolia.server';
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
+export async function loader({ request }: LoaderFunctionArgs) {
   const q = new URL(request.url).searchParams.get('q');
   if (!q) {
     return json({ drinks: [] });
@@ -90,7 +90,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const loaderData = { drinks: drinksWithPlaceholderImages };
 
   return json(loaderData);
-};
+}
 
 export const handle: AppRouteHandle = {
   breadcrumb: () => ({ title: 'Search' }),
@@ -141,29 +141,29 @@ interface AlgoliaDrinkHit
       value: string;
       matchLevel: AlgoliaMatchLevel;
       fullyHighlighted: boolean;
-      matchedWords: Array<string>;
+      matchedWords: string[];
     };
     slug: {
       value: string;
       matchLevel: AlgoliaMatchLevel;
       fullyHighlighted: boolean;
-      matchedWords: Array<string>;
+      matchedWords: string[];
     };
-    ingredients: Array<{
+    ingredients: {
       value: string;
       matchLevel: AlgoliaMatchLevel;
-      matchedWords: Array<string>;
-    }>;
+      matchedWords: string[];
+    }[];
     createdAt: {
       value: string;
       matchLevel: AlgoliaMatchLevel;
-      matchedWords: Array<string>;
+      matchedWords: string[];
     };
     notes: {
       value: string;
       matchLevel: AlgoliaMatchLevel;
       fullyHighlighted: boolean;
-      matchedWords: Array<string>;
+      matchedWords: string[];
     };
   };
 }

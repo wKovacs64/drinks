@@ -7,14 +7,17 @@ import type {
 
 export const mergeMeta = <
   TLoader extends LoaderFunction | unknown = unknown,
-  TParentsLoaders extends Record<string, LoaderFunction> = {},
+  TParentsLoaders extends Record<string, LoaderFunction> = Record<
+    string,
+    LoaderFunction
+  >,
 >(
   overrideFn: MetaFunction<TLoader, TParentsLoaders>,
   appendFn?: MetaFunction<TLoader, TParentsLoaders>,
 ): MetaFunction<TLoader, TParentsLoaders> => {
   return (arg) => {
     // meta from ancestor routes (will contain dupes from _app layout route)
-    const ancestralMeta = arg.matches.reduce<Array<MetaDescriptor>>(
+    const ancestralMeta = arg.matches.reduce<MetaDescriptor[]>(
       (descriptors, match) => descriptors.concat(match.meta || []),
       [],
     );

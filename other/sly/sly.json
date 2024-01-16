@@ -3,7 +3,7 @@
   "libraries": [
     {
       "name": "material-design-icons",
-      "directory": "./svg-icons",
+      "directory": "./other/svg-icons",
       "postinstall": ["npm", "run", "build:icons"],
       "transformers": ["transform-svg.ts"]
     }

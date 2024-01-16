@@ -20,7 +20,7 @@
   "scripts": {
     "clean": "del-cli .cache ./app/icons ./build ./public/build ./public/sw.js",
     "build": "run-s build:*",
-    "build:icons": "rmx svg-sprite svg-icons app/icons --sprite=icons-sprite.svg --template=svg-icons/template.tsx",
+    "build:icons": "rmx svg-sprite ./other/svg-icons ./app/icons --sprite=icons-sprite.svg --template=./other/svg-icons/template.tsx",
     "build:remix": "remix build",
     "build:worker": "remix-pwa build",
     "deploy": "flyctl deploy --remote-only",

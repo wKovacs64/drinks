@@ -16,11 +16,13 @@ export const handle: AppRouteHandle = {
       matches,
     );
     return {
-      title: (
+      title: data ? (
         <div className="inline-flex gap-2">
           <span>{lowerCase(matches.at(-1)?.params.tag)}</span>
           <span>( {data.drinks.length} )</span>
         </div>
+      ) : (
+        'Not Found'
       ),
     };
   },

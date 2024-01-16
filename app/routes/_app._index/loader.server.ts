@@ -13,7 +13,7 @@ export type LoaderData = SerializeFrom<typeof loader>;
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const cacheKey = new URL(request.url).pathname;
-  const cachedData: { drinks: Array<EnhancedDrink> } =
+  const cachedData: { drinks: EnhancedDrink[] } =
     await cache.get(cacheKey);
   if (cachedData) return json(cachedData);
 

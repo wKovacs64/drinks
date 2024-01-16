@@ -1,9 +1,3 @@
-/**
- * This is intended to be a basic starting point for linting in your app.
- * It relies on recommended configs out of the box for simplicity, but you can
- * and should modify this configuration to best suit your team's needs.
- */
-
 /** @type {import('eslint').Linter.Config} */
 module.exports = {
   root: true,
@@ -67,14 +61,45 @@ module.exports = {
       },
       extends: [
         'plugin:@typescript-eslint/recommended',
+        'plugin:@typescript-eslint/stylistic',
         'plugin:import/recommended',
         'plugin:import/typescript',
       ],
+      rules: {
+        '@typescript-eslint/ban-ts-comment': 'off',
+        '@typescript-eslint/consistent-type-definitions': 'off',
+        '@typescript-eslint/no-empty-function': 'off',
+        '@typescript-eslint/no-explicit-any': 'off',
+        '@typescript-eslint/no-unused-vars': [
+          'error',
+          {
+            vars: 'all',
+            args: 'after-used',
+            argsIgnorePattern: '^_',
+            ignoreRestSiblings: true,
+          },
+        ],
+        'import/no-unresolved': [
+          'error',
+          {
+            ignore: ['^~/icons/icon', './icons-sprite.svg'],
+          },
+        ],
+        'import/order': [
+          'error',
+          {
+            groups: [
+              ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
+            ],
+            'newlines-between': 'never',
+          },
+        ],
+      },
     },
 
     // Node
     {
-      files: ['.eslintrc.js', 'server.js'],
+      files: ['.eslintrc.cjs', 'server/**/*.ts', '**/*.server.ts'],
       env: {
         node: true,
       },

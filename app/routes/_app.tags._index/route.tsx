@@ -20,7 +20,7 @@ export default function TagsPage() {
   return <TagList tags={tags} />;
 }
 
-function TagList({ tags }: { tags: Array<string> }) {
+function TagList({ tags }: { tags: string[] }) {
   return (
     <div
       // TODO: this needs work, particularly wrt horizontal margins

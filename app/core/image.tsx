@@ -101,8 +101,8 @@ export function getImageProps({
   ...otherImageProps
 }: Omit<ImageProps, 'fallbackSrc' | 'sizes' | 'srcSetByFormat'> & {
   imageUrl: string;
-  imageWidths: Array<number>;
-  imageSizesPerViewport: Array<string>;
+  imageWidths: number[];
+  imageSizesPerViewport: string[];
 }): ImageProps {
   const fallbackSrc = makeImageUrl({
     baseImageUrl: imageUrl,
@@ -115,7 +115,7 @@ export function getImageProps({
   });
 
   const srcSetsMap = imageWidths.reduce<{
-    [k in ImageFormat]: Array<string>;
+    [k in ImageFormat]: string[];
   }>(
     (acc, size) => {
       acc.avif.push(

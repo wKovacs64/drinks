@@ -17,7 +17,7 @@ export const mergeMeta = <
 ): MetaFunction<TLoader, TParentsLoaders> => {
   return (arg) => {
     // meta from ancestor routes (will contain dupes from _app layout route)
-    const ancestralMeta = arg.matches.reduce<Array<MetaDescriptor>>(
+    const ancestralMeta = arg.matches.reduce<MetaDescriptor[]>(
       (descriptors, match) => descriptors.concat(match.meta || []),
       [],
     );
@@ -32,7 +32,6 @@ export const mergeMeta = <
         // 'title' and 'charSet' are special cases that automatically get
         // handled by defaulting isDuplicate to true
         ['name', 'property', 'httpEquiv'].forEach((k) => {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           if (inner[k] !== outer[k]) {
             isDuplicate = false;

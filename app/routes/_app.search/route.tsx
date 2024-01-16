@@ -141,29 +141,29 @@ interface AlgoliaDrinkHit
       value: string;
       matchLevel: AlgoliaMatchLevel;
       fullyHighlighted: boolean;
-      matchedWords: Array<string>;
+      matchedWords: string[];
     };
     slug: {
       value: string;
       matchLevel: AlgoliaMatchLevel;
       fullyHighlighted: boolean;
-      matchedWords: Array<string>;
+      matchedWords: string[];
     };
-    ingredients: Array<{
+    ingredients: {
       value: string;
       matchLevel: AlgoliaMatchLevel;
-      matchedWords: Array<string>;
-    }>;
+      matchedWords: string[];
+    }[];
     createdAt: {
       value: string;
       matchLevel: AlgoliaMatchLevel;
-      matchedWords: Array<string>;
+      matchedWords: string[];
     };
     notes: {
       value: string;
       matchLevel: AlgoliaMatchLevel;
       fullyHighlighted: boolean;
-      matchedWords: Array<string>;
+      matchedWords: string[];
     };
   };
 }

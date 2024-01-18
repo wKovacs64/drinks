@@ -74,8 +74,8 @@ export function getLoaderDataForHandle<Loader>(
   routeId: string,
   matches: ReturnType<typeof useMatches>,
 ) {
-  const match = matches.find((match) => match.id === routeId);
-  if (!match) throw new Error(`No match found for route id "${routeId}"`);
+  const uiMatch = matches.find((match) => match.id === routeId);
+  if (!uiMatch) throw new Error(`No match found for route id "${routeId}"`);
   // match.data can be undefined in the case of a 404
-  return match.data as SerializeFrom<Loader> | undefined;
+  return uiMatch.data as SerializeFrom<Loader> | undefined;
 }

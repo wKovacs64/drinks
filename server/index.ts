@@ -168,8 +168,8 @@ async function reimportServer(): Promise<ServerBuild> {
   return import(BUILD_URL + '?t=' + stat.mtimeMs);
 }
 
-async function createDevRequestHandler(initialBuild: ServerBuild) {
-  let build = initialBuild;
+async function createDevRequestHandler(theInitialBuild: ServerBuild) {
+  let build = theInitialBuild;
   async function handleServerUpdate() {
     // 1. re-import the server build
     build = await reimportServer();

@@ -6,16 +6,13 @@ import {
   Scripts,
   ScrollRestoration,
 } from '@remix-run/react';
-// import sourceSans3Latin300 from '@fontsource/source-sans-3/latin-300.css?url';
-// import sourceSans3Latin400 from '@fontsource/source-sans-3/latin-400.css?url';
-import '@fontsource/source-sans-3/latin-300.css';
-import '@fontsource/source-sans-3/latin-400.css';
+import sourceSans3Latin300 from '@fontsource/source-sans-3/latin-300.css?url';
+import sourceSans3Latin400 from '@fontsource/source-sans-3/latin-400.css?url';
 import { useSWEffect } from '@remix-pwa/sw';
 import { iconsSpriteHref } from '~/icons/icon';
 import icon32Url from '~/images/icon-32x32.png?url';
 import appleTouchIconUrl from '~/images/apple-touch-icon.png?url';
-// import appStylesUrl from '~/styles/app.css?url';
-import '~/styles/app.css';
+import appStylesUrl from '~/styles/app.css?url';
 import { backgroundImageStyles } from '~/styles/background-image';
 import { getEnvVars } from '~/utils/env.server';
 import SkipNavLink from '~/core/skip-nav-link';
@@ -81,9 +78,9 @@ export const links: LinksFunction = () => [
   { rel: 'icon', type: 'image/png', sizes: '32x32', href: icon32Url },
   { rel: 'apple-touch-icon', sizes: '180x180', href: appleTouchIconUrl },
   { rel: 'manifest', href: '/manifest.webmanifest' },
-  // { rel: 'stylesheet', href: sourceSans3Latin300 },
-  // { rel: 'stylesheet', href: sourceSans3Latin400 },
-  // { rel: 'stylesheet', href: appStylesUrl },
+  { rel: 'stylesheet', href: sourceSans3Latin300 },
+  { rel: 'stylesheet', href: sourceSans3Latin400 },
+  { rel: 'stylesheet', href: appStylesUrl },
 ];
 
 export default function App() {

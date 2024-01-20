@@ -10,7 +10,7 @@ import {
 // import sourceSans3Latin400 from '@fontsource/source-sans-3/latin-400.css?url';
 import '@fontsource/source-sans-3/latin-300.css';
 import '@fontsource/source-sans-3/latin-400.css';
-// import { useSWEffect, LiveReload } from '@remix-pwa/sw';
+import { useSWEffect } from '@remix-pwa/sw';
 import { iconsSpriteHref } from '~/icons/icon';
 import icon32Url from '~/images/icon-32x32.png?url';
 import appleTouchIconUrl from '~/images/apple-touch-icon.png?url';
@@ -87,7 +87,7 @@ export const links: LinksFunction = () => [
 ];
 
 export default function App() {
-  // useSWEffect();
+  useSWEffect();
 
   return (
     <html

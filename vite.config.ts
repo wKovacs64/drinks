@@ -1,4 +1,5 @@
 import { vitePlugin as remix } from '@remix-run/dev';
+import { unstable_RemixPWA as remixPwa } from '@remix-pwa/dev';
 import { defineConfig } from 'vite';
 import tsConfigPaths from 'vite-tsconfig-paths';
 
@@ -18,6 +19,10 @@ export default defineConfig({
         v3_relativeSplatPath: true,
         v3_throwAbortReason: true,
       },
+    }),
+    remixPwa({
+      workerName: 'sw',
+      workerMinify: true,
     }),
     tsConfigPaths(),
   ],

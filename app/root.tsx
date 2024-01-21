@@ -10,8 +10,9 @@ import sourceSans3Latin300 from '@fontsource/source-sans-3/latin-300.css?url';
 import sourceSans3Latin400 from '@fontsource/source-sans-3/latin-400.css?url';
 import { useSWEffect } from '@remix-pwa/sw';
 import { iconsSpriteHref } from '~/icons/icon';
-import icon32Url from '~/images/icon-32x32.png?url';
-import appleTouchIconUrl from '~/images/apple-touch-icon.png?url';
+import faviconIcoUrl from '~/images/favicon.ico';
+import icon32Url from '~/images/icon-32x32.png';
+import appleTouchIconUrl from '~/images/apple-touch-icon.png';
 import appStylesUrl from '~/styles/app.css?url';
 import { backgroundImageStyles } from '~/styles/background-image';
 import { getEnvVars } from '~/utils/env.server';
@@ -19,7 +20,6 @@ import SkipNavLink from '~/core/skip-nav-link';
 import Header from '~/core/header';
 import Footer from '~/core/footer';
 import Breadcrumbs from '~/navigation/breadcrumbs';
-import faviconIcoUrl from '../public/favicon.ico?url';
 import type { AppRouteHandle } from './types';
 
 export async function loader() {

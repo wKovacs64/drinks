@@ -1,6 +1,7 @@
 import { vitePlugin as remix } from '@remix-run/dev';
 import { unstable_RemixPWA as remixPwa } from '@remix-pwa/dev';
-import { defineConfig } from 'vite';
+import { defineConfig, normalizePath } from 'vite';
+import { viteStaticCopy } from 'vite-plugin-static-copy';
 import tsConfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig({
@@ -23,6 +24,14 @@ export default defineConfig({
     remixPwa({
       workerName: 'sw',
       workerMinify: true,
+    }),
+    viteStaticCopy({
+      targets: [
+        {
+          src: 'app/images/favicon.ico',
+          dest: normalizePath('../../build/client'),
+        },
+      ],
     }),
     tsConfigPaths(),
   ],

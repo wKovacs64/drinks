@@ -6,14 +6,14 @@ import {
   Scripts,
   ScrollRestoration,
 } from '@remix-run/react';
+import { useSWEffect } from '@remix-pwa/sw';
 import sourceSans3Latin300 from '@fontsource/source-sans-3/latin-300.css?url';
 import sourceSans3Latin400 from '@fontsource/source-sans-3/latin-400.css?url';
-import { useSWEffect } from '@remix-pwa/sw';
+import appStylesUrl from '~/styles/app.css?url';
 import { iconsSpriteHref } from '~/icons/icon';
 import faviconIcoUrl from '~/images/favicon.ico';
 import icon32Url from '~/images/icon-32x32.png';
 import appleTouchIconUrl from '~/images/apple-touch-icon.png';
-import appStylesUrl from '~/styles/app.css?url';
 import { backgroundImageStyles } from '~/styles/background-image';
 import { getEnvVars } from '~/utils/env.server';
 import SkipNavLink from '~/core/skip-nav-link';

@@ -37,7 +37,7 @@
   "dependencies": {
     "@epic-web/remember": "1.0.2",
     "@fontsource/source-sans-3": "5.0.18",
-    "@prisma/client": "5.9.0",
+    "@prisma/client": "5.9.1",
     "@remix-pwa/cache": "2.0.12",
     "@remix-pwa/strategy": "2.1.9",
     "@remix-pwa/sw": "2.1.12",
@@ -96,7 +96,7 @@
     "postcss": "8.4.33",
     "prettier": "3.2.4",
     "prettier-plugin-tailwindcss": "0.5.11",
-    "prisma": "5.9.0",
+    "prisma": "5.9.1",
     "remix-pwa": "3.0.19",
     "rmx-cli": "0.4.15",
     "semantic-release": "23.0.0",

@@ -159,7 +159,7 @@ jobs:
 
       - name: 🚀 Deploy Dev
         if: ${{ github.ref == 'refs/heads/dev' }}
-        uses: superfly/flyctl-actions@v1.4
+        uses: superfly/flyctl-actions@1.5
         with:
           args: deploy --remote-only --build-arg COMMIT_SHA=${{ github.sha }} --app ${{ steps.app_name.outputs.value }}-dev
         env:
@@ -167,7 +167,7 @@ jobs:
 
       - name: 🚀 Deploy Production
         if: ${{ github.ref == 'refs/heads/main' }}
-        uses: superfly/flyctl-actions@v1.4
+        uses: superfly/flyctl-actions@1.5
         with:
           args: deploy --remote-only --build-arg COMMIT_SHA=${{ github.sha }} --app ${{ steps.app_name.outputs.value }}
         env:

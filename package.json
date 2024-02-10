@@ -61,7 +61,7 @@
     "react-dom": "18.2.0",
     "remix": "2.6.0",
     "source-map-support": "0.5.21",
-    "tsx": "4.7.0",
+    "tsx": "4.7.1",
     "zod": "3.22.4"
   },
   "devDependencies": {

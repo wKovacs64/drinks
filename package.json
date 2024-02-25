@@ -33,7 +33,6 @@
     "typecheck": "tsc"
   },
   "dependencies": {
-    "@epic-web/remember": "1.0.2",
     "@fontsource/source-sans-3": "5.0.18",
     "@prisma/client": "5.10.2",
     "@remix-pwa/sw": "2.2.0-dev.4",

@@ -83,7 +83,11 @@ module.exports = {
         'import/no-unresolved': [
           'error',
           {
-            ignore: ['^~/icons/icon', './icons-sprite.svg'],
+            ignore: [
+              'build/server/index.js',
+              '^~/icons/icon',
+              './icons-sprite.svg',
+            ],
           },
         ],
         'import/order': [
@@ -100,7 +104,7 @@ module.exports = {
 
     // Node
     {
-      files: ['.eslintrc.cjs', 'server/**/*.ts', '**/*.server.ts'],
+      files: ['.eslintrc.cjs', 'server.ts', '**/*.server.ts'],
       env: {
         node: true,
       },

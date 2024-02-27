@@ -1,4 +1,3 @@
-import { cssBundleHref } from '@remix-run/css-bundle';
 import { json, type LinksFunction, type MetaFunction } from '@remix-run/node';
 import {
   Links,
@@ -7,20 +6,20 @@ import {
   Scripts,
   ScrollRestoration,
 } from '@remix-run/react';
-import sourceSans3Latin300 from '@fontsource/source-sans-3/latin-300.css';
-import sourceSans3Latin400 from '@fontsource/source-sans-3/latin-400.css';
-import { useSWEffect, LiveReload } from '@remix-pwa/sw';
+import { useSWEffect } from '@remix-pwa/sw';
+import sourceSans3Latin300 from '@fontsource/source-sans-3/latin-300.css?url';
+import sourceSans3Latin400 from '@fontsource/source-sans-3/latin-400.css?url';
+import appStylesUrl from '~/styles/app.css?url';
 import { iconsSpriteHref } from '~/icons/icon';
+import faviconIcoUrl from '~/images/favicon.ico';
 import icon32Url from '~/images/icon-32x32.png';
 import appleTouchIconUrl from '~/images/apple-touch-icon.png';
-import appStylesUrl from '~/styles/app.css';
 import { backgroundImageStyles } from '~/styles/background-image';
 import { getEnvVars } from '~/utils/env.server';
 import SkipNavLink from '~/core/skip-nav-link';
 import Header from '~/core/header';
 import Footer from '~/core/footer';
 import Breadcrumbs from '~/navigation/breadcrumbs';
-import faviconIcoUrl from '../public/favicon.ico';
 import type { AppRouteHandle } from './types';
 
 export async function loader() {
@@ -68,7 +67,6 @@ export const handle: AppRouteHandle = {
 };
 
 export const links: LinksFunction = () => [
-  ...(cssBundleHref ? [{ rel: 'stylesheet', href: cssBundleHref }] : []),
   { rel: 'preload', href: iconsSpriteHref, as: 'image' },
   {
     rel: 'preconnect',
@@ -114,7 +112,6 @@ export default function App() {
         <Footer />
         <ScrollRestoration />
         <Scripts />
-        <LiveReload />
       </body>
     </html>
   );

@@ -20,7 +20,7 @@
   "scripts": {
     "clean": "del-cli .cache app/icons build node_modules/.vite",
     "build": "run-s build:*",
-    "build:icons": "rmx svg-sprite ./other/svg-icons ./app/icons --sprite=icons-sprite.svg --template=./other/svg-icons/template.tsx",
+    "build:icons": "rmx svg-sprite ./app/assets/svg-icons ./app/icons --sprite=icons-sprite.svg --template=./app/assets/svg-icons/template.tsx",
     "build:remix": "remix vite:build",
     "deploy": "flyctl deploy --remote-only",
     "dev": "run-s clean build:icons dev:remix",
@@ -30,7 +30,8 @@
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
     "setup": "prisma migrate dev",
     "start": "cross-env NODE_ENV=production tsx ./server.ts",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "validate": "run-p format:check lint typecheck"
   },
   "dependencies": {
     "@fontsource/source-sans-3": "5.0.18",

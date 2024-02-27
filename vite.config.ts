@@ -1,3 +1,4 @@
+import path from 'node:path';
 import { vitePlugin as remix } from '@remix-run/dev';
 import { unstable_RemixPWA as remixPwa } from '@remix-pwa/dev';
 import { defineConfig, normalizePath } from 'vite';
@@ -29,7 +30,7 @@ export default defineConfig({
       targets: [
         {
           src: 'app/images/favicon.ico',
-          dest: normalizePath('../../build/client'),
+          dest: normalizePath(path.resolve('./build/client')),
         },
       ],
     }),

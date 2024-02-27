@@ -251,8 +251,5 @@ $RECYCLE.BIN/
 /prisma/*.db
 /prisma/*.db-journal
 
-# ShafSpecs/remix-pwa
-/public/sw.js
-
 # Generated SVG icons sprite and component
 /app/icons

@@ -5,6 +5,8 @@ import { defineConfig, normalizePath } from 'vite';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 import tsConfigPaths from 'vite-tsconfig-paths';
 
+const outputDir = normalizePath(path.resolve('./build/client'));
+
 export default defineConfig({
   build: {
     // Our SVG icons sprite is smaller than the default limit of 4096, so it
@@ -25,12 +27,13 @@ export default defineConfig({
     remixPwa({
       workerName: 'sw',
       workerMinify: true,
+      workerBuildDirectory: outputDir,
     }),
     viteStaticCopy({
       targets: [
         {
           src: 'app/images/favicon.ico',
-          dest: normalizePath(path.resolve('./build/client')),
+          dest: outputDir,
         },
       ],
     }),

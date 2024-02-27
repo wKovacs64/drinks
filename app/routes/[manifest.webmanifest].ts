@@ -1,8 +1,8 @@
 import { json } from '@remix-run/node';
-import icon192Url from '~/images/icon-192x192.png';
-import icon512Url from '~/images/icon-512x512.png';
-import iconMaskable192Url from '~/images/icon-maskable-192x192.png';
-import iconMaskable512Url from '~/images/icon-maskable-512x512.png';
+import icon192Url from '~/assets/images/icon-192x192.png';
+import icon512Url from '~/assets/images/icon-512x512.png';
+import iconMaskable192Url from '~/assets/images/icon-maskable-192x192.png';
+import iconMaskable512Url from '~/assets/images/icon-maskable-512x512.png';
 
 export async function loader() {
   return json(

@@ -34,7 +34,7 @@
     "validate": "run-p format:check lint typecheck"
   },
   "dependencies": {
-    "@fontsource/source-sans-3": "5.0.18",
+    "@fontsource/source-sans-3": "5.0.19",
     "@prisma/client": "5.10.2",
     "@remix-pwa/sw": "2.2.0-dev.4",
     "@remix-run/express": "2.8.0",

@@ -54,7 +54,7 @@ exit-on-error: false
 exec:
   # Only run migrations on candidate nodes. Combined with `promote: true` above,
   # this ensures that migrations are only run on the primary node.
-  - cmd: npx prisma migrate deploy
+  - cmd: npm run setup
     if-candidate: true
 
   # Then run the application on all nodes.

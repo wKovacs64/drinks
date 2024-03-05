@@ -1,5 +1,5 @@
 import type { LoaderFunctionArgs } from '@remix-run/node';
-import { prisma } from '~/utils/db.server';
+import { db, cacheEntry } from '~/db.server/drizzle';
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const host =
@@ -8,7 +8,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   try {
     await Promise.all([
-      prisma.cacheEntry.count(),
+      db.select({ id: cacheEntry.id }).from(cacheEntry).limit(1),
       fetch(url.toString(), {
         method: 'HEAD',
         headers: { 'x-from-healthcheck': 'true' },

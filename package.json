@@ -24,7 +24,7 @@
     "build:remix": "remix vite:build",
     "deploy": "flyctl deploy --remote-only",
     "dev": "run-s clean build:icons dev:remix",
-    "dev:remix": "tsx watch --clear-screen=false --inspect --watch-path ./server.ts ./server.ts",
+    "dev:remix": "tsx watch --clear-screen=false --inspect --require dotenv/config --watch-path ./server.ts ./server.ts",
     "format": "prettier --cache --write .",
     "format:check": "prettier --cache --check .",
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",

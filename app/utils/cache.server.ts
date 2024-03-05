@@ -1,8 +1,11 @@
-import { prisma } from '~/utils/db.server';
+import { count, eq, sql } from 'drizzle-orm';
+import { db, cacheEntry } from '~/db.server/drizzle';
 
 export const cache = {
   async get(key: string) {
-    const cachedData = await prisma.cacheEntry.findUnique({ where: { key } });
+    const cachedData = await db.query.cacheEntry.findFirst({
+      where: eq(cacheEntry.key, key),
+    });
     if (cachedData) {
       try {
         return JSON.parse(cachedData.value);
@@ -13,8 +16,10 @@ export const cache = {
   },
   async set(key: string, value: Parameters<typeof JSON.stringify>[0]) {
     try {
-      await prisma.cacheEntry.create({
-        data: { key, value: JSON.stringify(value) },
+      await db.insert(cacheEntry).values({
+        key,
+        value: JSON.stringify(value),
+        updatedAt: sql`CURRENT_TIMESTAMP`,
       });
     } catch {
       // noop, cache failures shouldn't break the app
@@ -22,21 +27,25 @@ export const cache = {
   },
   async has(key: string) {
     try {
-      return (await prisma.cacheEntry.count({ where: { key } })) > 0;
+      const [{ count: cacheEntryCount }] = await db
+        .select({ count: count() })
+        .from(cacheEntry)
+        .where(eq(cacheEntry.key, key));
+      return cacheEntryCount > 0;
     } catch {
       return false;
     }
   },
   async delete(key: string) {
     try {
-      await prisma.cacheEntry.delete({ where: { key } });
+      await db.delete(cacheEntry).where(eq(cacheEntry.key, key));
     } catch {
       // noop, cache failures shouldn't break the app
     }
   },
   async clear() {
     try {
-      await prisma.cacheEntry.deleteMany();
+      await db.delete(cacheEntry);
     } catch {
       // noop, cache failures shouldn't break the app
     }

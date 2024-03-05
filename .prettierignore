@@ -1,4 +1,4 @@
 # .gitignore and...
 
 package*.json
-**/*.typegen.ts
+app/db.server/meta/*.json

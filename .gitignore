@@ -247,9 +247,9 @@ $RECYCLE.BIN/
 /build
 .env
 
-# Prisma
-/prisma/*.db
-/prisma/*.db-journal
+# Drizzle
+/app/db.server/*.db
+/app/db.server/*.db-*
 
 # Generated SVG icons sprite and component
 /app/icons

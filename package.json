@@ -40,7 +40,7 @@
     "@remix-run/node": "2.8.1",
     "@remix-run/react": "2.8.1",
     "@remix-run/serve": "2.8.1",
-    "algoliasearch": "4.22.1",
+    "algoliasearch": "4.23.1",
     "better-sqlite3": "9.4.3",
     "clsx": "2.1.0",
     "compression": "1.7.4",

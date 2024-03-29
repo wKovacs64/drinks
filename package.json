@@ -63,7 +63,7 @@
   },
   "devDependencies": {
     "@remix-pwa/dev": "2.1.0-dev.7",
-    "@remix-pwa/worker-runtime": "2.1.0-dev.1",
+    "@remix-pwa/worker-runtime": "2.1.0",
     "@remix-run/dev": "2.8.1",
     "@sly-cli/sly": "1.10.0",
     "@types/better-sqlite3": "7.6.9",

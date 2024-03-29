@@ -10,6 +10,12 @@
   "major": {
     "automerge": false
   },
+  "packageRules": [
+    {
+      "matchPackagePatterns": [".*remix-pwa.*"],
+      "groupName": "remix-pwa"
+    }
+  ],
   "prConcurrentLimit": 0,
   "prHourlyLimit": 0
 }

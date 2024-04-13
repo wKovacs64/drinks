@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { vitePlugin as remix } from '@remix-run/dev';
-import { unstable_RemixPWA as remixPwa } from '@remix-pwa/dev';
+import { remixPWA } from '@remix-pwa/dev';
 import { defineConfig, normalizePath } from 'vite';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 import tsConfigPaths from 'vite-tsconfig-paths';
@@ -22,11 +22,11 @@ export default defineConfig({
         v3_throwAbortReason: true,
       },
     }),
-    remixPwa({
-      workerName: 'sw',
-      workerMinify: true,
+    remixPWA({
       // Note to self: don't use normalizePath/path.resolve here 🤷‍♂️
       workerBuildDirectory: 'build/client',
+      workerName: 'sw',
+      workerMinify: true,
     }),
     viteStaticCopy({
       targets: [

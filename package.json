@@ -66,7 +66,7 @@
     "@remix-pwa/dev": "3.0.4",
     "@remix-run/dev": "2.8.1",
     "@sly-cli/sly": "1.10.0",
-    "@types/better-sqlite3": "7.6.9",
+    "@types/better-sqlite3": "7.6.10",
     "@types/compression": "1.7.5",
     "@types/express": "4.17.21",
     "@types/lodash-es": "4.17.12",

@@ -93,7 +93,7 @@
     "postcss": "8.4.38",
     "prettier": "3.2.5",
     "prettier-plugin-tailwindcss": "0.5.14",
-    "rmx-cli": "0.4.15",
+    "rmx-cli": "0.4.16",
     "semantic-release": "23.0.8",
     "shelljs": "0.8.5",
     "tailwindcss": "3.4.3",

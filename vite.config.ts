@@ -12,7 +12,7 @@ export default defineConfig({
     assetsInlineLimit: 2048,
   },
   optimizeDeps: {
-    holdUntilCrawlEnd: true,
+    include: ['algoliasearch', 'clsx', 'lodash-es'],
   },
   plugins: [
     remix({

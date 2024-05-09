@@ -7,7 +7,7 @@ import { getEnvVars } from '~/utils/env.server';
 const { DATABASE_FILE_PATH } = getEnvVars();
 
 export default {
-  driver: 'better-sqlite',
+  dialect: 'sqlite',
   out: './app/db.server',
   schema: [resolve('./app/db.server/schema.ts')],
   dbCredentials: { url: DATABASE_FILE_PATH },

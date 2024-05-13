@@ -1,5 +1,7 @@
 import type { SVGAttributes, SVGProps } from 'react';
 import iconsSpriteHref from './icons-sprite.svg';
+// @ts-ignore generated
+import type { IconName } from './types';
 
 export { iconsSpriteHref };
 
@@ -8,7 +10,6 @@ export function Icon({
   size = '1em',
   ...props
 }: SVGProps<SVGSVGElement> & {
-  // @ts-ignore for the template only (the built output will include the IconName type)
   name: IconName;
   size?: SVGAttributes<SVGSVGElement>['width'];
 }) {

@@ -4,6 +4,7 @@ import { remixPWA } from '@remix-pwa/dev';
 import { defineConfig, normalizePath } from 'vite';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 import tsConfigPaths from 'vite-tsconfig-paths';
+import { iconsSpritesheet } from 'vite-plugin-icons-spritesheet';
 
 export default defineConfig({
   build: {
@@ -15,6 +16,13 @@ export default defineConfig({
     include: ['algoliasearch', 'clsx', 'lodash-es'],
   },
   plugins: [
+    iconsSpritesheet({
+      inputDir: path.resolve('./app/assets/svg-icons'),
+      outputDir: path.resolve('./app/icons'),
+      fileName: 'icons-sprite.svg',
+      iconNameTransformer: (fileName) => fileName,
+      withTypes: true,
+    }),
     remix({
       future: {
         v3_fetcherPersist: true,

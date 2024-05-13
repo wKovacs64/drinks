@@ -36,7 +36,7 @@
   "dependencies": {
     "@fontsource/source-sans-3": "5.0.20",
     "@remix-pwa/sw": "3.0.5",
-    "@remix-pwa/worker-runtime": "2.1.1",
+    "@remix-pwa/worker-runtime": "2.1.2",
     "@remix-run/express": "2.9.2",
     "@remix-run/node": "2.9.2",
     "@remix-run/react": "2.9.2",

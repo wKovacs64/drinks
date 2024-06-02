@@ -46,7 +46,7 @@ export default function SearchForm({
         <Icon
           name="algolia"
           aria-label="Search by Algolia"
-          className="h-8 w-8 opacity-90 group-hover:opacity-100 group-focus-visible:opacity-100 text-[#003dff]"
+          className="h-8 w-8 text-[#003dff] opacity-90 group-hover:opacity-100 group-focus-visible:opacity-100"
         />
       </a>
       <input

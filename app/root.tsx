@@ -103,7 +103,7 @@ export default function App() {
       <body className="relative flex min-h-screen flex-col font-sans font-light">
         <SkipNavLink contentId="main" />
         <Header />
-        <div className="flex-1 py-4 sm:w-[26rem] sm:self-center sm:py-8 lg:w-full lg:max-w-[60rem] xl:max-w-[80rem] flex flex-col gap-6 sm:gap-8">
+        <div className="flex flex-1 flex-col gap-6 py-4 sm:w-[26rem] sm:gap-8 sm:self-center sm:py-8 lg:w-full lg:max-w-[60rem] xl:max-w-[80rem]">
           <Breadcrumbs />
           <main id="main">
             <Outlet />

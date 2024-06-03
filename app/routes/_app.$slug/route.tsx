@@ -13,10 +13,7 @@ export { loader };
 
 export const handle: AppRouteHandle = {
   breadcrumb: (matches) => {
-    const data = getLoaderDataForHandle<typeof loader>(
-      'routes/_app.$slug',
-      matches,
-    );
+    const data = getLoaderDataForHandle<typeof loader>('routes/_app.$slug', matches);
     return { title: data?.drink.title ?? 'Not Found' };
   },
 };

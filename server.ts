@@ -73,19 +73,10 @@ app.use((req, res, next) => {
   }
   res.set(
     'Permissions-Policy',
-    [
-      'geolocation=()',
-      'camera=()',
-      'microphone=()',
-      'payment=()',
-      'usb=()',
-    ].join(', '),
+    ['geolocation=()', 'camera=()', 'microphone=()', 'payment=()', 'usb=()'].join(', '),
   );
   res.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-  res.set(
-    'Strict-Transport-Security',
-    'max-age=63072000; includeSubDomains; preload',
-  );
+  res.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
   res.set('X-Content-Type-Options', 'nosniff');
   res.set('X-Frame-Options', 'DENY');
 
@@ -110,10 +101,7 @@ if (viteDevServer) {
   app.use(viteDevServer.middlewares);
 } else {
   // Remix fingerprints its assets so we can cache forever.
-  app.use(
-    '/assets',
-    express.static('build/client/assets', { immutable: true, maxAge: '1y' }),
-  );
+  app.use('/assets', express.static('build/client/assets', { immutable: true, maxAge: '1y' }));
 }
 
 // Everything else (like favicon.ico) is cached for less than forever but still
@@ -122,9 +110,7 @@ app.use(express.static('build/client', { maxAge: '1d' }));
 
 app.use(
   morgan('tiny', {
-    skip: (req) =>
-      req.url === '/_/healthcheck' ||
-      Boolean(req.headers['x-from-healthcheck']),
+    skip: (req) => req.url === '/_/healthcheck' || Boolean(req.headers['x-from-healthcheck']),
   }),
 );
 

@@ -11,10 +11,7 @@ export { loader };
 
 export const handle: AppRouteHandle = {
   breadcrumb: (matches) => {
-    const data = getLoaderDataForHandle<typeof loader>(
-      'routes/_app.tags.$tag',
-      matches,
-    );
+    const data = getLoaderDataForHandle<typeof loader>('routes/_app.tags.$tag', matches);
     return {
       title: data ? (
         <div className="inline-flex gap-2">

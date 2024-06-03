@@ -83,19 +83,13 @@ module.exports = {
         'import/no-unresolved': [
           'error',
           {
-            ignore: [
-              'build/server/index.js',
-              '^~/icons/icon',
-              './icons-sprite.svg',
-            ],
+            ignore: ['build/server/index.js', '^~/icons/icon', './icons-sprite.svg'],
           },
         ],
         'import/order': [
           'error',
           {
-            groups: [
-              ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
-            ],
+            groups: [['builtin', 'external', 'internal', 'parent', 'sibling', 'index']],
             'newlines-between': 'never',
           },
         ],

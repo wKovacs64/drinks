@@ -1,11 +1,5 @@
 import { json, type LinksFunction, type MetaFunction } from '@remix-run/node';
-import {
-  Links,
-  Meta,
-  Outlet,
-  Scripts,
-  ScrollRestoration,
-} from '@remix-run/react';
+import { Links, Meta, Outlet, Scripts, ScrollRestoration } from '@remix-run/react';
 import { useSWEffect } from '@remix-pwa/sw';
 import sourceSans3Latin300 from '@fontsource/source-sans-3/latin-300.css?url';
 import sourceSans3Latin400 from '@fontsource/source-sans-3/latin-400.css?url';

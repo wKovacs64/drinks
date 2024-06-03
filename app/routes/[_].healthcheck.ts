@@ -2,8 +2,7 @@ import type { LoaderFunctionArgs } from '@remix-run/node';
 import { db, cacheEntry } from '~/db.server/drizzle';
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const host =
-    request.headers.get('X-Forwarded-Host') ?? request.headers.get('host');
+  const host = request.headers.get('X-Forwarded-Host') ?? request.headers.get('host');
   const url = new URL('/', `http://${host}`);
 
   try {

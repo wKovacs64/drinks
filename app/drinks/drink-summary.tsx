@@ -24,18 +24,8 @@ export default function DrinkSummary({
         />
       </figure>
       <div className="flex flex-1">
-        <div
-          className={clsx(
-            'flex flex-1 flex-col',
-            stacked ? 'px-8 pt-8' : 'p-8',
-          )}
-        >
-          <h2
-            className={clsx(
-              'text-2xl uppercase tracking-widest',
-              stacked && 'xl:text-4xl',
-            )}
-          >
+        <div className={clsx('flex flex-1 flex-col', stacked ? 'px-8 pt-8' : 'p-8')}>
+          <h2 className={clsx('text-2xl uppercase tracking-widest', stacked && 'xl:text-4xl')}>
             {drink.title}
           </h2>
           <ul
@@ -62,7 +52,5 @@ interface DrinkSummaryProps {
   drink: EnhancedDrink;
   stacked?: boolean;
   imageWidths: Parameters<typeof getImageProps>[0]['imageWidths'];
-  imageSizesPerViewport: Parameters<
-    typeof getImageProps
-  >[0]['imageSizesPerViewport'];
+  imageSizesPerViewport: Parameters<typeof getImageProps>[0]['imageSizesPerViewport'];
 }

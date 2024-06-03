@@ -65,16 +65,8 @@ export default function Image({
       </picture>
       <noscript>
         <picture className="absolute left-0 top-0">
-          <source
-            type="image/avif"
-            srcSet={srcSetByFormat.avif}
-            sizes={sizes}
-          />
-          <source
-            type="image/webp"
-            srcSet={srcSetByFormat.webp}
-            sizes={sizes}
-          />
+          <source type="image/avif" srcSet={srcSetByFormat.avif} sizes={sizes} />
+          <source type="image/webp" srcSet={srcSetByFormat.webp} sizes={sizes} />
           <img className="object-cover" {...commonImageProps} />
         </picture>
       </noscript>
@@ -106,9 +98,7 @@ export function getImageProps({
 }): ImageProps {
   const fallbackSrc = makeImageUrl({
     baseImageUrl: imageUrl,
-    width: Math.ceil(
-      imageWidths.reduce((a, b) => a + b, 0) / imageWidths.length,
-    ),
+    width: Math.ceil(imageWidths.reduce((a, b) => a + b, 0) / imageWidths.length),
     quality: 50,
     format: 'jpg',
     fl: 'progressive',

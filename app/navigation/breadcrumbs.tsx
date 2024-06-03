@@ -1,10 +1,5 @@
 import * as React from 'react';
-import {
-  useLocation,
-  useMatches,
-  useSearchParams,
-  type UIMatch,
-} from '@remix-run/react';
+import { useLocation, useMatches, useSearchParams, type UIMatch } from '@remix-run/react';
 import type { SerializeFrom } from '@remix-run/node';
 import Nav from './nav';
 import NavLink from './nav-link';
@@ -27,14 +22,8 @@ export default function Breadcrumbs() {
 
           return (
             <li key={match.id} className="inline">
-              {isActive ? (
-                title
-              ) : (
-                <NavLink to={match.pathname}>{title}</NavLink>
-              )}
-              {matchIndex < matchesWithBreadcrumbData.length - 1 ? (
-                <NavDivider />
-              ) : null}
+              {isActive ? title : <NavLink to={match.pathname}>{title}</NavLink>}
+              {matchIndex < matchesWithBreadcrumbData.length - 1 ? <NavDivider /> : null}
             </li>
           );
         })}
@@ -55,9 +44,7 @@ export type BreadcrumbHandle = {
   };
 };
 
-function hasHandleWithBreadcrumb(
-  match: UIMatch,
-): match is UIMatch<unknown, BreadcrumbHandle> {
+function hasHandleWithBreadcrumb(match: UIMatch): match is UIMatch<unknown, BreadcrumbHandle> {
   return (
     match.handle !== null &&
     typeof match.handle === 'object' &&

@@ -2,10 +2,7 @@ export async function fetchGraphQL(
   url: string,
   token: string,
   query: string,
-  variables: Record<
-    string,
-    string | number | boolean | null | string[] | number[]
-  >,
+  variables: Record<string, string | number | boolean | null | string[] | number[]>,
 ) {
   return fetch(url, {
     method: 'POST',

@@ -6,10 +6,7 @@ export function markdownToHtml(markdownString: string) {
   const linkRenderer = renderer.link;
   renderer.link = (href, title, text) => {
     const html = linkRenderer.call(renderer, href, title, text);
-    return html.replace(
-      /^<a /,
-      '<a target="_blank" rel="noreferrer noopener nofollow" ',
-    );
+    return html.replace(/^<a /, '<a target="_blank" rel="noreferrer noopener nofollow" ');
   };
 
   // TODO: sanitize resulting HTML

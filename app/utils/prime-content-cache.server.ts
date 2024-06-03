@@ -36,8 +36,7 @@ export async function primeContentCache() {
       request: new Request('https://drinks.fyi'),
     };
     const throttledAllDrinksLoader = throttle(allDrinksLoader);
-    const allDrinksResponse: Response =
-      await throttledAllDrinksLoader(allDrinksDataFnArgs);
+    const allDrinksResponse: Response = await throttledAllDrinksLoader(allDrinksDataFnArgs);
     const allDrinksData: AllDrinksLoaderData = await allDrinksResponse.json();
     const drinks = allDrinksData.drinks.filter(Boolean);
 
@@ -62,8 +61,7 @@ export async function primeContentCache() {
       request: new Request('https://drinks.fyi/tags'),
     };
     const throttledAllTagsLoader = throttle(allTagsLoader);
-    const allTagsResponse: Response =
-      await throttledAllTagsLoader(allTagsDataFnArgs);
+    const allTagsResponse: Response = await throttledAllTagsLoader(allTagsDataFnArgs);
     const allTagsData: AllTagsLoaderData = await allTagsResponse.json();
     const { tags } = allTagsData;
 

@@ -1,9 +1,5 @@
 import { json, type LoaderFunctionArgs } from '@remix-run/node';
-import {
-  useLoaderData,
-  useSearchParams,
-  useNavigation,
-} from '@remix-run/react';
+import { useLoaderData, useSearchParams, useNavigation } from '@remix-run/react';
 import { getEnvVars } from '~/utils/env.server';
 import { mergeMeta } from '~/utils/meta';
 import { fetchGraphQL } from '~/utils/graphql.server';
@@ -22,8 +18,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     return json({ drinks: [] });
   }
 
-  const { CONTENTFUL_ACCESS_TOKEN, CONTENTFUL_URL, CONTENTFUL_PREVIEW } =
-    getEnvVars();
+  const { CONTENTFUL_ACCESS_TOKEN, CONTENTFUL_URL, CONTENTFUL_PREVIEW } = getEnvVars();
 
   // query Algolia for the search results based on q
   const hits = [];
@@ -69,10 +64,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const queryResponseJson: DrinksResponse = await queryResponse.json();
 
-  if (
-    queryResponseJson.errors?.length ||
-    !queryResponseJson.data.drinkCollection
-  ) {
+  if (queryResponseJson.errors?.length || !queryResponseJson.data.drinkCollection) {
     throw json(queryResponseJson, 500);
   }
 
@@ -116,8 +108,7 @@ export default function SearchPage() {
   const isLoading = navigation.state === 'loading';
 
   const hasNoSearchTerm = isLoading ? !futureQ : !q;
-  const isSearching =
-    isLoading && navigation.location?.pathname === '/search' && futureQ;
+  const isSearching = isLoading && navigation.location?.pathname === '/search' && futureQ;
   const hasNoResults = isIdle && q && drinks.length === 0;
   const hasResults = isIdle && drinks.length > 0;
 
@@ -132,8 +123,7 @@ export default function SearchPage() {
   );
 }
 
-interface AlgoliaDrinkHit
-  extends Pick<Drink, 'title' | 'slug' | 'ingredients' | 'notes'> {
+interface AlgoliaDrinkHit extends Pick<Drink, 'title' | 'slug' | 'ingredients' | 'notes'> {
   createdAt: string;
   objectID: string;
   _highlightResult: {

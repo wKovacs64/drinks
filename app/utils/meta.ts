@@ -1,16 +1,9 @@
 // Adapted from: https://gist.github.com/ryanflorence/ec1849c6d690cfbffcb408ecd633e069
-import type {
-  LoaderFunction,
-  MetaDescriptor,
-  MetaFunction,
-} from '@remix-run/node';
+import type { LoaderFunction, MetaDescriptor, MetaFunction } from '@remix-run/node';
 
 export const mergeMeta = <
   TLoader extends LoaderFunction | unknown = unknown,
-  TParentsLoaders extends Record<string, LoaderFunction> = Record<
-    string,
-    LoaderFunction
-  >,
+  TParentsLoaders extends Record<string, LoaderFunction> = Record<string, LoaderFunction>,
 >(
   overrideFn: MetaFunction<TLoader, TParentsLoaders>,
   appendFn?: MetaFunction<TLoader, TParentsLoaders>,

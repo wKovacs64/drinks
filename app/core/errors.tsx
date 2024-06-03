@@ -20,9 +20,7 @@ export function ErrorBoundary() {
           <p>We knew this might happen one day.</p>
           {error.data ? <p>The error message was as follows:</p> : null}
         </section>
-        {error.data ? (
-          <BoundaryError>{JSON.stringify(error.data, null, 2)}</BoundaryError>
-        ) : null}
+        {error.data ? <BoundaryError>{JSON.stringify(error.data, null, 2)}</BoundaryError> : null}
         <StartOverLink />
       </BoundaryContainer>
     );
@@ -40,15 +38,10 @@ export function ErrorBoundary() {
         </span>
       </h1>
       <section className="flex flex-col gap-4">
-        <p>
-          Something unexpected happened and we were not prepared. Sorry about
-          that.
-        </p>
+        <p>Something unexpected happened and we were not prepared. Sorry about that.</p>
         <p>The error message was as follows:</p>
       </section>
-      <BoundaryError>
-        {error instanceof Error ? error.message : 'Unknown Error'}
-      </BoundaryError>
+      <BoundaryError>{error instanceof Error ? error.message : 'Unknown Error'}</BoundaryError>
       <StartOverLink />
     </BoundaryContainer>
   );

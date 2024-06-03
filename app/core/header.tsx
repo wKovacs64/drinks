@@ -20,10 +20,7 @@ export default function Header() {
 
 function HeaderLink({ children, ...props }: LinkProps) {
   return (
-    <Link
-      {...props}
-      className="drinks-focusable hover:text-zinc-100 focus:text-zinc-100"
-    >
+    <Link {...props} className="drinks-focusable hover:text-zinc-100 focus:text-zinc-100">
       {children}
     </Link>
   );

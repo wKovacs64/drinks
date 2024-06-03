@@ -1,9 +1,7 @@
 import { makeImageUrl } from '~/core/image';
 import type { Drink, EnhancedDrink } from '~/types';
 
-export async function withPlaceholderImages(
-  drinks: Drink[],
-): Promise<EnhancedDrink[]> {
+export async function withPlaceholderImages(drinks: Drink[]): Promise<EnhancedDrink[]> {
   return (
     await Promise.all(
       drinks.map(async (drink) => {
@@ -23,8 +21,7 @@ export async function withPlaceholderImages(
           format: 'webp',
         });
         const blurredImageResponse = await fetch(blurredImageUrl);
-        const blurredImageArrayBuffer =
-          await blurredImageResponse.arrayBuffer();
+        const blurredImageArrayBuffer = await blurredImageResponse.arrayBuffer();
         const blurredImageBase64String = btoa(
           String.fromCharCode(...new Uint8Array(blurredImageArrayBuffer)),
         );

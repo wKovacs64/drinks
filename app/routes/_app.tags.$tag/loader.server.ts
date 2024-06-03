@@ -1,8 +1,4 @@
-import {
-  json,
-  type LoaderFunctionArgs,
-  type SerializeFrom,
-} from '@remix-run/node';
+import { json, type LoaderFunctionArgs, type SerializeFrom } from '@remix-run/node';
 import { lowerCase } from 'lodash-es';
 import { getEnvVars } from '~/utils/env.server';
 import { fetchGraphQL } from '~/utils/graphql.server';
@@ -19,8 +15,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   const cachedData: { drinks: EnhancedDrink[] } = await cache.get(cacheKey);
   if (cachedData) return json(cachedData);
 
-  const { CONTENTFUL_ACCESS_TOKEN, CONTENTFUL_URL, CONTENTFUL_PREVIEW } =
-    getEnvVars();
+  const { CONTENTFUL_ACCESS_TOKEN, CONTENTFUL_URL, CONTENTFUL_PREVIEW } = getEnvVars();
 
   const taggedDrinksQuery = /* GraphQL */ `
     query ($preview: Boolean, $tag: [String]) {
@@ -54,10 +49,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 
   const queryResponseJson: DrinksResponse = await queryResponse.json();
 
-  if (
-    queryResponseJson.errors?.length ||
-    !queryResponseJson.data.drinkCollection
-  ) {
+  if (queryResponseJson.errors?.length || !queryResponseJson.data.drinkCollection) {
     throw json(queryResponseJson, 500);
   }
 

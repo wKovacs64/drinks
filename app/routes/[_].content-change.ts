@@ -11,18 +11,12 @@ export async function action({ request }: ActionFunctionArgs) {
     return new Response(null, { status: 405 });
   }
 
-  if (
-    request.headers.get('Content-Type') !==
-    'application/vnd.contentful.management.v1+json'
-  ) {
+  if (request.headers.get('Content-Type') !== 'application/vnd.contentful.management.v1+json') {
     return new Response(null, { status: 415 });
   }
 
   const { CONTENTFUL_WEBHOOK_TOKEN } = getEnvVars();
-  if (
-    request.headers.get('X-Contentful-Webhook-Token') !==
-    CONTENTFUL_WEBHOOK_TOKEN
-  ) {
+  if (request.headers.get('X-Contentful-Webhook-Token') !== CONTENTFUL_WEBHOOK_TOKEN) {
     return new Response(null, { status: 401 });
   }
 

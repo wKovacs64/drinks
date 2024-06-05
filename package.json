@@ -96,7 +96,7 @@
     "rmx-cli": "0.4.16",
     "semantic-release": "24.0.0",
     "shelljs": "0.8.5",
-    "tailwindcss": "3.4.3",
+    "tailwindcss": "3.4.4",
     "typescript": "5.4.5",
     "vite": "5.2.12",
     "vite-plugin-static-copy": "1.0.5",

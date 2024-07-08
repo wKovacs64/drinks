@@ -46,7 +46,7 @@
     "clsx": "2.1.1",
     "compression": "1.7.4",
     "cross-env": "7.0.3",
-    "drizzle-orm": "0.31.2",
+    "drizzle-orm": "0.31.4",
     "express": "4.19.2",
     "isbot": "5.1.11",
     "litefs-js": "1.1.2",

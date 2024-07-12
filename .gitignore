@@ -251,5 +251,6 @@ $RECYCLE.BIN/
 /app/db.server/*.db
 /app/db.server/*.db-*
 
-# Generated SVG icons sprite and component
-/app/icons
+# Generated SVG icons sprite and correpsonding types
+/app/icons/icons-sprite.svg
+/app/icons/types.ts

@@ -1,9 +1,9 @@
 import type { SVGAttributes, SVGProps } from 'react';
-import iconsSpriteHref from './icons-sprite.svg';
+import iconsSpriteUrl from './icons-sprite.svg';
 // @ts-ignore generated
 import type { IconName } from './types';
 
-export { iconsSpriteHref };
+export { iconsSpriteUrl, type IconName };
 
 export function Icon({
   name,
@@ -15,7 +15,7 @@ export function Icon({
 }) {
   return (
     <svg width={size} height={size} {...props}>
-      <use href={`${iconsSpriteHref}#${name}`} />
+      <use href={`${iconsSpriteUrl}#${name}`} />
     </svg>
   );
 }

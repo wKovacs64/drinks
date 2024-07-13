@@ -83,7 +83,7 @@
     "node-html-parser": "6.1.13",
     "npm-run-all2": "6.2.2",
     "postcss": "8.4.39",
-    "prettier": "3.3.2",
+    "prettier": "3.3.3",
     "prettier-plugin-tailwindcss": "0.6.5",
     "semantic-release": "24.0.0",
     "shelljs": "0.8.5",

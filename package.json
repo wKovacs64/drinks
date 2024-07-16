@@ -79,7 +79,7 @@
     "del-cli": "5.1.0",
     "drizzle-kit": "0.23.0",
     "eslint": "8.57.0",
-    "glob": "10.4.5",
+    "glob": "11.0.0",
     "node-html-parser": "6.1.13",
     "npm-run-all2": "6.2.2",
     "postcss": "8.4.39",

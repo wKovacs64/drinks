@@ -62,7 +62,7 @@
     "zod": "3.23.8"
   },
   "devDependencies": {
-    "@remix-pwa/dev": "3.0.5",
+    "@remix-pwa/dev": "3.0.6",
     "@remix-run/dev": "2.10.3",
     "@sly-cli/sly": "1.13.0",
     "@types/better-sqlite3": "7.6.11",

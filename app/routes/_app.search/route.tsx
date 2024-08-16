@@ -1,5 +1,6 @@
 import { json, type LoaderFunctionArgs } from '@remix-run/node';
 import { useLoaderData, useSearchParams, useNavigation } from '@remix-run/react';
+import type { SearchResult } from 'algoliasearch/lite';
 import { getEnvVars } from '~/utils/env.server';
 import { mergeMeta } from '~/utils/meta';
 import { fetchGraphQL } from '~/utils/graphql.server';
@@ -10,7 +11,7 @@ import NoDrinksFound from './no-drinks-found';
 import NoSearchTerm from './no-search-term';
 import SearchForm from './search-form';
 import Searching from './searching';
-import { drinksIndex } from './algolia.server';
+import { searchClient } from './algolia.server';
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const q = new URL(request.url).searchParams.get('q');
@@ -18,12 +19,27 @@ export async function loader({ request }: LoaderFunctionArgs) {
     return json({ drinks: [] });
   }
 
-  const { CONTENTFUL_ACCESS_TOKEN, CONTENTFUL_URL, CONTENTFUL_PREVIEW } = getEnvVars();
+  const { ALGOLIA_INDEX_NAME, CONTENTFUL_ACCESS_TOKEN, CONTENTFUL_URL, CONTENTFUL_PREVIEW } =
+    getEnvVars();
 
   // query Algolia for the search results based on q
-  const hits = [];
+  const hits: AlgoliaDrinkHit[] = [];
   try {
-    hits.push(...(await drinksIndex.search<AlgoliaDrinkHit>(q)).hits);
+    const [searchResults] = (
+      await searchClient.search<AlgoliaDrinkHit>({
+        requests: [
+          {
+            indexName: ALGOLIA_INDEX_NAME,
+            query: q,
+          },
+        ],
+      })
+    ).results;
+
+    hits.push(
+      // Algolia broke the search results types in v5.0.0
+      ...(searchResults as SearchResult<AlgoliaDrinkHit> & { hits: AlgoliaDrinkHit[] }).hits,
+    );
   } catch (err) {
     const errMessage = err instanceof Error ? err.message : 'unknown reason';
     throw json({ message: `Search failed: ${errMessage}` }, { status: 500 });

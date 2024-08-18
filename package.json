@@ -33,7 +33,7 @@
     "validate": "run-p format:check lint typecheck"
   },
   "dependencies": {
-    "@fontsource/source-sans-3": "5.0.20",
+    "@fontsource/source-sans-3": "5.0.21",
     "@remix-pwa/sw": "3.0.9",
     "@remix-pwa/worker-runtime": "2.1.4",
     "@remix-run/express": "2.11.2",

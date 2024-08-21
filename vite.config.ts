@@ -7,11 +7,6 @@ import tsConfigPaths from 'vite-tsconfig-paths';
 import { iconsSpritesheet } from 'vite-plugin-icons-spritesheet';
 
 export default defineConfig({
-  build: {
-    // Our SVG icons sprite is smaller than the default limit of 4096, so it
-    // gets inlined as a data URL, which is not what we want.
-    assetsInlineLimit: 2048,
-  },
   optimizeDeps: {
     include: ['algoliasearch', 'clsx', 'lodash-es'],
   },

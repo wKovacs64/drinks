@@ -1,13 +1,13 @@
 # base node image
-FROM node:20-bullseye-slim as base
+FROM node:20-bullseye-slim AS base
 
 # Install fuse3 and ca-certificates for litefs
 RUN apt-get update && apt-get install -y fuse3 ca-certificates
 
-ENV NODE_ENV production
+ENV NODE_ENV="production"
 
 # Install all node_modules, including dev dependencies
-FROM base as deps
+FROM base AS deps
 
 RUN mkdir /app
 WORKDIR /app
@@ -16,7 +16,7 @@ ADD package.json package-lock.json ./
 RUN npm install --include=dev
 
 # Setup production node_modules
-FROM base as production-deps
+FROM base AS production-deps
 
 RUN mkdir /app
 WORKDIR /app
@@ -26,7 +26,7 @@ ADD package.json package-lock.json ./
 RUN npm prune --omit=dev
 
 # Build the app
-FROM base as build
+FROM base AS build
 
 RUN mkdir /app
 WORKDIR /app

@@ -95,8 +95,15 @@ app.use((req, res, next) => {
   next();
 });
 
-// Compression may be disabled when behind a CDN that performs its own compression.
-if (!DISABLE_COMPRESSION) {
+// Compression may be disabled when behind a CDN that performs its own compression. In that event,
+// we want to set the `Content-Encoding` header to `identity` so fly.io knows not to compress the
+// response, as it will add its own compression if the origin server doesn't.
+if (DISABLE_COMPRESSION) {
+  app.use((req, res, next) => {
+    res.set('Content-Encoding', 'identity');
+    next();
+  });
+} else {
   app.use(compression());
 }
 

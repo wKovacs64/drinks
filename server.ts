@@ -41,8 +41,9 @@ const app = express();
 
 // redirect 'www' subdomain to the apex domain
 app.use((req, res, next) => {
-  if (req.hostname.startsWith('www')) {
-    const apexHostname = req.hostname.replace('www.', '');
+  const requestedHostname = req.get('X-Forwarded-Host') || req.hostname;
+  if (requestedHostname.startsWith('www')) {
+    const apexHostname = requestedHostname.replace('www.', '');
     res.redirect(301, `https://${apexHostname}${req.originalUrl}`);
   } else {
     next();

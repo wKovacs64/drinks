@@ -2,15 +2,11 @@ import * as fs from 'node:fs';
 import * as url from 'node:url';
 import { createRequestHandler } from '@remix-run/express';
 import { installGlobals } from '@remix-run/node';
-import compression from 'compression';
 import express from 'express';
 import morgan from 'morgan';
 import sourceMapSupport from 'source-map-support';
 import { getInstanceInfo } from 'litefs-js';
-import { getEnvVars } from '~/utils/env.server';
 import { primeContentCache } from '~/utils/prime-content-cache.server';
-
-const { DISABLE_COMPRESSION } = getEnvVars();
 
 sourceMapSupport.install({
   retrieveSourceMap: function (source) {
@@ -94,18 +90,6 @@ app.use((req, res, next) => {
 
   next();
 });
-
-// Compression may be disabled when behind a CDN that performs its own compression. In that event,
-// we want to set the `Content-Encoding` header to `identity` so fly.io knows not to compress the
-// response, as it will add its own compression if the origin server doesn't.
-if (DISABLE_COMPRESSION) {
-  app.use((req, res, next) => {
-    res.set('Content-Encoding', 'identity');
-    next();
-  });
-} else {
-  app.use(compression());
-}
 
 // https://expressjs.com/en/advanced/best-practice-security.html#reduce-fingerprinting
 app.disable('x-powered-by');

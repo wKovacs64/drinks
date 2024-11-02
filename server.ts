@@ -7,7 +7,10 @@ import express from 'express';
 import morgan from 'morgan';
 import sourceMapSupport from 'source-map-support';
 import { getInstanceInfo } from 'litefs-js';
+import { getEnvVars } from '~/utils/env.server';
 import { primeContentCache } from '~/utils/prime-content-cache.server';
+
+const { DISABLE_COMPRESSION } = getEnvVars();
 
 sourceMapSupport.install({
   retrieveSourceMap: function (source) {
@@ -92,7 +95,10 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(compression());
+// Compression may be disabled when behind a CDN that performs its own compression.
+if (!DISABLE_COMPRESSION) {
+  app.use(compression());
+}
 
 // https://expressjs.com/en/advanced/best-practice-security.html#reduce-fingerprinting
 app.disable('x-powered-by');

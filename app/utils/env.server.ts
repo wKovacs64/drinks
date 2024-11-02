@@ -9,6 +9,10 @@ const envSchema = z.object({
   CONTENTFUL_PREVIEW: z.string().optional(),
   CONTENTFUL_WEBHOOK_TOKEN: z.string().min(1),
   DATABASE_FILE_PATH: z.string().min(1),
+  DISABLE_COMPRESSION: z
+    .string()
+    .optional()
+    .transform((value) => value === 'true'),
   SITE_IMAGE_URL: z.string().min(1),
   SITE_IMAGE_ALT: z.string().min(1),
 });

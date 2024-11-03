@@ -1,4 +1,5 @@
-import { json, type LoaderFunctionArgs, type SerializeFrom } from '@remix-run/node';
+import { data, type LoaderFunctionArgs, type SerializeFrom } from '@remix-run/node';
+import { invariantResponse } from '@epic-web/invariant';
 import { lowerCase } from 'lodash-es';
 import { getEnvVars } from '~/utils/env.server';
 import { fetchGraphQL } from '~/utils/graphql.server';
@@ -9,11 +10,10 @@ import type { Drink, DrinksResponse, EnhancedDrink } from '~/types';
 export type LoaderData = SerializeFrom<typeof loader>;
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
-  if (!params.tag) throw json('Missing tag', 400);
-
+  invariantResponse(params.tag, 'tag route parameter missing', { status: 400 });
   const cacheKey = new URL(request.url).pathname;
   const cachedData: { drinks: EnhancedDrink[] } = await cache.get(cacheKey);
-  if (cachedData) return json(cachedData);
+  if (cachedData) return cachedData;
 
   const { CONTENTFUL_ACCESS_TOKEN, CONTENTFUL_URL, CONTENTFUL_PREVIEW } = getEnvVars();
 
@@ -50,7 +50,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   const queryResponseJson: DrinksResponse = await queryResponse.json();
 
   if (queryResponseJson.errors?.length || !queryResponseJson.data.drinkCollection) {
-    throw json(queryResponseJson, 500);
+    throw data(queryResponseJson, { status: 500 });
   }
 
   const {
@@ -60,14 +60,11 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   } = queryResponseJson;
 
   const drinks = maybeDrinks.filter((drink): drink is Drink => Boolean(drink));
-
-  if (drinks.length === 0) {
-    throw json({ message: 'No drinks found' }, 404);
-  }
+  invariantResponse(drinks.length, 'No drinks found', { status: 404 });
 
   const drinksWithPlaceholderImages = await withPlaceholderImages(drinks);
   const loaderData = { drinks: drinksWithPlaceholderImages };
 
   await cache.set(cacheKey, loaderData);
-  return json(loaderData);
+  return loaderData;
 }

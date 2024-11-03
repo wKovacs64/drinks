@@ -33,6 +33,7 @@
     "validate": "run-p format:check lint typecheck"
   },
   "dependencies": {
+    "@epic-web/invariant": "1.0.0",
     "@fontsource/source-sans-3": "5.1.0",
     "@remix-pwa/sw": "3.0.10",
     "@remix-pwa/worker-runtime": "2.1.4",

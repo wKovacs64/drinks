@@ -1,7 +1,6 @@
 import * as fs from 'node:fs';
 import * as url from 'node:url';
 import { createRequestHandler } from '@remix-run/express';
-import { installGlobals } from '@remix-run/node';
 import express from 'express';
 import morgan from 'morgan';
 import sourceMapSupport from 'source-map-support';
@@ -24,8 +23,6 @@ sourceMapSupport.install({
     return null;
   },
 });
-
-installGlobals();
 
 const viteDevServer =
   process.env.NODE_ENV === 'production'

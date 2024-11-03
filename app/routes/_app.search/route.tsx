@@ -1,4 +1,4 @@
-import { json, type LoaderFunctionArgs } from '@remix-run/node';
+import { data, type LoaderFunctionArgs } from '@remix-run/node';
 import { useLoaderData, useSearchParams, useNavigation } from '@remix-run/react';
 import type { SearchResult } from 'algoliasearch/lite';
 import { getEnvVars } from '~/utils/env.server';
@@ -16,7 +16,7 @@ import { searchClient } from './algolia.server';
 export async function loader({ request }: LoaderFunctionArgs) {
   const q = new URL(request.url).searchParams.get('q');
   if (!q) {
-    return json({ drinks: [] });
+    return { drinks: [] };
   }
 
   const { ALGOLIA_INDEX_NAME, CONTENTFUL_ACCESS_TOKEN, CONTENTFUL_URL, CONTENTFUL_PREVIEW } =
@@ -42,11 +42,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
     );
   } catch (err) {
     const errMessage = err instanceof Error ? err.message : 'unknown reason';
-    throw json({ message: `Search failed: ${errMessage}` }, { status: 500 });
+    throw data({ message: `Search failed: ${errMessage}` }, { status: 500 });
   }
 
   if (hits.length === 0) {
-    return json({ drinks: [] });
+    return { drinks: [] };
   }
 
   const slugs = hits.map((hit) => hit.slug);
@@ -81,7 +81,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const queryResponseJson: DrinksResponse = await queryResponse.json();
 
   if (queryResponseJson.errors?.length || !queryResponseJson.data.drinkCollection) {
-    throw json(queryResponseJson, 500);
+    throw data(queryResponseJson, { status: 500 });
   }
 
   const {
@@ -97,7 +97,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const drinksWithPlaceholderImages = await withPlaceholderImages(drinks);
   const loaderData = { drinks: drinksWithPlaceholderImages };
 
-  return json(loaderData);
+  return loaderData;
 }
 
 export const handle: AppRouteHandle = {

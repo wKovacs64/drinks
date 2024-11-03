@@ -1,4 +1,4 @@
-import { json, type LinksFunction, type MetaFunction } from '@remix-run/node';
+import type { LinksFunction, MetaFunction } from '@remix-run/node';
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from '@remix-run/react';
 import { useSWEffect } from '@remix-pwa/sw';
 import sourceSans3Latin300 from '@fontsource/source-sans-3/latin-300.css?url';
@@ -19,10 +19,7 @@ import type { AppRouteHandle } from './types';
 export async function loader() {
   const { SITE_IMAGE_URL, SITE_IMAGE_ALT } = getEnvVars();
 
-  return json({
-    socialImageUrl: SITE_IMAGE_URL,
-    socialImageAlt: SITE_IMAGE_ALT,
-  });
+  return { socialImageUrl: SITE_IMAGE_URL, socialImageAlt: SITE_IMAGE_ALT };
 }
 
 export function shouldRevalidate() {

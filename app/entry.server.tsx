@@ -9,7 +9,11 @@ import { RemixServer } from '@remix-run/react';
 import { isbot } from 'isbot';
 import { renderToPipeableStream } from 'react-dom/server';
 
-const ABORT_DELAY = 5_000;
+// Reject all pending promises from handler functions after 5 seconds
+export const streamTimeout = 5_000;
+
+// Abort timeout for request handler functions (should be longer than `streamTimeout`)
+const ABORT_DELAY = 10_000;
 
 export default function handleRequest(
   request: Request,
@@ -68,6 +72,7 @@ function handleBotRequest(
       },
     );
 
+    // Automatically timeout the React renderer after some time
     setTimeout(abort, ABORT_DELAY);
   });
 }
@@ -114,6 +119,7 @@ function handleBrowserRequest(
       },
     );
 
+    // Automatically timeout the React renderer after some time
     setTimeout(abort, ABORT_DELAY);
   });
 }

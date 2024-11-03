@@ -1,15 +1,13 @@
-import { json, type LoaderFunctionArgs, type SerializeFrom } from '@remix-run/node';
+import { data, type LoaderFunctionArgs } from '@remix-run/node';
 import { getEnvVars } from '~/utils/env.server';
 import { fetchGraphQL } from '~/utils/graphql.server';
 import { cache } from '~/utils/cache.server';
 import type { Drink, DrinkTagsResponse } from '~/types';
 
-export type LoaderData = SerializeFrom<typeof loader>;
-
 export async function loader({ request }: LoaderFunctionArgs) {
   const cacheKey = new URL(request.url).pathname;
   const cachedData: { tags: string[] } = await cache.get(cacheKey);
-  if (cachedData) return json(cachedData);
+  if (cachedData) return cachedData;
 
   const { CONTENTFUL_ACCESS_TOKEN, CONTENTFUL_URL, CONTENTFUL_PREVIEW } = getEnvVars();
 
@@ -35,7 +33,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const queryResponseJson: DrinkTagsResponse = await queryResponse.json();
 
   if (queryResponseJson.errors?.length || !queryResponseJson.data.drinkCollection) {
-    throw json(queryResponseJson, 500);
+    throw data(queryResponseJson, { status: 500 });
   }
 
   const {
@@ -53,5 +51,5 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const loaderData = { tags: Array.from(uniqueTags).sort() };
 
   await cache.set(cacheKey, loaderData);
-  return json(loaderData);
+  return loaderData;
 }

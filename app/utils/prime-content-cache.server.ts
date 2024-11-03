@@ -3,15 +3,9 @@ import { kebabCase } from 'lodash-es';
 import pThrottle from 'p-throttle';
 import { getEnvVars } from '~/utils/env.server';
 import { cache } from '~/utils/cache.server';
-import {
-  loader as allDrinksLoader,
-  type LoaderData as AllDrinksLoaderData,
-} from '~/routes/_app._index/loader.server';
+import { loader as allDrinksLoader } from '~/routes/_app._index/loader.server';
 import { loader as drinkLoader } from '~/routes/_app.$slug/loader.server';
-import {
-  loader as allTagsLoader,
-  type LoaderData as AllTagsLoaderData,
-} from '~/routes/_app.tags._index/loader.server';
+import { loader as allTagsLoader } from '~/routes/_app.tags._index/loader.server';
 import { loader as tagLoader } from '~/routes/_app.tags.$tag/loader.server';
 
 const { CONTENTFUL_PREVIEW } = getEnvVars();
@@ -36,8 +30,7 @@ export async function primeContentCache() {
       request: new Request('https://drinks.fyi'),
     };
     const throttledAllDrinksLoader = throttle(allDrinksLoader);
-    const allDrinksResponse: Response = await throttledAllDrinksLoader(allDrinksDataFnArgs);
-    const allDrinksData: AllDrinksLoaderData = await allDrinksResponse.json();
+    const allDrinksData = await throttledAllDrinksLoader(allDrinksDataFnArgs);
     const drinks = allDrinksData.drinks.filter(Boolean);
 
     // 3. Load and cache each individual drink
@@ -61,8 +54,7 @@ export async function primeContentCache() {
       request: new Request('https://drinks.fyi/tags'),
     };
     const throttledAllTagsLoader = throttle(allTagsLoader);
-    const allTagsResponse: Response = await throttledAllTagsLoader(allTagsDataFnArgs);
-    const allTagsData: AllTagsLoaderData = await allTagsResponse.json();
+    const allTagsData = await throttledAllTagsLoader(allTagsDataFnArgs);
     const { tags } = allTagsData;
 
     // 5. Load and cache each individual tag

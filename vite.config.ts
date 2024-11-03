@@ -7,9 +7,6 @@ import tsConfigPaths from 'vite-tsconfig-paths';
 import { iconsSpritesheet } from 'vite-plugin-icons-spritesheet';
 
 export default defineConfig({
-  optimizeDeps: {
-    include: ['algoliasearch', 'clsx', 'lodash-es'],
-  },
   plugins: [
     iconsSpritesheet({
       inputDir: path.resolve('./app/assets/svg-icons'),
@@ -20,7 +17,9 @@ export default defineConfig({
     }),
     remix({
       future: {
+        unstable_optimizeDeps: true,
         v3_fetcherPersist: true,
+        v3_lazyRouteDiscovery: true,
         v3_relativeSplatPath: true,
         v3_throwAbortReason: true,
       },

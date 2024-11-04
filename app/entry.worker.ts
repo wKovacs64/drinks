@@ -10,7 +10,7 @@ import {
   type DefaultFetchHandler,
 } from '@remix-pwa/sw';
 
-const CURRENT_CACHE_VERSION = 'v3';
+const CURRENT_CACHE_VERSION = 'v4';
 
 const DOCUMENT_CACHE_NAME = 'document-cache';
 const ASSET_CACHE_NAME = 'asset-cache';

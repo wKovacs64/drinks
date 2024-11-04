@@ -1,4 +1,4 @@
 {
   "eslint.experimental.useFlatConfig": true,
-  "cSpell.words": ["Fastly", "iconsSpritesheet"]
+  "cSpell.words": ["iconsSpritesheet"]
 }

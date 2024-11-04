@@ -1,5 +1,8 @@
 import { z } from 'zod';
 
+// Note: if you add or update any environment variables, you'll probably need to purge the CDN
+// cache, otherwise the changes won't take effect until the cache expires.
+
 const envSchema = z.object({
   ALGOLIA_APP_ID: z.string().min(1),
   ALGOLIA_INDEX_NAME: z.string().min(1),
@@ -9,8 +12,6 @@ const envSchema = z.object({
   CONTENTFUL_PREVIEW: z.string().optional(),
   CONTENTFUL_WEBHOOK_TOKEN: z.string().min(1),
   DATABASE_FILE_PATH: z.string().min(1),
-  FASTLY_API_TOKEN: z.string().optional(),
-  FASTLY_SERVICE_ID: z.string().optional(),
   SITE_IMAGE_URL: z.string().min(1),
   SITE_IMAGE_ALT: z.string().min(1),
 });

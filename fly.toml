@@ -9,10 +9,6 @@ kill_signal = "SIGINT"
 kill_timeout = "5s"
 swap_size_mb = 512
 
-[deploy]
-  # Purge the CDN cache after deploying so we pick up new or updated environment variables
-  release_command = "npx tsx app/utils/purge-cdn-cache.ts"
-
 [mounts]
   source = "data"
   destination = "/data"

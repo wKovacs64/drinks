@@ -1,5 +1,6 @@
 import { data, type LoaderFunctionArgs, type SerializeFrom } from '@remix-run/node';
 import { invariantResponse } from '@epic-web/invariant';
+import { cacheHeader } from 'pretty-cache-header';
 import { getEnvVars } from '~/utils/env.server';
 import { fetchGraphQL } from '~/utils/graphql.server';
 import { cache } from '~/utils/cache.server';
@@ -54,7 +55,16 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   } = queryResponseJson;
 
   const drinks = maybeDrinks.filter((drink): drink is Drink => Boolean(drink));
-  invariantResponse(drinks.length > 0, 'Drink not found', { status: 404 });
+  invariantResponse(drinks.length > 0, 'Drink not found', {
+    status: 404,
+    headers: {
+      'Cache-Control': cacheHeader({
+        maxAge: '1min',
+        sMaxage: '5min',
+        mustRevalidate: true,
+      }),
+    },
+  });
 
   const drinksWithPlaceholderImages = await withPlaceholderImages(drinks);
   const [enhancedDrink] = drinksWithPlaceholderImages;

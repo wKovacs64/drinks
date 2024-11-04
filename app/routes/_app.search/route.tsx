@@ -1,5 +1,6 @@
-import { data, type LoaderFunctionArgs } from '@remix-run/node';
+import { data, type HeadersFunction, type LoaderFunctionArgs } from '@remix-run/node';
 import { useLoaderData, useSearchParams, useNavigation } from '@remix-run/react';
+import { cacheHeader } from 'pretty-cache-header';
 import type { SearchResult } from 'algoliasearch/lite';
 import { getEnvVars } from '~/utils/env.server';
 import { mergeMeta } from '~/utils/meta';
@@ -12,6 +13,16 @@ import NoSearchTerm from './no-search-term';
 import SearchForm from './search-form';
 import Searching from './searching';
 import { searchClient } from './algolia.server';
+
+export const headers: HeadersFunction = () => {
+  return {
+    'Cache-Control': cacheHeader({
+      maxAge: '10min',
+      sMaxage: '1day',
+      staleWhileRevalidate: '1week',
+    }),
+  };
+};
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const q = new URL(request.url).searchParams.get('q');

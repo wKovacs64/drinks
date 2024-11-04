@@ -1,9 +1,21 @@
 import { useLoaderData } from '@remix-run/react';
 import { kebabCase } from 'lodash-es';
+import type { HeadersFunction } from '@remix-run/node';
+import { cacheHeader } from 'pretty-cache-header';
 import TagLink from '~/tags/tag-link';
 import Tag from '~/tags/tag';
 import { mergeMeta } from '~/utils/meta';
 import { loader } from './loader.server';
+
+export const headers: HeadersFunction = () => {
+  return {
+    'Cache-Control': cacheHeader({
+      maxAge: '10min',
+      sMaxage: '1day',
+      staleWhileRevalidate: '1week',
+    }),
+  };
+};
 
 export { loader };
 

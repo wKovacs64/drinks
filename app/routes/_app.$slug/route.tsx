@@ -1,4 +1,6 @@
 import { useLoaderData } from '@remix-run/react';
+import type { HeadersFunction } from '@remix-run/node';
+import { cacheHeader } from 'pretty-cache-header';
 import { mergeMeta } from '~/utils/meta';
 import { makeImageUrl } from '~/core/image';
 import { notFoundMeta } from '~/routes/_app.$';
@@ -8,6 +10,16 @@ import DrinkSummary from '~/drinks/drink-summary';
 import DrinkDetails from '~/drinks/drink-details';
 import type { AppRouteHandle } from '~/types';
 import { loader } from './loader.server';
+
+export const headers: HeadersFunction = () => {
+  return {
+    'Cache-Control': cacheHeader({
+      maxAge: '10min',
+      sMaxage: '1day',
+      staleWhileRevalidate: '1week',
+    }),
+  };
+};
 
 export { loader };
 

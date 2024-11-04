@@ -14,17 +14,9 @@ import { Outlet } from '@remix-run/react';
 // ourselves.
 
 export const headers: HeadersFunction = ({ errorHeaders }) => {
-  if (errorHeaders?.has('Cache-Control')) {
-    const thrownCacheControl = errorHeaders.get('Cache-Control');
-    if (typeof thrownCacheControl === 'string') {
-      return { 'Cache-Control': thrownCacheControl };
-    }
-  }
-
-  // TODO: TS demands whatever we return is always the same shape, but we don't really want to set
-  // the Cache-Control header if we didn't get one from a thrown response (the leaf routes will set
-  // their own). I guess we'll set it to an empty string? ¯\_(ツ)_/¯
-  return { 'Cache-Control': '' };
+  return {
+    ...(errorHeaders ? Object.fromEntries(errorHeaders) : {}),
+  };
 };
 
 export default function AppLayout() {

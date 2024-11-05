@@ -11,7 +11,6 @@ const envSchema = z.object({
   CONTENTFUL_URL: z.string().min(1),
   CONTENTFUL_PREVIEW: z.string().optional(),
   CONTENTFUL_WEBHOOK_TOKEN: z.string().min(1),
-  DATABASE_FILE_PATH: z.string().min(1),
   SITE_IMAGE_URL: z.string().min(1),
   SITE_IMAGE_ALT: z.string().min(1),
 });

@@ -4,8 +4,6 @@ import { createRequestHandler } from '@remix-run/express';
 import express from 'express';
 import morgan from 'morgan';
 import sourceMapSupport from 'source-map-support';
-import { getInstanceInfo } from 'litefs-js';
-import { primeContentCache } from '~/utils/prime-content-cache.server';
 
 sourceMapSupport.install({
   retrieveSourceMap: function (source) {
@@ -120,22 +118,8 @@ app.all(
   }),
 );
 
-await primeContentCacheIfAppropriate();
-
 const port = process.env.PORT || 3000;
 
 app.listen(port, () => {
   console.log(`✅ app ready: http://localhost:${port}`);
 });
-
-async function primeContentCacheIfAppropriate() {
-  // If LiteFS is present (i.e., when running on Fly), we only want to prime the
-  // content cache on the primary instance. If LiteFS is not present (i.e., when
-  // running locally), we always want to prime the content cache.
-  if (process.env.LITEFS_DIR) {
-    const { currentIsPrimary } = await getInstanceInfo();
-    if (currentIsPrimary) await primeContentCache();
-  } else {
-    await primeContentCache();
-  }
-}

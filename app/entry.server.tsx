@@ -6,6 +6,9 @@ import {
   type HandleDataRequestFunction,
 } from '@remix-run/node';
 import { RemixServer } from '@remix-run/react';
+import express from 'express';
+import morgan from 'morgan';
+import { createExpressApp } from 'remix-create-express-app';
 import { isbot } from 'isbot';
 import { renderToPipeableStream } from 'react-dom/server';
 
@@ -142,3 +145,85 @@ export const handleDataRequest: HandleDataRequestFunction = async (response, { r
 
   return response;
 };
+
+// magic "app" export for remix-create-express-app
+export const app = createExpressApp({
+  configure(expressApp) {
+    // https://expressjs.com/en/advanced/best-practice-security.html#reduce-fingerprinting
+    expressApp.disable('x-powered-by');
+
+    // Redirect 'www' subdomain to the apex domain
+    expressApp.use((req, res, next) => {
+      const requestedHostname = req.get('X-Forwarded-Host') || req.hostname;
+      if (requestedHostname.startsWith('www')) {
+        const apexHostname = requestedHostname.replace('www.', '');
+        res.redirect(301, `https://${apexHostname}${req.originalUrl}`);
+        return;
+      }
+
+      next();
+    });
+
+    // Enforce clean URLs (remove trailing slashes)
+    expressApp.use((req, res, next) => {
+      if (req.path.endsWith('/') && req.path.length > 1) {
+        const query = req.url.slice(req.path.length);
+        const safePath = req.path.slice(0, -1).replace(/\/+/g, '/');
+        res.redirect(301, safePath + query);
+        return;
+      }
+
+      next();
+    });
+
+    // Set some headers
+    expressApp.use((_, res, next) => {
+      res.set('X-Fly-Region', process.env.FLY_REGION ?? 'unknown');
+
+      if (process.env.NODE_ENV === 'production') {
+        res.set(
+          'Content-Security-Policy',
+          [
+            `base-uri 'none'`,
+            `frame-ancestors 'none'`,
+            `form-action 'self'`,
+            `default-src 'self'`,
+            `connect-src 'self' https://images.ctfassets.net/ https://*.algolianet.com https://*.algolia.net`,
+            `img-src 'self' data: https:`,
+            `script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net/`,
+            `style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net/`,
+          ].join('; '),
+        );
+      }
+
+      res.set(
+        'Permissions-Policy',
+        ['geolocation=()', 'camera=()', 'microphone=()', 'payment=()', 'usb=()'].join(', '),
+      );
+      res.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+      res.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
+      res.set('X-Content-Type-Options', 'nosniff');
+      res.set('X-Frame-Options', 'DENY');
+
+      next();
+    });
+
+    if (process.env.NODE_ENV === 'production') {
+      // Remix fingerprints its assets so we can cache forever
+      expressApp.use(
+        '/assets',
+        express.static('build/client/assets', { immutable: true, maxAge: '1y' }),
+      );
+    }
+
+    // Everything else is cached for less than forever, but still a long time
+    expressApp.use(express.static('build/client', { maxAge: '1d' }));
+
+    // Log all requests except for health checks
+    expressApp.use(
+      morgan('tiny', {
+        skip: (req) => req.url === '/_/healthcheck' || Boolean(req.headers['x-from-healthcheck']),
+      }),
+    );
+  },
+});

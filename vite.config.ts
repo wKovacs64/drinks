@@ -1,13 +1,18 @@
 import path from 'node:path';
 import { vitePlugin as remix } from '@remix-run/dev';
 import { remixPWA } from '@remix-pwa/dev';
+import { expressDevServer } from 'remix-express-dev-server';
 import { defineConfig, normalizePath } from 'vite';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 import tsConfigPaths from 'vite-tsconfig-paths';
 import { iconsSpritesheet } from 'vite-plugin-icons-spritesheet';
 
 export default defineConfig({
+  build: {
+    target: 'esnext',
+  },
   plugins: [
+    expressDevServer(),
     iconsSpritesheet({
       inputDir: path.resolve('./app/assets/svg-icons'),
       outputDir: path.resolve('./app/icons'),

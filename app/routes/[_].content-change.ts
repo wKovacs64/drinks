@@ -1,6 +1,8 @@
 import type { ActionFunctionArgs } from '@remix-run/node';
 import { getEnvVars } from '~/utils/env.server';
 
+const { CONTENTFUL_WEBHOOK_TOKEN } = getEnvVars();
+
 export async function loader() {
   return new Response(null, { status: 405 });
 }
@@ -14,7 +16,6 @@ export async function action({ request }: ActionFunctionArgs) {
     return new Response(null, { status: 415 });
   }
 
-  const { CONTENTFUL_WEBHOOK_TOKEN } = getEnvVars();
   if (request.headers.get('X-Contentful-Webhook-Token') !== CONTENTFUL_WEBHOOK_TOKEN) {
     return new Response(null, { status: 401 });
   }

@@ -14,6 +14,9 @@ import SearchForm from './search-form';
 import Searching from './searching';
 import { searchClient } from './algolia.server';
 
+const { ALGOLIA_INDEX_NAME, CONTENTFUL_ACCESS_TOKEN, CONTENTFUL_URL, CONTENTFUL_PREVIEW } =
+  getEnvVars();
+
 export const headers: HeadersFunction = () => {
   return {
     'Cache-Control': cacheHeader({
@@ -29,9 +32,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
   if (!q) {
     return { drinks: [] };
   }
-
-  const { ALGOLIA_INDEX_NAME, CONTENTFUL_ACCESS_TOKEN, CONTENTFUL_URL, CONTENTFUL_PREVIEW } =
-    getEnvVars();
 
   // query Algolia for the search results based on q
   const hits: AlgoliaDrinkHit[] = [];

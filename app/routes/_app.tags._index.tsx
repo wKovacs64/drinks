@@ -9,6 +9,8 @@ import { getEnvVars } from '~/utils/env.server';
 import { fetchGraphQL } from '~/utils/graphql.server';
 import type { DrinkTagsResponse, Drink } from '~/types';
 
+const { CONTENTFUL_ACCESS_TOKEN, CONTENTFUL_URL, CONTENTFUL_PREVIEW } = getEnvVars();
+
 export const headers: HeadersFunction = () => {
   return {
     'Cache-Control': cacheHeader({
@@ -20,8 +22,6 @@ export const headers: HeadersFunction = () => {
 };
 
 export async function loader() {
-  const { CONTENTFUL_ACCESS_TOKEN, CONTENTFUL_URL, CONTENTFUL_PREVIEW } = getEnvVars();
-
   const allDrinkTagsQuery = /* GraphQL */ `
     query ($preview: Boolean) {
       drinkCollection(preview: $preview) {

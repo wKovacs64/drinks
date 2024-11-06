@@ -15,6 +15,8 @@ import { markdownToHtml } from '~/utils/markdown.server';
 import { withPlaceholderImages } from '~/utils/placeholder-images.server';
 import type { AppRouteHandle, Drink, DrinksResponse } from '~/types';
 
+const { CONTENTFUL_ACCESS_TOKEN, CONTENTFUL_URL, CONTENTFUL_PREVIEW } = getEnvVars();
+
 export const headers: HeadersFunction = () => {
   return {
     'Cache-Control': cacheHeader({
@@ -27,8 +29,6 @@ export const headers: HeadersFunction = () => {
 
 export async function loader({ params }: LoaderFunctionArgs) {
   invariant(params.slug, 'slug route parameter was missing');
-
-  const { CONTENTFUL_ACCESS_TOKEN, CONTENTFUL_URL, CONTENTFUL_PREVIEW } = getEnvVars();
 
   const drinkQuery = /* GraphQL */ `
     query ($preview: Boolean, $slug: String) {

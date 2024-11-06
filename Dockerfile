@@ -1,6 +1,13 @@
 # base node image
 FROM node:22-bullseye-slim AS base
 
+# accept some build arguments
+ARG DEPLOYMENT_ENV
+
+# store the build arguments in environment variables
+ENV DEPLOYMENT_ENV=${DEPLOYMENT_ENV}
+
+# set for base and all layers that inherit from it
 ENV NODE_ENV="production"
 
 # Install all node_modules, including dev dependencies
@@ -34,7 +41,6 @@ RUN npm run build
 FROM base
 
 ENV PORT="8080"
-ENV NODE_ENV="production"
 
 WORKDIR /myapp
 

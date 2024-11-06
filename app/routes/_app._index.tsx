@@ -1,15 +1,23 @@
-import { data, type LoaderFunctionArgs } from '@remix-run/node';
+import { data, useLoaderData } from '@remix-run/react';
+import type { HeadersFunction } from '@remix-run/node';
+import { cacheHeader } from 'pretty-cache-header';
+import DrinkList from '~/drinks/drink-list';
 import { getEnvVars } from '~/utils/env.server';
 import { fetchGraphQL } from '~/utils/graphql.server';
-import { cache } from '~/utils/cache.server';
 import { withPlaceholderImages } from '~/utils/placeholder-images.server';
-import type { Drink, DrinksResponse, EnhancedDrink } from '~/types';
+import type { DrinksResponse, Drink } from '~/types';
 
-export async function loader({ request }: LoaderFunctionArgs) {
-  const cacheKey = new URL(request.url).pathname;
-  const cachedData: { drinks: EnhancedDrink[] } = await cache.get(cacheKey);
-  if (cachedData) return cachedData;
+export const headers: HeadersFunction = () => {
+  return {
+    'Cache-Control': cacheHeader({
+      maxAge: '10min',
+      sMaxage: '1day',
+      staleWhileRevalidate: '1week',
+    }),
+  };
+};
 
+export async function loader() {
   const { CONTENTFUL_ACCESS_TOKEN, CONTENTFUL_URL, CONTENTFUL_PREVIEW } = getEnvVars();
 
   const allDrinksQuery = /* GraphQL */ `
@@ -51,8 +59,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const drinks = maybeDrinks.filter((drink): drink is Drink => Boolean(drink));
   const drinksWithPlaceholderImages = await withPlaceholderImages(drinks);
-  const loaderData = { drinks: drinksWithPlaceholderImages };
 
-  await cache.set(cacheKey, loaderData);
-  return loaderData;
+  return { drinks: drinksWithPlaceholderImages };
+}
+
+export default function HomePage() {
+  const { drinks } = useLoaderData<typeof loader>();
+
+  return <DrinkList drinks={drinks} />;
 }

@@ -1,6 +1,5 @@
 import type { ActionFunctionArgs } from '@remix-run/node';
 import { getEnvVars } from '~/utils/env.server';
-import { primeContentCache } from '~/utils/prime-content-cache.server';
 
 export async function loader() {
   return new Response(null, { status: 405 });
@@ -20,10 +19,8 @@ export async function action({ request }: ActionFunctionArgs) {
     return new Response(null, { status: 401 });
   }
 
-  // We could be smarter here and only update cache related to the changed
-  // content (provided in the request body), but refreshing the entire cache is
-  // so fast that it's really not worth it at this time.
-  await primeContentCache();
+  // TODO: Do we want to perform a targeted CDN purge here? The changed content is available in the
+  // request body, but we'd have to parse it and figure out what URLs to purge.
 
   return new Response(null, { status: 204 });
 }

@@ -4,7 +4,6 @@ import { useSWEffect } from '@remix-pwa/sw';
 import sourceSans3Latin300 from '@fontsource/source-sans-3/latin-300.css?url';
 import sourceSans3Latin400 from '@fontsource/source-sans-3/latin-400.css?url';
 import appStylesUrl from '~/styles/app.css?url';
-import { iconsSpriteUrl } from '~/icons/icon';
 import faviconIcoUrl from '~/assets/images/favicon.ico';
 import icon32Url from '~/assets/images/icon-32x32.png';
 import appleTouchIconUrl from '~/assets/images/apple-touch-icon.png';
@@ -58,7 +57,6 @@ export const handle: AppRouteHandle = {
 };
 
 export const links: LinksFunction = () => [
-  { rel: 'preload', href: iconsSpriteUrl, as: 'image' },
   {
     rel: 'preconnect',
     href: 'https://images.ctfassets.net/',

@@ -16,9 +16,9 @@ import Footer from '~/core/footer';
 import Breadcrumbs from '~/navigation/breadcrumbs';
 import type { AppRouteHandle } from './types';
 
-export async function loader() {
-  const { SITE_IMAGE_URL, SITE_IMAGE_ALT } = getEnvVars();
+const { SITE_IMAGE_URL, SITE_IMAGE_ALT } = getEnvVars();
 
+export async function loader() {
   return { socialImageUrl: SITE_IMAGE_URL, socialImageAlt: SITE_IMAGE_ALT };
 }
 

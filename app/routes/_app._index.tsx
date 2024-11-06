@@ -7,6 +7,8 @@ import { fetchGraphQL } from '~/utils/graphql.server';
 import { withPlaceholderImages } from '~/utils/placeholder-images.server';
 import type { DrinksResponse, Drink } from '~/types';
 
+const { CONTENTFUL_ACCESS_TOKEN, CONTENTFUL_URL, CONTENTFUL_PREVIEW } = getEnvVars();
+
 export const headers: HeadersFunction = () => {
   return {
     'Cache-Control': cacheHeader({
@@ -18,8 +20,6 @@ export const headers: HeadersFunction = () => {
 };
 
 export async function loader() {
-  const { CONTENTFUL_ACCESS_TOKEN, CONTENTFUL_URL, CONTENTFUL_PREVIEW } = getEnvVars();
-
   const allDrinksQuery = /* GraphQL */ `
     query ($preview: Boolean) {
       drinkCollection(preview: $preview, order: [rank_DESC, sys_firstPublishedAt_DESC]) {

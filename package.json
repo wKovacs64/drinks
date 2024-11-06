@@ -27,7 +27,7 @@
     "format": "prettier --cache --write .",
     "format:check": "prettier --cache --check .",
     "lint": "eslint --cache --cache-location ./node_modules/.cache/eslint .",
-    "start": "cross-env NODE_ENV=production node ./build/server/index.js",
+    "start": "cross-env NODE_ENV=production PORT=8080 node ./build/server/index.js",
     "typecheck": "tsc",
     "validate": "run-p format:check lint typecheck"
   },

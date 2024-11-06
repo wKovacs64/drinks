@@ -4,7 +4,7 @@
     {
       "name": "material-design-icons",
       "directory": "./app/assets/svg-icons",
-      "postinstall": ["npm", "run", "build:icons"],
+      "postinstall": [],
       "transformers": ["transform-svg.ts"]
     }
   ]

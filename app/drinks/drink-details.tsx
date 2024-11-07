@@ -1,9 +1,9 @@
 import { kebabCase } from 'lodash-es';
 import type { EnhancedDrink } from '~/types';
-import Tag from '~/tags/tag';
-import TagLink from '~/tags/tag-link';
+import { Tag } from '~/tags/tag';
+import { TagLink } from '~/tags/tag-link';
 
-export default function DrinkDetails({ drink }: { drink: EnhancedDrink }) {
+export function DrinkDetails({ drink }: { drink: EnhancedDrink }) {
   return (
     <section className="bg-gray-100 p-8 text-xl leading-tight xl:leading-snug">
       {drink.notes && (

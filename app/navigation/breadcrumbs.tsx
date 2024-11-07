@@ -1,11 +1,11 @@
 import * as React from 'react';
 import { useLocation, useMatches, useSearchParams, type UIMatch } from '@remix-run/react';
 import type { SerializeFrom } from '@remix-run/node';
-import Nav from './nav';
-import NavLink from './nav-link';
-import NavDivider from './nav-divider';
+import { Nav } from './nav';
+import { NavLink } from './nav-link';
+import { NavDivider } from './nav-divider';
 
-export default function Breadcrumbs() {
+export function Breadcrumbs() {
   const matches = useMatches();
   const { pathname: currentPathname } = useLocation();
   const [searchParams] = useSearchParams();

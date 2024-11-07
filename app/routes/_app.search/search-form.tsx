@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Form } from '@remix-run/react';
 import { Icon } from '~/icons/icon';
 
-export default function SearchForm({
+export function SearchForm({
   initialSearchTerm,
 }: {
   initialSearchTerm?: HTMLInputElement['value'];

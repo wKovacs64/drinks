@@ -1,10 +1,11 @@
-import clsx from 'clsx';
+import { clsx } from 'clsx';
 
-export default function Tag({ children, className }: TagProps) {
-  return <div className={clsx('min-w-[4rem] text-center lowercase', className)}>{children}</div>;
-}
-
-interface TagProps {
+export function Tag({
+  children,
+  className,
+}: {
   children: React.ReactNode;
   className?: React.HTMLAttributes<HTMLDivElement>['className'];
+}) {
+  return <div className={clsx('min-w-[4rem] text-center lowercase', className)}>{children}</div>;
 }

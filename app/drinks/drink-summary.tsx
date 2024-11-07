@@ -1,8 +1,8 @@
-import clsx from 'clsx';
-import Image, { getImageProps } from '~/core/image';
+import { clsx } from 'clsx';
+import { Image, getImageProps } from '~/core/image';
 import type { EnhancedDrink } from '~/types';
 
-export default function DrinkSummary({
+export function DrinkSummary({
   className,
   drink,
   stacked,
@@ -47,10 +47,10 @@ export default function DrinkSummary({
   );
 }
 
-interface DrinkSummaryProps {
+type DrinkSummaryProps = {
   className?: React.HTMLAttributes<HTMLElement>['className'];
   drink: EnhancedDrink;
   stacked?: boolean;
   imageWidths: Parameters<typeof getImageProps>[0]['imageWidths'];
   imageSizesPerViewport: Parameters<typeof getImageProps>[0]['imageSizesPerViewport'];
-}
+};

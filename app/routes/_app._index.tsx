@@ -1,7 +1,7 @@
 import { data, useLoaderData } from '@remix-run/react';
 import type { HeadersFunction } from '@remix-run/node';
 import { cacheHeader } from 'pretty-cache-header';
-import DrinkList from '~/drinks/drink-list';
+import { DrinkList } from '~/drinks/drink-list';
 import { getEnvVars } from '~/utils/env.server';
 import { fetchGraphQL } from '~/utils/graphql.server';
 import { withPlaceholderImages } from '~/utils/placeholder-images.server';

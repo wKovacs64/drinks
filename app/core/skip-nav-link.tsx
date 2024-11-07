@@ -1,4 +1,4 @@
-export default function SkipNavLink({ contentId }: SkipNavLinkProps) {
+export function SkipNavLink({ contentId }: { contentId: string }) {
   return (
     <a
       href={`#${contentId}`}
@@ -7,8 +7,4 @@ export default function SkipNavLink({ contentId }: SkipNavLinkProps) {
       Skip to content
     </a>
   );
-}
-
-interface SkipNavLinkProps {
-  contentId: string;
 }

@@ -6,12 +6,12 @@ import { getEnvVars } from '~/utils/env.server';
 import { mergeMeta } from '~/utils/meta';
 import { fetchGraphQL } from '~/utils/graphql.server';
 import { withPlaceholderImages } from '~/utils/placeholder-images.server';
-import DrinkList from '~/drinks/drink-list';
+import { DrinkList } from '~/drinks/drink-list';
 import type { AppRouteHandle, Drink, DrinksResponse } from '~/types';
-import NoDrinksFound from './no-drinks-found';
-import NoSearchTerm from './no-search-term';
-import SearchForm from './search-form';
-import Searching from './searching';
+import { NoDrinksFound } from './no-drinks-found';
+import { NoSearchTerm } from './no-search-term';
+import { SearchForm } from './search-form';
+import { Searching } from './searching';
 import { searchClient } from './algolia.server';
 
 const { ALGOLIA_INDEX_NAME, CONTENTFUL_ACCESS_TOKEN, CONTENTFUL_URL, CONTENTFUL_PREVIEW } =

@@ -9,10 +9,10 @@ import icon32Url from '~/assets/images/icon-32x32.png';
 import appleTouchIconUrl from '~/assets/images/apple-touch-icon.png';
 import { backgroundImageStyles } from '~/styles/background-image';
 import { getEnvVars } from '~/utils/env.server';
-import SkipNavLink from '~/core/skip-nav-link';
-import Header from '~/core/header';
-import Footer from '~/core/footer';
-import Breadcrumbs from '~/navigation/breadcrumbs';
+import { SkipNavLink } from '~/core/skip-nav-link';
+import { Header } from '~/core/header';
+import { Footer } from '~/core/footer';
+import { Breadcrumbs } from '~/navigation/breadcrumbs';
 import type { AppRouteHandle } from './types';
 
 const { SITE_IMAGE_URL, SITE_IMAGE_ALT } = getEnvVars();

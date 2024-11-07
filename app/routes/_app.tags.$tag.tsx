@@ -6,7 +6,7 @@ import { invariant, invariantResponse } from '@epic-web/invariant';
 import { mergeMeta } from '~/utils/meta';
 import { notFoundMeta } from '~/routes/_app.$';
 import { getLoaderDataForHandle } from '~/navigation/breadcrumbs';
-import DrinkList from '~/drinks/drink-list';
+import { DrinkList } from '~/drinks/drink-list';
 import { getEnvVars } from '~/utils/env.server';
 import { fetchGraphQL } from '~/utils/graphql.server';
 import { withPlaceholderImages } from '~/utils/placeholder-images.server';

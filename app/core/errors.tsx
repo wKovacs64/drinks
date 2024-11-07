@@ -1,5 +1,5 @@
 import { Link, isRouteErrorResponse, useRouteError } from '@remix-run/react';
-import NotFound from '~/core/not-found';
+import { NotFound } from '~/core/not-found';
 
 export function ErrorBoundary() {
   const error = useRouteError();

@@ -1,7 +1,7 @@
 import { Link, type LinkProps } from '@remix-run/react';
-import clsx from 'clsx';
+import { clsx } from 'clsx';
 
-export default function TagLink({ className, children, ...props }: LinkProps) {
+export function TagLink({ className, children, ...props }: LinkProps) {
   return (
     <Link
       className={clsx(

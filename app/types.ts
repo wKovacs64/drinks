@@ -1,6 +1,6 @@
 import type { BreadcrumbHandle } from '~/navigation/breadcrumbs';
 
-export interface DrinksResponse {
+export type DrinksResponse = {
   errors?: {
     message: string;
     extensions: {
@@ -20,7 +20,7 @@ export interface DrinksResponse {
       drinks: (Drink | null)[];
     } | null;
   };
-}
+};
 
 export type DrinkTagsResponse = DrinksResponse & {
   data: {
@@ -32,7 +32,7 @@ export type DrinkTagsResponse = DrinksResponse & {
 
 // Most of the fields will be null if you start to create a new Drink in
 // Contentful without finishing it.
-export interface Drink {
+export type Drink = {
   title: string | null;
   slug: string;
   image: {
@@ -42,9 +42,9 @@ export interface Drink {
   calories: number | null;
   notes?: string;
   tags?: string[];
-}
+};
 
-export interface EnhancedDrink {
+export type EnhancedDrink = {
   title: NonNullable<Drink['title']>;
   slug: Drink['slug'];
   image: NonNullable<Drink['image']> & {
@@ -54,7 +54,7 @@ export interface EnhancedDrink {
   calories: NonNullable<Drink['calories']>;
   notes?: Drink['notes'];
   tags?: Drink['tags'];
-}
+};
 
 // While this only includes BreadcrumbHandle at the moment, they are
 // semantically different and it may end up an intersection of multiple types in

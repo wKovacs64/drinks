@@ -1,6 +1,12 @@
-import clsx from 'clsx';
+import { clsx } from 'clsx';
 
-export default function Glass({ children, className }: GlassProps) {
+export function Glass({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: React.HTMLAttributes<HTMLElement>['className'];
+}) {
   return (
     <article
       className={clsx(
@@ -11,9 +17,4 @@ export default function Glass({ children, className }: GlassProps) {
       {children}
     </article>
   );
-}
-
-interface GlassProps {
-  children: React.ReactNode;
-  className?: React.HTMLAttributes<HTMLElement>['className'];
 }

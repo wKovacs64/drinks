@@ -1,6 +1,6 @@
 import { Icon } from '~/icons/icon';
 
-export default function NoDrinksFound() {
+export function NoDrinksFound() {
   return (
     <section className="text-center">
       <Icon

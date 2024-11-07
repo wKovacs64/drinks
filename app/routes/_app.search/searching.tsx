@@ -1,6 +1,6 @@
 import { Icon } from '~/icons/icon';
 
-export default function Searching() {
+export function Searching() {
   return (
     <section className="text-center">
       <Icon

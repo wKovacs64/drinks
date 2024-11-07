@@ -1,8 +1,8 @@
 /* eslint-disable jsx-a11y/alt-text */
 import * as React from 'react';
-import clsx from 'clsx';
+import { clsx } from 'clsx';
 
-export default function Image({
+export function Image({
   containerClassName,
   blurDataUrl,
   fallbackSrc,
@@ -74,7 +74,7 @@ export default function Image({
   );
 }
 
-interface ImageProps {
+type ImageProps = {
   containerClassName?: React.HTMLAttributes<HTMLDivElement>['className'];
   blurDataUrl: string;
   fallbackSrc: string;
@@ -82,7 +82,7 @@ interface ImageProps {
   srcSetByFormat: Record<ImageFormat, string>;
   alt: React.ImgHTMLAttributes<HTMLImageElement>['alt'];
   loading?: React.ImgHTMLAttributes<HTMLImageElement>['loading'];
-}
+};
 
 type ImageFormat = 'avif' | 'webp' | 'jpg';
 

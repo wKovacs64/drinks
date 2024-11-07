@@ -1,6 +1,6 @@
 import { Icon } from '~/icons/icon';
 
-export default function NoSearchTerm() {
+export function NoSearchTerm() {
   return (
     <section className="text-center">
       <Icon

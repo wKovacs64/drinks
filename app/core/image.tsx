@@ -104,9 +104,7 @@ export function getImageProps({
     fl: 'progressive',
   });
 
-  const srcSetsMap = imageWidths.reduce<{
-    [k in ImageFormat]: string[];
-  }>(
+  const srcSetsMap = imageWidths.reduce<Record<ImageFormat, string[]>>(
     (acc, size) => {
       acc.avif.push(
         makeSrcSetEntry({

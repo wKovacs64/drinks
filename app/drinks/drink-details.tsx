@@ -9,7 +9,6 @@ export function DrinkDetails({ drink }: { drink: EnhancedDrink }) {
       {drink.notes && (
         <div
           className="mb-4 lg:mb-8 [&_a]:border-b [&_a]:border-solid [&_a]:border-orange-400 [&_a]:transition-shadow [&_a]:ease-default hover:[&_a]:border-b-yellow-900 focus:[&_a]:border-b-yellow-900 focus-visible:[&_a]:outline-none focus-visible:[&_a]:ring [&_h1]:mb-4 [&_h2]:mb-4 [&_h3]:mb-4 [&_h4]:mb-4 [&_h5]:mb-4 [&_h6]:mb-4 [&_p]:my-5 [&_ul>li]:mb-5 [&_ul]:ml-4 [&_ul]:list-[square] [&_ul]:pl-4 [&_ul]:leading-tight"
-           
           dangerouslySetInnerHTML={{
             __html: drink.notes,
           }}

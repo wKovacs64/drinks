@@ -71,7 +71,7 @@
     "node-html-parser": "6.1.13",
     "npm-run-all2": "7.0.1",
     "postcss": "8.4.49",
-    "prettier": "3.3.3",
+    "prettier": "3.4.0",
     "prettier-plugin-tailwindcss": "0.6.9",
     "remix-express-dev-server": "0.4.4",
     "semantic-release": "24.2.0",

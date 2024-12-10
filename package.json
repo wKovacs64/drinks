@@ -50,7 +50,7 @@
     "react-dom": "18.3.1",
     "remix": "2.15.1",
     "remix-create-express-app": "0.4.5",
-    "zod": "3.23.8"
+    "zod": "3.24.0"
   },
   "devDependencies": {
     "@remix-pwa/dev": "3.1.0",

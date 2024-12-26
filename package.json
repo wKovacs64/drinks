@@ -68,7 +68,7 @@
     "del-cli": "6.0.0",
     "eslint": "9.17.0",
     "glob": "11.0.0",
-    "node-html-parser": "6.1.13",
+    "node-html-parser": "7.0.1",
     "npm-run-all2": "7.0.2",
     "postcss": "8.4.49",
     "prettier": "3.4.2",

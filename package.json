@@ -74,7 +74,7 @@
     "prettier": "3.4.2",
     "prettier-plugin-tailwindcss": "0.6.9",
     "remix-express-dev-server": "0.4.4",
-    "semantic-release": "24.2.0",
+    "semantic-release": "24.2.1",
     "tailwindcss": "3.4.17",
     "typescript": "5.7.2",
     "vite": "5.4.11",

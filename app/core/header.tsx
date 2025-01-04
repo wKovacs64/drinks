@@ -1,4 +1,4 @@
-import { Link, type LinkProps } from '@remix-run/react';
+import { Link, type LinkProps } from 'react-router';
 import { Icon } from '~/icons/icon';
 
 export function Header() {

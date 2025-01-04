@@ -1,9 +1,8 @@
-import { data, type HeadersFunction, type LoaderFunctionArgs } from '@remix-run/node';
-import { useLoaderData, useSearchParams, useNavigation } from '@remix-run/react';
+import { data, useSearchParams, useNavigation } from 'react-router';
 import { cacheHeader } from 'pretty-cache-header';
 import type { SearchResult } from 'algoliasearch/lite';
+import { defaultPageDescription, defaultPageTitle } from '~/core/config';
 import { getEnvVars } from '~/utils/env.server';
-import { mergeMeta } from '~/utils/meta';
 import { fetchGraphQL } from '~/utils/graphql.server';
 import { withPlaceholderImages } from '~/utils/placeholder-images.server';
 import { DrinkList } from '~/drinks/drink-list';
@@ -13,11 +12,18 @@ import { NoSearchTerm } from './no-search-term';
 import { SearchForm } from './search-form';
 import { Searching } from './searching';
 import { searchClient } from './algolia.server';
+import type { Route } from './+types/route';
 
-const { ALGOLIA_INDEX_NAME, CONTENTFUL_ACCESS_TOKEN, CONTENTFUL_URL, CONTENTFUL_PREVIEW } =
-  getEnvVars();
+const {
+  ALGOLIA_INDEX_NAME,
+  CONTENTFUL_ACCESS_TOKEN,
+  CONTENTFUL_URL,
+  CONTENTFUL_PREVIEW,
+  SITE_IMAGE_URL,
+  SITE_IMAGE_ALT,
+} = getEnvVars();
 
-export const headers: HeadersFunction = () => {
+export function headers() {
   return {
     'Cache-Control': cacheHeader({
       maxAge: '10min',
@@ -25,12 +31,12 @@ export const headers: HeadersFunction = () => {
       staleWhileRevalidate: '1week',
     }),
   };
-};
+}
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const q = new URL(request.url).searchParams.get('q');
   if (!q) {
-    return { drinks: [] };
+    return { drinks: [], socialImageUrl: SITE_IMAGE_URL, socialImageAlt: SITE_IMAGE_ALT };
   }
 
   // query Algolia for the search results based on q
@@ -57,7 +63,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 
   if (hits.length === 0) {
-    return { drinks: [] };
+    return { drinks: [], socialImageUrl: SITE_IMAGE_URL, socialImageAlt: SITE_IMAGE_ALT };
   }
 
   const slugs = hits.map((hit) => hit.slug);
@@ -106,27 +112,40 @@ export async function loader({ request }: LoaderFunctionArgs) {
   drinks.sort((a, b) => slugs.indexOf(a.slug) - slugs.indexOf(b.slug));
 
   const drinksWithPlaceholderImages = await withPlaceholderImages(drinks);
-  const loaderData = { drinks: drinksWithPlaceholderImages };
 
-  return loaderData;
+  return {
+    drinks: drinksWithPlaceholderImages,
+    socialImageUrl: SITE_IMAGE_URL,
+    socialImageAlt: SITE_IMAGE_ALT,
+  };
 }
 
 export const handle: AppRouteHandle = {
   breadcrumb: () => ({ title: 'Search' }),
 };
 
-export const meta = mergeMeta<typeof loader>(() => {
+export function meta({ data: loaderData }: Route.MetaArgs) {
+  const { socialImageUrl, socialImageAlt } = loaderData;
+
   return [
     { title: 'Search Drinks' },
     {
       name: 'description',
       content: 'Search all drinks by ingredient or description',
     },
+    { property: 'og:title', content: defaultPageTitle },
+    { property: 'og:description', content: defaultPageDescription },
+    { property: 'og:image', content: socialImageUrl },
+    { property: 'og:image:alt', content: socialImageAlt },
+    { name: 'twitter:title', content: defaultPageTitle },
+    { name: 'twitter:description', content: defaultPageDescription },
+    { name: 'twitter:image', content: socialImageUrl },
+    { name: 'twitter:image:alt', content: socialImageAlt },
   ];
-});
+}
 
-export default function SearchPage() {
-  const { drinks } = useLoaderData<typeof loader>();
+export default function SearchPage({ loaderData }: Route.ComponentProps) {
+  const { drinks } = loaderData;
   const [searchParams] = useSearchParams();
   const q = searchParams.get('q');
   const navigation = useNavigation();

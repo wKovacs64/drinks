@@ -242,11 +242,15 @@ $RECYCLE.BIN/
 # Manual exclusions
 !**/.gitkeep
 
-# Remix
+# React Router
 /.cache
+/.react-router
 /build
 .env
 
 # Generated SVG icons sprite and correpsonding types
 /app/icons/icons-sprite.svg
 /app/icons/types.ts
+
+# Service worker in development mode
+public/sw.js

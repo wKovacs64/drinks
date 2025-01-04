@@ -8,7 +8,7 @@
 
 ## Technologies used:
 
-- [Remix](https://remix.run/) (full stack web framework)
+- [React Router](https://reactrouter.com/) (full stack web framework)
 - [React](https://reactjs.org/) (UI library)
 - [Contentful](https://www.contentful.com/) (headless CMS) with [GraphQL](https://graphql.org/) (API
   interaction)
@@ -39,7 +39,6 @@
 1. Deploy to [Fly](https://fly.io/):
 
    - See [Fly docs for Node apps](https://fly.io/docs/getting-started/node/)
-   - See [Remix Indie Stack](https://github.com/remix-run/indie-stack) for a comprehensive example
 
 1. Create a couple webhooks in Contentful (one for dev and one for prod):
 

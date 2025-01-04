@@ -1,9 +1,17 @@
-import type { HeadersFunction } from '@remix-run/node';
 import { cacheHeader } from 'pretty-cache-header';
-import { mergeMeta } from '~/utils/meta';
+import {
+  defaultPageDescription,
+  defaultPageTitle,
+  notFoundPageDescription,
+  notFoundPageTitle,
+} from '~/core/config';
 import { NotFound } from '~/core/not-found';
+import { getEnvVars } from '~/utils/env.server';
+import type { Route } from './+types/_app.$';
 
-export const headers: HeadersFunction = () => {
+const { SITE_IMAGE_URL, SITE_IMAGE_ALT } = getEnvVars();
+
+export function headers() {
   return {
     'Cache-Control': cacheHeader({
       maxAge: '1min',
@@ -11,13 +19,27 @@ export const headers: HeadersFunction = () => {
       mustRevalidate: true,
     }),
   };
-};
+}
 
-export const notFoundMeta = [
-  { title: 'Not Found' },
-  { name: 'description', content: "There's nothing of interest here." },
-];
+export async function loader() {
+  return { socialImageUrl: SITE_IMAGE_URL, socialImageAlt: SITE_IMAGE_ALT };
+}
 
-export const meta = mergeMeta(() => notFoundMeta);
+export function meta({ data: loaderData }: Route.MetaArgs) {
+  const { socialImageUrl, socialImageAlt } = loaderData;
+
+  return [
+    { title: notFoundPageTitle },
+    { name: 'description', content: notFoundPageDescription },
+    { property: 'og:title', content: defaultPageTitle },
+    { property: 'og:description', content: defaultPageDescription },
+    { property: 'og:image', content: socialImageUrl },
+    { property: 'og:image:alt', content: socialImageAlt },
+    { name: 'twitter:title', content: defaultPageTitle },
+    { name: 'twitter:description', content: defaultPageDescription },
+    { name: 'twitter:image', content: socialImageUrl },
+    { name: 'twitter:image:alt', content: socialImageAlt },
+  ];
+}
 
 export default NotFound;

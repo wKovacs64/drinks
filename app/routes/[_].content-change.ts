@@ -1,5 +1,5 @@
-import type { ActionFunctionArgs } from '@remix-run/node';
 import { getEnvVars } from '~/utils/env.server';
+import type { Route } from './+types/[_].content-change';
 
 const { CONTENTFUL_WEBHOOK_TOKEN } = getEnvVars();
 
@@ -7,7 +7,7 @@ export async function loader() {
   return new Response(null, { status: 405 });
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   if (request.method !== 'POST') {
     return new Response(null, { status: 405 });
   }

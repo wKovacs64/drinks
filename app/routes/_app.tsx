@@ -1,5 +1,5 @@
-import type { HeadersFunction } from '@remix-run/node';
-import { Outlet } from '@remix-run/react';
+import { Outlet } from 'react-router';
+import type { Route } from './+types/_app';
 
 // Currently, the only purpose for this pathless layout route is to render an error fallback for any
 // errors that are thrown within the app (anything below this pathless route). This happens here
@@ -13,11 +13,11 @@ import { Outlet } from '@remix-run/react';
 // and their headers don't get automatically included in the response, so we have to do it
 // ourselves.
 
-export const headers: HeadersFunction = ({ errorHeaders }) => {
+export function headers({ errorHeaders }: Route.HeadersArgs) {
   return {
     ...(errorHeaders ? Object.fromEntries(errorHeaders) : {}),
   };
-};
+}
 
 export default function AppLayout() {
   return <Outlet />;

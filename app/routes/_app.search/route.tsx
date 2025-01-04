@@ -1,7 +1,7 @@
 import { data, useSearchParams, useNavigation } from 'react-router';
 import { cacheHeader } from 'pretty-cache-header';
 import type { SearchResult } from 'algoliasearch/lite';
-import { appDescription, appTitle } from '~/core/config';
+import { defaultPageDescription, defaultPageTitle } from '~/core/config';
 import { getEnvVars } from '~/utils/env.server';
 import { fetchGraphQL } from '~/utils/graphql.server';
 import { withPlaceholderImages } from '~/utils/placeholder-images.server';
@@ -133,12 +133,12 @@ export function meta({ data: loaderData }: Route.MetaArgs) {
       name: 'description',
       content: 'Search all drinks by ingredient or description',
     },
-    { property: 'og:title', content: appTitle },
-    { property: 'og:description', content: appDescription },
+    { property: 'og:title', content: defaultPageTitle },
+    { property: 'og:description', content: defaultPageDescription },
     { property: 'og:image', content: socialImageUrl },
     { property: 'og:image:alt', content: socialImageAlt },
-    { name: 'twitter:title', content: appTitle },
-    { name: 'twitter:description', content: appDescription },
+    { name: 'twitter:title', content: defaultPageTitle },
+    { name: 'twitter:description', content: defaultPageDescription },
     { name: 'twitter:image', content: socialImageUrl },
     { name: 'twitter:image:alt', content: socialImageAlt },
   ];

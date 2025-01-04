@@ -2,7 +2,7 @@ import { data } from 'react-router';
 import { lowerCase, startCase } from 'lodash-es';
 import { cacheHeader } from 'pretty-cache-header';
 import { invariantResponse } from '@epic-web/invariant';
-import { appDescription, appTitle } from '~/core/config';
+import { defaultPageDescription, defaultPageTitle } from '~/core/config';
 import { getLoaderDataForHandle } from '~/core/utils';
 import { DrinkList } from '~/drinks/drink-list';
 import { getEnvVars } from '~/utils/env.server';
@@ -116,12 +116,12 @@ export function meta({ data: loaderData, params }: Route.MetaArgs) {
   return [
     { title: `Drinks with ${startCase(tag)}` },
     { name: 'description', content: `All drinks containing ${lowerCase(tag)}` },
-    { property: 'og:title', content: appTitle },
-    { property: 'og:description', content: appDescription },
+    { property: 'og:title', content: defaultPageTitle },
+    { property: 'og:description', content: defaultPageDescription },
     { property: 'og:image', content: socialImageUrl },
     { property: 'og:image:alt', content: socialImageAlt },
-    { name: 'twitter:title', content: appTitle },
-    { name: 'twitter:description', content: appDescription },
+    { name: 'twitter:title', content: defaultPageTitle },
+    { name: 'twitter:description', content: defaultPageDescription },
     { name: 'twitter:image', content: socialImageUrl },
     { name: 'twitter:image:alt', content: socialImageAlt },
   ];

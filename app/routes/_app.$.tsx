@@ -1,5 +1,10 @@
 import { cacheHeader } from 'pretty-cache-header';
-import { appDescription, appTitle, notFoundDescription, notFoundTitle } from '~/core/config';
+import {
+  defaultPageDescription,
+  defaultPageTitle,
+  notFoundPageDescription,
+  notFoundPageTitle,
+} from '~/core/config';
 import { NotFound } from '~/core/not-found';
 import { getEnvVars } from '~/utils/env.server';
 import type { Route } from './+types/_app.$';
@@ -24,14 +29,14 @@ export function meta({ data: loaderData }: Route.MetaArgs) {
   const { socialImageUrl, socialImageAlt } = loaderData;
 
   return [
-    { title: notFoundTitle },
-    { name: 'description', content: notFoundDescription },
-    { property: 'og:title', content: appTitle },
-    { property: 'og:description', content: appDescription },
+    { title: notFoundPageTitle },
+    { name: 'description', content: notFoundPageDescription },
+    { property: 'og:title', content: defaultPageTitle },
+    { property: 'og:description', content: defaultPageDescription },
     { property: 'og:image', content: socialImageUrl },
     { property: 'og:image:alt', content: socialImageAlt },
-    { name: 'twitter:title', content: appTitle },
-    { name: 'twitter:description', content: appDescription },
+    { name: 'twitter:title', content: defaultPageTitle },
+    { name: 'twitter:description', content: defaultPageDescription },
     { name: 'twitter:image', content: socialImageUrl },
     { name: 'twitter:image:alt', content: socialImageAlt },
   ];

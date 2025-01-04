@@ -1,7 +1,7 @@
 import { data } from 'react-router';
 import { kebabCase } from 'lodash-es';
 import { cacheHeader } from 'pretty-cache-header';
-import { appTitle, appDescription } from '~/core/config';
+import { defaultPageTitle, defaultPageDescription } from '~/core/config';
 import { TagLink } from '~/tags/tag-link';
 import { Tag } from '~/tags/tag';
 import { getEnvVars } from '~/utils/env.server';
@@ -78,12 +78,12 @@ export function meta({ data: loaderData }: Route.MetaArgs) {
   return [
     { title: 'Ingredient Tags' },
     { name: 'description', content: 'Discover drinks by ingredient' },
-    { property: 'og:title', content: appTitle },
-    { property: 'og:description', content: appDescription },
+    { property: 'og:title', content: defaultPageTitle },
+    { property: 'og:description', content: defaultPageDescription },
     { property: 'og:image', content: socialImageUrl },
     { property: 'og:image:alt', content: socialImageAlt },
-    { name: 'twitter:title', content: appTitle },
-    { name: 'twitter:description', content: appDescription },
+    { name: 'twitter:title', content: defaultPageTitle },
+    { name: 'twitter:description', content: defaultPageDescription },
     { name: 'twitter:image', content: socialImageUrl },
     { name: 'twitter:image:alt', content: socialImageAlt },
   ];

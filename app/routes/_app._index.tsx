@@ -1,6 +1,6 @@
 import { data } from 'react-router';
 import { cacheHeader } from 'pretty-cache-header';
-import { appDescription, appTitle } from '~/core/config';
+import { defaultPageDescription, defaultPageTitle } from '~/core/config';
 import { DrinkList } from '~/drinks/drink-list';
 import { getEnvVars } from '~/utils/env.server';
 import { fetchGraphQL } from '~/utils/graphql.server';
@@ -78,14 +78,14 @@ export function meta({ data: loaderData }: Route.MetaArgs) {
   const { socialImageUrl, socialImageAlt } = loaderData;
 
   return [
-    { title: appTitle },
-    { name: 'description', content: appDescription },
-    { property: 'og:title', content: appTitle },
-    { property: 'og:description', content: appDescription },
+    { title: defaultPageTitle },
+    { name: 'description', content: defaultPageDescription },
+    { property: 'og:title', content: defaultPageTitle },
+    { property: 'og:description', content: defaultPageDescription },
     { property: 'og:image', content: socialImageUrl },
     { property: 'og:image:alt', content: socialImageAlt },
-    { name: 'twitter:title', content: appTitle },
-    { name: 'twitter:description', content: appDescription },
+    { name: 'twitter:title', content: defaultPageTitle },
+    { name: 'twitter:description', content: defaultPageDescription },
     { name: 'twitter:image', content: socialImageUrl },
     { name: 'twitter:image:alt', content: socialImageAlt },
   ];

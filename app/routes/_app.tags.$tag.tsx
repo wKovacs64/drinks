@@ -1,20 +1,25 @@
-import { data, useLoaderData } from '@remix-run/react';
+import { data } from 'react-router';
 import { lowerCase, startCase } from 'lodash-es';
-import type { HeadersFunction, LoaderFunctionArgs } from '@remix-run/node';
 import { cacheHeader } from 'pretty-cache-header';
-import { invariant, invariantResponse } from '@epic-web/invariant';
-import { mergeMeta } from '~/utils/meta';
-import { notFoundMeta } from '~/routes/_app.$';
-import { getLoaderDataForHandle } from '~/navigation/breadcrumbs';
+import { invariantResponse } from '@epic-web/invariant';
+import { appDescription, appTitle } from '~/core/config';
+import { getLoaderDataForHandle } from '~/core/utils';
 import { DrinkList } from '~/drinks/drink-list';
 import { getEnvVars } from '~/utils/env.server';
 import { fetchGraphQL } from '~/utils/graphql.server';
 import { withPlaceholderImages } from '~/utils/placeholder-images.server';
 import type { AppRouteHandle, Drink, DrinksResponse } from '~/types';
+import type { Route } from './+types/_app.tags.$tag';
 
-const { CONTENTFUL_ACCESS_TOKEN, CONTENTFUL_URL, CONTENTFUL_PREVIEW } = getEnvVars();
+const {
+  CONTENTFUL_ACCESS_TOKEN,
+  CONTENTFUL_URL,
+  CONTENTFUL_PREVIEW,
+  SITE_IMAGE_URL,
+  SITE_IMAGE_ALT,
+} = getEnvVars();
 
-export const headers: HeadersFunction = () => {
+export function headers() {
   return {
     'Cache-Control': cacheHeader({
       maxAge: '10min',
@@ -22,11 +27,9 @@ export const headers: HeadersFunction = () => {
       staleWhileRevalidate: '1week',
     }),
   };
-};
+}
 
-export async function loader({ params }: LoaderFunctionArgs) {
-  invariant(params.tag, 'tag route parameter was missing');
-
+export async function loader({ params }: Route.LoaderArgs) {
   const taggedDrinksQuery = /* GraphQL */ `
     query ($preview: Boolean, $tag: [String]) {
       drinkCollection(
@@ -83,7 +86,11 @@ export async function loader({ params }: LoaderFunctionArgs) {
 
   const drinksWithPlaceholderImages = await withPlaceholderImages(drinks);
 
-  return { drinks: drinksWithPlaceholderImages };
+  return {
+    drinks: drinksWithPlaceholderImages,
+    socialImageUrl: SITE_IMAGE_URL,
+    socialImageAlt: SITE_IMAGE_ALT,
+  };
 }
 
 export const handle: AppRouteHandle = {
@@ -102,19 +109,26 @@ export const handle: AppRouteHandle = {
   },
 };
 
-export const meta = mergeMeta<typeof loader>(({ data: loaderData, params }) => {
-  if (!loaderData) return notFoundMeta;
-
+export function meta({ data: loaderData, params }: Route.MetaArgs) {
+  const { socialImageUrl, socialImageAlt } = loaderData;
   const { tag } = params;
 
   return [
     { title: `Drinks with ${startCase(tag)}` },
     { name: 'description', content: `All drinks containing ${lowerCase(tag)}` },
+    { property: 'og:title', content: appTitle },
+    { property: 'og:description', content: appDescription },
+    { property: 'og:image', content: socialImageUrl },
+    { property: 'og:image:alt', content: socialImageAlt },
+    { name: 'twitter:title', content: appTitle },
+    { name: 'twitter:description', content: appDescription },
+    { name: 'twitter:image', content: socialImageUrl },
+    { name: 'twitter:image:alt', content: socialImageAlt },
   ];
-});
+}
 
-export default function TagPage() {
-  const { drinks } = useLoaderData<typeof loader>();
+export default function TagPage({ loaderData }: Route.ComponentProps) {
+  const { drinks } = loaderData;
 
   return <DrinkList drinks={drinks} />;
 }

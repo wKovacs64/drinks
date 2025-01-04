@@ -1,11 +1,8 @@
-import { data, useLoaderData } from '@remix-run/react';
-import type { HeadersFunction, LoaderFunctionArgs } from '@remix-run/node';
+import { data } from 'react-router';
 import { cacheHeader } from 'pretty-cache-header';
-import { invariant, invariantResponse } from '@epic-web/invariant';
-import { mergeMeta } from '~/utils/meta';
+import { invariantResponse } from '@epic-web/invariant';
 import { makeImageUrl } from '~/core/image';
-import { notFoundMeta } from '~/routes/_app.$';
-import { getLoaderDataForHandle } from '~/navigation/breadcrumbs';
+import { getLoaderDataForHandle } from '~/core/utils';
 import { Glass } from '~/drinks/glass';
 import { DrinkSummary } from '~/drinks/drink-summary';
 import { DrinkDetails } from '~/drinks/drink-details';
@@ -14,10 +11,11 @@ import { fetchGraphQL } from '~/utils/graphql.server';
 import { markdownToHtml } from '~/utils/markdown.server';
 import { withPlaceholderImages } from '~/utils/placeholder-images.server';
 import type { AppRouteHandle, Drink, DrinksResponse } from '~/types';
+import type { Route } from './+types/_app.$slug';
 
 const { CONTENTFUL_ACCESS_TOKEN, CONTENTFUL_URL, CONTENTFUL_PREVIEW } = getEnvVars();
 
-export const headers: HeadersFunction = () => {
+export async function headers() {
   return {
     'Cache-Control': cacheHeader({
       maxAge: '10min',
@@ -25,11 +23,9 @@ export const headers: HeadersFunction = () => {
       staleWhileRevalidate: '1week',
     }),
   };
-};
+}
 
-export async function loader({ params }: LoaderFunctionArgs) {
-  invariant(params.slug, 'slug route parameter was missing');
-
+export async function loader({ params }: Route.LoaderArgs) {
   const drinkQuery = /* GraphQL */ `
     query ($preview: Boolean, $slug: String) {
       drinkCollection(preview: $preview, limit: 1, where: { slug: $slug }) {
@@ -94,9 +90,7 @@ export const handle: AppRouteHandle = {
   },
 };
 
-export const meta = mergeMeta<typeof loader>(({ data: loaderData }) => {
-  if (!loaderData) return notFoundMeta;
-
+export function meta({ data: loaderData }: Route.MetaArgs) {
   const { drink } = loaderData;
   const { title, ingredients } = drink;
   const description = ingredients.join(', ');
@@ -123,10 +117,10 @@ export const meta = mergeMeta<typeof loader>(({ data: loaderData }) => {
     { name: 'twitter:image', content: socialImageUrl },
     { name: 'twitter:image:alt', content: socialImageAlt },
   ];
-});
+}
 
-export default function DrinkPage() {
-  const { drink } = useLoaderData<typeof loader>();
+export default function DrinkPage({ loaderData }: Route.ComponentProps) {
+  const { drink } = loaderData;
 
   const imageWidths = [320, 400, 420, 480, 640, 800, 840, 960, 1280];
   const imageSizesPerViewport = [

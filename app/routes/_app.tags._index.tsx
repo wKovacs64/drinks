@@ -1,17 +1,23 @@
-import { data, useLoaderData } from '@remix-run/react';
+import { data } from 'react-router';
 import { kebabCase } from 'lodash-es';
-import type { HeadersFunction } from '@remix-run/node';
 import { cacheHeader } from 'pretty-cache-header';
+import { appTitle, appDescription } from '~/core/config';
 import { TagLink } from '~/tags/tag-link';
 import { Tag } from '~/tags/tag';
-import { mergeMeta } from '~/utils/meta';
 import { getEnvVars } from '~/utils/env.server';
 import { fetchGraphQL } from '~/utils/graphql.server';
 import type { DrinkTagsResponse, Drink } from '~/types';
+import type { Route } from './+types/_app.tags._index';
 
-const { CONTENTFUL_ACCESS_TOKEN, CONTENTFUL_URL, CONTENTFUL_PREVIEW } = getEnvVars();
+const {
+  CONTENTFUL_ACCESS_TOKEN,
+  CONTENTFUL_URL,
+  CONTENTFUL_PREVIEW,
+  SITE_IMAGE_URL,
+  SITE_IMAGE_ALT,
+} = getEnvVars();
 
-export const headers: HeadersFunction = () => {
+export function headers() {
   return {
     'Cache-Control': cacheHeader({
       maxAge: '10min',
@@ -19,7 +25,7 @@ export const headers: HeadersFunction = () => {
       staleWhileRevalidate: '1week',
     }),
   };
-};
+}
 
 export async function loader() {
   const allDrinkTagsQuery = /* GraphQL */ `
@@ -59,18 +65,32 @@ export async function loader() {
     return acc;
   }, new Set());
 
-  return { tags: Array.from(uniqueTags).sort() };
+  return {
+    tags: Array.from(uniqueTags).sort(),
+    socialImageUrl: SITE_IMAGE_URL,
+    socialImageAlt: SITE_IMAGE_ALT,
+  };
 }
 
-export const meta = mergeMeta<typeof loader>(() => {
+export function meta({ data: loaderData }: Route.MetaArgs) {
+  const { socialImageUrl, socialImageAlt } = loaderData;
+
   return [
     { title: 'Ingredient Tags' },
     { name: 'description', content: 'Discover drinks by ingredient' },
+    { property: 'og:title', content: appTitle },
+    { property: 'og:description', content: appDescription },
+    { property: 'og:image', content: socialImageUrl },
+    { property: 'og:image:alt', content: socialImageAlt },
+    { name: 'twitter:title', content: appTitle },
+    { name: 'twitter:description', content: appDescription },
+    { name: 'twitter:image', content: socialImageUrl },
+    { name: 'twitter:image:alt', content: socialImageAlt },
   ];
-});
+}
 
-export default function TagsPage() {
-  const { tags } = useLoaderData<typeof loader>();
+export default function TagsPage({ loaderData }: Route.ComponentProps) {
+  const { tags } = loaderData;
 
   return (
     <div

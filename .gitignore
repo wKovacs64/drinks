@@ -242,8 +242,9 @@ $RECYCLE.BIN/
 # Manual exclusions
 !**/.gitkeep
 
-# Remix
+# React Router
 /.cache
+/.react-router
 /build
 .env
 

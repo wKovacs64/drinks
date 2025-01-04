@@ -1,15 +1,22 @@
-import { data, useLoaderData } from '@remix-run/react';
-import type { HeadersFunction } from '@remix-run/node';
+import { data } from 'react-router';
 import { cacheHeader } from 'pretty-cache-header';
+import { appDescription, appTitle } from '~/core/config';
 import { DrinkList } from '~/drinks/drink-list';
 import { getEnvVars } from '~/utils/env.server';
 import { fetchGraphQL } from '~/utils/graphql.server';
 import { withPlaceholderImages } from '~/utils/placeholder-images.server';
 import type { DrinksResponse, Drink } from '~/types';
+import type { Route } from './+types/_app._index';
 
-const { CONTENTFUL_ACCESS_TOKEN, CONTENTFUL_URL, CONTENTFUL_PREVIEW } = getEnvVars();
+const {
+  CONTENTFUL_ACCESS_TOKEN,
+  CONTENTFUL_URL,
+  CONTENTFUL_PREVIEW,
+  SITE_IMAGE_URL,
+  SITE_IMAGE_ALT,
+} = getEnvVars();
 
-export const headers: HeadersFunction = () => {
+export function headers() {
   return {
     'Cache-Control': cacheHeader({
       maxAge: '10min',
@@ -17,7 +24,7 @@ export const headers: HeadersFunction = () => {
       staleWhileRevalidate: '1week',
     }),
   };
-};
+}
 
 export async function loader() {
   const allDrinksQuery = /* GraphQL */ `
@@ -60,11 +67,32 @@ export async function loader() {
   const drinks = maybeDrinks.filter((drink): drink is Drink => Boolean(drink));
   const drinksWithPlaceholderImages = await withPlaceholderImages(drinks);
 
-  return { drinks: drinksWithPlaceholderImages };
+  return {
+    drinks: drinksWithPlaceholderImages,
+    socialImageUrl: SITE_IMAGE_URL,
+    socialImageAlt: SITE_IMAGE_ALT,
+  };
 }
 
-export default function HomePage() {
-  const { drinks } = useLoaderData<typeof loader>();
+export function meta({ data: loaderData }: Route.MetaArgs) {
+  const { socialImageUrl, socialImageAlt } = loaderData;
+
+  return [
+    { title: appTitle },
+    { name: 'description', content: appDescription },
+    { property: 'og:title', content: appTitle },
+    { property: 'og:description', content: appDescription },
+    { property: 'og:image', content: socialImageUrl },
+    { property: 'og:image:alt', content: socialImageAlt },
+    { name: 'twitter:title', content: appTitle },
+    { name: 'twitter:description', content: appDescription },
+    { name: 'twitter:image', content: socialImageUrl },
+    { name: 'twitter:image:alt', content: socialImageAlt },
+  ];
+}
+
+export default function HomePage({ loaderData }: Route.ComponentProps) {
+  const { drinks } = loaderData;
 
   return <DrinkList drinks={drinks} />;
 }

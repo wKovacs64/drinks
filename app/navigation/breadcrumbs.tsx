@@ -1,6 +1,5 @@
 import * as React from 'react';
-import { useLocation, useMatches, useSearchParams, type UIMatch } from '@remix-run/react';
-import type { SerializeFrom } from '@remix-run/node';
+import { useLocation, useMatches, useSearchParams, type UIMatch } from 'react-router';
 import { Nav } from './nav';
 import { NavLink } from './nav-link';
 import { NavDivider } from './nav-divider';
@@ -51,18 +50,4 @@ function hasHandleWithBreadcrumb(match: UIMatch): match is UIMatch<unknown, Brea
     'breadcrumb' in match.handle &&
     typeof match.handle.breadcrumb === 'function'
   );
-}
-
-/**
- * Gets loader data for an ancestor route from a route id and the `matches`
- * object returned from the `useMatches` function.
- */
-export function getLoaderDataForHandle<Loader>(
-  routeId: string,
-  matches: ReturnType<typeof useMatches>,
-) {
-  const uiMatch = matches.find((match) => match.id === routeId);
-  if (!uiMatch) throw new Error(`No match found for route id "${routeId}"`);
-  // match.data can be undefined in the case of a 404
-  return uiMatch.data as SerializeFrom<Loader> | undefined;
 }

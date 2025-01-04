@@ -1,5 +1,5 @@
+import * as React from 'react';
 import { Links, Meta, Outlet, Scripts, ScrollRestoration, type LinksFunction } from 'react-router';
-import { useSWEffect } from '@remix-pwa/sw';
 import sourceSans3Latin300 from '@fontsource/source-sans-3/latin-300.css?url';
 import sourceSans3Latin400 from '@fontsource/source-sans-3/latin-400.css?url';
 import appStylesUrl from '~/styles/app.css?url';
@@ -35,7 +35,11 @@ export const links: LinksFunction = () => [
 ];
 
 export default function App() {
-  useSWEffect();
+  React.useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      void navigator.serviceWorker.register('/sw.js');
+    }
+  }, []);
 
   return (
     <html

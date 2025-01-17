@@ -1,15 +1,15 @@
 diff --git a/node_modules/@react-router/dev/dist/vite.js b/node_modules/@react-router/dev/dist/vite.js
-index 5cb8224..6ece7ac 100644
+index df98438..aa72055 100644
 --- a/node_modules/@react-router/dev/dist/vite.js
 +++ b/node_modules/@react-router/dev/dist/vite.js
-@@ -1741,9 +1741,9 @@ var reactRouterVitePlugin = () => {
+@@ -1767,9 +1767,9 @@ var reactRouterVitePlugin = () => {
            },
            optimizeDeps: {
              entries: ctx.reactRouterConfig.future.unstable_optimizeDeps ? [
 -              ctx.entryClientFilePath,
 +              vite.normalizePath(ctx.entryClientFilePath),
                ...Object.values(ctx.reactRouterConfig.routes).map(
--                (route) => path4.join(ctx.reactRouterConfig.appDirectory, route.file)
+-                (route) => path6.join(ctx.reactRouterConfig.appDirectory, route.file)
 +                (route) => resolveRelativeRouteFilePath(route, ctx.reactRouterConfig)
                )
              ] : [],

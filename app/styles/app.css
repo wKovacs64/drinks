@@ -1,12 +1,20 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+@theme {
+  --color-maroon: #6d372a;
+  --color-burnt-orange: #d09e45;
+  --color-cream: #eedebf;
+
+  --font-sans: 'Source Sans 3', 'Source Sans 3 Fallback';
+
+  --ease-default: ease;
+}
 
 /* Customized fallback fonts to avoid CLS, values courtesy of fontpie */
 @font-face {
   font-family: 'Source Sans 3 Fallback';
   font-style: normal;
-  font-weight: theme('fontWeight.light');
+  font-weight: var(--font-weight-light);
   src: local('Arial');
   ascent-override: 112.86%;
   descent-override: 44.08%;
@@ -17,7 +25,7 @@
 @font-face {
   font-family: 'Source Sans 3 Fallback';
   font-style: normal;
-  font-weight: theme('fontWeight.normal');
+  font-weight: var(--font-weight-normal);
   src: local('Arial');
   ascent-override: 108.71%;
   descent-override: 42.47%;
@@ -30,15 +38,26 @@
   box-shadow: none;
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-weight: theme('fontWeight.normal');
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-weight: var(--font-weight-normal);
+  }
+
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
+  }
+  button(:disabled),
+  [role='button'(:disabled)] {
+    cursor: not-allowed;
+  }
 }
 
 .drinks-focusable {
-  @apply transition-shadow ease-default focus-visible:outline-none focus-visible:ring;
+  @apply ease-default transition-shadow focus-visible:ring-3 focus-visible:ring-blue-500/50 focus-visible:outline-hidden;
 }

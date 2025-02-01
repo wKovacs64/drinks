@@ -1,4 +1,5 @@
 import path from 'node:path';
+import tailwindcss from '@tailwindcss/vite';
 import { reactRouterHonoServer } from 'react-router-hono-server/dev';
 import { reactRouter } from '@react-router/dev/vite';
 import { defineConfig, normalizePath } from 'vite';
@@ -16,6 +17,7 @@ export default defineConfig({
     },
   },
   plugins: [
+    tailwindcss(),
     reactRouterHonoServer(),
     iconsSpritesheet({
       inputDir: path.resolve('./app/assets/svg-icons'),

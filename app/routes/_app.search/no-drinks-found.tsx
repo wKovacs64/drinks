@@ -6,7 +6,7 @@ export function NoDrinksFound() {
       <Icon
         name="broken_glass"
         aria-label="Broken Glass"
-        className="my-[10vh] inline h-[20vh] w-[20vh] text-burnt-orange"
+        className="text-burnt-orange my-[10vh] inline h-[20vh] w-[20vh]"
       />
       <p className="my-5 text-gray-100 md:text-xl">No matching drinks found.</p>
     </section>

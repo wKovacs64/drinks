@@ -62,7 +62,7 @@ export function SearchForm({
         className="drinks-focusable mx-[3px] w-full p-4 placeholder:text-slate-500"
       />
       <button
-        className="drinks-focusable bg-maroon px-2 text-cream hover:bg-cream hover:text-maroon focus-visible:bg-cream focus-visible:text-maroon"
+        className="drinks-focusable bg-maroon text-cream hover:bg-cream hover:text-maroon focus-visible:bg-cream focus-visible:text-maroon px-2"
         title="Search"
         type="submit"
       >

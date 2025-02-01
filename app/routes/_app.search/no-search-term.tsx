@@ -6,7 +6,7 @@ export function NoSearchTerm() {
       <Icon
         name="arrow_upward-filled"
         aria-label="Arrow Pointing Up"
-        className="my-[10vh] inline h-[20vh] w-[20vh] text-burnt-orange"
+        className="text-burnt-orange my-[10vh] inline h-[20vh] w-[20vh]"
       />
       <p className="my-5 text-gray-100 md:text-xl">
         Search all drinks by ingredient or description!

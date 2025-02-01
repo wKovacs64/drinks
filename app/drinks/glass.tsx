@@ -10,7 +10,7 @@ export function Glass({
   return (
     <article
       className={clsx(
-        'border-y-4 border-double border-burnt-orange text-maroon sm:border-x-4',
+        'border-burnt-orange text-maroon border-y-4 border-double sm:border-x-4',
         className,
       )}
     >

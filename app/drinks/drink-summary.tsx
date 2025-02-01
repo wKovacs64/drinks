@@ -25,7 +25,7 @@ export function DrinkSummary({
       </figure>
       <div className="flex flex-1">
         <div className={clsx('flex flex-1 flex-col', stacked ? 'px-8 pt-8' : 'p-8')}>
-          <h2 className={clsx('text-2xl uppercase tracking-widest', stacked && 'xl:text-4xl')}>
+          <h2 className={clsx('text-2xl tracking-widest uppercase', stacked && 'xl:text-4xl')}>
             {drink.title}
           </h2>
           <ul

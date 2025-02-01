@@ -44,14 +44,14 @@ export function Image({
   return (
     <div className={clsx('relative', containerClassName)}>
       <img
-        className="absolute left-0 top-0"
+        className="absolute top-0 left-0"
         src={blurDataUrl}
         alt={alt}
         height="100%"
         width="100%"
       />
-      <div className="absolute left-0 top-0 backdrop-blur-md" />
-      <picture className="absolute left-0 top-0">
+      <div className="absolute top-0 left-0 backdrop-blur-md" />
+      <picture className="absolute top-0 left-0">
         <source type="image/avif" srcSet={srcSetByFormat.avif} sizes={sizes} />
         <source type="image/webp" srcSet={srcSetByFormat.webp} sizes={sizes} />
         <img
@@ -64,7 +64,7 @@ export function Image({
         />
       </picture>
       <noscript>
-        <picture className="absolute left-0 top-0">
+        <picture className="absolute top-0 left-0">
           <source type="image/avif" srcSet={srcSetByFormat.avif} sizes={sizes} />
           <source type="image/webp" srcSet={srcSetByFormat.webp} sizes={sizes} />
           <img className="object-cover" {...commonImageProps} />

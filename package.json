@@ -38,7 +38,7 @@
     "@fontsource/source-sans-3": "5.1.1",
     "@react-router/node": "7.1.5",
     "@react-router/serve": "7.1.5",
-    "algoliasearch": "5.20.1",
+    "algoliasearch": "5.20.2",
     "clsx": "2.1.1",
     "cross-env": "7.0.3",
     "isbot": "5.1.22",

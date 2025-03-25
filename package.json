@@ -55,7 +55,7 @@
   "devDependencies": {
     "@react-router/dev": "7.4.0",
     "@react-router/fs-routes": "7.4.0",
-    "@sly-cli/sly": "1.14.0",
+    "@sly-cli/sly": "2.1.1",
     "@tailwindcss/vite": "4.0.15",
     "@types/lodash-es": "4.17.12",
     "@types/morgan": "1.9.9",

@@ -65,7 +65,7 @@
     "@wkovacs64/eslint-config": "7.5.2",
     "@wkovacs64/prettier-config": "4.1.1",
     "del-cli": "6.0.0",
-    "esbuild": "0.25.1",
+    "esbuild": "0.25.2",
     "eslint": "9.23.0",
     "glob": "11.0.1",
     "node-html-parser": "7.0.1",

@@ -4,7 +4,7 @@ export function Searching() {
   return (
     <section className="text-center">
       <Icon
-        name="search-filled"
+        name="ic-baseline-search"
         aria-label="Magnifying Glass"
         className="text-burnt-orange my-[10vh] inline h-[20vh] w-[20vh]"
       />

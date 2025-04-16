@@ -67,7 +67,7 @@ export function SearchForm({
         type="submit"
       >
         <span className="sr-only">Search</span>
-        <Icon name="chevron_right-filled" aria-hidden size={32} />
+        <Icon name="ic-baseline-chevron-right" aria-hidden size={32} />
       </button>
     </Form>
   );

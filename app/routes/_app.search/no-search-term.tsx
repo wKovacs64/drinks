@@ -4,7 +4,7 @@ export function NoSearchTerm() {
   return (
     <section className="text-center">
       <Icon
-        name="arrow_upward-filled"
+        name="ic-baseline-arrow-upward"
         aria-label="Arrow Pointing Up"
         className="text-burnt-orange my-[10vh] inline h-[20vh] w-[20vh]"
       />

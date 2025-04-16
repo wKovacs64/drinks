@@ -11,7 +11,7 @@ export function Header() {
         </h1>
         <HeaderLink to="/search">
           <span className="sr-only">Search</span>
-          <Icon name="search-filled" aria-hidden size={32} />
+          <Icon name="ic-baseline-search" aria-hidden size={32} />
         </HeaderLink>
       </section>
     </header>

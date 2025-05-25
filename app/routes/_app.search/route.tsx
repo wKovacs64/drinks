@@ -125,7 +125,7 @@ export const handle: AppRouteHandle = {
 };
 
 export function meta({ data: loaderData }: Route.MetaArgs) {
-  const { socialImageUrl, socialImageAlt } = loaderData;
+  const { socialImageUrl, socialImageAlt } = loaderData ?? {};
 
   return [
     { title: 'Search Drinks' },

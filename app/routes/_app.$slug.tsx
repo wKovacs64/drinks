@@ -91,7 +91,8 @@ export const handle: AppRouteHandle = {
 };
 
 export function meta({ data: loaderData }: Route.MetaArgs) {
-  const { drink } = loaderData;
+  const { drink } = loaderData ?? {};
+  if (!drink) return [];
   const { title, ingredients } = drink;
   const description = ingredients.join(', ');
   const socialImageUrl = makeImageUrl({

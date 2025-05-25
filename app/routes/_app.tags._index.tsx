@@ -73,7 +73,7 @@ export async function loader() {
 }
 
 export function meta({ data: loaderData }: Route.MetaArgs) {
-  const { socialImageUrl, socialImageAlt } = loaderData;
+  const { socialImageUrl, socialImageAlt } = loaderData ?? {};
 
   return [
     { title: 'Ingredient Tags' },

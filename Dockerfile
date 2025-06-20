@@ -1,12 +1,6 @@
 # base node image
 FROM node:22-bullseye-slim AS base
 
-# accept some build arguments
-ARG DEPLOYMENT_ENV
-
-# store the build arguments in environment variables
-ENV DEPLOYMENT_ENV=${DEPLOYMENT_ENV}
-
 # set for base and all layers that inherit from it
 ENV NODE_ENV="production"
 
@@ -48,5 +42,11 @@ COPY --from=production-deps /myapp/node_modules /myapp/node_modules
 COPY --from=build /myapp/build /myapp/build
 COPY --from=build /myapp/public /myapp/public
 COPY --from=build /myapp/package.json /myapp/package.json
+
+# accept some build arguments
+ARG DEPLOYMENT_ENV
+
+# store the build arguments in environment variables
+ENV DEPLOYMENT_ENV=${DEPLOYMENT_ENV}
 
 ENTRYPOINT [ "npm", "run", "start" ]

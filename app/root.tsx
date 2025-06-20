@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Links, Meta, Outlet, Scripts, ScrollRestoration, type LinksFunction } from 'react-router';
 import sourceSans3Latin300 from '@fontsource/source-sans-3/latin-300.css?url';
 import sourceSans3Latin400 from '@fontsource/source-sans-3/latin-400.css?url';
-import appStylesUrl from '~/styles/app.css?url';
+import '~/styles/app.css';
 import faviconIcoUrl from '~/assets/images/favicon.ico';
 import icon32Url from '~/assets/images/icon-32x32.png';
 import appleTouchIconUrl from '~/assets/images/apple-touch-icon.png';
@@ -31,7 +31,6 @@ export const links: LinksFunction = () => [
   { rel: 'manifest', href: '/manifest.webmanifest' },
   { rel: 'stylesheet', href: sourceSans3Latin300 },
   { rel: 'stylesheet', href: sourceSans3Latin400 },
-  { rel: 'stylesheet', href: appStylesUrl },
 ];
 
 export default function App() {

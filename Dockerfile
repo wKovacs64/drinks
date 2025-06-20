@@ -47,6 +47,6 @@ COPY --from=build /myapp/package.json /myapp/package.json
 ARG DEPLOYMENT_ENV
 
 # store the build arguments in environment variables
-ENV DEPLOYMENT_ENV=${DEPLOYMENT_ENV}
+ENV DEPLOYMENT_ENV="${DEPLOYMENT_ENV}"
 
 ENTRYPOINT [ "npm", "run", "start" ]

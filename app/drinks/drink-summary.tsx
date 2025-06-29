@@ -2,23 +2,21 @@ import { clsx } from 'clsx';
 import { Source, Image, type ImageProps, type SourceProps } from '@unpic/react';
 import type { EnhancedDrink } from '~/types';
 
-const IMAGE_WIDTHS = [320, 400, 420, 480, 640];
-const LARGEST_IMAGE_WIDTH = IMAGE_WIDTHS.at(-1) ?? 640;
-const IMAGE_SIZES = [
-  '(min-width: 1280px) 640px',
-  '((min-width: 1024px) and (max-width: 1279px)) 480px',
-  '((min-width: 640px) and (max-width: 1023px)) 420px',
-  '100vw',
-].join(', ');
-
-export function DrinkSummary({ className, drink, stacked, priority }: DrinkSummaryProps) {
+export function DrinkSummary({
+  className,
+  drink,
+  breakpoints,
+  sizes,
+  stacked,
+  priority,
+}: DrinkSummaryProps) {
   const imageProps = {
     src: drink.image.url,
     background: drink.image.blurDataUrl,
-    breakpoints: IMAGE_WIDTHS,
-    sizes: IMAGE_SIZES,
-    width: LARGEST_IMAGE_WIDTH,
-    height: LARGEST_IMAGE_WIDTH,
+    breakpoints,
+    sizes,
+    width: breakpoints.at(-1) ?? 640,
+    height: breakpoints.at(-1) ?? 640,
     operations: { contentful: { q: 50 } },
     priority,
   } satisfies SourceProps | ImageProps;
@@ -59,6 +57,8 @@ export function DrinkSummary({ className, drink, stacked, priority }: DrinkSumma
 type DrinkSummaryProps = {
   className?: React.HTMLAttributes<HTMLElement>['className'];
   drink: EnhancedDrink;
+  breakpoints: NonNullable<ImageProps['breakpoints']>;
+  sizes: NonNullable<ImageProps['sizes']>;
   stacked?: boolean;
   priority?: ImageProps['priority'];
 };

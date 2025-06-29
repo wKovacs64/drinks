@@ -131,7 +131,19 @@ export default function DrinkPage({ loaderData }: Route.ComponentProps) {
 
   return (
     <Glass>
-      <DrinkSummary className="lg:flex-row" drink={drink} stacked priority />
+      <DrinkSummary
+        className="lg:flex-row"
+        drink={drink}
+        breakpoints={[320, 400, 420, 480, 640]}
+        sizes={[
+          '(min-width: 1280px) 640px', // not stacked
+          '((min-width: 1024px) and (max-width: 1279px)) 480px', // not stacked
+          '((min-width: 640px) and (max-width: 1023px)) 420px', //stacked
+          '100vw', // stacked, no padding
+        ].join(', ')}
+        stacked
+        priority
+      />
       <DrinkDetails drink={drink} />
     </Glass>
   );

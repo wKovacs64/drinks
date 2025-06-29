@@ -1,7 +1,7 @@
 import { data } from 'react-router';
 import { cacheHeader } from 'pretty-cache-header';
 import { invariantResponse } from '@epic-web/invariant';
-import { makeImageUrl } from '~/core/image';
+import { transformUrl } from 'unpic';
 import { getLoaderDataForHandle } from '~/core/utils';
 import { Glass } from '~/drinks/glass';
 import { DrinkSummary } from '~/drinks/drink-summary';
@@ -95,15 +95,21 @@ export function meta({ data: loaderData }: Route.MetaArgs) {
   if (!drink) return [];
   const { title, ingredients } = drink;
   const description = ingredients.join(', ');
-  const socialImageUrl = makeImageUrl({
-    baseImageUrl: drink.image.url,
-    width: 1200,
-    height: 630,
-    fit: 'thumb',
-    quality: 50,
-    format: 'jpg',
-    fl: 'progressive',
-  });
+  const socialImageUrl = transformUrl(
+    {
+      url: drink.image.url,
+      width: 1200,
+      height: 630,
+      quality: 50,
+      format: 'jpg',
+    },
+    {
+      contentful: {
+        fit: 'thumb',
+        fl: 'progressive',
+      },
+    },
+  );
   const socialImageAlt = `${title} in a glass`;
 
   return [
@@ -123,23 +129,9 @@ export function meta({ data: loaderData }: Route.MetaArgs) {
 export default function DrinkPage({ loaderData }: Route.ComponentProps) {
   const { drink } = loaderData;
 
-  const imageWidths = [320, 400, 420, 480, 640, 800, 840, 960, 1280];
-  const imageSizesPerViewport = [
-    '(min-width: 1280px) 640px',
-    '((min-width: 1024px) and (max-width: 1279px)) 480px',
-    '((min-width: 640px) and (max-width: 1023px)) 420px',
-    '100vw',
-  ];
-
   return (
     <Glass>
-      <DrinkSummary
-        className="lg:flex-row"
-        drink={drink}
-        imageWidths={imageWidths}
-        imageSizesPerViewport={imageSizesPerViewport}
-        stacked
-      />
+      <DrinkSummary className="lg:flex-row" drink={drink} stacked priority />
       <DrinkDetails drink={drink} />
     </Glass>
   );

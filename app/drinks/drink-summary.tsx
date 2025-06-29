@@ -1,27 +1,36 @@
 import { clsx } from 'clsx';
-import { Image, getImageProps } from '~/core/image';
+import { Source, Image, type ImageProps, type SourceProps } from '@unpic/react';
 import type { EnhancedDrink } from '~/types';
 
-export function DrinkSummary({
-  className,
-  drink,
-  stacked,
-  imageWidths,
-  imageSizesPerViewport,
-}: DrinkSummaryProps) {
+const IMAGE_WIDTHS = [320, 400, 420, 480, 640];
+const LARGEST_IMAGE_WIDTH = IMAGE_WIDTHS.at(-1) ?? 640;
+const IMAGE_SIZES = [
+  '(min-width: 1280px) 640px',
+  '((min-width: 1024px) and (max-width: 1279px)) 480px',
+  '((min-width: 640px) and (max-width: 1023px)) 420px',
+  '100vw',
+].join(', ');
+
+export function DrinkSummary({ className, drink, stacked, priority }: DrinkSummaryProps) {
+  const imageProps = {
+    src: drink.image.url,
+    background: drink.image.blurDataUrl,
+    breakpoints: IMAGE_WIDTHS,
+    sizes: IMAGE_SIZES,
+    width: LARGEST_IMAGE_WIDTH,
+    height: LARGEST_IMAGE_WIDTH,
+    operations: { contentful: { q: 50 } },
+    priority,
+  } satisfies SourceProps | ImageProps;
+
   return (
     <section className={clsx('flex h-full flex-col bg-gray-100', className)}>
       <figure className={clsx('m-0 flex-1', !drink.image && 'bg-stone-900')}>
-        <Image
-          {...getImageProps({
-            containerClassName: 'aspect-square',
-            alt: drink.title,
-            blurDataUrl: drink.image.blurDataUrl,
-            imageUrl: drink.image.url,
-            imageWidths,
-            imageSizesPerViewport,
-          })}
-        />
+        <picture className="aspect-square">
+          <Source type="image/avif" {...imageProps} />
+          <Source type="image/webp" {...imageProps} />
+          <Image alt={drink.title} {...imageProps} />
+        </picture>
       </figure>
       <div className="flex flex-1">
         <div className={clsx('flex flex-1 flex-col', stacked ? 'px-8 pt-8' : 'p-8')}>
@@ -51,6 +60,5 @@ type DrinkSummaryProps = {
   className?: React.HTMLAttributes<HTMLElement>['className'];
   drink: EnhancedDrink;
   stacked?: boolean;
-  imageWidths: Parameters<typeof getImageProps>[0]['imageWidths'];
-  imageSizesPerViewport: Parameters<typeof getImageProps>[0]['imageSizesPerViewport'];
+  priority?: ImageProps['priority'];
 };

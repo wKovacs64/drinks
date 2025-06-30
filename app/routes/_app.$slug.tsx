@@ -134,7 +134,8 @@ export default function DrinkPage({ loaderData }: Route.ComponentProps) {
       <DrinkSummary
         className="lg:flex-row"
         drink={drink}
-        breakpoints={[320, 400, 420, 480, 640]}
+        // 800 and up are for high density displays (doubling the base image sizes)
+        breakpoints={[320, 400, 420, 480, 640, 800, 840, 960, 1280]}
         sizes={[
           '(min-width: 1280px) 640px', // not stacked
           '((min-width: 1024px) and (max-width: 1279px)) 480px', // not stacked

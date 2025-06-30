@@ -1,27 +1,34 @@
 import { clsx } from 'clsx';
-import { Image, getImageProps } from '~/core/image';
+import { Source, Image, type ImageProps, type SourceProps } from '@unpic/react';
 import type { EnhancedDrink } from '~/types';
 
 export function DrinkSummary({
   className,
   drink,
+  breakpoints,
+  sizes,
   stacked,
-  imageWidths,
-  imageSizesPerViewport,
+  priority,
 }: DrinkSummaryProps) {
+  const imageProps = {
+    src: drink.image.url,
+    background: drink.image.blurDataUrl,
+    breakpoints,
+    sizes,
+    width: breakpoints.at(-1) ?? 640,
+    height: breakpoints.at(-1) ?? 640,
+    operations: { contentful: { q: 50 } },
+    priority,
+  } satisfies SourceProps | ImageProps;
+
   return (
     <section className={clsx('flex h-full flex-col bg-gray-100', className)}>
       <figure className={clsx('m-0 flex-1', !drink.image && 'bg-stone-900')}>
-        <Image
-          {...getImageProps({
-            containerClassName: 'aspect-square',
-            alt: drink.title,
-            blurDataUrl: drink.image.blurDataUrl,
-            imageUrl: drink.image.url,
-            imageWidths,
-            imageSizesPerViewport,
-          })}
-        />
+        <picture className="aspect-square">
+          <Source type="image/avif" {...imageProps} />
+          <Source type="image/webp" {...imageProps} />
+          <Image alt={drink.title} {...imageProps} />
+        </picture>
       </figure>
       <div className="flex flex-1">
         <div className={clsx('flex flex-1 flex-col', stacked ? 'px-8 pt-8' : 'p-8')}>
@@ -50,7 +57,8 @@ export function DrinkSummary({
 type DrinkSummaryProps = {
   className?: React.HTMLAttributes<HTMLElement>['className'];
   drink: EnhancedDrink;
+  breakpoints: NonNullable<ImageProps['breakpoints']>;
+  sizes: NonNullable<ImageProps['sizes']>;
   stacked?: boolean;
-  imageWidths: Parameters<typeof getImageProps>[0]['imageWidths'];
-  imageSizesPerViewport: Parameters<typeof getImageProps>[0]['imageSizesPerViewport'];
+  priority?: ImageProps['priority'];
 };

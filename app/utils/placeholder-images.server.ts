@@ -1,4 +1,4 @@
-import { makeImageUrl } from '~/core/image';
+import { transformUrl } from 'unpic';
 import type { Drink, EnhancedDrink } from '~/types';
 
 export async function withPlaceholderImages(drinks: Drink[]): Promise<EnhancedDrink[]> {
@@ -14,12 +14,15 @@ export async function withPlaceholderImages(drinks: Drink[]): Promise<EnhancedDr
           return null;
         }
 
-        const blurredImageUrl = makeImageUrl({
-          baseImageUrl: drink.image.url,
+        const blurredImageUrl = transformUrl({
+          url: drink.image.url,
           width: 10,
           quality: 90,
           format: 'webp',
         });
+        if (!blurredImageUrl) {
+          return null;
+        }
         const blurredImageResponse = await fetch(blurredImageUrl);
         const blurredImageArrayBuffer = await blurredImageResponse.arrayBuffer();
         const blurredImageBase64String = btoa(

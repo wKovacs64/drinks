@@ -17,5 +17,17 @@ const envSchema = z.object({
 });
 
 export function getEnvVars() {
-  return envSchema.parse(process.env);
+  try {
+    return envSchema.parse(process.env);
+  } catch (parseError) {
+    if (parseError instanceof z.ZodError) {
+      const offendingEnvVars = Object.keys(z.flattenError(parseError).fieldErrors).join(', ');
+      const envVarError = new Error(
+        `Missing or invalid environment variables: ${offendingEnvVars}`,
+      );
+      envVarError.stack = undefined;
+      throw envVarError;
+    }
+    throw parseError;
+  }
 }

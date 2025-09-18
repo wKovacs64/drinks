@@ -1,8 +1,8 @@
 import { PassThrough } from 'node:stream';
-import { ServerRouter, type AppLoadContext, type EntryContext } from 'react-router';
 import { createReadableStreamFromReadable } from '@react-router/node';
-import { renderToPipeableStream, type RenderToPipeableStreamOptions } from 'react-dom/server';
+import { ServerRouter, type EntryContext } from 'react-router';
 import { isbot } from 'isbot';
+import { renderToPipeableStream, type RenderToPipeableStreamOptions } from 'react-dom/server';
 
 export const streamTimeout = 5_000;
 
@@ -11,7 +11,10 @@ export default function handleRequest(
   responseStatusCode: number,
   responseHeaders: Headers,
   routerContext: EntryContext,
-  _loadContext: AppLoadContext,
+  // If you don't have middleware enabled:
+  // loadContext: AppLoadContext,
+  // If you have middleware enabled:
+  // loadContext: RouterContextProvider
 ) {
   return new Promise((resolve, reject) => {
     let shellRendered = false;
@@ -22,15 +25,32 @@ export default function handleRequest(
     const readyOption: keyof RenderToPipeableStreamOptions =
       (userAgent && isbot(userAgent)) || routerContext.isSpaMode ? 'onAllReady' : 'onShellReady';
 
+    // Abort the rendering stream after the `streamTimeout` so it has time to flush down the
+    // rejected boundaries
+    let timeoutId: ReturnType<typeof setTimeout> | undefined = setTimeout(
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define
+      () => abort(),
+      streamTimeout + 1000,
+    );
+
     const { pipe, abort } = renderToPipeableStream(
       <ServerRouter context={routerContext} url={request.url} />,
       {
         [readyOption]() {
           shellRendered = true;
-          const body = new PassThrough();
+          const body = new PassThrough({
+            final(callback) {
+              // Clear the timeout to prevent retaining the closure and memory leak
+              clearTimeout(timeoutId);
+              timeoutId = undefined;
+              callback();
+            },
+          });
           const stream = createReadableStreamFromReadable(body);
 
           responseHeaders.set('Content-Type', 'text/html');
+
+          pipe(body);
 
           resolve(
             new Response(stream, {
@@ -38,8 +58,6 @@ export default function handleRequest(
               status: responseStatusCode,
             }),
           );
-
-          pipe(body);
         },
         onShellError(error: unknown) {
           reject(error);
@@ -55,9 +73,5 @@ export default function handleRequest(
         },
       },
     );
-
-    // Abort the rendering stream after the `streamTimeout` so it has tine to flush down the
-    // rejected boundaries
-    setTimeout(abort, streamTimeout + 1_000);
   });
 }

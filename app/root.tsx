@@ -12,7 +12,11 @@ import { appName, appThemeColor } from '~/core/config';
 import { SkipNavLink } from '~/core/skip-nav-link';
 import { Header } from '~/core/header';
 import { Footer } from '~/core/footer';
+import { securityHeaders } from '~/middleware/security-headers';
 import type { AppRouteHandle } from './types';
+import type { Route } from './+types/root';
+
+export const middleware: Route.MiddlewareFunction[] = [securityHeaders];
 
 export const handle: AppRouteHandle = {
   breadcrumb: () => ({ title: 'All Drinks' }),

@@ -13,10 +13,11 @@ import { SkipNavLink } from '~/core/skip-nav-link';
 import { Header } from '~/core/header';
 import { Footer } from '~/core/footer';
 import { securityHeaders } from '~/middleware/security-headers';
+import { loggingMiddleware } from '~/middleware/logging';
 import type { AppRouteHandle } from './types';
 import type { Route } from './+types/root';
 
-export const middleware: Route.MiddlewareFunction[] = [securityHeaders];
+export const middleware: Route.MiddlewareFunction[] = [loggingMiddleware, securityHeaders];
 
 export const handle: AppRouteHandle = {
   breadcrumb: () => ({ title: 'All Drinks' }),

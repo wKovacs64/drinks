@@ -15,14 +15,8 @@ import type { Route } from './+types/_app.$slug';
 
 const { CONTENTFUL_ACCESS_TOKEN, CONTENTFUL_URL, CONTENTFUL_PREVIEW } = getEnvVars();
 
-export function headers() {
-  return {
-    'Cache-Control': cacheHeader({
-      maxAge: '10min',
-      sMaxage: '1day',
-      staleWhileRevalidate: '1week',
-    }),
-  };
+export function headers({ loaderHeaders }: Route.HeadersArgs) {
+  return loaderHeaders;
 }
 
 export async function loader({ params }: Route.LoaderArgs) {
@@ -65,8 +59,10 @@ export async function loader({ params }: Route.LoaderArgs) {
   invariantResponse(drinks.length > 0, 'Drink not found', {
     status: 404,
     headers: {
+      'Surrogate-Key': 'all',
       'Cache-Control': cacheHeader({
-        maxAge: '1min',
+        public: true,
+        maxAge: '30sec',
         sMaxage: '5min',
         mustRevalidate: true,
       }),
@@ -80,12 +76,29 @@ export async function loader({ params }: Route.LoaderArgs) {
     enhancedDrink.notes = markdownToHtml(enhancedDrink.notes);
   }
 
-  return { drink: enhancedDrink };
+  return data(
+    { drink: enhancedDrink },
+    {
+      headers: {
+        'Surrogate-Key': `all ${enhancedDrink.slug}`,
+        'Cache-Control': cacheHeader({
+          public: true,
+          maxAge: '30sec',
+          sMaxage: '1yr',
+          staleWhileRevalidate: '10min',
+          staleIfError: '1day',
+        }),
+      },
+    },
+  );
 }
 
 export const handle: AppRouteHandle = {
   breadcrumb: (matches) => {
-    const loaderData = getLoaderDataForHandle<typeof loader>('routes/_app.$slug', matches);
+    const loaderData = getLoaderDataForHandle<Route.ComponentProps['loaderData']>(
+      'routes/_app.$slug',
+      matches,
+    );
     return { title: loaderData?.drink.title ?? 'Not Found' };
   },
 };

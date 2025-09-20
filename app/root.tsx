@@ -14,8 +14,11 @@ import { Header } from '~/core/header';
 import { Footer } from '~/core/footer';
 import { securityHeaders } from '~/middleware/security-headers';
 import { loggingMiddleware } from '~/middleware/logging';
+import { getEnvVars } from '~/utils/env.server';
 import type { AppRouteHandle } from './types';
 import type { Route } from './+types/root';
+
+const { COMMIT_SHA } = getEnvVars();
 
 export const middleware: Route.MiddlewareFunction[] = [loggingMiddleware, securityHeaders];
 
@@ -38,7 +41,13 @@ export const links: LinksFunction = () => [
   { rel: 'stylesheet', href: sourceSans3Latin400 },
 ];
 
-export default function App() {
+export const shouldRevalidate = () => false;
+
+export async function loader() {
+  return { commit: COMMIT_SHA };
+}
+
+export default function App({ loaderData }: Route.ComponentProps) {
   React.useEffect(() => {
     if ('serviceWorker' in navigator) {
       void navigator.serviceWorker.register('/sw.js');
@@ -49,6 +58,7 @@ export default function App() {
     <html
       lang="en"
       className="m-0 min-h-screen bg-neutral-800 bg-cover bg-fixed bg-center bg-no-repeat p-0 leading-tight"
+      data-commit={loaderData.commit}
     >
       <head>
         <meta charSet="utf-8" />

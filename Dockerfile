@@ -44,9 +44,11 @@ COPY --from=build /myapp/public /myapp/public
 COPY --from=build /myapp/package.json /myapp/package.json
 
 # accept some build arguments
-ARG DEPLOYMENT_ENV
+ARG COMMIT_SHA="unknown"
+ARG DEPLOYMENT_ENV="unknown"
 
 # store the build arguments in environment variables
+ENV COMMIT_SHA="${COMMIT_SHA}"
 ENV DEPLOYMENT_ENV="${DEPLOYMENT_ENV}"
 
 ENTRYPOINT [ "npm", "run", "start" ]

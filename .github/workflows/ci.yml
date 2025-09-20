@@ -6,6 +6,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  actions: write
+
 jobs:
   prettier:
     name: 🅿️ Prettier
@@ -169,6 +173,16 @@ jobs:
           args: deploy --remote-only --build-arg COMMIT_SHA=${{ github.sha }} --build-arg DEPLOYMENT_ENV=prod --app ${{ steps.app_name.outputs.value }}
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+      - name: 🚫 Purge CDN Cache
+        if: ${{ github.ref == 'refs/heads/main' }}
+        run: |
+          curl -i -X POST https://api.fastly.com/service/${{ secrets.FASTLY_SERVICE_ID }}/purge \
+            -H "Content-Type: application/json" \
+            -H "Accept: application/json" \
+            -H "Fastly-Key: ${{ secrets.FASTLY_PURGE_API_KEY }}" \
+            -H "Fastly-Soft-Purge: 1" \
+            -H "Surrogate-Key: all"
 
   release:
     name: 🆕 Release

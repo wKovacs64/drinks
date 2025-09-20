@@ -8,7 +8,7 @@ export async function loader() {
 
   return new Response(body, {
     headers: {
-      'Cache-Control': cacheHeader({ maxAge: '1hr' }),
+      'Cache-Control': cacheHeader({ public: true, maxAge: '1hr' }),
       'Content-Type': 'text/plain; charset=utf-8',
     },
   });

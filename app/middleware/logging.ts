@@ -6,7 +6,7 @@ export const loggingMiddleware: MiddlewareFunction<Response> = async ({ request 
   const url = new URL(request.url);
   const pathWithSearchParams = `${url.pathname}${url.search}`;
 
-  if (['/healthcheck', '/__manifest'].includes(url.pathname) || request.method === 'HEAD') {
+  if (['/_/healthcheck', '/__manifest'].includes(url.pathname) || request.method === 'HEAD') {
     return next();
   }
 

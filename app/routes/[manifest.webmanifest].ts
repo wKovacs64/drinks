@@ -1,3 +1,4 @@
+import { cacheHeader } from 'pretty-cache-header';
 import icon192Url from '~/assets/images/icon-192x192.png';
 import icon512Url from '~/assets/images/icon-512x512.png';
 import iconMaskable192Url from '~/assets/images/icon-maskable-192x192.png';
@@ -40,7 +41,7 @@ export async function loader() {
     },
     {
       headers: {
-        'Cache-Control': 'public, max-age=0, must-revalidate',
+        'Cache-Control': cacheHeader({ noCache: true, mustRevalidate: true }),
         'Content-Type': 'application/manifest+json',
       },
     },

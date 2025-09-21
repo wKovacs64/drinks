@@ -14,7 +14,8 @@ const { SITE_IMAGE_URL, SITE_IMAGE_ALT } = getEnvVars();
 export function headers() {
   return {
     'Cache-Control': cacheHeader({
-      maxAge: '1min',
+      public: true,
+      maxAge: '30sec',
       sMaxage: '5min',
       mustRevalidate: true,
     }),

@@ -5,6 +5,7 @@ import { invariantResponse } from '@epic-web/invariant';
 import { defaultPageDescription, defaultPageTitle } from '~/core/config';
 import { getLoaderDataForHandle } from '~/core/utils';
 import { DrinkList } from '~/drinks/drink-list';
+import { getSurrogateKeyForTag } from '~/tags/utils';
 import { getEnvVars } from '~/utils/env.server';
 import { fetchGraphQL } from '~/utils/graphql.server';
 import { withPlaceholderImages } from '~/utils/placeholder-images.server';
@@ -19,14 +20,8 @@ const {
   SITE_IMAGE_ALT,
 } = getEnvVars();
 
-export function headers() {
-  return {
-    'Cache-Control': cacheHeader({
-      maxAge: '10min',
-      sMaxage: '1day',
-      staleWhileRevalidate: '1week',
-    }),
-  };
+export function headers({ loaderHeaders }: Route.HeadersArgs) {
+  return loaderHeaders;
 }
 
 export async function loader({ params }: Route.LoaderArgs) {
@@ -76,8 +71,10 @@ export async function loader({ params }: Route.LoaderArgs) {
   invariantResponse(drinks.length, 'No drinks found', {
     status: 404,
     headers: {
+      'Surrogate-Key': 'all',
       'Cache-Control': cacheHeader({
-        maxAge: '1min',
+        public: true,
+        maxAge: '30sec',
         sMaxage: '5min',
         mustRevalidate: true,
       }),
@@ -86,16 +83,33 @@ export async function loader({ params }: Route.LoaderArgs) {
 
   const drinksWithPlaceholderImages = await withPlaceholderImages(drinks);
 
-  return {
-    drinks: drinksWithPlaceholderImages,
-    socialImageUrl: SITE_IMAGE_URL,
-    socialImageAlt: SITE_IMAGE_ALT,
-  };
+  return data(
+    {
+      drinks: drinksWithPlaceholderImages,
+      socialImageUrl: SITE_IMAGE_URL,
+      socialImageAlt: SITE_IMAGE_ALT,
+    },
+    {
+      headers: {
+        'Surrogate-Key': `all tags ${getSurrogateKeyForTag(params.tag)}`,
+        'Cache-Control': cacheHeader({
+          public: true,
+          maxAge: '30sec',
+          sMaxage: '1yr',
+          staleWhileRevalidate: '10min',
+          staleIfError: '1day',
+        }),
+      },
+    },
+  );
 }
 
 export const handle: AppRouteHandle = {
   breadcrumb: (matches) => {
-    const loaderData = getLoaderDataForHandle<typeof loader>('routes/_app.tags.$tag', matches);
+    const loaderData = getLoaderDataForHandle<Route.ComponentProps['loaderData']>(
+      'routes/_app.tags.$tag',
+      matches,
+    );
     return {
       title: loaderData ? (
         <div className="inline-flex gap-2">

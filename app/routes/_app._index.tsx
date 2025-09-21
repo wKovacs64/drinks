@@ -16,14 +16,8 @@ const {
   SITE_IMAGE_ALT,
 } = getEnvVars();
 
-export function headers() {
-  return {
-    'Cache-Control': cacheHeader({
-      maxAge: '10min',
-      sMaxage: '1day',
-      staleWhileRevalidate: '1week',
-    }),
-  };
+export function headers({ loaderHeaders }: Route.HeadersArgs) {
+  return loaderHeaders;
 }
 
 export async function loader() {
@@ -67,11 +61,25 @@ export async function loader() {
   const drinks = maybeDrinks.filter((drink): drink is Drink => Boolean(drink));
   const drinksWithPlaceholderImages = await withPlaceholderImages(drinks);
 
-  return {
-    drinks: drinksWithPlaceholderImages,
-    socialImageUrl: SITE_IMAGE_URL,
-    socialImageAlt: SITE_IMAGE_ALT,
-  };
+  return data(
+    {
+      drinks: drinksWithPlaceholderImages,
+      socialImageUrl: SITE_IMAGE_URL,
+      socialImageAlt: SITE_IMAGE_ALT,
+    },
+    {
+      headers: {
+        'Surrogate-Key': 'all index',
+        'Cache-Control': cacheHeader({
+          public: true,
+          maxAge: '30sec',
+          sMaxage: '1yr',
+          staleWhileRevalidate: '10min',
+          staleIfError: '1day',
+        }),
+      },
+    },
+  );
 }
 
 export function meta({ data: loaderData }: Route.MetaArgs) {

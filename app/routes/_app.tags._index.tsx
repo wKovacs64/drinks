@@ -4,6 +4,7 @@ import { cacheHeader } from 'pretty-cache-header';
 import { defaultPageTitle, defaultPageDescription } from '~/core/config';
 import { TagLink } from '~/tags/tag-link';
 import { Tag } from '~/tags/tag';
+import { getSurrogateKeyForTag } from '~/tags/utils';
 import { getEnvVars } from '~/utils/env.server';
 import { fetchGraphQL } from '~/utils/graphql.server';
 import type { DrinkTagsResponse, Drink } from '~/types';
@@ -17,14 +18,8 @@ const {
   SITE_IMAGE_ALT,
 } = getEnvVars();
 
-export function headers() {
-  return {
-    'Cache-Control': cacheHeader({
-      maxAge: '10min',
-      sMaxage: '1day',
-      staleWhileRevalidate: '1week',
-    }),
-  };
+export function headers({ loaderHeaders }: Route.HeadersArgs) {
+  return loaderHeaders;
 }
 
 export async function loader() {
@@ -60,16 +55,28 @@ export async function loader() {
   } = queryResponseJson;
 
   const drinks = maybeDrinks.filter((drink): drink is Drink => Boolean(drink));
-  const uniqueTags = drinks.reduce<Set<string>>((acc, drink) => {
-    drink.tags?.forEach((tag) => acc.add(tag));
-    return acc;
-  }, new Set());
+  const uniqueTags = Array.from(new Set(drinks.flatMap((drink) => drink.tags ?? []))).sort();
+  const everyTagSurrogateKey = uniqueTags.map(getSurrogateKeyForTag).join(' ');
 
-  return {
-    tags: Array.from(uniqueTags).sort(),
-    socialImageUrl: SITE_IMAGE_URL,
-    socialImageAlt: SITE_IMAGE_ALT,
-  };
+  return data(
+    {
+      tags: uniqueTags,
+      socialImageUrl: SITE_IMAGE_URL,
+      socialImageAlt: SITE_IMAGE_ALT,
+    },
+    {
+      headers: {
+        'Surrogate-Key': `all tags ${everyTagSurrogateKey}`,
+        'Cache-Control': cacheHeader({
+          public: true,
+          maxAge: '30sec',
+          sMaxage: '1yr',
+          staleWhileRevalidate: '10min',
+          staleIfError: '1day',
+        }),
+      },
+    },
+  );
 }
 
 export function meta({ data: loaderData }: Route.MetaArgs) {

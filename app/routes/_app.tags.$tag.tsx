@@ -123,7 +123,7 @@ export const handle: AppRouteHandle = {
   },
 };
 
-export function meta({ data: loaderData, params }: Route.MetaArgs) {
+export function meta({ loaderData, params }: Route.MetaArgs) {
   const { socialImageUrl, socialImageAlt } = loaderData ?? {};
   const { tag } = params;
 

@@ -79,7 +79,7 @@ export async function loader() {
   );
 }
 
-export function meta({ data: loaderData }: Route.MetaArgs) {
+export function meta({ loaderData }: Route.MetaArgs) {
   const { socialImageUrl, socialImageAlt } = loaderData ?? {};
 
   return [

@@ -132,7 +132,7 @@ export const handle: AppRouteHandle = {
   breadcrumb: () => ({ title: 'Search' }),
 };
 
-export function meta({ data: loaderData }: Route.MetaArgs) {
+export function meta({ loaderData }: Route.MetaArgs) {
   const { socialImageUrl, socialImageAlt } = loaderData ?? {};
 
   return [

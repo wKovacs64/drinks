@@ -26,7 +26,7 @@ export async function loader() {
   return { socialImageUrl: SITE_IMAGE_URL, socialImageAlt: SITE_IMAGE_ALT };
 }
 
-export function meta({ data: loaderData }: Route.MetaArgs) {
+export function meta({ loaderData }: Route.MetaArgs) {
   const { socialImageUrl, socialImageAlt } = loaderData ?? {};
 
   return [

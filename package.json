@@ -68,7 +68,7 @@
     "@wkovacs64/prettier-config": "4.2.2",
     "babel-plugin-react-compiler": "1.0.0",
     "del-cli": "7.0.0",
-    "esbuild": "0.25.11",
+    "esbuild": "0.25.12",
     "eslint": "9.38.0",
     "glob": "11.0.3",
     "node-html-parser": "7.0.1",

@@ -12,14 +12,13 @@
 - [React](https://reactjs.org/) (UI library)
 - [Contentful](https://www.contentful.com/) (headless CMS) with [GraphQL](https://graphql.org/) (API
   interaction)
-- [Algolia](https://www.algolia.com/) (search)
+- [MiniSearch](https://github.com/lucaong/minisearch) (search)
 - [Fly](https://fly.io/) (hosting)
 - [Tailwind CSS](https://tailwindcss.com/) (styles)
 - [GitHub Actions](https://docs.github.com/en/actions) (CI/CD)
 
 ## Run your own:
 
-1. Create a new app and index at [Algolia](https://www.algolia.com/).
 1. Create a new space, content management token, and content delivery (access) token at
    [Contentful](https://www.contentful.com/).
 1. Clone this repo and change to the directory.
@@ -44,6 +43,3 @@
    - Set custom `X-Contentful-Webhook-Token` header to a private, generated token of your choosing
      (this will need to match what's in your `CONTENTFUL_ACCESS_TOKEN` environment variable)
    - Leave the default content type (`application/vnd.contentful.management.v1+json`)
-
-1. Install the [Algolia integration](https://www.contentful.com/marketplace/webhook/algolia/) in
-   Contentful and modify the resulting webhooks as necessary.

@@ -1,5 +1,6 @@
 // import { getSurrogateKeyForTag } from '~/tags/utils';
 import { getEnvVars } from '~/utils/env.server';
+import { purgeSearchCache, SEARCH_INSTANCE_CACHE_KEY } from '~/routes/_app.search/cache.server';
 import { drinkEntrySchema, type DrinkEntry } from './drink-entry';
 import type { Route } from './+types/route';
 
@@ -22,10 +23,20 @@ export async function action({ request }: Route.ActionArgs) {
     return new Response(null, { status: 401 });
   }
 
-  if (FASTLY_SERVICE_ID && FASTLY_PURGE_API_KEY) {
+  try {
+    const body = await request.json();
+    const drinkEntry = drinkEntrySchema.parse(body);
+
+    // Clear the cached search instance so it will be rebuilt with fresh data
     try {
-      const body = await request.json();
-      const drinkEntry = drinkEntrySchema.parse(body);
+      purgeSearchCache();
+      console.log(`Cleared search cache (${SEARCH_INSTANCE_CACHE_KEY})`);
+    } catch (cacheError) {
+      console.error('Failed to clear search cache:', cacheError);
+      // Don't fail the webhook if cache clearing fails
+    }
+
+    if (FASTLY_SERVICE_ID && FASTLY_PURGE_API_KEY) {
       const surrogateKeys = getSurrogateKeysToPurge(drinkEntry).join(' ');
 
       console.log(`Purging surrogate keys: ${surrogateKeys}`);
@@ -38,15 +49,13 @@ export async function action({ request }: Route.ActionArgs) {
           'Surrogate-Key': surrogateKeys,
         },
       });
-
-      return new Response(null, { status: 204 });
-    } catch (error) {
-      console.error(error);
-      return new Response(null, { status: 400 });
     }
-  }
 
-  return new Response(null, { status: 204 });
+    return new Response(null, { status: 204 });
+  } catch (error) {
+    console.error(error);
+    return new Response(null, { status: 400 });
+  }
 }
 
 /**

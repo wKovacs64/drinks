@@ -19,7 +19,7 @@ export const securityHeaders: MiddlewareFunction<Response> = async (_, next) => 
       `frame-ancestors 'none'`,
       `form-action 'self'`,
       `default-src 'self'`,
-      `connect-src 'self' https://images.ctfassets.net/ https://*.algolianet.com https://*.algolia.net`,
+      `connect-src 'self' https://images.ctfassets.net/`,
       `img-src 'self' data: https:`,
       `script-src 'self' 'unsafe-inline'`,
       `style-src 'self' 'unsafe-inline'`,

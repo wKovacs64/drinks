@@ -4,41 +4,34 @@ FROM node:24-bullseye-slim AS base
 # set for base and all layers that inherit from it
 ENV NODE_ENV="production"
 
+# set the working directory
+WORKDIR /myapp
+
 # Install all node_modules, including dev dependencies
-FROM base AS deps
+FROM base AS dev-deps
 
-WORKDIR /myapp
+COPY package.json package-lock.json ./
+RUN npm ci --include=dev
 
-ADD package.json package-lock.json ./
-RUN npm install --include=dev
+# Install production-only node_modules
+FROM base AS prod-deps
 
-# Setup production node_modules
-FROM base AS production-deps
-
-WORKDIR /myapp
-
-COPY --from=deps /myapp/node_modules /myapp/node_modules
-ADD package.json package-lock.json ./
-RUN npm prune --omit=dev
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev --omit=optional
 
 # Build the app
 FROM base AS build
 
-WORKDIR /myapp
-
-COPY --from=deps /myapp/node_modules /myapp/node_modules
-
-ADD . .
+COPY --from=dev-deps /myapp/node_modules /myapp/node_modules
+COPY . .
 RUN npm run build
 
-# Finally, build the production image with minimal footprint
-FROM base
+# Finally, build the runtime image with minimal footprint
+FROM base AS runtime
 
 ENV PORT="8080"
 
-WORKDIR /myapp
-
-COPY --from=production-deps /myapp/node_modules /myapp/node_modules
+COPY --from=prod-deps /myapp/node_modules /myapp/node_modules
 COPY --from=build /myapp/build /myapp/build
 COPY --from=build /myapp/public /myapp/public
 COPY --from=build /myapp/package.json /myapp/package.json

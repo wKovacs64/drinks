@@ -254,3 +254,6 @@ $RECYCLE.BIN/
 
 # Service worker in development mode
 public/sw.js
+
+# Claude Code
+/.claude

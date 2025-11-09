@@ -1,4 +1,5 @@
 # .gitignore and...
 
+.cursor/**
 package*.json
 app/db.server/meta/*.json

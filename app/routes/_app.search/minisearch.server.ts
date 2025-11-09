@@ -1,7 +1,7 @@
 import MiniSearch from 'minisearch';
 import type { Drink } from '~/types';
 
-export type SearchableDrink = {
+type SearchableDrink = {
   id: Drink['slug'];
   slug: Drink['slug'];
   title: NonNullable<Drink['title']>;
@@ -33,7 +33,7 @@ export function createSearchIndex(drinks: Drink[]): MiniSearch<SearchableDrink> 
   return miniSearch;
 }
 
-export function searchDrinks(miniSearch: MiniSearch<SearchableDrink>, query: string): string[] {
-  const results = miniSearch.search(query, { combineWith: 'AND' });
+export function searchDrinks(searchIndex: MiniSearch<SearchableDrink>, query: string): string[] {
+  const results = searchIndex.search(query, { combineWith: 'AND' });
   return results.map((result) => result.slug);
 }

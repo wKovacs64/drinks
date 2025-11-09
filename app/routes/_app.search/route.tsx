@@ -2,24 +2,18 @@ import { data, useSearchParams, useNavigation } from 'react-router';
 import { cacheHeader } from 'pretty-cache-header';
 import { defaultPageDescription, defaultPageTitle } from '~/core/config';
 import { getEnvVars } from '~/utils/env.server';
-import { fetchGraphQL } from '~/utils/graphql.server';
 import { withPlaceholderImages } from '~/utils/placeholder-images.server';
 import { DrinkList } from '~/drinks/drink-list';
-import type { AppRouteHandle, Drink, DrinksResponse } from '~/types';
+import type { AppRouteHandle, Drink } from '~/types';
 import { NoDrinksFound } from './no-drinks-found';
 import { NoSearchTerm } from './no-search-term';
 import { SearchForm } from './search-form';
 import { Searching } from './searching';
-import { createSearchIndex, searchDrinks } from './minisearch.server';
+import { searchDrinks } from './minisearch.server';
+import { getSearchData } from './cache.server';
 import type { Route } from './+types/route';
 
-const {
-  CONTENTFUL_ACCESS_TOKEN,
-  CONTENTFUL_URL,
-  CONTENTFUL_PREVIEW,
-  SITE_IMAGE_URL,
-  SITE_IMAGE_ALT,
-} = getEnvVars();
+const { SITE_IMAGE_URL, SITE_IMAGE_ALT } = getEnvVars();
 
 export function headers({ loaderHeaders }: Route.HeadersArgs) {
   return loaderHeaders;
@@ -45,49 +39,10 @@ export async function loader({ request }: Route.LoaderArgs) {
     );
   }
 
-  // Fetch all drinks from Contentful
-  const allDrinksQuery = /* GraphQL */ `
-    query ($preview: Boolean) {
-      drinkCollection(preview: $preview, order: [rank_DESC, sys_firstPublishedAt_DESC]) {
-        drinks: items {
-          title
-          slug
-          image {
-            url
-          }
-          ingredients
-          calories
-          notes
-        }
-      }
-    }
-  `;
-
-  const queryResponse = await fetchGraphQL(
-    CONTENTFUL_URL,
-    CONTENTFUL_ACCESS_TOKEN,
-    allDrinksQuery,
-    {
-      preview: CONTENTFUL_PREVIEW === 'true',
-    },
-  );
-
-  const queryResponseJson: DrinksResponse = await queryResponse.json();
-
-  if (queryResponseJson.errors?.length || !queryResponseJson.data.drinkCollection) {
-    throw data(queryResponseJson, { status: 500 });
-  }
-
-  const {
-    data: {
-      drinkCollection: { drinks: maybeDrinks },
-    },
-  } = queryResponseJson;
-
-  const allDrinks = maybeDrinks.filter((drink): drink is Drink => Boolean(drink));
+  // Get all drinks and search index
+  const { allDrinks, searchIndex } = await getSearchData();
 
   // Search
-  const searchIndex = createSearchIndex(allDrinks);
   const slugs = searchDrinks(searchIndex, q);
 
   if (slugs.length === 0) {

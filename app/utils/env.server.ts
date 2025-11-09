@@ -4,9 +4,6 @@ import { z } from 'zod';
 // cache, otherwise the changes won't take effect until the cache expires.
 
 const envSchema = z.object({
-  ALGOLIA_APP_ID: z.string().min(1),
-  ALGOLIA_INDEX_NAME: z.string().min(1),
-  ALGOLIA_SEARCH_KEY: z.string().min(1),
   COMMIT_SHA: z.string().min(1).default('unknown'),
   CONTENTFUL_ACCESS_TOKEN: z.string().min(1),
   CONTENTFUL_URL: z.string().min(1),

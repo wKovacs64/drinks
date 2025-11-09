@@ -1,6 +1,5 @@
 import { data, useSearchParams, useNavigation } from 'react-router';
 import { cacheHeader } from 'pretty-cache-header';
-import type { SearchResult } from 'algoliasearch/lite';
 import { defaultPageDescription, defaultPageTitle } from '~/core/config';
 import { getEnvVars } from '~/utils/env.server';
 import { fetchGraphQL } from '~/utils/graphql.server';
@@ -11,11 +10,10 @@ import { NoDrinksFound } from './no-drinks-found';
 import { NoSearchTerm } from './no-search-term';
 import { SearchForm } from './search-form';
 import { Searching } from './searching';
-import { searchClient } from './algolia.server';
+import { createSearchIndex, searchDrinks } from './minisearch.server';
 import type { Route } from './+types/route';
 
 const {
-  ALGOLIA_INDEX_NAME,
   CONTENTFUL_ACCESS_TOKEN,
   CONTENTFUL_URL,
   CONTENTFUL_PREVIEW,
@@ -47,39 +45,10 @@ export async function loader({ request }: Route.LoaderArgs) {
     );
   }
 
-  // query Algolia for the search results based on q
-  const hits: AlgoliaDrinkHit[] = [];
-  try {
-    const [searchResults] = (
-      await searchClient.search<AlgoliaDrinkHit>({
-        requests: [
-          {
-            indexName: ALGOLIA_INDEX_NAME,
-            query: q,
-          },
-        ],
-      })
-    ).results;
-
-    hits.push(
-      // Algolia broke the search results types in v5.0.0
-      ...(searchResults as SearchResult<AlgoliaDrinkHit> & { hits: AlgoliaDrinkHit[] }).hits,
-    );
-  } catch (err) {
-    const errMessage = err instanceof Error ? err.message : 'unknown reason';
-    throw data({ message: `Search failed: ${errMessage}` }, { status: 500 });
-  }
-
-  if (hits.length === 0) {
-    return { drinks: [], socialImageUrl: SITE_IMAGE_URL, socialImageAlt: SITE_IMAGE_ALT };
-  }
-
-  const slugs = hits.map((hit) => hit.slug);
-
-  // query Contentful for drinks matching slugs in Algolia results
+  // Fetch all drinks from Contentful
   const allDrinksQuery = /* GraphQL */ `
-    query ($preview: Boolean, $slugs: [String]) {
-      drinkCollection(preview: $preview, where: { slug_in: $slugs }) {
+    query ($preview: Boolean) {
+      drinkCollection(preview: $preview, order: [rank_DESC, sys_firstPublishedAt_DESC]) {
         drinks: items {
           title
           slug
@@ -88,6 +57,7 @@ export async function loader({ request }: Route.LoaderArgs) {
           }
           ingredients
           calories
+          notes
         }
       }
     }
@@ -99,7 +69,6 @@ export async function loader({ request }: Route.LoaderArgs) {
     allDrinksQuery,
     {
       preview: CONTENTFUL_PREVIEW === 'true',
-      slugs,
     },
   );
 
@@ -115,9 +84,20 @@ export async function loader({ request }: Route.LoaderArgs) {
     },
   } = queryResponseJson;
 
-  const drinks = maybeDrinks.filter((drink): drink is Drink => Boolean(drink));
-  // sort results in the same order as slugs returned from Algolia
-  drinks.sort((a, b) => slugs.indexOf(a.slug) - slugs.indexOf(b.slug));
+  const allDrinks = maybeDrinks.filter((drink): drink is Drink => Boolean(drink));
+
+  // Search
+  const searchIndex = createSearchIndex(allDrinks);
+  const slugs = searchDrinks(searchIndex, q);
+
+  if (slugs.length === 0) {
+    return { drinks: [], socialImageUrl: SITE_IMAGE_URL, socialImageAlt: SITE_IMAGE_ALT };
+  }
+
+  // Filter all drinks by search results
+  const drinks = slugs
+    .map((slug) => allDrinks.find((drink) => drink.slug === slug))
+    .filter((drink): drink is Drink => Boolean(drink));
 
   const drinksWithPlaceholderImages = await withPlaceholderImages(drinks);
 
@@ -176,40 +156,3 @@ export default function SearchPage({ loaderData }: Route.ComponentProps) {
     </>
   );
 }
-
-interface AlgoliaDrinkHit extends Pick<Drink, 'title' | 'slug' | 'ingredients' | 'notes'> {
-  createdAt: string;
-  objectID: string;
-  _highlightResult: {
-    title: {
-      value: string;
-      matchLevel: AlgoliaMatchLevel;
-      fullyHighlighted: boolean;
-      matchedWords: string[];
-    };
-    slug: {
-      value: string;
-      matchLevel: AlgoliaMatchLevel;
-      fullyHighlighted: boolean;
-      matchedWords: string[];
-    };
-    ingredients: {
-      value: string;
-      matchLevel: AlgoliaMatchLevel;
-      matchedWords: string[];
-    }[];
-    createdAt: {
-      value: string;
-      matchLevel: AlgoliaMatchLevel;
-      matchedWords: string[];
-    };
-    notes: {
-      value: string;
-      matchLevel: AlgoliaMatchLevel;
-      fullyHighlighted: boolean;
-      matchedWords: string[];
-    };
-  };
-}
-
-type AlgoliaMatchLevel = 'none' | 'partial' | 'full';

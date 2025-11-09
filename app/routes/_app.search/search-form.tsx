@@ -36,19 +36,6 @@ export function SearchForm({
 
   return (
     <Form ref={formRef} method="get" className="mb-8 flex h-12 bg-white">
-      <a
-        href="https://www.algolia.com"
-        title="Search by Algolia"
-        target="_blank"
-        rel="nofollow noopener noreferrer"
-        className="drinks-focusable group p-2"
-      >
-        <Icon
-          name="algolia"
-          aria-label="Search by Algolia"
-          className="h-8 w-8 text-[#003dff] opacity-90 group-hover:opacity-100 group-focus-visible:opacity-100"
-        />
-      </a>
       <input
         ref={inputRef}
         name="q"

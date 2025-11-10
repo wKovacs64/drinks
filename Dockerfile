@@ -36,6 +36,10 @@ COPY --from=build /myapp/build /myapp/build
 COPY --from=build /myapp/public /myapp/public
 COPY --from=build /myapp/package.json /myapp/package.json
 
+# run the app as the node (non-root) user
+RUN chown -R node:node /myapp
+USER node
+
 # accept some build arguments
 ARG COMMIT_SHA="unknown"
 ARG DEPLOYMENT_ENV="unknown"

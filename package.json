@@ -71,7 +71,6 @@
     "del-cli": "7.0.0",
     "esbuild": "0.27.0",
     "eslint": "9.39.1",
-    "glob": "11.0.3",
     "node-html-parser": "7.0.1",
     "npm-run-all2": "8.0.4",
     "prettier": "3.6.2",

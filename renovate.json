@@ -1,4 +1,5 @@
 {
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:recommended", ":semanticCommits", ":semanticCommitTypeAll(chore)"],
   "commitMessageTopic": "{{depName}}",
   "automergeType": "branch",
@@ -8,19 +9,18 @@
   },
   "packageRules": [
     {
+      "matchDatasources": ["npm"],
+      "minimumReleaseAge": "7 days"
+    },
+    {
       "matchPackageNames": ["eslint"],
       "matchUpdateTypes": ["major"],
       "enabled": false
     },
     {
-      "matchPackageNames": ["remix-pwa"],
-      "groupName": "remix-pwa"
-    },
-    {
-      "matchPackagePrefixes": ["@remix-pwa/"],
-      "groupName": "remix-pwa"
+      "matchPackageNames": ["typescript"],
+      "matchUpdateTypes": ["minor"],
+      "automerge": false
     }
-  ],
-  "prConcurrentLimit": 0,
-  "prHourlyLimit": 0
+  ]
 }

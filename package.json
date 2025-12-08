@@ -74,7 +74,7 @@
     "node-html-parser": "7.0.1",
     "npm-run-all2": "8.0.4",
     "prettier": "3.7.3",
-    "prettier-plugin-tailwindcss": "0.7.1",
+    "prettier-plugin-tailwindcss": "0.7.2",
     "semantic-release": "25.0.2",
     "tailwindcss": "4.1.17",
     "typescript": "5.9.3",

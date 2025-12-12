@@ -18,17 +18,20 @@ jobs:
       - name: ⬇️ Checkout repo
         uses: actions/checkout@v6
 
+      - name: 📦 Install pnpm
+        uses: pnpm/action-setup@v4
+
       - name: ⎔ Setup node
         uses: actions/setup-node@v6
         with:
-          cache: npm
+          cache: pnpm
           node-version-file: '.nvmrc'
 
       - name: 📥 Install deps
-        run: npm install
+        run: pnpm install
 
       - name: 💅 Format check
-        run: npm run format:check
+        run: pnpm run format:check
 
   lint:
     name: ⬣ ESLint
@@ -37,17 +40,20 @@ jobs:
       - name: ⬇️ Checkout repo
         uses: actions/checkout@v6
 
+      - name: 📦 Install pnpm
+        uses: pnpm/action-setup@v4
+
       - name: ⎔ Setup node
         uses: actions/setup-node@v6
         with:
-          cache: npm
+          cache: pnpm
           node-version-file: '.nvmrc'
 
       - name: 📥 Install deps
-        run: npm install
+        run: pnpm install
 
       - name: 🔬 Lint
-        run: npm run lint
+        run: pnpm run lint
 
   typecheck:
     name: ʦ TypeScript
@@ -56,17 +62,20 @@ jobs:
       - name: ⬇️ Checkout repo
         uses: actions/checkout@v6
 
+      - name: 📦 Install pnpm
+        uses: pnpm/action-setup@v4
+
       - name: ⎔ Setup node
         uses: actions/setup-node@v6
         with:
-          cache: npm
+          cache: pnpm
           node-version-file: '.nvmrc'
 
       - name: 📥 Install deps
-        run: npm install
+        run: pnpm install
 
       - name: 🔎 Type check
-        run: npm run typecheck
+        run: pnpm run typecheck
 
   # vitest:
   #   name: ⚡ Vitest
@@ -127,17 +136,20 @@ jobs:
       - name: ⬇️ Checkout repo
         uses: actions/checkout@v6
 
+      - name: 📦 Install pnpm
+        uses: pnpm/action-setup@v4
+
       - name: ⎔ Setup node
         uses: actions/setup-node@v6
         with:
-          cache: npm
+          cache: pnpm
           node-version-file: '.nvmrc'
 
       - name: 📥 Install deps
-        run: npm install
+        run: pnpm install
 
       - name: 🛠 Build
-        run: npm run build
+        run: pnpm run build
 
   deploy:
     name: 🚀 Deploy
@@ -197,16 +209,19 @@ jobs:
       - name: ⬇️ Checkout repo
         uses: actions/checkout@v6
 
+      - name: 📦 Install pnpm
+        uses: pnpm/action-setup@v4
+
       - name: ⎔ Setup node
         uses: actions/setup-node@v6
         with:
-          cache: npm
+          cache: pnpm
           node-version-file: '.nvmrc'
 
       - name: 📥 Install deps
-        run: npm install
+        run: pnpm install
 
       - name: 🆕 Semantic Release
-        run: npx semantic-release
+        run: pnpm dlx semantic-release
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}

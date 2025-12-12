@@ -23,7 +23,7 @@
     "build:rr": "react-router build",
     "build:sw": "esbuild app/entry.worker.ts --minify --platform=browser --format=esm --outfile=build/client/sw.js",
     "deploy": "flyctl deploy --remote-only",
-    "dev": "npm run clean && run-p dev:rr dev:sw",
+    "dev": "pnpm run clean && run-p dev:rr dev:sw",
     "dev:rr": "react-router dev",
     "dev:sw": "esbuild app/entry.worker.ts --watch --platform=browser --format=esm --outfile=public/sw.js",
     "format": "prettier --cache --write .",
@@ -84,6 +84,7 @@
     "vite-plugin-static-copy": "3.1.4",
     "vite-tsconfig-paths": "5.1.4"
   },
+  "packageManager": "pnpm@10.25.0",
   "engines": {
     "node": ">=20"
   }

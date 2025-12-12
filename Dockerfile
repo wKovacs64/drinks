@@ -5,7 +5,7 @@ FROM node:24-bullseye-slim AS base
 ENV NODE_ENV="production"
 
 # install pnpm
-RUN npm install -g pnpm
+RUN npm install -g pnpm@10.25.0
 
 # set the working directory
 WORKDIR /myapp
@@ -14,13 +14,13 @@ WORKDIR /myapp
 FROM base AS dev-deps
 
 COPY package.json pnpm-lock.yaml ./
-RUN pnpm install
+RUN pnpm install --frozen-lockfile
 
 # Install production-only node_modules
 FROM base AS prod-deps
 
 COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --prod --no-optional
+RUN pnpm install --prod --no-optional --frozen-lockfile 
 
 # Build the app
 FROM base AS build

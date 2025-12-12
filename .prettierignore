@@ -2,4 +2,5 @@
 
 .cursor/**
 package*.json
+pnpm-lock.yaml
 app/db.server/meta/*.json

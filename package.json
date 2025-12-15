@@ -39,7 +39,7 @@
     "@fontsource/source-sans-3": "5.2.9",
     "@react-router/node": "7.10.1",
     "@react-router/serve": "7.10.1",
-    "@unpic/react": "1.0.1",
+    "@unpic/react": "1.0.2",
     "clsx": "2.1.1",
     "cross-env": "10.1.0",
     "isbot": "5.1.32",

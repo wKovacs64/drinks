@@ -70,7 +70,7 @@
     "babel-plugin-react-compiler": "1.0.0",
     "del-cli": "7.0.0",
     "esbuild": "0.27.1",
-    "eslint": "9.39.1",
+    "eslint": "9.39.2",
     "node-html-parser": "7.0.1",
     "npm-run-all2": "8.0.4",
     "prettier": "3.7.4",

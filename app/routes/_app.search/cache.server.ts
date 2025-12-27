@@ -1,8 +1,8 @@
 import { remember, forget } from '@epic-web/remember';
 import { data } from 'react-router';
-import { getEnvVars } from '~/utils/env.server';
-import { fetchGraphQL } from '~/utils/graphql.server';
-import type { Drink, DrinksResponse } from '~/types';
+import { getEnvVars } from '#/app/utils/env.server';
+import { fetchGraphQL } from '#/app/utils/graphql.server';
+import type { Drink, DrinksResponse } from '#/app/types';
 import { createSearchIndex } from './minisearch.server';
 
 export const SEARCH_INSTANCE_CACHE_KEY = 'minisearch-index';

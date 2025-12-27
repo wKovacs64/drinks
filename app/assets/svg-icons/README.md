@@ -28,11 +28,11 @@ attributes (in addition to `viewBox` of course):
 
 ## Using Icons
 
-To use an icon, import the `Icon` component from `~/icons/icon` and pass the icon name to the `name`
-prop:
+To use an icon, import the `Icon` component from `#/app/icons/icon` and pass the icon name to the
+`name` prop:
 
 ```jsx
-import { Icon } from '~/icons/icon';
+import { Icon } from '#/app/icons/icon';
 
 function MyComponent() {
   return (

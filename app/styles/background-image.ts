@@ -1,5 +1,5 @@
-import bgImg from '~/assets/images/background-768.jpg';
-import bgImgLg from '~/assets/images/background-2078.jpg';
+import bgImg from '#/app/assets/images/background-768.jpg';
+import bgImgLg from '#/app/assets/images/background-2078.jpg';
 
 export const backgroundImageStyles = `
   html {

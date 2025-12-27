@@ -1,5 +1,5 @@
 import { transformUrl } from 'unpic';
-import type { Drink, EnhancedDrink } from '~/types';
+import type { Drink, EnhancedDrink } from '#/app/types';
 
 export async function withPlaceholderImages(drinks: Drink[]): Promise<EnhancedDrink[]> {
   return (

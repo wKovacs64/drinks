@@ -2,14 +2,14 @@ import { data } from 'react-router';
 import { lowerCase, startCase } from 'lodash-es';
 import { cacheHeader } from 'pretty-cache-header';
 import { invariantResponse } from '@epic-web/invariant';
-import { defaultPageDescription, defaultPageTitle } from '~/core/config';
-import { getLoaderDataForHandle } from '~/core/utils';
-import { DrinkList } from '~/drinks/drink-list';
-import { getSurrogateKeyForTag } from '~/tags/utils';
-import { getEnvVars } from '~/utils/env.server';
-import { fetchGraphQL } from '~/utils/graphql.server';
-import { withPlaceholderImages } from '~/utils/placeholder-images.server';
-import type { AppRouteHandle, Drink, DrinksResponse } from '~/types';
+import { defaultPageDescription, defaultPageTitle } from '#/app/core/config';
+import { getLoaderDataForHandle } from '#/app/core/utils';
+import { DrinkList } from '#/app/drinks/drink-list';
+import { getSurrogateKeyForTag } from '#/app/tags/utils';
+import { getEnvVars } from '#/app/utils/env.server';
+import { fetchGraphQL } from '#/app/utils/graphql.server';
+import { withPlaceholderImages } from '#/app/utils/placeholder-images.server';
+import type { AppRouteHandle, Drink, DrinksResponse } from '#/app/types';
 import type { Route } from './+types/_app.tags.$tag';
 
 const {

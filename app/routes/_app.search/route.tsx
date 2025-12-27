@@ -1,10 +1,10 @@
 import { data, useSearchParams, useNavigation } from 'react-router';
 import { cacheHeader } from 'pretty-cache-header';
-import { defaultPageDescription, defaultPageTitle } from '~/core/config';
-import { getEnvVars } from '~/utils/env.server';
-import { withPlaceholderImages } from '~/utils/placeholder-images.server';
-import { DrinkList } from '~/drinks/drink-list';
-import type { AppRouteHandle, Drink } from '~/types';
+import { defaultPageDescription, defaultPageTitle } from '#/app/core/config';
+import { getEnvVars } from '#/app/utils/env.server';
+import { withPlaceholderImages } from '#/app/utils/placeholder-images.server';
+import { DrinkList } from '#/app/drinks/drink-list';
+import type { AppRouteHandle, Drink } from '#/app/types';
 import { NoDrinksFound } from './no-drinks-found';
 import { NoSearchTerm } from './no-search-term';
 import { SearchForm } from './search-form';

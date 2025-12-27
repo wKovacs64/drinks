@@ -1,5 +1,5 @@
 import MiniSearch from 'minisearch';
-import type { Drink } from '~/types';
+import type { Drink } from '#/app/types';
 
 type SearchableDrink = {
   id: Drink['slug'];

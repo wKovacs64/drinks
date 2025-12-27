@@ -1,5 +1,5 @@
 import { Link } from 'react-router';
-import { Icon } from '~/icons/icon';
+import { Icon } from '#/app/icons/icon';
 
 export function NotFound() {
   return (

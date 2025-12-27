@@ -1,5 +1,5 @@
 import { cacheHeader } from 'pretty-cache-header';
-import { getEnvVars } from '~/utils/env.server';
+import { getEnvVars } from '#/app/utils/env.server';
 
 const { DEPLOYMENT_ENV } = getEnvVars();
 

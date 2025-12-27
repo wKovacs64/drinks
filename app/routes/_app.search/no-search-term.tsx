@@ -1,4 +1,4 @@
-import { Icon } from '~/icons/icon';
+import { Icon } from '#/app/icons/icon';
 
 export function NoSearchTerm() {
   return (

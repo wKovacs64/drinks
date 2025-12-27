@@ -1,11 +1,11 @@
 import { data } from 'react-router';
 import { cacheHeader } from 'pretty-cache-header';
-import { defaultPageDescription, defaultPageTitle } from '~/core/config';
-import { DrinkList } from '~/drinks/drink-list';
-import { getEnvVars } from '~/utils/env.server';
-import { fetchGraphQL } from '~/utils/graphql.server';
-import { withPlaceholderImages } from '~/utils/placeholder-images.server';
-import type { DrinksResponse, Drink } from '~/types';
+import { defaultPageDescription, defaultPageTitle } from '#/app/core/config';
+import { DrinkList } from '#/app/drinks/drink-list';
+import { getEnvVars } from '#/app/utils/env.server';
+import { fetchGraphQL } from '#/app/utils/graphql.server';
+import { withPlaceholderImages } from '#/app/utils/placeholder-images.server';
+import type { DrinksResponse, Drink } from '#/app/types';
 import type { Route } from './+types/_app._index';
 
 const {

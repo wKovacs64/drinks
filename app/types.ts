@@ -1,4 +1,4 @@
-import type { BreadcrumbHandle } from '~/navigation/breadcrumbs';
+import type { BreadcrumbHandle } from '#/app/navigation/breadcrumbs';
 
 export type DrinksResponse = {
   errors?: {

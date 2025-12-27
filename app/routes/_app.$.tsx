@@ -4,9 +4,9 @@ import {
   defaultPageTitle,
   notFoundPageDescription,
   notFoundPageTitle,
-} from '~/core/config';
-import { NotFound } from '~/core/not-found';
-import { getEnvVars } from '~/utils/env.server';
+} from '#/app/core/config';
+import { NotFound } from '#/app/core/not-found';
+import { getEnvVars } from '#/app/utils/env.server';
 import type { Route } from './+types/_app.$';
 
 const { SITE_IMAGE_URL, SITE_IMAGE_ALT } = getEnvVars();

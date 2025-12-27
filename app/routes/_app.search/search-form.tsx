@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Form } from 'react-router';
-import { Icon } from '~/icons/icon';
+import { Icon } from '#/app/icons/icon';
 
 export function SearchForm({
   initialSearchTerm,

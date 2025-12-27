@@ -4,7 +4,6 @@ import { reactRouterHonoServer } from 'react-router-hono-server/dev';
 import { reactRouter } from '@react-router/dev/vite';
 import { defineConfig, normalizePath } from 'vite';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
-import tsConfigPaths from 'vite-tsconfig-paths';
 import { iconsSpritesheet } from 'vite-plugin-icons-spritesheet';
 import babel from 'vite-plugin-babel';
 
@@ -45,6 +44,5 @@ export default defineConfig({
         },
       ],
     }),
-    tsConfigPaths(),
   ],
 });

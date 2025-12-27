@@ -1,5 +1,5 @@
 import { Link } from 'react-router';
-import type { EnhancedDrink } from '~/types';
+import type { EnhancedDrink } from '#/app/types';
 import { Glass } from './glass';
 import { DrinkSummary } from './drink-summary';
 

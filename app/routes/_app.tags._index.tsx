@@ -1,13 +1,13 @@
 import { data } from 'react-router';
 import { kebabCase } from 'lodash-es';
 import { cacheHeader } from 'pretty-cache-header';
-import { defaultPageTitle, defaultPageDescription } from '~/core/config';
-import { TagLink } from '~/tags/tag-link';
-import { Tag } from '~/tags/tag';
-import { getSurrogateKeyForTag } from '~/tags/utils';
-import { getEnvVars } from '~/utils/env.server';
-import { fetchGraphQL } from '~/utils/graphql.server';
-import type { DrinkTagsResponse, Drink } from '~/types';
+import { defaultPageTitle, defaultPageDescription } from '#/app/core/config';
+import { TagLink } from '#/app/tags/tag-link';
+import { Tag } from '#/app/tags/tag';
+import { getSurrogateKeyForTag } from '#/app/tags/utils';
+import { getEnvVars } from '#/app/utils/env.server';
+import { fetchGraphQL } from '#/app/utils/graphql.server';
+import type { DrinkTagsResponse, Drink } from '#/app/types';
 import type { Route } from './+types/_app.tags._index';
 
 const {

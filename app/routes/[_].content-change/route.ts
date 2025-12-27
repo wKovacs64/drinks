@@ -1,6 +1,6 @@
-// import { getSurrogateKeyForTag } from '~/tags/utils';
-import { getEnvVars } from '~/utils/env.server';
-import { purgeSearchCache, SEARCH_INSTANCE_CACHE_KEY } from '~/routes/_app.search/cache.server';
+// import { getSurrogateKeyForTag } from '#/app/tags/utils';
+import { getEnvVars } from '#/app/utils/env.server';
+import { purgeSearchCache, SEARCH_INSTANCE_CACHE_KEY } from '#/app/routes/_app.search/cache.server';
 import { drinkEntrySchema, type DrinkEntry } from './drink-entry';
 import type { Route } from './+types/route';
 

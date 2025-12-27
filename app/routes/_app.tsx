@@ -23,4 +23,4 @@ export default function AppLayout() {
   return <Outlet />;
 }
 
-export { ErrorBoundary } from '~/core/errors';
+export { ErrorBoundary } from '#/app/core/errors';

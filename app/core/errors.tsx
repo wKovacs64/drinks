@@ -1,5 +1,5 @@
 import { Link, isRouteErrorResponse, useRouteError } from 'react-router';
-import { NotFound } from '~/core/not-found';
+import { NotFound } from './not-found';
 
 export function ErrorBoundary() {
   const error = useRouteError();

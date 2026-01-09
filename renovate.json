@@ -7,6 +7,15 @@
   "major": {
     "automerge": false
   },
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["Dockerfile", "Dockerfile\\..+"],
+      "matchStrings": ["npm install -g pnpm@(?<currentValue>[^\\s]+)"],
+      "depNameTemplate": "pnpm",
+      "datasourceTemplate": "npm"
+    }
+  ],
   "packageRules": [
     {
       "matchDatasources": ["npm"],

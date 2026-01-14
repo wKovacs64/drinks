@@ -76,7 +76,7 @@ export default function App({ loaderData }: Route.ComponentProps) {
       <body className="relative flex min-h-screen flex-col font-sans font-light">
         <SkipNavLink contentId="main" />
         <Header />
-        <div className="flex flex-1 flex-col gap-6 py-4 sm:w-[26rem] sm:gap-8 sm:self-center sm:py-8 lg:w-full lg:max-w-[60rem] xl:max-w-[80rem]">
+        <div className="flex flex-1 flex-col gap-6 py-4 sm:w-104 sm:gap-8 sm:self-center sm:py-8 lg:w-full lg:max-w-240 xl:max-w-7xl">
           <Breadcrumbs />
           <main id="main">
             <Outlet />

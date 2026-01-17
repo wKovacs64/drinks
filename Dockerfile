@@ -5,7 +5,7 @@ FROM node:24-bullseye-slim AS base
 ENV NODE_ENV="production"
 
 # install pnpm
-RUN npm install -g pnpm@10.27.0
+RUN npm install -g pnpm@10.28.0
 
 # set the working directory
 WORKDIR /myapp

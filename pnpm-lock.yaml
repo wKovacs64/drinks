@@ -61,7 +61,7 @@ importers:
         version: 7.12.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       react-router-hono-server:
         specifier: 2.22.0
-        version: 2.22.0(@hono/node-server@1.19.7(hono@4.10.8))(@react-router/dev@7.12.0(@react-router/serve@7.12.0(react-router@7.12.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(typescript@5.9.3))(@types/node@25.0.1)(jiti@2.6.1)(lightningcss@1.30.2)(react-router@7.12.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(typescript@5.9.3)(vite@7.3.1(@types/node@25.0.1)(jiti@2.6.1)(lightningcss@1.30.2)))(@types/react@19.2.7)(react-router@7.12.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(vite@7.3.1(@types/node@25.0.1)(jiti@2.6.1)(lightningcss@1.30.2))
+        version: 2.22.0(@hono/node-server@1.19.7(hono@4.10.8))(@react-router/dev@7.12.0(@react-router/serve@7.12.0(react-router@7.12.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(typescript@5.9.3))(@types/node@25.0.1)(jiti@2.6.1)(lightningcss@1.30.2)(react-router@7.12.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(typescript@5.9.3)(vite@7.3.1(@types/node@25.0.1)(jiti@2.6.1)(lightningcss@1.30.2)))(@types/react@19.2.8)(react-router@7.12.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(vite@7.3.1(@types/node@25.0.1)(jiti@2.6.1)(lightningcss@1.30.2))
       unpic:
         specifier: 4.2.2
         version: 4.2.2
@@ -85,11 +85,11 @@ importers:
         specifier: 1.9.10
         version: 1.9.10
       '@types/react':
-        specifier: 19.2.7
-        version: 19.2.7
+        specifier: 19.2.8
+        version: 19.2.8
       '@types/react-dom':
         specifier: 19.2.3
-        version: 19.2.3(@types/react@19.2.7)
+        version: 19.2.3(@types/react@19.2.8)
       '@types/source-map-support':
         specifier: 0.5.10
         version: 0.5.10
@@ -1170,8 +1170,8 @@ packages:
     peerDependencies:
       '@types/react': ^19.2.0
 
-  '@types/react@19.2.7':
-    resolution: {integrity: sha512-MWtvHrGZLFttgeEj28VXHxpmwYbor/ATPYbBfSFZEIRK0ecCFLl2Qo55z52Hss+UV9CRN7trSeq1zbgx7YDWWg==}
+  '@types/react@19.2.8':
+    resolution: {integrity: sha512-3MbSL37jEchWZz2p2mjntRZtPt837ij10ApxKfgmXCTuHWagYg7iA5bqPw6C8BMPfwidlvfPI/fxOc42HLhcyg==}
 
   '@types/source-map-support@0.5.10':
     resolution: {integrity: sha512-tgVP2H469x9zq34Z0m/fgPewGhg/MLClalNOiPIzQlXrSS2YrKu/xCdSCKnEDwkFha51VKEKB6A9wW26/ZNwzA==}
@@ -5113,11 +5113,11 @@ snapshots:
 
   '@types/normalize-package-data@2.4.4': {}
 
-  '@types/react-dom@19.2.3(@types/react@19.2.7)':
+  '@types/react-dom@19.2.3(@types/react@19.2.8)':
     dependencies:
-      '@types/react': 19.2.7
+      '@types/react': 19.2.8
 
-  '@types/react@19.2.7':
+  '@types/react@19.2.8':
     dependencies:
       csstype: 3.2.3
 
@@ -7447,14 +7447,14 @@ snapshots:
 
   react-refresh@0.14.2: {}
 
-  react-router-hono-server@2.22.0(@hono/node-server@1.19.7(hono@4.10.8))(@react-router/dev@7.12.0(@react-router/serve@7.12.0(react-router@7.12.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(typescript@5.9.3))(@types/node@25.0.1)(jiti@2.6.1)(lightningcss@1.30.2)(react-router@7.12.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(typescript@5.9.3)(vite@7.3.1(@types/node@25.0.1)(jiti@2.6.1)(lightningcss@1.30.2)))(@types/react@19.2.7)(react-router@7.12.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(vite@7.3.1(@types/node@25.0.1)(jiti@2.6.1)(lightningcss@1.30.2)):
+  react-router-hono-server@2.22.0(@hono/node-server@1.19.7(hono@4.10.8))(@react-router/dev@7.12.0(@react-router/serve@7.12.0(react-router@7.12.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(typescript@5.9.3))(@types/node@25.0.1)(jiti@2.6.1)(lightningcss@1.30.2)(react-router@7.12.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(typescript@5.9.3)(vite@7.3.1(@types/node@25.0.1)(jiti@2.6.1)(lightningcss@1.30.2)))(@types/react@19.2.8)(react-router@7.12.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(vite@7.3.1(@types/node@25.0.1)(jiti@2.6.1)(lightningcss@1.30.2)):
     dependencies:
       '@drizzle-team/brocli': 0.11.0
       '@hono/node-server': 1.19.7(hono@4.10.8)
       '@hono/node-ws': 1.2.0(@hono/node-server@1.19.7(hono@4.10.8))(hono@4.10.8)
       '@hono/vite-dev-server': 0.23.0(hono@4.10.8)
       '@react-router/dev': 7.12.0(@react-router/serve@7.12.0(react-router@7.12.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(typescript@5.9.3))(@types/node@25.0.1)(jiti@2.6.1)(lightningcss@1.30.2)(react-router@7.12.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(typescript@5.9.3)(vite@7.3.1(@types/node@25.0.1)(jiti@2.6.1)(lightningcss@1.30.2))
-      '@types/react': 19.2.7
+      '@types/react': 19.2.8
       hono: 4.10.8
       react-router: 7.12.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       vite: 7.3.1(@types/node@25.0.1)(jiti@2.6.1)(lightningcss@1.30.2)

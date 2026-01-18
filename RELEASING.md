@@ -1,6 +1,14 @@
 # Releasing
 
-This package is released automatically using
-[semantic-release](https://github.com/semantic-release/semantic-release).
+This package is released using [release-please](https://github.com/googleapis/release-please).
 
-The number of times it has been manually released is: 0
+### Workflow:
+
+1. Create feature branches and open PRs to `main` using
+   [conventional commit](https://www.conventionalcommits.org/) messages (`feat:`, `fix:`, etc.)
+
+2. release-please automatically creates/updates a Release PR with the changelog and version bump
+
+3. When ready to release, merge the Release PR
+
+4. release-please creates the GitHub release with the new tag

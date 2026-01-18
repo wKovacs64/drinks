@@ -1,6 +1,10 @@
 name: 🤖 CI
 
-on: [push, workflow_dispatch]
+on:
+  push:
+    branches-ignore:
+      - 'release-please--**'
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -206,22 +210,5 @@ jobs:
       issues: write
       pull-requests: write
     steps:
-      - name: ⬇️ Checkout repo
-        uses: actions/checkout@v6
-
-      - name: 📦 Install pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: ⎔ Setup node
-        uses: actions/setup-node@v6
-        with:
-          cache: pnpm
-          node-version-file: '.nvmrc'
-
-      - name: 📥 Install deps
-        run: pnpm install
-
-      - name: 🆕 Semantic Release
-        run: pnpm dlx semantic-release
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      - name: 🆕 Release Please
+        uses: googleapis/release-please-action@v4

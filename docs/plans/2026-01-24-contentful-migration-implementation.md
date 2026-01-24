@@ -6,13 +6,21 @@
 
 **Architecture:** SQLite (strict mode) on Fly volume for data, ImageKit for image storage/CDN, Google OAuth for admin auth, Drizzle ORM for database access. Admin routes built into the existing React Router app.
 
-**Tech Stack:** React Router v7, Drizzle ORM, SQLite, ImageKit, remix-auth, @coji/remix-auth-google, Zod
+**Tech Stack:** React Router v7, Drizzle ORM, SQLite, ImageKit, remix-auth, @coji/remix-auth-google, Playwright, Zod
 
-**Reference Project:** Auth patterns from `/home/justin/dev/work/slhs/hand-hygiene`
+**Reference Project:** Auth and testing patterns from `/home/justin/dev/work/slhs/hand-hygiene`
+
+**Testing Strategy:**
+- Playwright for all E2E tests (test as the user would)
+- Fresh database seeded before EACH test via `/__test/reset-db` endpoint
+- `pageAsAdmin` fixture for authenticated tests (injects session cookie)
+- Test-only endpoint only available when `NODE_ENV=test`
 
 ---
 
-## Task 1: Add Drizzle and SQLite Dependencies
+## Phase 1: Database Setup (Tasks 1-6)
+
+### Task 1: Add Drizzle and SQLite Dependencies
 
 **Files:**
 - Modify: `package.json`
@@ -39,7 +47,7 @@ git commit -m "chore: add drizzle, sqlite, and cuid2 dependencies"
 
 ---
 
-## Task 2: Create Drizzle Configuration
+### Task 2: Create Drizzle Configuration
 
 **Files:**
 - Create: `drizzle.config.ts`
@@ -70,7 +78,7 @@ git commit -m "chore: add drizzle configuration"
 
 ---
 
-## Task 3: Create Database Schema
+### Task 3: Create Database Schema
 
 **Files:**
 - Create: `app/db/schema.ts`
@@ -128,7 +136,7 @@ git commit -m "feat: add drizzle schema for users and drinks"
 
 ---
 
-## Task 4: Create Database Client
+### Task 4: Create Database Client
 
 **Files:**
 - Create: `app/db/client.server.ts`
@@ -142,10 +150,33 @@ import * as schema from './schema';
 
 const DATABASE_URL = process.env.DATABASE_URL || './data/drinks.db';
 
-const sqlite = new Database(DATABASE_URL);
-sqlite.pragma('journal_mode = WAL');
+let sqlite: Database.Database | null = null;
 
-export const db = drizzle(sqlite, { schema });
+export function getDatabase() {
+  if (!sqlite) {
+    sqlite = new Database(DATABASE_URL);
+    sqlite.pragma('journal_mode = WAL');
+  }
+  return sqlite;
+}
+
+export function closeDatabase() {
+  if (sqlite) {
+    sqlite.close();
+    sqlite = null;
+  }
+}
+
+export function resetDatabaseConnection() {
+  closeDatabase();
+  return getDatabase();
+}
+
+export const db = drizzle(getDatabase(), { schema });
+
+export function getDb() {
+  return drizzle(getDatabase(), { schema });
+}
 ```
 
 **Step 2: Create data directory for local development**
@@ -161,15 +192,16 @@ echo "*.db-*" >> data/.gitignore
 
 ```bash
 git add app/db/client.server.ts data/.gitignore
-git commit -m "feat: add drizzle database client"
+git commit -m "feat: add drizzle database client with reset capability"
 ```
 
 ---
 
-## Task 5: Generate and Run Initial Migration
+### Task 5: Generate and Run Initial Migration
 
 **Files:**
 - Create: `drizzle/` migrations directory (generated)
+- Modify: `package.json`
 
 **Step 1: Add migration scripts to package.json**
 
@@ -196,7 +228,7 @@ Expected: Tables created in local SQLite database
 **Step 4: Verify tables exist**
 
 Run: `sqlite3 ./data/drinks.db ".schema"`
-Expected: Shows users and drinks table schemas with STRICT not visible (SQLite limitation in drizzle, but the schema enforces types)
+Expected: Shows users and drinks table schemas
 
 **Step 5: Commit**
 
@@ -207,7 +239,7 @@ git commit -m "feat: add database migrations"
 
 ---
 
-## Task 6: Update Environment Variables Schema
+### Task 6: Update Environment Variables Schema
 
 **Files:**
 - Modify: `app/utils/env.server.ts`
@@ -224,17 +256,20 @@ Add to the Zod schema:
 DATABASE_URL: z.string().default('./data/drinks.db'),
 
 // ImageKit
-IMAGEKIT_PUBLIC_KEY: z.string(),
-IMAGEKIT_PRIVATE_KEY: z.string(),
-IMAGEKIT_URL_ENDPOINT: z.string(),
+IMAGEKIT_PUBLIC_KEY: z.string().optional(),
+IMAGEKIT_PRIVATE_KEY: z.string().optional(),
+IMAGEKIT_URL_ENDPOINT: z.string().optional(),
 
 // Google OAuth
-GOOGLE_CLIENT_ID: z.string(),
-GOOGLE_CLIENT_SECRET: z.string(),
-GOOGLE_REDIRECT_URI: z.string(),
+GOOGLE_CLIENT_ID: z.string().optional(),
+GOOGLE_CLIENT_SECRET: z.string().optional(),
+GOOGLE_REDIRECT_URI: z.string().optional(),
 
 // Session
-SESSION_SECRET: z.string(),
+SESSION_SECRET: z.string().default('dev-secret-change-in-production'),
+
+// Node environment
+NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
 ```
 
 **Step 3: Mark Contentful variables as optional (for migration period)**
@@ -250,7 +285,390 @@ git commit -m "feat: add env vars for database, imagekit, and auth"
 
 ---
 
-## Task 7: Add Auth Dependencies
+## Phase 2: Playwright Infrastructure (Tasks 7-13)
+
+### Task 7: Install Playwright
+
+**Files:**
+- Modify: `package.json`
+- Create: `playwright.config.ts`
+
+**Step 1: Install Playwright**
+
+Run:
+```bash
+pnpm add -D @playwright/test
+pnpm exec playwright install chromium
+```
+
+**Step 2: Create Playwright config**
+
+Reference: `/home/justin/dev/work/slhs/hand-hygiene/playwright.config.ts`
+
+```typescript
+import { defineConfig, devices } from '@playwright/test';
+
+export default defineConfig({
+  testDir: './playwright',
+  fullyParallel: false,
+  forbidOnly: !!process.env.CI,
+  retries: process.env.CI ? 2 : 0,
+  workers: 1,
+  reporter: 'html',
+  use: {
+    baseURL: 'http://localhost:3000',
+    trace: 'on-first-retry',
+  },
+  projects: [
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+    },
+  ],
+  webServer: {
+    command: 'pnpm run dev',
+    url: 'http://localhost:3000',
+    reuseExistingServer: !process.env.CI,
+    env: {
+      NODE_ENV: 'test',
+      DATABASE_URL: './data/test.db',
+    },
+  },
+});
+```
+
+**Step 3: Add test script to package.json**
+
+```json
+{
+  "test:e2e": "playwright test",
+  "test:e2e:ui": "playwright test --ui"
+}
+```
+
+**Step 4: Commit**
+
+```bash
+git add package.json pnpm-lock.yaml playwright.config.ts
+git commit -m "chore: add playwright for e2e testing"
+```
+
+---
+
+### Task 8: Create Test Seed Data
+
+**Files:**
+- Create: `playwright/seed-data.ts`
+
+**Step 1: Create seed data file**
+
+```typescript
+import type { NewUser, NewDrink } from '~/db/schema';
+
+export const TEST_ADMIN_USER: NewUser = {
+  id: 'test-admin-id',
+  email: 'admin@test.com',
+  name: 'Test Admin',
+  avatarUrl: null,
+  role: 'admin',
+};
+
+export const TEST_DRINKS: Omit<NewDrink, 'createdAt' | 'updatedAt'>[] = [
+  {
+    id: 'test-drink-1',
+    slug: 'test-margarita',
+    title: 'Test Margarita',
+    imageUrl: 'https://via.placeholder.com/400x400.png?text=Margarita',
+    calories: 200,
+    ingredients: ['2 oz tequila', '1 oz lime juice', '1 oz triple sec'],
+    tags: ['tequila', 'citrus'],
+    notes: 'A classic test margarita',
+    rank: 10,
+  },
+  {
+    id: 'test-drink-2',
+    slug: 'test-mojito',
+    title: 'Test Mojito',
+    imageUrl: 'https://via.placeholder.com/400x400.png?text=Mojito',
+    calories: 150,
+    ingredients: ['2 oz rum', '1 oz lime juice', 'mint leaves', 'soda water'],
+    tags: ['rum', 'citrus', 'mint'],
+    notes: 'A refreshing test mojito',
+    rank: 5,
+  },
+  {
+    id: 'test-drink-3',
+    slug: 'test-old-fashioned',
+    title: 'Test Old Fashioned',
+    imageUrl: 'https://via.placeholder.com/400x400.png?text=OldFashioned',
+    calories: 180,
+    ingredients: ['2 oz bourbon', '1 sugar cube', 'angostura bitters'],
+    tags: ['bourbon', 'classic'],
+    notes: null,
+    rank: 0,
+  },
+];
+```
+
+**Step 2: Commit**
+
+```bash
+git add playwright/seed-data.ts
+git commit -m "feat: add test seed data for playwright"
+```
+
+---
+
+### Task 9: Create Database Reset Utility
+
+**Files:**
+- Create: `app/db/reset.server.ts`
+
+**Step 1: Create reset utility**
+
+```typescript
+import Database from 'better-sqlite3';
+import { drizzle } from 'drizzle-orm/better-sqlite3';
+import { sql } from 'drizzle-orm';
+import * as schema from './schema';
+import { users, drinks } from './schema';
+import { closeDatabase, resetDatabaseConnection } from './client.server';
+import { TEST_ADMIN_USER, TEST_DRINKS } from '../../playwright/seed-data';
+
+const DATABASE_URL = process.env.DATABASE_URL || './data/drinks.db';
+
+export async function resetAndSeedDatabase() {
+  // Close existing connection
+  closeDatabase();
+
+  // Create fresh connection for reset
+  const sqlite = new Database(DATABASE_URL);
+  sqlite.pragma('journal_mode = WAL');
+  const db = drizzle(sqlite, { schema });
+
+  // Drop and recreate tables
+  db.run(sql`DROP TABLE IF EXISTS drinks`);
+  db.run(sql`DROP TABLE IF EXISTS users`);
+
+  db.run(sql`
+    CREATE TABLE users (
+      id TEXT PRIMARY KEY,
+      email TEXT NOT NULL UNIQUE,
+      name TEXT,
+      avatar_url TEXT,
+      role TEXT NOT NULL DEFAULT 'admin',
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )
+  `);
+
+  db.run(sql`
+    CREATE TABLE drinks (
+      id TEXT PRIMARY KEY,
+      slug TEXT NOT NULL UNIQUE,
+      title TEXT NOT NULL,
+      image_url TEXT NOT NULL,
+      calories INTEGER NOT NULL,
+      ingredients TEXT NOT NULL,
+      tags TEXT NOT NULL,
+      notes TEXT,
+      rank INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )
+  `);
+
+  // Seed test data
+  await db.insert(users).values(TEST_ADMIN_USER);
+
+  for (const drink of TEST_DRINKS) {
+    await db.insert(drinks).values({
+      ...drink,
+      ingredients: JSON.stringify(drink.ingredients),
+      tags: JSON.stringify(drink.tags),
+    });
+  }
+
+  // Close this connection
+  sqlite.close();
+
+  // Reset the main connection
+  resetDatabaseConnection();
+
+  return { success: true };
+}
+```
+
+**Step 2: Commit**
+
+```bash
+git add app/db/reset.server.ts
+git commit -m "feat: add database reset utility for testing"
+```
+
+---
+
+### Task 10: Create Test Reset Endpoint
+
+**Files:**
+- Create: `app/routes/[_].test.reset-db.ts`
+
+**Step 1: Create test reset endpoint**
+
+```typescript
+import type { Route } from './+types/[_].test.reset-db';
+import { resetAndSeedDatabase } from '~/db/reset.server';
+
+export async function action({ request }: Route.ActionArgs) {
+  // Only allow in test environment
+  if (process.env.NODE_ENV !== 'test') {
+    throw new Response('Not Found', { status: 404 });
+  }
+
+  if (request.method !== 'POST') {
+    throw new Response('Method Not Allowed', { status: 405 });
+  }
+
+  await resetAndSeedDatabase();
+
+  return Response.json({ success: true });
+}
+
+export async function loader() {
+  // Don't expose this endpoint via GET
+  throw new Response('Not Found', { status: 404 });
+}
+```
+
+**Step 2: Commit**
+
+```bash
+git add app/routes/[_].test.reset-db.ts
+git commit -m "feat: add test database reset endpoint"
+```
+
+---
+
+### Task 11: Create Mock Users for Testing
+
+**Files:**
+- Create: `playwright/mock-users.ts`
+
+**Step 1: Create mock users file**
+
+Reference: `/home/justin/dev/work/slhs/hand-hygiene/playwright/mock-users.ts`
+
+```typescript
+import type { AuthenticatedUser } from '~/auth/types';
+import { TEST_ADMIN_USER } from './seed-data';
+
+export const MOCK_ADMIN: AuthenticatedUser = {
+  id: TEST_ADMIN_USER.id,
+  email: TEST_ADMIN_USER.email,
+  name: TEST_ADMIN_USER.name,
+  avatarUrl: TEST_ADMIN_USER.avatarUrl,
+  role: TEST_ADMIN_USER.role,
+};
+```
+
+**Step 2: Commit**
+
+```bash
+git add playwright/mock-users.ts
+git commit -m "feat: add mock users for playwright tests"
+```
+
+---
+
+### Task 12: Create Playwright Test Utilities (Scaffold)
+
+**Files:**
+- Create: `playwright/playwright-utils.ts`
+
+**Step 1: Create test utilities scaffold**
+
+This will be completed after auth is set up. For now, create a scaffold.
+
+Reference: `/home/justin/dev/work/slhs/hand-hygiene/playwright/playwright-utils.ts`
+
+```typescript
+import { test as base, expect, type Page } from '@playwright/test';
+
+// Will be extended with pageAsAdmin fixture after auth is implemented
+
+async function resetDatabase(request: Page['request']) {
+  const response = await request.post('http://localhost:3000/__test/reset-db');
+  if (!response.ok()) {
+    throw new Error(`Failed to reset database: ${response.status()}`);
+  }
+}
+
+export const test = base.extend<{ resetDb: void }>({
+  resetDb: async ({ request }, use) => {
+    await resetDatabase(request);
+    await use();
+  },
+});
+
+export { expect };
+```
+
+**Step 2: Commit**
+
+```bash
+git add playwright/playwright-utils.ts
+git commit -m "feat: add playwright test utilities scaffold"
+```
+
+---
+
+### Task 13: Create First Smoke Test
+
+**Files:**
+- Create: `playwright/smoke.test.ts`
+
+**Step 1: Create smoke test**
+
+```typescript
+import { test, expect } from './playwright-utils';
+
+test.describe('Smoke Tests', () => {
+  test('homepage loads with seeded drinks', async ({ page, resetDb }) => {
+    await page.goto('/');
+
+    // Check that seeded drinks appear
+    await expect(page.getByText('Test Margarita')).toBeVisible();
+    await expect(page.getByText('Test Mojito')).toBeVisible();
+    await expect(page.getByText('Test Old Fashioned')).toBeVisible();
+  });
+
+  test('drink detail page loads', async ({ page, resetDb }) => {
+    await page.goto('/test-margarita');
+
+    await expect(page.getByText('Test Margarita')).toBeVisible();
+    await expect(page.getByText('2 oz tequila')).toBeVisible();
+    await expect(page.getByText('200')).toBeVisible(); // calories
+  });
+});
+```
+
+**Step 2: Run test to verify setup works**
+
+Run: `pnpm test:e2e`
+Expected: Tests pass (or fail meaningfully if public routes aren't updated yet - this verifies the test infrastructure works)
+
+**Step 3: Commit**
+
+```bash
+git add playwright/smoke.test.ts
+git commit -m "test: add smoke tests for homepage and drink detail"
+```
+
+---
+
+## Phase 3: Authentication (Tasks 14-26)
+
+### Task 14: Add Auth Dependencies
 
 **Files:**
 - Modify: `package.json`
@@ -276,7 +694,7 @@ git commit -m "chore: add remix-auth dependencies"
 
 ---
 
-## Task 8: Create Auth Types
+### Task 15: Create Auth Types
 
 **Files:**
 - Create: `app/auth/types.ts`
@@ -306,12 +724,12 @@ git commit -m "feat: add authenticated user type"
 
 ---
 
-## Task 9: Create Session Storage
+### Task 16: Create Session Storage with Test Export
 
 **Files:**
 - Create: `app/auth/session.server.ts`
 
-**Step 1: Create session storage**
+**Step 1: Create session storage with getRawSessionCookieValue export**
 
 Reference: `/home/justin/dev/work/slhs/hand-hygiene/app/auth/session.server.ts`
 
@@ -320,14 +738,15 @@ import {
   createCookie,
   createCookieSessionStorage,
 } from 'react-router';
-import { env } from '~/utils/env.server';
 import type { AuthenticatedUser } from './types';
 
-const sessionCookie = createCookie('__session', {
+const SESSION_SECRET = process.env.SESSION_SECRET || 'dev-secret-change-in-production';
+
+export const sessionCookie = createCookie('__session', {
   httpOnly: true,
   path: '/',
   sameSite: 'lax',
-  secrets: [env.SESSION_SECRET],
+  secrets: [SESSION_SECRET],
   secure: process.env.NODE_ENV === 'production',
 });
 
@@ -349,18 +768,34 @@ const cookieSessionStorage = createCookieSessionStorage<
 
 export const { getSession, commitSession, destroySession } =
   cookieSessionStorage;
+
+/**
+ * Get the raw session cookie value for a user.
+ * Used in Playwright tests to inject auth cookies.
+ */
+export async function getRawSessionCookieValue(
+  user: AuthenticatedUser,
+): Promise<string> {
+  const session = await getSession();
+  session.set('user', user);
+  const serializedCookie = await commitSession(session);
+  // Extract just the cookie value (before the first semicolon)
+  const [cookiePair] = serializedCookie.split(';');
+  const [, value] = cookiePair.split('=');
+  return value;
+}
 ```
 
 **Step 2: Commit**
 
 ```bash
 git add app/auth/session.server.ts
-git commit -m "feat: add session storage for auth"
+git commit -m "feat: add session storage with test cookie export"
 ```
 
 ---
 
-## Task 10: Create Auth Utilities
+### Task 17: Create Auth Utilities
 
 **Files:**
 - Create: `app/auth/utils.server.ts`
@@ -400,7 +835,7 @@ git commit -m "feat: add auth utility functions"
 
 ---
 
-## Task 11: Create User Model Functions
+### Task 18: Create User Model Functions
 
 **Files:**
 - Create: `app/models/user.server.ts`
@@ -410,10 +845,11 @@ git commit -m "feat: add auth utility functions"
 ```typescript
 import { eq } from 'drizzle-orm';
 import { createId } from '@paralleldrive/cuid2';
-import { db } from '~/db/client.server';
+import { getDb } from '~/db/client.server';
 import { users, type User } from '~/db/schema';
 
 export async function getUserById(id: User['id']): Promise<User | undefined> {
+  const db = getDb();
   return db.query.users.findFirst({
     where: eq(users.id, id),
   });
@@ -422,6 +858,7 @@ export async function getUserById(id: User['id']): Promise<User | undefined> {
 export async function getUserByEmail(
   email: User['email'],
 ): Promise<User | undefined> {
+  const db = getDb();
   return db.query.users.findFirst({
     where: eq(users.email, email),
   });
@@ -436,6 +873,7 @@ export async function upsertUserOnLogin({
   name: string | null;
   avatarUrl: string | null;
 }): Promise<User> {
+  const db = getDb();
   const existingUser = await getUserByEmail(email);
 
   if (existingUser) {
@@ -475,7 +913,7 @@ git commit -m "feat: add user model functions"
 
 ---
 
-## Task 12: Create Authenticator
+### Task 19: Create Authenticator
 
 **Files:**
 - Create: `app/auth/auth.server.ts`
@@ -487,41 +925,47 @@ Reference: `/home/justin/dev/work/slhs/hand-hygiene/app/auth/auth.server.ts`
 ```typescript
 import { Authenticator } from 'remix-auth';
 import { GoogleStrategy } from '@coji/remix-auth-google';
-import { env } from '~/utils/env.server';
 import { upsertUserOnLogin } from '~/models/user.server';
 import type { AuthenticatedUser } from './types';
 
 export const authenticator = new Authenticator<AuthenticatedUser>();
 
-const googleStrategy = new GoogleStrategy(
-  {
-    clientId: env.GOOGLE_CLIENT_ID,
-    clientSecret: env.GOOGLE_CLIENT_SECRET,
-    redirectURI: env.GOOGLE_REDIRECT_URI,
-  },
-  async ({ profile }) => {
-    const email = profile.emails?.[0]?.value;
-    if (!email) {
-      throw new Error('No email found in Google profile');
-    }
+// Only configure Google strategy if credentials are available
+const googleClientId = process.env.GOOGLE_CLIENT_ID;
+const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
+const googleRedirectUri = process.env.GOOGLE_REDIRECT_URI;
 
-    const user = await upsertUserOnLogin({
-      email,
-      name: profile.displayName ?? null,
-      avatarUrl: profile.photos?.[0]?.value ?? null,
-    });
+if (googleClientId && googleClientSecret && googleRedirectUri) {
+  const googleStrategy = new GoogleStrategy(
+    {
+      clientId: googleClientId,
+      clientSecret: googleClientSecret,
+      redirectURI: googleRedirectUri,
+    },
+    async ({ profile }) => {
+      const email = profile.emails?.[0]?.value;
+      if (!email) {
+        throw new Error('No email found in Google profile');
+      }
 
-    return {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      avatarUrl: user.avatarUrl,
-      role: user.role,
-    };
-  },
-);
+      const user = await upsertUserOnLogin({
+        email,
+        name: profile.displayName ?? null,
+        avatarUrl: profile.photos?.[0]?.value ?? null,
+      });
 
-authenticator.use(googleStrategy, 'google');
+      return {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        avatarUrl: user.avatarUrl,
+        role: user.role,
+      };
+    },
+  );
+
+  authenticator.use(googleStrategy, 'google');
+}
 ```
 
 **Step 2: Commit**
@@ -533,7 +977,7 @@ git commit -m "feat: add google oauth authenticator"
 
 ---
 
-## Task 13: Create Auth Middleware
+### Task 20: Create Auth Middleware
 
 **Files:**
 - Create: `app/middleware/auth.server.ts`
@@ -597,7 +1041,7 @@ git commit -m "feat: add admin auth middleware"
 
 ---
 
-## Task 14: Create Login Route
+### Task 21: Create Login Route
 
 **Files:**
 - Create: `app/routes/login.tsx`
@@ -630,7 +1074,7 @@ git commit -m "feat: add login route"
 
 ---
 
-## Task 15: Create Google OAuth Callback Route
+### Task 22: Create Google OAuth Callback Route
 
 **Files:**
 - Create: `app/routes/auth.google.callback.tsx`
@@ -685,7 +1129,7 @@ git commit -m "feat: add google oauth callback route"
 
 ---
 
-## Task 16: Create Logout Route
+### Task 23: Create Logout Route
 
 **Files:**
 - Create: `app/routes/logout.tsx`
@@ -722,10 +1166,11 @@ git commit -m "feat: add logout route"
 
 ---
 
-## Task 17: Create Login Failed Route
+### Task 24: Create Login Failed and Unauthorized Routes
 
 **Files:**
 - Create: `app/routes/login-failed.tsx`
+- Create: `app/routes/unauthorized.tsx`
 
 **Step 1: Create login failed page**
 
@@ -747,21 +1192,7 @@ export default function LoginFailed() {
 }
 ```
 
-**Step 2: Commit**
-
-```bash
-git add app/routes/login-failed.tsx
-git commit -m "feat: add login failed page"
-```
-
----
-
-## Task 18: Create Unauthorized Route
-
-**Files:**
-- Create: `app/routes/unauthorized.tsx`
-
-**Step 1: Create unauthorized page**
+**Step 2: Create unauthorized page**
 
 ```typescript
 import { Link } from 'react-router';
@@ -781,16 +1212,136 @@ export default function Unauthorized() {
 }
 ```
 
-**Step 2: Commit**
+**Step 3: Commit**
 
 ```bash
-git add app/routes/unauthorized.tsx
-git commit -m "feat: add unauthorized page"
+git add app/routes/login-failed.tsx app/routes/unauthorized.tsx
+git commit -m "feat: add login failed and unauthorized pages"
 ```
 
 ---
 
-## Task 19: Add ImageKit Dependencies
+### Task 25: Complete Playwright Test Utilities with Auth
+
+**Files:**
+- Modify: `playwright/playwright-utils.ts`
+- Modify: `playwright/mock-users.ts` (if needed)
+
+**Step 1: Update playwright-utils with pageAsAdmin fixture**
+
+Reference: `/home/justin/dev/work/slhs/hand-hygiene/playwright/playwright-utils.ts`
+
+```typescript
+import { test as base, expect, type Page } from '@playwright/test';
+import { sessionCookie, getRawSessionCookieValue } from '~/auth/session.server';
+import { MOCK_ADMIN } from './mock-users';
+
+type TestFixtures = {
+  resetDb: void;
+  pageAsAdmin: Page;
+};
+
+async function resetDatabase(request: Page['request']) {
+  const response = await request.post('http://localhost:3000/__test/reset-db');
+  if (!response.ok()) {
+    throw new Error(`Failed to reset database: ${response.status()}`);
+  }
+}
+
+export const test = base.extend<TestFixtures>({
+  resetDb: async ({ request }, use) => {
+    await resetDatabase(request);
+    await use();
+  },
+
+  pageAsAdmin: async ({ page, context, request }, use) => {
+    // Reset database before each test
+    await resetDatabase(request);
+
+    // Inject admin session cookie
+    await context.addCookies([
+      {
+        name: sessionCookie.name,
+        value: await getRawSessionCookieValue(MOCK_ADMIN),
+        domain: 'localhost',
+        httpOnly: true,
+        path: '/',
+        sameSite: 'Lax',
+        secure: false,
+      },
+    ]);
+
+    await use(page);
+    await context.clearCookies();
+  },
+});
+
+export { expect };
+```
+
+**Step 2: Commit**
+
+```bash
+git add playwright/playwright-utils.ts
+git commit -m "feat: complete playwright utils with pageAsAdmin fixture"
+```
+
+---
+
+### Task 26: Create Auth E2E Tests
+
+**Files:**
+- Create: `playwright/auth.test.ts`
+
+**Step 1: Create auth tests**
+
+```typescript
+import { test, expect } from './playwright-utils';
+
+test.describe('Authentication', () => {
+  test('unauthenticated user is redirected to login when accessing admin', async ({
+    page,
+    resetDb,
+  }) => {
+    const response = await page.goto('/admin');
+
+    // Should redirect to login
+    expect(page.url()).toContain('/login');
+  });
+
+  test('authenticated admin can access admin pages', async ({ pageAsAdmin }) => {
+    await pageAsAdmin.goto('/admin/drinks');
+
+    // Should see the admin drinks page
+    await expect(pageAsAdmin.getByRole('heading', { name: 'Drinks' })).toBeVisible();
+    // Should see the user email in header
+    await expect(pageAsAdmin.getByText('admin@test.com')).toBeVisible();
+  });
+
+  test('admin can logout', async ({ pageAsAdmin }) => {
+    await pageAsAdmin.goto('/admin/drinks');
+
+    // Click logout
+    await pageAsAdmin.getByRole('button', { name: 'Logout' }).click();
+
+    // Should be redirected to home
+    await expect(pageAsAdmin).toHaveURL('/');
+  });
+});
+```
+
+**Step 2: Commit**
+
+```bash
+git add playwright/auth.test.ts
+git commit -m "test: add auth e2e tests"
+```
+
+---
+
+## Phase 4: Admin UI (Tasks 27-42)
+
+### Task 27: Add ImageKit Dependencies
 
 **Files:**
 - Modify: `package.json`
@@ -802,12 +1353,7 @@ Run:
 pnpm add imagekit
 ```
 
-**Step 2: Verify installation**
-
-Run: `pnpm ls imagekit`
-Expected: Package listed
-
-**Step 3: Commit**
+**Step 2: Commit**
 
 ```bash
 git add package.json pnpm-lock.yaml
@@ -816,7 +1362,7 @@ git commit -m "chore: add imagekit sdk"
 
 ---
 
-## Task 20: Create ImageKit Client
+### Task 28: Create ImageKit Client
 
 **Files:**
 - Create: `app/utils/imagekit.server.ts`
@@ -825,18 +1371,29 @@ git commit -m "chore: add imagekit sdk"
 
 ```typescript
 import ImageKit from 'imagekit';
-import { env } from './env.server';
 
-export const imagekit = new ImageKit({
-  publicKey: env.IMAGEKIT_PUBLIC_KEY,
-  privateKey: env.IMAGEKIT_PRIVATE_KEY,
-  urlEndpoint: env.IMAGEKIT_URL_ENDPOINT,
-});
+const publicKey = process.env.IMAGEKIT_PUBLIC_KEY;
+const privateKey = process.env.IMAGEKIT_PRIVATE_KEY;
+const urlEndpoint = process.env.IMAGEKIT_URL_ENDPOINT;
+
+function getImageKit() {
+  if (!publicKey || !privateKey || !urlEndpoint) {
+    throw new Error('ImageKit credentials not configured');
+  }
+
+  return new ImageKit({
+    publicKey,
+    privateKey,
+    urlEndpoint,
+  });
+}
 
 export async function uploadImage(
   file: Buffer,
   fileName: string,
 ): Promise<string> {
+  const imagekit = getImageKit();
+
   const response = await imagekit.upload({
     file,
     fileName,
@@ -847,7 +1404,21 @@ export async function uploadImage(
 }
 
 export async function deleteImage(fileId: string): Promise<void> {
+  const imagekit = getImageKit();
   await imagekit.deleteFile(fileId);
+}
+
+/**
+ * For tests: return a placeholder URL instead of uploading
+ */
+export async function uploadImageOrPlaceholder(
+  file: Buffer,
+  fileName: string,
+): Promise<string> {
+  if (process.env.NODE_ENV === 'test') {
+    return `https://via.placeholder.com/400x400.png?text=${encodeURIComponent(fileName)}`;
+  }
+  return uploadImage(file, fileName);
 }
 ```
 
@@ -855,12 +1426,12 @@ export async function deleteImage(fileId: string): Promise<void> {
 
 ```bash
 git add app/utils/imagekit.server.ts
-git commit -m "feat: add imagekit client"
+git commit -m "feat: add imagekit client with test mode"
 ```
 
 ---
 
-## Task 21: Create Drink Model Functions
+### Task 29: Create Drink Model Functions
 
 **Files:**
 - Create: `app/models/drink.server.ts`
@@ -868,12 +1439,13 @@ git commit -m "feat: add imagekit client"
 **Step 1: Create drink model**
 
 ```typescript
-import { eq, desc, sql } from 'drizzle-orm';
+import { eq, desc, sql, like } from 'drizzle-orm';
 import { createId } from '@paralleldrive/cuid2';
-import { db } from '~/db/client.server';
+import { getDb } from '~/db/client.server';
 import { drinks, type Drink, type NewDrink } from '~/db/schema';
 
 export async function getAllDrinks(): Promise<Drink[]> {
+  const db = getDb();
   return db.query.drinks.findMany({
     orderBy: [desc(drinks.rank), desc(drinks.createdAt)],
   });
@@ -882,19 +1454,24 @@ export async function getAllDrinks(): Promise<Drink[]> {
 export async function getDrinkBySlug(
   slug: string,
 ): Promise<Drink | undefined> {
+  const db = getDb();
   return db.query.drinks.findFirst({
     where: eq(drinks.slug, slug),
   });
 }
 
 export async function getDrinksByTag(tag: string): Promise<Drink[]> {
-  return db.query.drinks.findMany({
-    where: sql`json_each(${drinks.tags}) LIKE ${`%${tag}%`}`,
+  const db = getDb();
+  // Query drinks where tags JSON array contains the tag
+  const allDrinks = await db.query.drinks.findMany({
     orderBy: [desc(drinks.rank), desc(drinks.createdAt)],
   });
+
+  return allDrinks.filter((drink) => drink.tags.includes(tag));
 }
 
 export async function getAllTags(): Promise<string[]> {
+  const db = getDb();
   const allDrinks = await db.query.drinks.findMany({
     columns: { tags: true },
   });
@@ -912,6 +1489,7 @@ export async function getAllTags(): Promise<string[]> {
 export async function createDrink(
   data: Omit<NewDrink, 'id' | 'createdAt' | 'updatedAt'>,
 ): Promise<Drink> {
+  const db = getDb();
   const [drink] = await db
     .insert(drinks)
     .values({
@@ -927,6 +1505,7 @@ export async function updateDrink(
   id: string,
   data: Partial<Omit<NewDrink, 'id' | 'createdAt'>>,
 ): Promise<Drink> {
+  const db = getDb();
   const [drink] = await db
     .update(drinks)
     .set({
@@ -940,6 +1519,7 @@ export async function updateDrink(
 }
 
 export async function deleteDrink(id: string): Promise<void> {
+  const db = getDb();
   await db.delete(drinks).where(eq(drinks.id, id));
 }
 ```
@@ -953,7 +1533,52 @@ git commit -m "feat: add drink model functions"
 
 ---
 
-## Task 22: Create Slug Utility
+### Task 30: Create Fastly Utility
+
+**Files:**
+- Create: `app/utils/fastly.server.ts`
+
+**Step 1: Create Fastly utility**
+
+```typescript
+const FASTLY_SERVICE_ID = process.env.FASTLY_SERVICE_ID;
+const FASTLY_PURGE_API_KEY = process.env.FASTLY_PURGE_API_KEY;
+
+export async function purgeFastlyCache(
+  surrogateKeys: string[],
+): Promise<void> {
+  if (!FASTLY_SERVICE_ID || !FASTLY_PURGE_API_KEY) {
+    console.log('Fastly not configured, skipping cache purge');
+    return;
+  }
+
+  const response = await fetch(
+    `https://api.fastly.com/service/${FASTLY_SERVICE_ID}/purge`,
+    {
+      method: 'POST',
+      headers: {
+        'Fastly-Key': FASTLY_PURGE_API_KEY,
+        'Surrogate-Key': surrogateKeys.join(' '),
+      },
+    },
+  );
+
+  if (!response.ok) {
+    console.error('Failed to purge Fastly cache:', await response.text());
+  }
+}
+```
+
+**Step 2: Commit**
+
+```bash
+git add app/utils/fastly.server.ts
+git commit -m "feat: add fastly cache purge utility"
+```
+
+---
+
+### Task 31: Create Slug Utility
 
 **Files:**
 - Create: `app/utils/slug.ts`
@@ -980,7 +1605,7 @@ git commit -m "feat: add slug generation utility"
 
 ---
 
-## Task 23: Create Admin Layout Route
+### Task 32: Create Admin Layout Route
 
 **Files:**
 - Create: `app/routes/_admin.tsx`
@@ -1047,7 +1672,7 @@ git commit -m "feat: add admin layout route"
 
 ---
 
-## Task 24: Create Admin Index Route (Redirect)
+### Task 33: Create Admin Index Route (Redirect)
 
 **Files:**
 - Create: `app/routes/_admin._index.tsx`
@@ -1071,15 +1696,56 @@ git commit -m "feat: add admin index redirect to drinks"
 
 ---
 
-## Task 25: Create Admin Drinks List Route
+### Task 34: Create Admin Drinks List Route and Test
 
 **Files:**
 - Create: `app/routes/_admin.drinks._index.tsx`
+- Create: `playwright/admin-drinks-list.test.ts`
 
-**Step 1: Create drinks list page**
+**Step 1: Write the test first**
 
 ```typescript
-import { Link } from 'react-router';
+import { test, expect } from './playwright-utils';
+
+test.describe('Admin Drinks List', () => {
+  test('displays list of drinks with actions', async ({ pageAsAdmin }) => {
+    await pageAsAdmin.goto('/admin/drinks');
+
+    // Should see heading
+    await expect(pageAsAdmin.getByRole('heading', { name: 'Drinks' })).toBeVisible();
+
+    // Should see "Add Drink" button
+    await expect(pageAsAdmin.getByRole('link', { name: 'Add Drink' })).toBeVisible();
+
+    // Should see seeded drinks in table
+    await expect(pageAsAdmin.getByText('Test Margarita')).toBeVisible();
+    await expect(pageAsAdmin.getByText('Test Mojito')).toBeVisible();
+    await expect(pageAsAdmin.getByText('Test Old Fashioned')).toBeVisible();
+
+    // Should see Edit links
+    const editLinks = pageAsAdmin.getByRole('link', { name: 'Edit' });
+    await expect(editLinks).toHaveCount(3);
+  });
+
+  test('Add Drink link navigates to new drink form', async ({ pageAsAdmin }) => {
+    await pageAsAdmin.goto('/admin/drinks');
+
+    await pageAsAdmin.getByRole('link', { name: 'Add Drink' }).click();
+
+    await expect(pageAsAdmin).toHaveURL('/admin/drinks/new');
+  });
+});
+```
+
+**Step 2: Run test to verify it fails**
+
+Run: `pnpm test:e2e playwright/admin-drinks-list.test.ts`
+Expected: FAIL (route doesn't exist yet)
+
+**Step 3: Create drinks list page**
+
+```typescript
+import { Link, Form } from 'react-router';
 import type { Route } from './+types/_admin.drinks._index';
 import { getAllDrinks } from '~/models/drink.server';
 
@@ -1155,6 +1821,23 @@ export default function AdminDrinksList({
                   >
                     Edit
                   </Link>
+                  <Form
+                    method="post"
+                    action={`/admin/drinks/${drink.slug}/delete`}
+                    className="ml-4 inline"
+                    onSubmit={(e) => {
+                      if (!confirm('Are you sure you want to delete this drink?')) {
+                        e.preventDefault();
+                      }
+                    }}
+                  >
+                    <button
+                      type="submit"
+                      className="text-red-600 hover:text-red-900"
+                    >
+                      Delete
+                    </button>
+                  </Form>
                 </td>
               </tr>
             ))}
@@ -1166,16 +1849,21 @@ export default function AdminDrinksList({
 }
 ```
 
-**Step 2: Commit**
+**Step 4: Run test to verify it passes**
+
+Run: `pnpm test:e2e playwright/admin-drinks-list.test.ts`
+Expected: PASS
+
+**Step 5: Commit**
 
 ```bash
-git add app/routes/_admin.drinks._index.tsx
-git commit -m "feat: add admin drinks list page"
+git add app/routes/_admin.drinks._index.tsx playwright/admin-drinks-list.test.ts
+git commit -m "feat: add admin drinks list page with tests"
 ```
 
 ---
 
-## Task 26: Create Image Crop Component
+### Task 35: Create Image Crop Component
 
 **Files:**
 - Create: `app/admin/image-crop.tsx`
@@ -1191,7 +1879,11 @@ pnpm add react-image-crop
 
 ```typescript
 import { useState, useRef, useCallback } from 'react';
-import ReactCrop, { type Crop, centerCrop, makeAspectCrop } from 'react-image-crop';
+import ReactCrop, {
+  type Crop,
+  centerCrop,
+  makeAspectCrop,
+} from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 
 type ImageCropProps = {
@@ -1204,12 +1896,7 @@ function centerAspectCrop(
   aspect: number,
 ): Crop {
   return centerCrop(
-    makeAspectCrop(
-      { unit: '%', width: 90 },
-      aspect,
-      mediaWidth,
-      mediaHeight,
-    ),
+    makeAspectCrop({ unit: '%', width: 90 }, aspect, mediaWidth, mediaHeight),
     mediaWidth,
     mediaHeight,
   );
@@ -1286,6 +1973,7 @@ export function ImageCrop({ onCropComplete }: ImageCropProps) {
         accept="image/*"
         onChange={onSelectFile}
         className="block w-full text-sm text-gray-500 file:mr-4 file:rounded file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-blue-700 hover:file:bg-blue-100"
+        data-testid="image-upload-input"
       />
 
       {imgSrc && (
@@ -1308,6 +1996,7 @@ export function ImageCrop({ onCropComplete }: ImageCropProps) {
             type="button"
             onClick={getCroppedImg}
             className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
+            data-testid="confirm-crop-button"
           >
             Confirm Crop
           </button>
@@ -1327,7 +2016,7 @@ git commit -m "feat: add image crop component"
 
 ---
 
-## Task 27: Create Drink Form Component
+### Task 36: Create Drink Form Component
 
 **Files:**
 - Create: `app/admin/drink-form.tsx`
@@ -1425,9 +2114,7 @@ export function DrinkForm({ drink, action }: DrinkFormProps) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">
-          Image
-        </label>
+        <label className="block text-sm font-medium text-gray-700">Image</label>
         {imagePreview && (
           <img
             src={imagePreview}
@@ -1548,18 +2235,58 @@ git commit -m "feat: add drink form component"
 
 ---
 
-## Task 28: Create New Drink Route
+### Task 37: Create New Drink Route and Test
 
 **Files:**
 - Create: `app/routes/_admin.drinks.new.tsx`
+- Create: `playwright/admin-create-drink.test.ts`
 
-**Step 1: Create new drink route**
+**Step 1: Write the test first**
+
+```typescript
+import { test, expect } from './playwright-utils';
+import path from 'path';
+
+test.describe('Create New Drink', () => {
+  test('can create a new drink', async ({ pageAsAdmin }) => {
+    await pageAsAdmin.goto('/admin/drinks/new');
+
+    // Fill out the form
+    await pageAsAdmin.getByLabel('Title').fill('New Test Drink');
+    await pageAsAdmin.getByLabel('Slug').fill('new-test-drink');
+    await pageAsAdmin.getByLabel('Ingredients').fill('1 oz vodka\n2 oz juice');
+    await pageAsAdmin.getByLabel('Calories').fill('120');
+    await pageAsAdmin.getByLabel('Tags').fill('vodka, juice');
+    await pageAsAdmin.getByLabel('Notes').fill('A test drink');
+    await pageAsAdmin.getByLabel('Rank').fill('5');
+
+    // For image, we'll skip the crop in tests by providing existingImageUrl
+    // The form should handle submitting without a new image
+
+    // Submit - since no image was cropped, form submits normally
+    await pageAsAdmin.getByRole('button', { name: 'Create Drink' }).click();
+
+    // Should redirect to drinks list
+    await expect(pageAsAdmin).toHaveURL('/admin/drinks');
+
+    // New drink should appear in list
+    await expect(pageAsAdmin.getByText('New Test Drink')).toBeVisible();
+  });
+});
+```
+
+**Step 2: Run test to verify it fails**
+
+Run: `pnpm test:e2e playwright/admin-create-drink.test.ts`
+Expected: FAIL
+
+**Step 3: Create new drink route**
 
 ```typescript
 import { redirect } from 'react-router';
 import type { Route } from './+types/_admin.drinks.new';
 import { createDrink } from '~/models/drink.server';
-import { uploadImage } from '~/utils/imagekit.server';
+import { uploadImageOrPlaceholder } from '~/utils/imagekit.server';
 import { generateSlug } from '~/utils/slug';
 import { DrinkForm } from '~/admin/drink-form';
 import { purgeSearchCache } from '~/routes/_app.search/cache.server';
@@ -1594,10 +2321,16 @@ export async function action({ request }: Route.ActionArgs) {
   const notes = (formData.get('notes') as string) || null;
   const rank = parseInt(formData.get('rank') as string, 10) || 0;
 
-  // Upload image to ImageKit
-  const base64Data = imageData.split(',')[1];
-  const imageBuffer = Buffer.from(base64Data, 'base64');
-  const imageUrl = await uploadImage(imageBuffer, `${slug}.jpg`);
+  let imageUrl: string;
+
+  if (imageData && imageData.startsWith('data:')) {
+    const base64Data = imageData.split(',')[1];
+    const imageBuffer = Buffer.from(base64Data, 'base64');
+    imageUrl = await uploadImageOrPlaceholder(imageBuffer, `${slug}.jpg`);
+  } else {
+    // Fallback for tests or when no image provided
+    imageUrl = `https://via.placeholder.com/400x400.png?text=${encodeURIComponent(slug)}`;
+  }
 
   await createDrink({
     title,
@@ -1611,693 +2344,141 @@ export async function action({ request }: Route.ActionArgs) {
   });
 
   // Invalidate caches
-  purgeSearchCache();
-  await purgeFastlyCache(['index', 'all', 'tags']);
+  try {
+    purgeSearchCache();
+    await purgeFastlyCache(['index', 'all', 'tags']);
+  } catch (e) {
+    // Cache invalidation failures shouldn't block the request
+    console.error('Cache invalidation failed:', e);
+  }
 
   return redirect('/admin/drinks');
 }
 ```
 
-**Step 2: Commit**
+**Step 4: Run test to verify it passes**
+
+Run: `pnpm test:e2e playwright/admin-create-drink.test.ts`
+Expected: PASS
+
+**Step 5: Commit**
 
 ```bash
-git add app/routes/_admin.drinks.new.tsx
-git commit -m "feat: add new drink route"
+git add app/routes/_admin.drinks.new.tsx playwright/admin-create-drink.test.ts
+git commit -m "feat: add new drink route with tests"
 ```
 
 ---
 
-## Task 29: Create Fastly Utility
+### Task 38-42: Remaining Admin Routes (Edit, Delete)
 
-**Files:**
-- Create: `app/utils/fastly.server.ts`
+Follow the same TDD pattern for:
 
-**Step 1: Create Fastly utility**
+- **Task 38**: Edit drink route (`_admin.drinks.$slug.edit.tsx`) with test
+- **Task 39**: Delete drink route (`_admin.drinks.$slug.delete.tsx`) with test
+- **Task 40-42**: Any remaining admin functionality
 
-Extract and adapt from existing webhook handler.
-
-```typescript
-import { env } from './env.server';
-
-export async function purgeFastlyCache(
-  surrogateKeys: string[],
-): Promise<void> {
-  if (!env.FASTLY_SERVICE_ID || !env.FASTLY_PURGE_API_KEY) {
-    console.log('Fastly not configured, skipping cache purge');
-    return;
-  }
-
-  const response = await fetch(
-    `https://api.fastly.com/service/${env.FASTLY_SERVICE_ID}/purge`,
-    {
-      method: 'POST',
-      headers: {
-        'Fastly-Key': env.FASTLY_PURGE_API_KEY,
-        'Surrogate-Key': surrogateKeys.join(' '),
-      },
-    },
-  );
-
-  if (!response.ok) {
-    console.error('Failed to purge Fastly cache:', await response.text());
-  }
-}
-```
-
-**Step 2: Commit**
-
-```bash
-git add app/utils/fastly.server.ts
-git commit -m "feat: add fastly cache purge utility"
-```
+Each task follows the pattern:
+1. Write failing test
+2. Verify test fails
+3. Implement feature
+4. Verify test passes
+5. Commit
 
 ---
 
-## Task 30: Create Edit Drink Route
+## Phase 5: Update Public Routes (Tasks 43-49)
 
-**Files:**
-- Create: `app/routes/_admin.drinks.$slug.edit.tsx`
+For each public route update, follow TDD:
 
-**Step 1: Create edit drink route**
+### Task 43: Update Index Page
 
-```typescript
-import { redirect } from 'react-router';
-import type { Route } from './+types/_admin.drinks.$slug.edit';
-import { getDrinkBySlug, updateDrink } from '~/models/drink.server';
-import { uploadImage } from '~/utils/imagekit.server';
-import { DrinkForm } from '~/admin/drink-form';
-import { purgeSearchCache } from '~/routes/_app.search/cache.server';
-import { purgeFastlyCache } from '~/utils/fastly.server';
+1. Update smoke test if needed
+2. Replace Contentful query with `getAllDrinks()`
+3. Verify tests pass
+4. Commit
 
-export async function loader({ params }: Route.LoaderArgs) {
-  const drink = await getDrinkBySlug(params.slug);
-  if (!drink) {
-    throw new Response('Not found', { status: 404 });
-  }
-  return { drink };
-}
+### Task 44: Update Drink Detail Page
 
-export default function EditDrinkPage({ loaderData }: Route.ComponentProps) {
-  const { drink } = loaderData;
+Same pattern.
 
-  return (
-    <div>
-      <h1 className="mb-6 text-2xl font-bold">Edit: {drink.title}</h1>
-      <div className="rounded-lg bg-white p-6 shadow">
-        <DrinkForm
-          drink={drink}
-          action={`/admin/drinks/${drink.slug}/edit`}
-        />
-      </div>
-    </div>
-  );
-}
+### Task 45: Update Tags Index
 
-export async function action({ request, params }: Route.ActionArgs) {
-  const formData = await request.formData();
-  const drink = await getDrinkBySlug(params.slug);
+Same pattern.
 
-  if (!drink) {
-    throw new Response('Not found', { status: 404 });
-  }
+### Task 46: Update Tag Detail Page
 
-  const title = formData.get('title') as string;
-  const slug = formData.get('slug') as string;
-  const imageData = formData.get('imageData') as string;
-  const existingImageUrl = formData.get('existingImageUrl') as string;
-  const ingredients = (formData.get('ingredients') as string)
-    .split('\n')
-    .map((i) => i.trim())
-    .filter(Boolean);
-  const calories = parseInt(formData.get('calories') as string, 10);
-  const tags = (formData.get('tags') as string)
-    .split(',')
-    .map((t) => t.trim())
-    .filter(Boolean);
-  const notes = (formData.get('notes') as string) || null;
-  const rank = parseInt(formData.get('rank') as string, 10) || 0;
+Same pattern.
 
-  let imageUrl = existingImageUrl;
+### Task 47: Update Search
 
-  // Upload new image if provided
-  if (imageData && imageData.startsWith('data:')) {
-    const base64Data = imageData.split(',')[1];
-    const imageBuffer = Buffer.from(base64Data, 'base64');
-    imageUrl = await uploadImage(imageBuffer, `${slug}.jpg`);
-  }
+Same pattern.
 
-  await updateDrink(drink.id, {
-    title,
-    slug,
-    imageUrl,
-    ingredients,
-    calories,
-    tags,
-    notes,
-    rank,
-  });
+### Task 48: Update Placeholder Images for ImageKit
 
-  // Invalidate caches
-  purgeSearchCache();
-  await purgeFastlyCache(['index', 'all', 'tags', params.slug, slug]);
+Update URL transformation logic for ImageKit's format.
 
-  return redirect('/admin/drinks');
-}
-```
+### Task 49: Run Full Test Suite
 
-**Step 2: Commit**
-
-```bash
-git add app/routes/_admin.drinks.$slug.edit.tsx
-git commit -m "feat: add edit drink route"
-```
+Run: `pnpm test:e2e`
+Expected: All tests pass
 
 ---
 
-## Task 31: Add Delete Drink Action
+## Phase 6: Migration and Cleanup (Tasks 50-56)
 
-**Files:**
-- Create: `app/routes/_admin.drinks.$slug.delete.tsx`
+### Task 50: Create Migration Script
 
-**Step 1: Create delete route**
+Create `scripts/migrate-from-contentful.ts` (see original plan for full implementation).
 
-```typescript
-import { redirect } from 'react-router';
-import type { Route } from './+types/_admin.drinks.$slug.delete';
-import { getDrinkBySlug, deleteDrink } from '~/models/drink.server';
-import { purgeSearchCache } from '~/routes/_app.search/cache.server';
-import { purgeFastlyCache } from '~/utils/fastly.server';
+### Task 51: Update Fly.io Configuration
 
-export async function action({ params }: Route.ActionArgs) {
-  const drink = await getDrinkBySlug(params.slug);
+Add volume mount, update to single machine.
 
-  if (!drink) {
-    throw new Response('Not found', { status: 404 });
-  }
+### Task 52: Remove Contentful Code
 
-  await deleteDrink(drink.id);
+Delete unused files, remove env vars.
 
-  // Invalidate caches
-  purgeSearchCache();
-  await purgeFastlyCache(['index', 'all', 'tags', params.slug]);
+### Task 53: Update Types
 
-  return redirect('/admin/drinks');
-}
-```
+Clean up type definitions.
 
-**Step 2: Update drinks list to include delete button**
+### Task 54: Create Fly Volume (Manual)
 
-In `app/routes/_admin.drinks._index.tsx`, add delete form to the actions column:
-
-```typescript
-<td className="whitespace-nowrap px-6 py-4 text-right text-sm">
-  <Link
-    to={`/admin/drinks/${drink.slug}/edit`}
-    className="text-blue-600 hover:text-blue-900"
-  >
-    Edit
-  </Link>
-  <Form
-    method="post"
-    action={`/admin/drinks/${drink.slug}/delete`}
-    className="ml-4 inline"
-    onSubmit={(e) => {
-      if (!confirm('Are you sure you want to delete this drink?')) {
-        e.preventDefault();
-      }
-    }}
-  >
-    <button
-      type="submit"
-      className="text-red-600 hover:text-red-900"
-    >
-      Delete
-    </button>
-  </Form>
-</td>
-```
-
-**Step 3: Commit**
-
-```bash
-git add app/routes/_admin.drinks.$slug.delete.tsx app/routes/_admin.drinks._index.tsx
-git commit -m "feat: add delete drink functionality"
-```
-
----
-
-## Task 32: Update Public Routes - Index Page
-
-**Files:**
-- Modify: `app/routes/_app._index.tsx`
-
-**Step 1: Read current index route**
-
-Read the file to understand current structure.
-
-**Step 2: Replace Contentful query with Drizzle query**
-
-Replace the loader to use `getAllDrinks()` from the drink model. Keep the same response structure and caching headers.
-
-**Step 3: Update imports**
-
-Remove Contentful-related imports, add drink model import.
-
-**Step 4: Commit**
-
-```bash
-git add app/routes/_app._index.tsx
-git commit -m "feat: update index route to use sqlite"
-```
-
----
-
-## Task 33: Update Public Routes - Drink Detail Page
-
-**Files:**
-- Modify: `app/routes/_app.$slug.tsx`
-
-**Step 1: Read current detail route**
-
-Read the file to understand current structure.
-
-**Step 2: Replace Contentful query with Drizzle query**
-
-Replace the loader to use `getDrinkBySlug()` from the drink model.
-
-**Step 3: Update imports**
-
-Remove Contentful-related imports, add drink model import.
-
-**Step 4: Commit**
-
-```bash
-git add app/routes/_app.$slug.tsx
-git commit -m "feat: update drink detail route to use sqlite"
-```
-
----
-
-## Task 34: Update Public Routes - Tags Index
-
-**Files:**
-- Modify: `app/routes/_app.tags._index.tsx`
-
-**Step 1: Read current tags index route**
-
-Read the file to understand current structure.
-
-**Step 2: Replace Contentful query with Drizzle query**
-
-Replace the loader to use `getAllTags()` from the drink model.
-
-**Step 3: Commit**
-
-```bash
-git add app/routes/_app.tags._index.tsx
-git commit -m "feat: update tags index route to use sqlite"
-```
-
----
-
-## Task 35: Update Public Routes - Tag Detail Page
-
-**Files:**
-- Modify: `app/routes/_app.tags.$tag.tsx`
-
-**Step 1: Read current tag detail route**
-
-Read the file to understand current structure.
-
-**Step 2: Replace Contentful query with Drizzle query**
-
-Replace the loader to use `getDrinksByTag()` from the drink model.
-
-**Step 3: Commit**
-
-```bash
-git add app/routes/_app.tags.$tag.tsx
-git commit -m "feat: update tag detail route to use sqlite"
-```
-
----
-
-## Task 36: Update Search to Use SQLite
-
-**Files:**
-- Modify: `app/routes/_app.search/minisearch.server.ts`
-
-**Step 1: Read current search implementation**
-
-Read the file to understand current structure.
-
-**Step 2: Replace Contentful fetch with Drizzle query**
-
-Update `getOrCreateSearchIndex()` to use `getAllDrinks()` instead of fetching from Contentful.
-
-**Step 3: Commit**
-
-```bash
-git add app/routes/_app.search/minisearch.server.ts
-git commit -m "feat: update search to use sqlite"
-```
-
----
-
-## Task 37: Update Placeholder Image Generation
-
-**Files:**
-- Modify: `app/utils/placeholder-images.server.ts`
-
-**Step 1: Read current implementation**
-
-Read the file to understand how blur placeholders are generated.
-
-**Step 2: Update to work with ImageKit URLs**
-
-ImageKit supports URL-based transformations. Update the transformation logic to use ImageKit's URL format for generating small blur placeholders.
-
-**Step 3: Commit**
-
-```bash
-git add app/utils/placeholder-images.server.ts
-git commit -m "feat: update placeholder images for imagekit"
-```
-
----
-
-## Task 38: Create Migration Script
-
-**Files:**
-- Create: `scripts/migrate-from-contentful.ts`
-
-**Step 1: Create the migration script**
-
-```typescript
-import 'dotenv/config';
-import { db } from '../app/db/client.server';
-import { drinks } from '../app/db/schema';
-import { createId } from '@paralleldrive/cuid2';
-
-const CONTENTFUL_URL = process.env.CONTENTFUL_URL!;
-const CONTENTFUL_ACCESS_TOKEN = process.env.CONTENTFUL_ACCESS_TOKEN!;
-const IMAGEKIT_PUBLIC_KEY = process.env.IMAGEKIT_PUBLIC_KEY!;
-const IMAGEKIT_PRIVATE_KEY = process.env.IMAGEKIT_PRIVATE_KEY!;
-const IMAGEKIT_URL_ENDPOINT = process.env.IMAGEKIT_URL_ENDPOINT!;
-
-async function fetchAllDrinksFromContentful() {
-  const query = `
-    query {
-      drinkCollection(limit: 200, order: [rank_DESC, sys_firstPublishedAt_DESC]) {
-        items {
-          title
-          slug
-          image { url }
-          ingredients
-          calories
-          tags
-          notes
-          rank
-        }
-      }
-    }
-  `;
-
-  const response = await fetch(CONTENTFUL_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${CONTENTFUL_ACCESS_TOKEN}`,
-    },
-    body: JSON.stringify({ query }),
-  });
-
-  const json = await response.json();
-  return json.data.drinkCollection.items;
-}
-
-async function downloadImage(url: string): Promise<Buffer> {
-  const response = await fetch(url);
-  const arrayBuffer = await response.arrayBuffer();
-  return Buffer.from(arrayBuffer);
-}
-
-async function uploadToImageKit(
-  buffer: Buffer,
-  fileName: string,
-): Promise<string> {
-  const ImageKit = (await import('imagekit')).default;
-  const imagekit = new ImageKit({
-    publicKey: IMAGEKIT_PUBLIC_KEY,
-    privateKey: IMAGEKIT_PRIVATE_KEY,
-    urlEndpoint: IMAGEKIT_URL_ENDPOINT,
-  });
-
-  const response = await imagekit.upload({
-    file: buffer,
-    fileName,
-    folder: '/drinks',
-  });
-
-  return response.url;
-}
-
-async function migrate() {
-  console.log('Fetching drinks from Contentful...');
-  const contentfulDrinks = await fetchAllDrinksFromContentful();
-  console.log(`Found ${contentfulDrinks.length} drinks`);
-
-  for (const drink of contentfulDrinks) {
-    console.log(`Processing: ${drink.title}`);
-
-    // Check if already migrated
-    const existing = await db.query.drinks.findFirst({
-      where: (d, { eq }) => eq(d.slug, drink.slug),
-    });
-
-    if (existing) {
-      console.log(`  Skipping (already exists)`);
-      continue;
-    }
-
-    // Download and re-upload image
-    console.log(`  Downloading image...`);
-    const imageBuffer = await downloadImage(drink.image.url);
-
-    console.log(`  Uploading to ImageKit...`);
-    const newImageUrl = await uploadToImageKit(
-      imageBuffer,
-      `${drink.slug}.jpg`,
-    );
-
-    // Insert into database
-    console.log(`  Inserting into database...`);
-    await db.insert(drinks).values({
-      id: createId(),
-      slug: drink.slug,
-      title: drink.title,
-      imageUrl: newImageUrl,
-      calories: drink.calories,
-      ingredients: drink.ingredients,
-      tags: drink.tags || [],
-      notes: drink.notes || null,
-      rank: drink.rank || 0,
-    });
-
-    console.log(`  Done!`);
-  }
-
-  console.log('Migration complete!');
-}
-
-migrate().catch(console.error);
-```
-
-**Step 2: Add script to package.json**
-
-```json
-{
-  "migrate:contentful": "tsx scripts/migrate-from-contentful.ts"
-}
-```
-
-**Step 3: Install tsx for running TypeScript scripts**
-
-Run: `pnpm add -D tsx`
-
-**Step 4: Commit**
-
-```bash
-git add scripts/migrate-from-contentful.ts package.json pnpm-lock.yaml
-git commit -m "feat: add contentful migration script"
-```
-
----
-
-## Task 39: Update Fly.io Configuration
-
-**Files:**
-- Modify: `fly.toml`
-
-**Step 1: Read current fly.toml**
-
-Read the file to understand current configuration.
-
-**Step 2: Add volume mount configuration**
-
-Add to fly.toml:
-```toml
-[mounts]
-  source = "drinks_data"
-  destination = "/data"
-```
-
-**Step 3: Update to single machine**
-
-Ensure only one machine is configured (remove any multi-region settings).
-
-**Step 4: Commit**
-
-```bash
-git add fly.toml
-git commit -m "chore: configure fly.io for sqlite volume"
-```
-
----
-
-## Task 40: Remove Contentful Code
-
-**Files:**
-- Delete: `app/utils/graphql.server.ts`
-- Delete: `app/routes/[_].content-change/` directory
-- Modify: `app/utils/env.server.ts` (remove Contentful variables)
-- Modify: `app/types.ts` (if needed)
-
-**Step 1: Delete Contentful files**
-
-Run:
-```bash
-rm app/utils/graphql.server.ts
-rm -rf app/routes/[_].content-change
-```
-
-**Step 2: Remove Contentful env vars from schema**
-
-Remove from env.server.ts:
-- CONTENTFUL_ACCESS_TOKEN
-- CONTENTFUL_URL
-- CONTENTFUL_PREVIEW
-- CONTENTFUL_WEBHOOK_TOKEN
-
-**Step 3: Clean up any remaining Contentful imports**
-
-Search for remaining Contentful references and remove them.
-
-**Step 4: Commit**
-
-```bash
-git add -A
-git commit -m "chore: remove contentful integration code"
-```
-
----
-
-## Task 41: Update Types
-
-**Files:**
-- Modify: `app/types.ts`
-
-**Step 1: Read current types file**
-
-Read the file to understand current type definitions.
-
-**Step 2: Update or remove Contentful-specific types**
-
-The `Drink` type should now come from the Drizzle schema. Update any remaining types to match the new data structure.
-
-**Step 3: Commit**
-
-```bash
-git add app/types.ts
-git commit -m "chore: update types for sqlite schema"
-```
-
----
-
-## Task 42: Create Fly Volume (Manual Step)
-
-**This is a manual step to be run before deployment.**
-
-**Step 1: Create the volume**
-
-Run:
 ```bash
 fly volumes create drinks_data --region sea --size 1
 ```
 
-**Step 2: Verify volume created**
+### Task 55: Deploy and Run Migration (Manual)
 
-Run: `fly volumes list`
-Expected: Shows drinks_data volume
-
----
-
-## Task 43: Deploy and Run Migration (Manual Steps)
-
-**Step 1: Deploy the updated app**
-
-Run: `fly deploy`
-
-**Step 2: SSH into the Fly machine**
-
-Run: `fly ssh console`
-
-**Step 3: Run database migrations**
-
-Run: `cd /app && pnpm db:push`
-
-**Step 4: Run the Contentful migration script**
-
-Run: `pnpm migrate:contentful`
-
-**Step 5: Verify data**
-
-Run: `sqlite3 /data/drinks.db "SELECT COUNT(*) FROM drinks;"`
-Expected: Shows ~50 drinks
-
-**Step 6: Exit and test the app**
-
-Visit the deployed URL and verify drinks are loading.
-
----
-
-## Task 44: Add First Admin User (Manual Step)
-
-**Step 1: SSH into the Fly machine**
-
-Run: `fly ssh console`
-
-**Step 2: Insert admin user**
-
-Replace with your Google account email:
 ```bash
-sqlite3 /data/drinks.db "INSERT INTO users (id, email, name, role, created_at, updated_at) VALUES ('$(openssl rand -hex 12)', 'your-email@gmail.com', 'Your Name', 'admin', datetime('now'), datetime('now'));"
+fly deploy
+fly ssh console
+pnpm db:push
+pnpm migrate:contentful
 ```
 
-**Step 3: Verify user created**
+### Task 56: Add First Admin User (Manual)
 
-Run: `sqlite3 /data/drinks.db "SELECT * FROM users;"`
+Insert your Google email into the users table.
 
 ---
 
 ## Summary
 
-This plan has 44 tasks covering:
-1. **Tasks 1-6**: Database setup (Drizzle, SQLite, schema, migrations)
-2. **Tasks 7-18**: Authentication (Google OAuth, sessions, middleware, routes)
-3. **Tasks 19-31**: Admin UI (ImageKit, forms, CRUD routes)
-4. **Tasks 32-37**: Public route updates (switch from Contentful to SQLite)
-5. **Tasks 38-41**: Migration and cleanup
-6. **Tasks 42-44**: Deployment and final setup
+This plan has **56 tasks** organized into 6 phases:
 
-Each task is designed to be independently executable with clear inputs/outputs and commit points.
+1. **Phase 1 (Tasks 1-6)**: Database setup
+2. **Phase 2 (Tasks 7-13)**: Playwright infrastructure with per-test DB reset
+3. **Phase 3 (Tasks 14-26)**: Authentication with test fixtures
+4. **Phase 4 (Tasks 27-42)**: Admin UI with TDD
+5. **Phase 5 (Tasks 43-49)**: Public route updates with tests
+6. **Phase 6 (Tasks 50-56)**: Migration and cleanup
+
+**Testing Strategy:**
+- Fresh database seeded before EACH test via `/__test/reset-db` endpoint
+- `pageAsAdmin` fixture injects session cookie for authenticated tests
+- Tests run serially (one at a time) for database isolation
+- Test infrastructure set up early so all subsequent features use TDD
+
+Each task is designed to be independently executable with clear test verification at each step.

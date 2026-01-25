@@ -147,9 +147,10 @@ git commit -m "feat: add drizzle schema for users and drinks"
 ```typescript
 import Database from 'better-sqlite3';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
+import { getEnvVars } from '~/utils/env.server';
 import * as schema from './schema';
 
-const DATABASE_URL = process.env.DATABASE_URL || './data/drinks.db';
+const { DATABASE_URL } = getEnvVars();
 
 let sqlite: Database.Database | null = null;
 
@@ -470,11 +471,14 @@ git commit -m "feat: add database reset utility for testing"
 
 ```typescript
 import type { Route } from './+types/[_].reset-db';
+import { getEnvVars } from '~/utils/env.server';
 import { resetAndSeedDatabase } from '~/db/reset.server';
+
+const { NODE_ENV } = getEnvVars();
 
 export async function action({ request }: Route.ActionArgs) {
   // Only allow in test environment
-  if (process.env.NODE_ENV !== 'test') {
+  if (NODE_ENV !== 'test') {
     throw new Response('Not Found', { status: 404 });
   }
 
@@ -691,16 +695,17 @@ import {
   createCookie,
   createCookieSessionStorage,
 } from 'react-router';
+import { getEnvVars } from '~/utils/env.server';
 import type { AuthenticatedUser } from './types';
 
-const SESSION_SECRET = process.env.SESSION_SECRET || 'dev-secret-change-in-production';
+const { SESSION_SECRET, NODE_ENV } = getEnvVars();
 
 export const sessionCookie = createCookie('__session', {
   httpOnly: true,
   path: '/',
   sameSite: 'lax',
   secrets: [SESSION_SECRET],
-  secure: process.env.NODE_ENV === 'production',
+  secure: NODE_ENV === 'production',
 });
 
 type SessionData = {
@@ -1368,10 +1373,14 @@ git commit -m "chore: add imagekit sdk"
 
 ```typescript
 import ImageKit from 'imagekit';
+import { getEnvVars } from '~/utils/env.server';
 
-const publicKey = process.env.IMAGEKIT_PUBLIC_KEY;
-const privateKey = process.env.IMAGEKIT_PRIVATE_KEY;
-const urlEndpoint = process.env.IMAGEKIT_URL_ENDPOINT;
+const {
+  IMAGEKIT_PUBLIC_KEY,
+  IMAGEKIT_PRIVATE_KEY,
+  IMAGEKIT_URL_ENDPOINT,
+  NODE_ENV,
+} = getEnvVars();
 
 type UploadResult = {
   url: string;
@@ -1379,14 +1388,14 @@ type UploadResult = {
 };
 
 function getImageKit() {
-  if (!publicKey || !privateKey || !urlEndpoint) {
+  if (!IMAGEKIT_PUBLIC_KEY || !IMAGEKIT_PRIVATE_KEY || !IMAGEKIT_URL_ENDPOINT) {
     throw new Error('ImageKit credentials not configured');
   }
 
   return new ImageKit({
-    publicKey,
-    privateKey,
-    urlEndpoint,
+    publicKey: IMAGEKIT_PUBLIC_KEY,
+    privateKey: IMAGEKIT_PRIVATE_KEY,
+    urlEndpoint: IMAGEKIT_URL_ENDPOINT,
   });
 }
 
@@ -1409,7 +1418,7 @@ export async function uploadImage(
 }
 
 export async function deleteImage(fileId: string): Promise<void> {
-  if (process.env.NODE_ENV === 'test') {
+  if (NODE_ENV === 'test') {
     return; // Skip actual deletion in tests
   }
   const imagekit = getImageKit();
@@ -1423,7 +1432,7 @@ export async function uploadImageOrPlaceholder(
   file: Buffer,
   fileName: string,
 ): Promise<UploadResult> {
-  if (process.env.NODE_ENV === 'test') {
+  if (NODE_ENV === 'test') {
     return {
       url: `https://via.placeholder.com/400x400.png?text=${encodeURIComponent(fileName)}`,
       fileId: 'test-placeholder',
@@ -1552,10 +1561,10 @@ git commit -m "feat: add drink model functions"
 **Step 1: Create Fastly utility**
 
 ```typescript
+import { getEnvVars } from '~/utils/env.server';
 import { getSurrogateKeyForTag } from '~/tags/utils';
 
-const FASTLY_SERVICE_ID = process.env.FASTLY_SERVICE_ID;
-const FASTLY_PURGE_API_KEY = process.env.FASTLY_PURGE_API_KEY;
+const { FASTLY_SERVICE_ID, FASTLY_PURGE_API_KEY } = getEnvVars();
 
 export async function purgeFastlyCache(
   surrogateKeys: string[],

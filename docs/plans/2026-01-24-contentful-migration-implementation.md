@@ -891,7 +891,10 @@ const googleStrategyOptions: GoogleStrategyOptions = {
 
 /**
  * Verify callback for Google OAuth. Called after successful authentication
- * to create/update the user and return the session data.
+ * to check user exists (allowlist) and return session data.
+ *
+ * Note: Role checking is NOT done here - that's handled by middleware.
+ * This allows the same auth flow for different route protection levels.
  */
 const verify: ConstructorParameters<typeof GoogleStrategy<AuthenticatedUser>>[1] = async ({
   profile,
@@ -906,8 +909,8 @@ const verify: ConstructorParameters<typeof GoogleStrategy<AuthenticatedUser>>[1]
   });
 
   // Allowlist model: user must exist in database to log in
+  // Role checking happens in middleware (adminMiddleware, etc.)
   invariant(user, 'User not authorized');
-  invariant(user.role === 'admin', 'User not authorized');
 
   return {
     id: user.id,

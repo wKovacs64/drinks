@@ -1350,6 +1350,15 @@ git commit -m "test: add auth e2e tests"
 
 ## Phase 4: Admin UI (Tasks 27-42)
 
+> **Design Guidance:** Use the `frontend-design:frontend-design` skill for admin UI components. The
+> admin interface should deliberately diverge from the public site's vintage aesthetic:
+>
+> - **Colors:** Cooler palette (slate/gray/blue) instead of warm maroon/cream
+> - **Layout:** Compact, information-dense tables and forms
+> - **Typography:** System font stack for faster load, no decorative touches
+> - **Components:** Clean, functional styling - no decorative borders or Glass patterns
+> - **Goal:** Signal "admin tool" vs "gallery experience"
+
 ### Task 27: Add ImageKit Dependencies
 
 **Files:**

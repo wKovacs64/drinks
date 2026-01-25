@@ -732,11 +732,7 @@ type SessionData = {
   returnTo?: string;
 };
 
-type SessionFlashData = {
-  toast?: { kind: 'success' | 'error'; message: string };
-};
-
-const cookieSessionStorage = createCookieSessionStorage<SessionData, SessionFlashData>({
+const cookieSessionStorage = createCookieSessionStorage<SessionData>({
   cookie: sessionCookie,
 });
 

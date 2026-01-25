@@ -1,16 +1,21 @@
 # Contentful Migration Implementation Plan
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
+> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan
+> task-by-task.
 
 **Goal:** Replace Contentful CMS with SQLite + ImageKit + in-app admin UI.
 
-**Architecture:** SQLite (strict mode) on Fly volume for data, ImageKit for image storage/CDN, Google OAuth for admin auth, Drizzle ORM for database access. Admin routes built into the existing React Router app.
+**Architecture:** SQLite (strict mode) on Fly volume for data, ImageKit for image storage/CDN,
+Google OAuth for admin auth, Drizzle ORM for database access. Admin routes built into the existing
+React Router app.
 
-**Tech Stack:** React Router v7, Drizzle ORM, SQLite, ImageKit, remix-auth, @coji/remix-auth-google, Playwright, Zod
+**Tech Stack:** React Router v7, Drizzle ORM, SQLite, ImageKit, remix-auth, @coji/remix-auth-google,
+Playwright, Zod
 
 **Reference Project:** Auth and testing patterns from `/home/justin/dev/work/slhs/hand-hygiene`
 
 **Testing Strategy:**
+
 - Playwright for all E2E tests (test as the user would)
 - Fresh database seeded before EACH test via `/_/reset-db` endpoint
 - `pageAsAdmin` fixture for authenticated tests (injects session cookie)
@@ -23,11 +28,13 @@
 ### Task 1: Add Drizzle and SQLite Dependencies
 
 **Files:**
+
 - Modify: `package.json`
 
 **Step 1: Install dependencies**
 
 Run:
+
 ```bash
 pnpm add drizzle-orm better-sqlite3 @paralleldrive/cuid2
 pnpm add -D drizzle-kit @types/better-sqlite3
@@ -35,8 +42,7 @@ pnpm add -D drizzle-kit @types/better-sqlite3
 
 **Step 2: Verify installation**
 
-Run: `pnpm ls drizzle-orm better-sqlite3`
-Expected: Both packages listed with versions
+Run: `pnpm ls drizzle-orm better-sqlite3` Expected: Both packages listed with versions
 
 **Step 3: Commit**
 
@@ -50,6 +56,7 @@ git commit -m "chore: add drizzle, sqlite, and cuid2 dependencies"
 ### Task 2: Create Drizzle Configuration
 
 **Files:**
+
 - Create: `drizzle.config.ts`
 
 **Step 1: Create drizzle config file**
@@ -81,6 +88,7 @@ git commit -m "chore: add drizzle configuration"
 ### Task 3: Create Database Schema
 
 **Files:**
+
 - Create: `app/db/schema.ts`
 
 **Step 1: Create the schema file**
@@ -140,6 +148,7 @@ git commit -m "feat: add drizzle schema for users and drinks"
 ### Task 4: Create Database Client
 
 **Files:**
+
 - Create: `app/db/client.server.ts`
 
 **Step 1: Create the database client**
@@ -184,6 +193,7 @@ export function getDb() {
 **Step 2: Create data directory for local development**
 
 Run:
+
 ```bash
 mkdir -p data
 echo "*.db" >> data/.gitignore
@@ -202,12 +212,14 @@ git commit -m "feat: add drizzle database client with reset capability"
 ### Task 5: Generate and Run Initial Migration
 
 **Files:**
+
 - Create: `drizzle/` migrations directory (generated)
 - Modify: `package.json`
 
 **Step 1: Add migration scripts to package.json**
 
 Add to `package.json` scripts:
+
 ```json
 {
   "db:generate": "drizzle-kit generate",
@@ -219,18 +231,15 @@ Add to `package.json` scripts:
 
 **Step 2: Generate migration**
 
-Run: `pnpm db:generate`
-Expected: Migration files created in `drizzle/` directory
+Run: `pnpm db:generate` Expected: Migration files created in `drizzle/` directory
 
 **Step 3: Create local database and apply migration**
 
-Run: `pnpm db:push`
-Expected: Tables created in local SQLite database
+Run: `pnpm db:push` Expected: Tables created in local SQLite database
 
 **Step 4: Verify tables exist**
 
-Run: `sqlite3 ./data/drinks.db ".schema"`
-Expected: Shows users and drinks table schemas
+Run: `sqlite3 ./data/drinks.db ".schema"` Expected: Shows users and drinks table schemas
 
 **Step 5: Commit**
 
@@ -244,6 +253,7 @@ git commit -m "feat: add database migrations"
 ### Task 6: Update Environment Variables Schema
 
 **Files:**
+
 - Modify: `app/utils/env.server.ts`
 
 **Step 1: Read current env.server.ts**
@@ -253,6 +263,7 @@ Read the file to understand current structure.
 **Step 2: Add new environment variables**
 
 Add to the Zod schema:
+
 ```typescript
 // Database
 DATABASE_URL: z.string().default('./data/drinks.db'),
@@ -292,12 +303,14 @@ git commit -m "feat: add env vars for database, imagekit, and auth"
 ### Task 7: Install Playwright
 
 **Files:**
+
 - Modify: `package.json`
 - Create: `playwright.config.ts`
 
 **Step 1: Install Playwright**
 
 Run:
+
 ```bash
 pnpm add -D @playwright/test
 pnpm exec playwright install chromium
@@ -360,6 +373,7 @@ git commit -m "chore: add playwright for e2e testing"
 ### Task 8: Create Test Seed Data
 
 **Files:**
+
 - Create: `playwright/seed-data.ts`
 
 **Step 1: Create seed data file**
@@ -427,6 +441,7 @@ git commit -m "feat: add test seed data for playwright"
 ### Task 9: Create Database Reset Utility
 
 **Files:**
+
 - Create: `app/db/reset.server.ts`
 
 **Step 1: Create reset utility**
@@ -465,6 +480,7 @@ git commit -m "feat: add database reset utility for testing"
 ### Task 10: Create Test Reset Endpoint
 
 **Files:**
+
 - Create: `app/routes/[_].reset-db.ts`
 
 **Step 1: Create test reset endpoint**
@@ -509,6 +525,7 @@ git commit -m "feat: add test database reset endpoint"
 ### Task 11: Create Mock Users for Testing
 
 **Files:**
+
 - Create: `playwright/mock-users.ts`
 
 **Step 1: Create mock users file**
@@ -540,6 +557,7 @@ git commit -m "feat: add mock users for playwright tests"
 ### Task 12: Create Playwright Test Utilities (Scaffold)
 
 **Files:**
+
 - Create: `playwright/playwright-utils.ts`
 
 **Step 1: Create test utilities scaffold**
@@ -582,6 +600,7 @@ git commit -m "feat: add playwright test utilities scaffold"
 ### Task 13: Create First Smoke Test
 
 **Files:**
+
 - Create: `playwright/smoke.test.ts`
 
 **Step 1: Create smoke test**
@@ -611,8 +630,8 @@ test.describe('Smoke Tests', () => {
 
 **Step 2: Run test to verify setup works**
 
-Run: `pnpm test:e2e`
-Expected: Tests pass (or fail meaningfully if public routes aren't updated yet - this verifies the test infrastructure works)
+Run: `pnpm test:e2e` Expected: Tests pass (or fail meaningfully if public routes aren't updated
+yet - this verifies the test infrastructure works)
 
 **Step 3: Commit**
 
@@ -628,19 +647,20 @@ git commit -m "test: add smoke tests for homepage and drink detail"
 ### Task 14: Add Auth Dependencies
 
 **Files:**
+
 - Modify: `package.json`
 
 **Step 1: Install auth dependencies**
 
 Run:
+
 ```bash
 pnpm add remix-auth @coji/remix-auth-google @epic-web/invariant
 ```
 
 **Step 2: Verify installation**
 
-Run: `pnpm ls remix-auth @coji/remix-auth-google @epic-web/invariant`
-Expected: All packages listed
+Run: `pnpm ls remix-auth @coji/remix-auth-google @epic-web/invariant` Expected: All packages listed
 
 **Step 3: Commit**
 
@@ -654,6 +674,7 @@ git commit -m "chore: add remix-auth dependencies"
 ### Task 15: Create Auth Types
 
 **Files:**
+
 - Create: `app/auth/types.ts`
 
 **Step 1: Create auth types file**
@@ -684,6 +705,7 @@ git commit -m "feat: add authenticated user type"
 ### Task 16: Create Session Storage with Test Export
 
 **Files:**
+
 - Create: `app/auth/session.server.ts`
 
 **Step 1: Create session storage with getRawSessionCookieValue export**
@@ -691,10 +713,7 @@ git commit -m "feat: add authenticated user type"
 Reference: `/home/justin/dev/work/slhs/hand-hygiene/app/auth/session.server.ts`
 
 ```typescript
-import {
-  createCookie,
-  createCookieSessionStorage,
-} from 'react-router';
+import { createCookie, createCookieSessionStorage } from 'react-router';
 import { getEnvVars } from '#/app/utils/env.server';
 import type { AuthenticatedUser } from './types';
 
@@ -717,23 +736,17 @@ type SessionFlashData = {
   toast?: { kind: 'success' | 'error'; message: string };
 };
 
-const cookieSessionStorage = createCookieSessionStorage<
-  SessionData,
-  SessionFlashData
->({
+const cookieSessionStorage = createCookieSessionStorage<SessionData, SessionFlashData>({
   cookie: sessionCookie,
 });
 
-export const { getSession, commitSession, destroySession } =
-  cookieSessionStorage;
+export const { getSession, commitSession, destroySession } = cookieSessionStorage;
 
 /**
  * Get the raw session cookie value for a user.
  * Used in Playwright tests to inject auth cookies.
  */
-export async function getRawSessionCookieValue(
-  user: AuthenticatedUser,
-): Promise<string> {
+export async function getRawSessionCookieValue(user: AuthenticatedUser): Promise<string> {
   const session = await getSession();
   session.set('user', user);
   const serializedCookie = await commitSession(session);
@@ -756,6 +769,7 @@ git commit -m "feat: add session storage with test cookie export"
 ### Task 17: Create Auth Utilities
 
 **Files:**
+
 - Create: `app/auth/utils.server.ts`
 
 **Step 1: Create auth utilities**
@@ -796,6 +810,7 @@ git commit -m "feat: add auth utility functions"
 ### Task 18: Create User Model Functions
 
 **Files:**
+
 - Create: `app/models/user.server.ts`
 
 **Step 1: Create user model**
@@ -813,9 +828,7 @@ export async function getUserById(id: User['id']): Promise<User | undefined> {
   });
 }
 
-export async function getUserByEmail(
-  email: User['email'],
-): Promise<User | undefined> {
+export async function getUserByEmail(email: User['email']): Promise<User | undefined> {
   const db = getDb();
   return db.query.users.findFirst({
     where: eq(users.email, email),
@@ -868,6 +881,7 @@ git commit -m "feat: add user model functions"
 ### Task 19: Create Authenticator
 
 **Files:**
+
 - Create: `app/auth/auth.server.ts`
 
 **Step 1: Create authenticator**
@@ -882,11 +896,7 @@ import { getEnvVars } from '#/app/utils/env.server';
 import { updateUserOnLogin } from '#/app/models/user.server';
 import type { AuthenticatedUser } from './types';
 
-const {
-  GOOGLE_CLIENT_ID,
-  GOOGLE_CLIENT_SECRET,
-  GOOGLE_REDIRECT_URI,
-} = getEnvVars();
+const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI } = getEnvVars();
 
 const googleStrategyOptions: GoogleStrategyOptions = {
   clientId: GOOGLE_CLIENT_ID,
@@ -943,11 +953,14 @@ git commit -m "feat: add google oauth authenticator"
 ### Task 20: Create Auth Middleware
 
 **Files:**
+
 - Create: `app/middleware/auth.server.ts`
 
 **Step 1: Create auth middleware with composable pattern**
 
-Adapts the pattern from `/home/justin/dev/work/slhs/hand-hygiene/app/middleware/authorization.server.ts`:
+Adapts the pattern from
+`/home/justin/dev/work/slhs/hand-hygiene/app/middleware/authorization.server.ts`:
+
 - Uses `createContext` for type-safe context access
 - Exports `getUserFromContext` helper for use in route loaders
 - Composable middleware: `userMiddleware` (auth only) + `adminMiddleware` (role check)
@@ -970,9 +983,7 @@ const userContext = createContext<AuthenticatedUser>();
  * Get the authenticated user from the route context.
  * Use this in route loaders/actions after userMiddleware has run.
  */
-export function getUserFromContext(
-  context: Readonly<RouterContextProvider>,
-): AuthenticatedUser {
+export function getUserFromContext(context: Readonly<RouterContextProvider>): AuthenticatedUser {
   return context.get(userContext);
 }
 
@@ -981,10 +992,7 @@ export function getUserFromContext(
  * is stored in context (accessible via getUserFromContext). If not authenticated,
  * redirects to login with returnTo URL preserved.
  */
-export const userMiddleware: MiddlewareFunction<Response> = async (
-  { request, context },
-  next,
-) => {
+export const userMiddleware: MiddlewareFunction<Response> = async ({ request, context }, next) => {
   const session = await getSession(request.headers.get('Cookie'));
   const sessionUser = session.get('user');
 
@@ -1020,10 +1028,7 @@ export const userMiddleware: MiddlewareFunction<Response> = async (
  * Middleware that requires the authenticated user has admin role.
  * Must come after userMiddleware in the middleware chain.
  */
-export const adminMiddleware: MiddlewareFunction<Response> = async (
-  { context },
-  next,
-) => {
+export const adminMiddleware: MiddlewareFunction<Response> = async ({ context }, next) => {
   const user = getUserFromContext(context);
 
   if (user.role !== 'admin') {
@@ -1046,6 +1051,7 @@ git commit -m "feat: add composable auth middleware with typed context"
 ### Task 21: Create Login Route
 
 **Files:**
+
 - Create: `app/routes/login.tsx`
 
 **Step 1: Create login route**
@@ -1079,6 +1085,7 @@ git commit -m "feat: add login route"
 ### Task 22: Create Google OAuth Callback Route
 
 **Files:**
+
 - Create: `app/routes/auth.google.callback.tsx`
 
 **Step 1: Create callback route**
@@ -1134,6 +1141,7 @@ git commit -m "feat: add google oauth callback route"
 ### Task 23: Create Logout Route
 
 **Files:**
+
 - Create: `app/routes/logout.tsx`
 
 **Step 1: Create logout route**
@@ -1171,6 +1179,7 @@ git commit -m "feat: add logout route"
 ### Task 24: Create Login Failed and Unauthorized Routes
 
 **Files:**
+
 - Create: `app/routes/login-failed.tsx`
 - Create: `app/routes/unauthorized.tsx`
 
@@ -1226,6 +1235,7 @@ git commit -m "feat: add login failed and unauthorized pages"
 ### Task 25: Complete Playwright Test Utilities with Auth
 
 **Files:**
+
 - Modify: `playwright/playwright-utils.ts`
 - Modify: `playwright/mock-users.ts` (if needed)
 
@@ -1293,6 +1303,7 @@ git commit -m "feat: complete playwright utils with pageAsAdmin fixture"
 ### Task 26: Create Auth E2E Tests
 
 **Files:**
+
 - Create: `playwright/auth.test.ts`
 
 **Step 1: Create auth tests**
@@ -1346,11 +1357,13 @@ git commit -m "test: add auth e2e tests"
 ### Task 27: Add ImageKit Dependencies
 
 **Files:**
+
 - Modify: `package.json`
 
 **Step 1: Install ImageKit SDK**
 
 Run:
+
 ```bash
 pnpm add imagekit
 ```
@@ -1367,6 +1380,7 @@ git commit -m "chore: add imagekit sdk"
 ### Task 28: Create ImageKit Client
 
 **Files:**
+
 - Create: `app/utils/imagekit.server.ts`
 
 **Step 1: Create ImageKit client**
@@ -1375,12 +1389,7 @@ git commit -m "chore: add imagekit sdk"
 import ImageKit from 'imagekit';
 import { getEnvVars } from '#/app/utils/env.server';
 
-const {
-  IMAGEKIT_PUBLIC_KEY,
-  IMAGEKIT_PRIVATE_KEY,
-  IMAGEKIT_URL_ENDPOINT,
-  NODE_ENV,
-} = getEnvVars();
+const { IMAGEKIT_PUBLIC_KEY, IMAGEKIT_PRIVATE_KEY, IMAGEKIT_URL_ENDPOINT, NODE_ENV } = getEnvVars();
 
 type UploadResult = {
   url: string;
@@ -1399,10 +1408,7 @@ function getImageKit() {
   });
 }
 
-export async function uploadImage(
-  file: Buffer,
-  fileName: string,
-): Promise<UploadResult> {
+export async function uploadImage(file: Buffer, fileName: string): Promise<UploadResult> {
   const imagekit = getImageKit();
 
   const response = await imagekit.upload({
@@ -1454,6 +1460,7 @@ git commit -m "feat: add imagekit client with test mode"
 ### Task 29: Create Drink Model Functions
 
 **Files:**
+
 - Create: `app/models/drink.server.ts`
 
 **Step 1: Create drink model**
@@ -1471,9 +1478,7 @@ export async function getAllDrinks(): Promise<Drink[]> {
   });
 }
 
-export async function getDrinkBySlug(
-  slug: string,
-): Promise<Drink | undefined> {
+export async function getDrinkBySlug(slug: string): Promise<Drink | undefined> {
   const db = getDb();
   return db.query.drinks.findFirst({
     where: eq(drinks.slug, slug),
@@ -1556,6 +1561,7 @@ git commit -m "feat: add drink model functions"
 ### Task 30: Create Fastly Utility
 
 **Files:**
+
 - Create: `app/utils/fastly.server.ts`
 
 **Step 1: Create Fastly utility**
@@ -1566,24 +1572,19 @@ import { getSurrogateKeyForTag } from '#/app/tags/utils';
 
 const { FASTLY_SERVICE_ID, FASTLY_PURGE_API_KEY } = getEnvVars();
 
-export async function purgeFastlyCache(
-  surrogateKeys: string[],
-): Promise<void> {
+export async function purgeFastlyCache(surrogateKeys: string[]): Promise<void> {
   if (!FASTLY_SERVICE_ID || !FASTLY_PURGE_API_KEY) {
     console.log('Fastly not configured, skipping cache purge');
     return;
   }
 
-  const response = await fetch(
-    `https://api.fastly.com/service/${FASTLY_SERVICE_ID}/purge`,
-    {
-      method: 'POST',
-      headers: {
-        'Fastly-Key': FASTLY_PURGE_API_KEY,
-        'Surrogate-Key': surrogateKeys.join(' '),
-      },
+  const response = await fetch(`https://api.fastly.com/service/${FASTLY_SERVICE_ID}/purge`, {
+    method: 'POST',
+    headers: {
+      'Fastly-Key': FASTLY_PURGE_API_KEY,
+      'Surrogate-Key': surrogateKeys.join(' '),
     },
-  );
+  });
 
   if (!response.ok) {
     console.error('Failed to purge Fastly cache:', await response.text());
@@ -1594,17 +1595,8 @@ export async function purgeFastlyCache(
  * Purge all cache keys affected by a drink change.
  * Aligns with existing surrogate key patterns in the codebase.
  */
-export async function purgeDrinkCache(drink: {
-  slug: string;
-  tags: string[];
-}): Promise<void> {
-  const keys = [
-    'index',
-    'all',
-    drink.slug,
-    'tags',
-    ...drink.tags.map(getSurrogateKeyForTag),
-  ];
+export async function purgeDrinkCache(drink: { slug: string; tags: string[] }): Promise<void> {
+  const keys = ['index', 'all', drink.slug, 'tags', ...drink.tags.map(getSurrogateKeyForTag)];
   await purgeFastlyCache(keys);
 }
 ```
@@ -1621,6 +1613,7 @@ git commit -m "feat: add fastly cache purge utility"
 ### Task 31: Create Slug Utility
 
 **Files:**
+
 - Create: `app/utils/slug.ts`
 
 **Step 1: Create slug utility**
@@ -1648,12 +1641,13 @@ git commit -m "feat: add slug generation utility"
 ### Task 32: Create Admin Layout Route
 
 **Files:**
+
 - Create: `app/routes/_admin.tsx`
 
 **Step 1: Create admin layout**
 
-Uses composable middleware chain: `userMiddleware` first (auth), then `adminMiddleware` (role check).
-Retrieves user via `getUserFromContext` helper.
+Uses composable middleware chain: `userMiddleware` first (auth), then `adminMiddleware` (role
+check). Retrieves user via `getUserFromContext` helper.
 
 ```typescript
 import { Outlet, Link, Form } from 'react-router';
@@ -1723,6 +1717,7 @@ git commit -m "feat: add admin layout route"
 ### Task 33: Create Admin Index Route (Redirect)
 
 **Files:**
+
 - Create: `app/routes/_admin._index.tsx`
 
 **Step 1: Create admin index redirect**
@@ -1747,6 +1742,7 @@ git commit -m "feat: add admin index redirect to drinks"
 ### Task 34: Create Admin Drinks List Route and Test
 
 **Files:**
+
 - Create: `app/routes/_admin.drinks._index.tsx`
 - Create: `playwright/admin-drinks-list.test.ts`
 
@@ -1787,8 +1783,7 @@ test.describe('Admin Drinks List', () => {
 
 **Step 2: Run test to verify it fails**
 
-Run: `pnpm test:e2e playwright/admin-drinks-list.test.ts`
-Expected: FAIL (route doesn't exist yet)
+Run: `pnpm test:e2e playwright/admin-drinks-list.test.ts` Expected: FAIL (route doesn't exist yet)
 
 **Step 3: Create drinks list page**
 
@@ -1899,8 +1894,7 @@ export default function AdminDrinksList({
 
 **Step 4: Run test to verify it passes**
 
-Run: `pnpm test:e2e playwright/admin-drinks-list.test.ts`
-Expected: PASS
+Run: `pnpm test:e2e playwright/admin-drinks-list.test.ts` Expected: PASS
 
 **Step 5: Commit**
 
@@ -1914,11 +1908,13 @@ git commit -m "feat: add admin drinks list page with tests"
 ### Task 35: Create Image Crop Component
 
 **Files:**
+
 - Create: `app/admin/image-crop.tsx`
 
 **Step 1: Install react-image-crop**
 
 Run:
+
 ```bash
 pnpm add react-image-crop
 ```
@@ -2067,6 +2063,7 @@ git commit -m "feat: add image crop component"
 ### Task 36: Create Drink Form Component
 
 **Files:**
+
 - Create: `app/admin/drink-form.tsx`
 
 **Step 1: Create the drink form component**
@@ -2286,6 +2283,7 @@ git commit -m "feat: add drink form component"
 ### Task 37: Create New Drink Route and Test
 
 **Files:**
+
 - Create: `app/routes/_admin.drinks.new.tsx`
 - Create: `playwright/admin-create-drink.test.ts`
 
@@ -2325,8 +2323,7 @@ test.describe('Create New Drink', () => {
 
 **Step 2: Run test to verify it fails**
 
-Run: `pnpm test:e2e playwright/admin-create-drink.test.ts`
-Expected: FAIL
+Run: `pnpm test:e2e playwright/admin-create-drink.test.ts` Expected: FAIL
 
 **Step 3: Create new drink route**
 
@@ -2411,8 +2408,7 @@ export async function action({ request }: Route.ActionArgs) {
 
 **Step 4: Run test to verify it passes**
 
-Run: `pnpm test:e2e playwright/admin-create-drink.test.ts`
-Expected: PASS
+Run: `pnpm test:e2e playwright/admin-create-drink.test.ts` Expected: PASS
 
 **Step 5: Commit**
 
@@ -2432,6 +2428,7 @@ Follow the same TDD pattern for:
 - **Task 40-42**: Any remaining admin functionality
 
 Each task follows the pattern:
+
 1. Write failing test
 2. Verify test fails
 3. Implement feature
@@ -2473,8 +2470,7 @@ Update URL transformation logic for ImageKit's format.
 
 ### Task 49: Run Full Test Suite
 
-Run: `pnpm test:e2e`
-Expected: All tests pass
+Run: `pnpm test:e2e` Expected: All tests pass
 
 ---
 
@@ -2529,12 +2525,14 @@ This plan has **56 tasks** organized into 6 phases:
 6. **Phase 6 (Tasks 50-56)**: Migration and cleanup
 
 **Testing Strategy:**
+
 - Fresh database seeded before EACH test via `/_/reset-db` endpoint
 - `pageAsAdmin` fixture injects session cookie for authenticated tests
 - Tests run serially (one at a time) for database isolation
 - Test infrastructure set up early so all subsequent features use TDD
 
 **Security Model:**
+
 - Allowlist-based auth: users must be manually added to database before they can log in
 - `updateUserOnLogin` only updates existing users, returns null for unknown emails
 - Google strategy rejects users not in the allowlist

@@ -4,13 +4,16 @@ Replace Contentful CMS with a self-managed solution built into the drinks app.
 
 ## Background
 
-The drinks app currently uses Contentful as a headless CMS for storing and managing drink data. However, only a fraction of Contentful's features are used:
+The drinks app currently uses Contentful as a headless CMS for storing and managing drink data.
+However, only a fraction of Contentful's features are used:
 
 - Upload an image to the media library
 - Create a drink entity with fields (title, slug, ingredients, calories, tags, notes, rank)
 - Link the image to the drink
 
-For a site with ~50 drinks, a handful of visitors, and a single curator, Contentful adds unnecessary complexity. The goal is to simplify the stack while gaining more control over the data and admin experience.
+For a site with ~50 drinks, a handful of visitors, and a single curator, Contentful adds unnecessary
+complexity. The goal is to simplify the stack while gaining more control over the data and admin
+experience.
 
 ## Goals
 
@@ -30,21 +33,22 @@ For a site with ~50 drinks, a handful of visitors, and a single curator, Content
 
 ### Stack Overview
 
-| Component | Current | New |
-|-----------|---------|-----|
-| Database | Contentful (GraphQL API) | SQLite (strict mode) on Fly volume |
-| ORM | N/A | Drizzle |
-| Images | Contentful Media Library | ImageKit |
-| Image rendering | unpic | unpic (unchanged) |
-| Auth | None | Google OAuth via remix-auth |
-| Admin UI | Contentful dashboard | In-app `/admin` routes |
-| CDN | Fastly | Fastly (unchanged) |
-| Search | MiniSearch | MiniSearch (unchanged) |
-| Hosting | Fly.io (2 regions) | Fly.io (1 region + volume) |
+| Component       | Current                  | New                                |
+| --------------- | ------------------------ | ---------------------------------- |
+| Database        | Contentful (GraphQL API) | SQLite (strict mode) on Fly volume |
+| ORM             | N/A                      | Drizzle                            |
+| Images          | Contentful Media Library | ImageKit                           |
+| Image rendering | unpic                    | unpic (unchanged)                  |
+| Auth            | None                     | Google OAuth via remix-auth        |
+| Admin UI        | Contentful dashboard     | In-app `/admin` routes             |
+| CDN             | Fastly                   | Fastly (unchanged)                 |
+| Search          | MiniSearch               | MiniSearch (unchanged)             |
+| Hosting         | Fly.io (2 regions)       | Fly.io (1 region + volume)         |
 
 ### Data Flow
 
 **Public visitors:**
+
 1. Request hits Fastly CDN
 2. Cache miss → request forwarded to Fly.io app
 3. App queries SQLite via Drizzle
@@ -52,6 +56,7 @@ For a site with ~50 drinks, a handful of visitors, and a single curator, Content
 5. Response cached at CDN with surrogate keys
 
 **Admin users:**
+
 1. Visit protected route → redirect to `/login` if no session
 2. `/login` initiates Google OAuth (single provider, auto-redirect)
 3. Google redirects to `/auth/google/callback`
@@ -90,7 +95,9 @@ CREATE TABLE drinks (
 ```
 
 **Notes:**
-- `ingredients` and `tags` are stored as JSON arrays in TEXT columns. SQLite has solid JSON functions for querying, and Drizzle supports JSON columns well.
+
+- `ingredients` and `tags` are stored as JSON arrays in TEXT columns. SQLite has solid JSON
+  functions for querying, and Drizzle supports JSON columns well.
 - `role` is a simple string (`'admin'`) for now, extensible to other roles later.
 - Using cuid2 for IDs (shorter than UUIDs, URL-friendly).
 
@@ -108,7 +115,8 @@ CREATE TABLE drinks (
    - Looks up user by email in `users` table
    - If exists with admin role: update profile data (name, avatar_url), create session
    - If not found or not admin: show "not authorized" page
-   - **Important:** Users must be manually added to the database before they can log in (allowlist model)
+   - **Important:** Users must be manually added to the database before they can log in (allowlist
+     model)
 7. Redirect to `returnTo` path (or `/admin` fallback), clear `returnTo` cookie
 8. `/logout` clears session, redirects to `/`
 
@@ -141,6 +149,7 @@ CREATE TABLE drinks (
 ### Drink Form
 
 **Fields:**
+
 - Title (text input)
 - Slug (text input, auto-generated from title, editable)
 - Image (upload with crop UI)
@@ -175,6 +184,7 @@ CREATE TABLE drinks (
 ### Provider: ImageKit
 
 Selected for:
+
 - Clear, simple free tier (20GB bandwidth, 3GB storage/month)
 - Good ease-of-use ratings
 - 200+ global edge locations
@@ -198,23 +208,28 @@ Selected for:
 Fastly caching remains in place. The invalidation logic simplifies:
 
 **Current (Contentful):**
+
 - Contentful publishes content
 - Webhook fires to `/_/content-change`
 - App validates webhook, purges Fastly keys
 
 **New:**
+
 - Admin saves drink
 - App directly calls Fastly purge API
 - No webhook handler needed
 
 Surrogate key strategy aligns with existing codebase patterns:
+
 - `index` - home page listing
 - `all` - search and other "all drinks" queries
 - `[slug]` - individual drink pages
 - `tags` - tag index page
-- `[tag]` - individual tag pages (use `getSurrogateKeyForTag()` which replaces spaces with underscores)
+- `[tag]` - individual tag pages (use `getSurrogateKeyForTag()` which replaces spaces with
+  underscores)
 
-On drink create/update/delete, purge: `index`, `all`, `[slug]`, `tags`, and all `[tag]` keys for the drink's tags.
+On drink create/update/delete, purge: `index`, `all`, `[slug]`, `tags`, and all `[tag]` keys for the
+drink's tags.
 
 ## Migration
 
@@ -245,20 +260,25 @@ A migration script will import existing drinks from Contentful:
 ### Post-Migration Cleanup
 
 Remove from codebase:
+
 - `app/utils/graphql.server.ts`
 - `app/routes/[_].content-change/` (webhook handler)
 - Contentful-related types
-- Environment variables: `CONTENTFUL_ACCESS_TOKEN`, `CONTENTFUL_URL`, `CONTENTFUL_PREVIEW`, `CONTENTFUL_WEBHOOK_TOKEN`
+- Environment variables: `CONTENTFUL_ACCESS_TOKEN`, `CONTENTFUL_URL`, `CONTENTFUL_PREVIEW`,
+  `CONTENTFUL_WEBHOOK_TOKEN`
 
 ## Fly.io Configuration
 
 ### Current
+
 - 2 machines across regions (for zero-downtime deploys)
 
 ### New
+
 - 1 machine with attached volume for SQLite
 - Volume persists across deploys
-- Fly's rolling deploy handles continuity (starts new machine, health checks, moves traffic, stops old machine, reattaches volume)
+- Fly's rolling deploy handles continuity (starts new machine, health checks, moves traffic, stops
+  old machine, reattaches volume)
 
 ### Volume Setup
 
@@ -267,6 +287,7 @@ fly volumes create drinks_data --region sea --size 1
 ```
 
 Update `fly.toml` to mount:
+
 ```toml
 [mounts]
   source = "drinks_data"
@@ -277,7 +298,8 @@ SQLite file lives at `/data/drinks.db`. Set `DATABASE_URL=/data/drinks.db` in pr
 
 ### Deployment Notes
 
-- Fly volumes attach to a single machine; during rolling deploys, the old machine releases the volume before the new one attaches
+- Fly volumes attach to a single machine; during rolling deploys, the old machine releases the
+  volume before the new one attaches
 - Brief interruption during deploys is acceptable for this scale
 - Health checks ensure traffic switches only after new machine is ready
 
@@ -304,14 +326,14 @@ None at this time. Ready for implementation planning.
 
 ## Decision Log
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| Database | SQLite (strict mode) | Simple, portable, free. Strict mode addresses type affinity concerns. |
-| ORM | Drizzle | Lightweight, TypeScript-first, excellent SQLite support. |
-| Image provider | ImageKit | Simpler pricing than Cloudinary, generous free tier, unpic support. |
-| Image crop | Client-side, on upload | Simpler than storing focal point metadata. Can't adjust later without re-upload, but acceptable trade-off. |
-| Compression | None (pre-upload) | ImageKit handles optimization. Storage/bandwidth not a concern at this scale. |
-| Auth | Google OAuth | Simple, no password management. Extensible to other providers. |
-| Permissions | Admin-only for now | YAGNI. Role field allows future expansion. |
-| CDN | Keep Fastly | Already working. Provides edge delivery and origin protection. |
-| Fly regions | Single machine | Multi-region adds SQLite replication complexity. CDN handles edge delivery. Single machine sufficient for this scale. |
+| Decision       | Choice                 | Rationale                                                                                                             |
+| -------------- | ---------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Database       | SQLite (strict mode)   | Simple, portable, free. Strict mode addresses type affinity concerns.                                                 |
+| ORM            | Drizzle                | Lightweight, TypeScript-first, excellent SQLite support.                                                              |
+| Image provider | ImageKit               | Simpler pricing than Cloudinary, generous free tier, unpic support.                                                   |
+| Image crop     | Client-side, on upload | Simpler than storing focal point metadata. Can't adjust later without re-upload, but acceptable trade-off.            |
+| Compression    | None (pre-upload)      | ImageKit handles optimization. Storage/bandwidth not a concern at this scale.                                         |
+| Auth           | Google OAuth           | Simple, no password management. Extensible to other providers.                                                        |
+| Permissions    | Admin-only for now     | YAGNI. Role field allows future expansion.                                                                            |
+| CDN            | Keep Fastly            | Already working. Provides edge delivery and origin protection.                                                        |
+| Fly regions    | Single machine         | Multi-region adds SQLite replication complexity. CDN handles edge delivery. Single machine sufficient for this scale. |

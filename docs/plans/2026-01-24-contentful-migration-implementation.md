@@ -269,9 +269,9 @@ Add to the Zod schema:
 DATABASE_URL: z.string().default('./data/drinks.db'),
 
 // ImageKit
-IMAGEKIT_PUBLIC_KEY: z.string().optional(),
-IMAGEKIT_PRIVATE_KEY: z.string().optional(),
-IMAGEKIT_URL_ENDPOINT: z.string().optional(),
+IMAGEKIT_PUBLIC_KEY: z.string().min(1),
+IMAGEKIT_PRIVATE_KEY: z.string().min(1),
+IMAGEKIT_URL_ENDPOINT: z.string().min(1),
 
 // Google OAuth (required - set dummy values for local dev if not using admin)
 GOOGLE_CLIENT_ID: z.string().min(1),
@@ -1394,10 +1394,6 @@ type UploadResult = {
 };
 
 function getImageKit() {
-  if (!IMAGEKIT_PUBLIC_KEY || !IMAGEKIT_PRIVATE_KEY || !IMAGEKIT_URL_ENDPOINT) {
-    throw new Error('ImageKit credentials not configured');
-  }
-
   return new ImageKit({
     publicKey: IMAGEKIT_PUBLIC_KEY,
     privateKey: IMAGEKIT_PRIVATE_KEY,

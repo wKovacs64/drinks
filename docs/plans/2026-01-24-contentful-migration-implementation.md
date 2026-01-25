@@ -12,7 +12,7 @@
 
 **Testing Strategy:**
 - Playwright for all E2E tests (test as the user would)
-- Fresh database seeded before EACH test via `/__test/reset-db` endpoint
+- Fresh database seeded before EACH test via `/_/reset-db` endpoint
 - `pageAsAdmin` fixture for authenticated tests (injects session cookie)
 - Test-only endpoint only available when `NODE_ENV=test`
 
@@ -108,6 +108,7 @@ export const drinks = sqliteTable('drinks', {
   slug: text('slug').notNull().unique(),
   title: text('title').notNull(),
   imageUrl: text('image_url').notNull(),
+  imageFileId: text('image_file_id').notNull(),
   calories: integer('calories').notNull(),
   ingredients: text('ingredients', { mode: 'json' }).notNull().$type<string[]>(),
   tags: text('tags', { mode: 'json' }).notNull().$type<string[]>(),
@@ -316,7 +317,7 @@ export default defineConfig({
   workers: 1,
   reporter: 'html',
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL: 'http://localhost:5173',
     trace: 'on-first-retry',
   },
   projects: [
@@ -327,7 +328,7 @@ export default defineConfig({
   ],
   webServer: {
     command: 'pnpm run dev',
-    url: 'http://localhost:3000',
+    url: 'http://localhost:5173',
     reuseExistingServer: !process.env.CI,
     env: {
       NODE_ENV: 'test',
@@ -379,6 +380,7 @@ export const TEST_DRINKS: Omit<NewDrink, 'createdAt' | 'updatedAt'>[] = [
     slug: 'test-margarita',
     title: 'Test Margarita',
     imageUrl: 'https://via.placeholder.com/400x400.png?text=Margarita',
+    imageFileId: 'test-placeholder',
     calories: 200,
     ingredients: ['2 oz tequila', '1 oz lime juice', '1 oz triple sec'],
     tags: ['tequila', 'citrus'],
@@ -390,6 +392,7 @@ export const TEST_DRINKS: Omit<NewDrink, 'createdAt' | 'updatedAt'>[] = [
     slug: 'test-mojito',
     title: 'Test Mojito',
     imageUrl: 'https://via.placeholder.com/400x400.png?text=Mojito',
+    imageFileId: 'test-placeholder',
     calories: 150,
     ingredients: ['2 oz rum', '1 oz lime juice', 'mint leaves', 'soda water'],
     tags: ['rum', 'citrus', 'mint'],
@@ -401,6 +404,7 @@ export const TEST_DRINKS: Omit<NewDrink, 'createdAt' | 'updatedAt'>[] = [
     slug: 'test-old-fashioned',
     title: 'Test Old Fashioned',
     imageUrl: 'https://via.placeholder.com/400x400.png?text=OldFashioned',
+    imageFileId: 'test-placeholder',
     calories: 180,
     ingredients: ['2 oz bourbon', '1 sugar cube', 'angostura bitters'],
     tags: ['bourbon', 'classic'],
@@ -426,74 +430,23 @@ git commit -m "feat: add test seed data for playwright"
 
 **Step 1: Create reset utility**
 
+Uses Drizzle's type-safe delete method to stay in sync with the schema.
+
 ```typescript
-import Database from 'better-sqlite3';
-import { drizzle } from 'drizzle-orm/better-sqlite3';
-import { sql } from 'drizzle-orm';
-import * as schema from './schema';
+import { getDb } from './client.server';
 import { users, drinks } from './schema';
-import { closeDatabase, resetDatabaseConnection } from './client.server';
 import { TEST_ADMIN_USER, TEST_DRINKS } from '../../playwright/seed-data';
 
-const DATABASE_URL = process.env.DATABASE_URL || './data/drinks.db';
-
 export async function resetAndSeedDatabase() {
-  // Close existing connection
-  closeDatabase();
+  const db = getDb();
 
-  // Create fresh connection for reset
-  const sqlite = new Database(DATABASE_URL);
-  sqlite.pragma('journal_mode = WAL');
-  const db = drizzle(sqlite, { schema });
-
-  // Drop and recreate tables
-  db.run(sql`DROP TABLE IF EXISTS drinks`);
-  db.run(sql`DROP TABLE IF EXISTS users`);
-
-  db.run(sql`
-    CREATE TABLE users (
-      id TEXT PRIMARY KEY,
-      email TEXT NOT NULL UNIQUE,
-      name TEXT,
-      avatar_url TEXT,
-      role TEXT NOT NULL DEFAULT 'admin',
-      created_at TEXT NOT NULL DEFAULT (datetime('now')),
-      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-    )
-  `);
-
-  db.run(sql`
-    CREATE TABLE drinks (
-      id TEXT PRIMARY KEY,
-      slug TEXT NOT NULL UNIQUE,
-      title TEXT NOT NULL,
-      image_url TEXT NOT NULL,
-      calories INTEGER NOT NULL,
-      ingredients TEXT NOT NULL,
-      tags TEXT NOT NULL,
-      notes TEXT,
-      rank INTEGER NOT NULL DEFAULT 0,
-      created_at TEXT NOT NULL DEFAULT (datetime('now')),
-      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-    )
-  `);
+  // Delete all data (order matters if there are foreign keys)
+  await db.delete(drinks);
+  await db.delete(users);
 
   // Seed test data
   await db.insert(users).values(TEST_ADMIN_USER);
-
-  for (const drink of TEST_DRINKS) {
-    await db.insert(drinks).values({
-      ...drink,
-      ingredients: JSON.stringify(drink.ingredients),
-      tags: JSON.stringify(drink.tags),
-    });
-  }
-
-  // Close this connection
-  sqlite.close();
-
-  // Reset the main connection
-  resetDatabaseConnection();
+  await db.insert(drinks).values(TEST_DRINKS);
 
   return { success: true };
 }
@@ -511,12 +464,12 @@ git commit -m "feat: add database reset utility for testing"
 ### Task 10: Create Test Reset Endpoint
 
 **Files:**
-- Create: `app/routes/[_].test.reset-db.ts`
+- Create: `app/routes/[_].reset-db.ts`
 
 **Step 1: Create test reset endpoint**
 
 ```typescript
-import type { Route } from './+types/[_].test.reset-db';
+import type { Route } from './+types/[_].reset-db';
 import { resetAndSeedDatabase } from '~/db/reset.server';
 
 export async function action({ request }: Route.ActionArgs) {
@@ -543,7 +496,7 @@ export async function loader() {
 **Step 2: Commit**
 
 ```bash
-git add app/routes/[_].test.reset-db.ts
+git add app/routes/[_].reset-db.ts
 git commit -m "feat: add test database reset endpoint"
 ```
 
@@ -597,7 +550,7 @@ import { test as base, expect, type Page } from '@playwright/test';
 // Will be extended with pageAsAdmin fixture after auth is implemented
 
 async function resetDatabase(request: Page['request']) {
-  const response = await request.post('http://localhost:3000/__test/reset-db');
+  const response = await request.post('/_/reset-db');
   if (!response.ok()) {
     throw new Error(`Failed to reset database: ${response.status()}`);
   }
@@ -864,7 +817,11 @@ export async function getUserByEmail(
   });
 }
 
-export async function upsertUserOnLogin({
+/**
+ * Update an existing user's profile on login.
+ * Returns null if user doesn't exist (allowlist model - users must be manually added).
+ */
+export async function updateUserOnLogin({
   email,
   name,
   avatarUrl,
@@ -872,35 +829,25 @@ export async function upsertUserOnLogin({
   email: string;
   name: string | null;
   avatarUrl: string | null;
-}): Promise<User> {
+}): Promise<User | null> {
   const db = getDb();
   const existingUser = await getUserByEmail(email);
 
-  if (existingUser) {
-    const [updatedUser] = await db
-      .update(users)
-      .set({
-        name,
-        avatarUrl,
-        updatedAt: new Date().toISOString(),
-      })
-      .where(eq(users.id, existingUser.id))
-      .returning();
-    return updatedUser;
+  if (!existingUser) {
+    return null;
   }
 
-  const [newUser] = await db
-    .insert(users)
-    .values({
-      id: createId(),
-      email,
+  const [updatedUser] = await db
+    .update(users)
+    .set({
       name,
       avatarUrl,
-      role: 'admin',
+      updatedAt: new Date().toISOString(),
     })
+    .where(eq(users.id, existingUser.id))
     .returning();
 
-  return newUser;
+  return updatedUser;
 }
 ```
 
@@ -925,7 +872,7 @@ Reference: `/home/justin/dev/work/slhs/hand-hygiene/app/auth/auth.server.ts`
 ```typescript
 import { Authenticator } from 'remix-auth';
 import { GoogleStrategy } from '@coji/remix-auth-google';
-import { upsertUserOnLogin } from '~/models/user.server';
+import { updateUserOnLogin } from '~/models/user.server';
 import type { AuthenticatedUser } from './types';
 
 export const authenticator = new Authenticator<AuthenticatedUser>();
@@ -948,11 +895,20 @@ if (googleClientId && googleClientSecret && googleRedirectUri) {
         throw new Error('No email found in Google profile');
       }
 
-      const user = await upsertUserOnLogin({
+      const user = await updateUserOnLogin({
         email,
         name: profile.displayName ?? null,
         avatarUrl: profile.photos?.[0]?.value ?? null,
       });
+
+      // Allowlist model: user must exist in database to log in
+      if (!user) {
+        throw new Error('User not authorized');
+      }
+
+      if (user.role !== 'admin') {
+        throw new Error('User not authorized');
+      }
 
       return {
         id: user.id,
@@ -1242,7 +1198,7 @@ type TestFixtures = {
 };
 
 async function resetDatabase(request: Page['request']) {
-  const response = await request.post('http://localhost:3000/__test/reset-db');
+  const response = await request.post('/_/reset-db');
   if (!response.ok()) {
     throw new Error(`Failed to reset database: ${response.status()}`);
   }
@@ -1376,6 +1332,11 @@ const publicKey = process.env.IMAGEKIT_PUBLIC_KEY;
 const privateKey = process.env.IMAGEKIT_PRIVATE_KEY;
 const urlEndpoint = process.env.IMAGEKIT_URL_ENDPOINT;
 
+type UploadResult = {
+  url: string;
+  fileId: string;
+};
+
 function getImageKit() {
   if (!publicKey || !privateKey || !urlEndpoint) {
     throw new Error('ImageKit credentials not configured');
@@ -1391,7 +1352,7 @@ function getImageKit() {
 export async function uploadImage(
   file: Buffer,
   fileName: string,
-): Promise<string> {
+): Promise<UploadResult> {
   const imagekit = getImageKit();
 
   const response = await imagekit.upload({
@@ -1400,23 +1361,32 @@ export async function uploadImage(
     folder: '/drinks',
   });
 
-  return response.url;
+  return {
+    url: response.url,
+    fileId: response.fileId,
+  };
 }
 
 export async function deleteImage(fileId: string): Promise<void> {
+  if (process.env.NODE_ENV === 'test') {
+    return; // Skip actual deletion in tests
+  }
   const imagekit = getImageKit();
   await imagekit.deleteFile(fileId);
 }
 
 /**
- * For tests: return a placeholder URL instead of uploading
+ * For tests: return placeholder values instead of uploading
  */
 export async function uploadImageOrPlaceholder(
   file: Buffer,
   fileName: string,
-): Promise<string> {
+): Promise<UploadResult> {
   if (process.env.NODE_ENV === 'test') {
-    return `https://via.placeholder.com/400x400.png?text=${encodeURIComponent(fileName)}`;
+    return {
+      url: `https://via.placeholder.com/400x400.png?text=${encodeURIComponent(fileName)}`,
+      fileId: 'test-placeholder',
+    };
   }
   return uploadImage(file, fileName);
 }
@@ -1541,6 +1511,8 @@ git commit -m "feat: add drink model functions"
 **Step 1: Create Fastly utility**
 
 ```typescript
+import { getSurrogateKeyForTag } from '~/tags/utils';
+
 const FASTLY_SERVICE_ID = process.env.FASTLY_SERVICE_ID;
 const FASTLY_PURGE_API_KEY = process.env.FASTLY_PURGE_API_KEY;
 
@@ -1566,6 +1538,24 @@ export async function purgeFastlyCache(
   if (!response.ok) {
     console.error('Failed to purge Fastly cache:', await response.text());
   }
+}
+
+/**
+ * Purge all cache keys affected by a drink change.
+ * Aligns with existing surrogate key patterns in the codebase.
+ */
+export async function purgeDrinkCache(drink: {
+  slug: string;
+  tags: string[];
+}): Promise<void> {
+  const keys = [
+    'index',
+    'all',
+    drink.slug,
+    'tags',
+    ...drink.tags.map(getSurrogateKeyForTag),
+  ];
+  await purgeFastlyCache(keys);
 }
 ```
 
@@ -2290,7 +2280,7 @@ import { uploadImageOrPlaceholder } from '~/utils/imagekit.server';
 import { generateSlug } from '~/utils/slug';
 import { DrinkForm } from '~/admin/drink-form';
 import { purgeSearchCache } from '~/routes/_app.search/cache.server';
-import { purgeFastlyCache } from '~/utils/fastly.server';
+import { purgeDrinkCache } from '~/utils/fastly.server';
 
 export default function NewDrinkPage() {
   return (
@@ -2322,20 +2312,25 @@ export async function action({ request }: Route.ActionArgs) {
   const rank = parseInt(formData.get('rank') as string, 10) || 0;
 
   let imageUrl: string;
+  let imageFileId: string;
 
   if (imageData && imageData.startsWith('data:')) {
     const base64Data = imageData.split(',')[1];
     const imageBuffer = Buffer.from(base64Data, 'base64');
-    imageUrl = await uploadImageOrPlaceholder(imageBuffer, `${slug}.jpg`);
+    const uploadResult = await uploadImageOrPlaceholder(imageBuffer, `${slug}.jpg`);
+    imageUrl = uploadResult.url;
+    imageFileId = uploadResult.fileId;
   } else {
     // Fallback for tests or when no image provided
     imageUrl = `https://via.placeholder.com/400x400.png?text=${encodeURIComponent(slug)}`;
+    imageFileId = 'test-placeholder';
   }
 
   await createDrink({
     title,
     slug,
     imageUrl,
+    imageFileId,
     ingredients,
     calories,
     tags,
@@ -2346,7 +2341,7 @@ export async function action({ request }: Route.ActionArgs) {
   // Invalidate caches
   try {
     purgeSearchCache();
-    await purgeFastlyCache(['index', 'all', 'tags']);
+    await purgeDrinkCache({ slug, tags });
   } catch (e) {
     // Cache invalidation failures shouldn't block the request
     console.error('Cache invalidation failed:', e);
@@ -2476,9 +2471,14 @@ This plan has **56 tasks** organized into 6 phases:
 6. **Phase 6 (Tasks 50-56)**: Migration and cleanup
 
 **Testing Strategy:**
-- Fresh database seeded before EACH test via `/__test/reset-db` endpoint
+- Fresh database seeded before EACH test via `/_/reset-db` endpoint
 - `pageAsAdmin` fixture injects session cookie for authenticated tests
 - Tests run serially (one at a time) for database isolation
 - Test infrastructure set up early so all subsequent features use TDD
+
+**Security Model:**
+- Allowlist-based auth: users must be manually added to database before they can log in
+- `updateUserOnLogin` only updates existing users, returns null for unknown emails
+- Google strategy rejects users not in the allowlist
 
 Each task is designed to be independently executable with clear test verification at each step.

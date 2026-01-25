@@ -78,6 +78,7 @@ CREATE TABLE drinks (
   slug TEXT NOT NULL UNIQUE,
   title TEXT NOT NULL,
   image_url TEXT NOT NULL,
+  image_file_id TEXT NOT NULL,       -- ImageKit fileId for deletion
   calories INTEGER NOT NULL,
   ingredients TEXT NOT NULL,        -- JSON array of strings
   tags TEXT NOT NULL,               -- JSON array of strings
@@ -105,8 +106,9 @@ CREATE TABLE drinks (
 6. Callback handler:
    - Validates OAuth response
    - Looks up user by email in `users` table
-   - If exists with admin role: upsert profile data (name, avatar_url), create session
+   - If exists with admin role: update profile data (name, avatar_url), create session
    - If not found or not admin: show "not authorized" page
+   - **Important:** Users must be manually added to the database before they can log in (allowlist model)
 7. Redirect to `returnTo` path (or `/admin` fallback), clear `returnTo` cookie
 8. `/logout` clears session, redirects to `/`
 
@@ -205,11 +207,14 @@ Fastly caching remains in place. The invalidation logic simplifies:
 - App directly calls Fastly purge API
 - No webhook handler needed
 
-Surrogate key strategy remains the same:
-- `all` - home page (all drinks)
+Surrogate key strategy aligns with existing codebase patterns:
+- `index` - home page listing
+- `all` - search and other "all drinks" queries
 - `[slug]` - individual drink pages
-- `tags` - tag index
-- `tag-[name]` - filtered drink pages
+- `tags` - tag index page
+- `[tag]` - individual tag pages (use `getSurrogateKeyForTag()` which replaces spaces with underscores)
+
+On drink create/update/delete, purge: `index`, `all`, `[slug]`, `tags`, and all `[tag]` keys for the drink's tags.
 
 ## Migration
 
@@ -268,7 +273,20 @@ Update `fly.toml` to mount:
   destination = "/data"
 ```
 
-SQLite file lives at `/data/drinks.db`.
+SQLite file lives at `/data/drinks.db`. Set `DATABASE_URL=/data/drinks.db` in production.
+
+### Deployment Notes
+
+- Fly volumes attach to a single machine; during rolling deploys, the old machine releases the volume before the new one attaches
+- Brief interruption during deploys is acceptable for this scale
+- Health checks ensure traffic switches only after new machine is ready
+
+### Backup Strategy
+
+- Fly provides volume snapshots: `fly volumes snapshots list`
+- Create manual snapshots before migrations: `fly volumes snapshots create <volume-id>`
+- Consider automated daily snapshots via Fly's snapshot scheduler
+- For additional safety, periodic backup: `fly ssh sftp get /data/drinks.db ./backup.db`
 
 ## Implementation Order
 

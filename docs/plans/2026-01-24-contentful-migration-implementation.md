@@ -147,7 +147,7 @@ git commit -m "feat: add drizzle schema for users and drinks"
 ```typescript
 import Database from 'better-sqlite3';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
-import { getEnvVars } from '~/utils/env.server';
+import { getEnvVars } from '#/app/utils/env.server';
 import * as schema from './schema';
 
 const { DATABASE_URL } = getEnvVars();
@@ -365,7 +365,7 @@ git commit -m "chore: add playwright for e2e testing"
 **Step 1: Create seed data file**
 
 ```typescript
-import type { NewUser, NewDrink } from '~/db/schema';
+import type { NewUser, NewDrink } from '#/app/db/schema';
 
 export const TEST_ADMIN_USER: NewUser = {
   id: 'test-admin-id',
@@ -471,8 +471,8 @@ git commit -m "feat: add database reset utility for testing"
 
 ```typescript
 import type { Route } from './+types/[_].reset-db';
-import { getEnvVars } from '~/utils/env.server';
-import { resetAndSeedDatabase } from '~/db/reset.server';
+import { getEnvVars } from '#/app/utils/env.server';
+import { resetAndSeedDatabase } from '#/app/db/reset.server';
 
 const { NODE_ENV } = getEnvVars();
 
@@ -516,7 +516,7 @@ git commit -m "feat: add test database reset endpoint"
 Reference: `/home/justin/dev/work/slhs/hand-hygiene/playwright/mock-users.ts`
 
 ```typescript
-import type { AuthenticatedUser } from '~/auth/types';
+import type { AuthenticatedUser } from '#/app/auth/types';
 import { TEST_ADMIN_USER } from './seed-data';
 
 export const MOCK_ADMIN: AuthenticatedUser = {
@@ -661,7 +661,7 @@ git commit -m "chore: add remix-auth dependencies"
 Reference: `/home/justin/dev/work/slhs/hand-hygiene/app/auth/types.ts`
 
 ```typescript
-import type { User } from '~/db/schema';
+import type { User } from '#/app/db/schema';
 
 export type AuthenticatedUser = {
   id: User['id'];
@@ -695,7 +695,7 @@ import {
   createCookie,
   createCookieSessionStorage,
 } from 'react-router';
-import { getEnvVars } from '~/utils/env.server';
+import { getEnvVars } from '#/app/utils/env.server';
 import type { AuthenticatedUser } from './types';
 
 const { SESSION_SECRET, NODE_ENV } = getEnvVars();
@@ -803,8 +803,8 @@ git commit -m "feat: add auth utility functions"
 ```typescript
 import { eq } from 'drizzle-orm';
 import { createId } from '@paralleldrive/cuid2';
-import { getDb } from '~/db/client.server';
-import { users, type User } from '~/db/schema';
+import { getDb } from '#/app/db/client.server';
+import { users, type User } from '#/app/db/schema';
 
 export async function getUserById(id: User['id']): Promise<User | undefined> {
   const db = getDb();
@@ -878,8 +878,8 @@ Reference: `/home/justin/dev/work/slhs/hand-hygiene/app/auth/auth.server.ts`
 import { Authenticator } from 'remix-auth';
 import { GoogleStrategy, type GoogleStrategyOptions } from '@coji/remix-auth-google';
 import { invariant } from '@epic-web/invariant';
-import { getEnvVars } from '~/utils/env.server';
-import { updateUserOnLogin } from '~/models/user.server';
+import { getEnvVars } from '#/app/utils/env.server';
+import { updateUserOnLogin } from '#/app/models/user.server';
 import type { AuthenticatedUser } from './types';
 
 const {
@@ -959,10 +959,10 @@ import {
   type RouterContextProvider,
   type unstable_MiddlewareFunction as MiddlewareFunction,
 } from 'react-router';
-import { getSession, commitSession } from '~/auth/session.server';
-import { getUserById } from '~/models/user.server';
-import { createReturnToUrl } from '~/auth/utils.server';
-import type { AuthenticatedUser } from '~/auth/types';
+import { getSession, commitSession } from '#/app/auth/session.server';
+import { getUserById } from '#/app/models/user.server';
+import { createReturnToUrl } from '#/app/auth/utils.server';
+import type { AuthenticatedUser } from '#/app/auth/types';
 
 const userContext = createContext<AuthenticatedUser>();
 
@@ -1054,7 +1054,7 @@ Reference: `/home/justin/dev/work/slhs/hand-hygiene/app/routes/login.tsx`
 
 ```typescript
 import type { Route } from './+types/login';
-import { authenticator } from '~/auth/auth.server';
+import { authenticator } from '#/app/auth/auth.server';
 
 export async function loader({ request }: Route.LoaderArgs) {
   // Single provider - automatically initiate Google OAuth
@@ -1088,9 +1088,9 @@ Reference: `/home/justin/dev/work/slhs/hand-hygiene/app/routes/auth.okta.callbac
 ```typescript
 import { redirect } from 'react-router';
 import type { Route } from './+types/auth.google.callback';
-import { authenticator } from '~/auth/auth.server';
-import { getSession, commitSession } from '~/auth/session.server';
-import { safeRedirectTo } from '~/auth/utils.server';
+import { authenticator } from '#/app/auth/auth.server';
+import { getSession, commitSession } from '#/app/auth/session.server';
+import { safeRedirectTo } from '#/app/auth/utils.server';
 
 export async function loader({ request }: Route.LoaderArgs) {
   let authenticatedUser;
@@ -1143,7 +1143,7 @@ Reference: `/home/justin/dev/work/slhs/hand-hygiene/app/routes/logout.tsx`
 ```typescript
 import { redirect } from 'react-router';
 import type { Route } from './+types/logout';
-import { getSession, destroySession } from '~/auth/session.server';
+import { getSession, destroySession } from '#/app/auth/session.server';
 
 export async function action({ request }: Route.ActionArgs) {
   const session = await getSession(request.headers.get('Cookie'));
@@ -1235,7 +1235,7 @@ Reference: `/home/justin/dev/work/slhs/hand-hygiene/playwright/playwright-utils.
 
 ```typescript
 import { test as base, expect, type Page } from '@playwright/test';
-import { sessionCookie, getRawSessionCookieValue } from '~/auth/session.server';
+import { sessionCookie, getRawSessionCookieValue } from '#/app/auth/session.server';
 import { MOCK_ADMIN } from './mock-users';
 
 type TestFixtures = {
@@ -1373,7 +1373,7 @@ git commit -m "chore: add imagekit sdk"
 
 ```typescript
 import ImageKit from 'imagekit';
-import { getEnvVars } from '~/utils/env.server';
+import { getEnvVars } from '#/app/utils/env.server';
 
 const {
   IMAGEKIT_PUBLIC_KEY,
@@ -1461,8 +1461,8 @@ git commit -m "feat: add imagekit client with test mode"
 ```typescript
 import { eq, desc, sql, like } from 'drizzle-orm';
 import { createId } from '@paralleldrive/cuid2';
-import { getDb } from '~/db/client.server';
-import { drinks, type Drink, type NewDrink } from '~/db/schema';
+import { getDb } from '#/app/db/client.server';
+import { drinks, type Drink, type NewDrink } from '#/app/db/schema';
 
 export async function getAllDrinks(): Promise<Drink[]> {
   const db = getDb();
@@ -1561,8 +1561,8 @@ git commit -m "feat: add drink model functions"
 **Step 1: Create Fastly utility**
 
 ```typescript
-import { getEnvVars } from '~/utils/env.server';
-import { getSurrogateKeyForTag } from '~/tags/utils';
+import { getEnvVars } from '#/app/utils/env.server';
+import { getSurrogateKeyForTag } from '#/app/tags/utils';
 
 const { FASTLY_SERVICE_ID, FASTLY_PURGE_API_KEY } = getEnvVars();
 
@@ -1662,7 +1662,7 @@ import {
   userMiddleware,
   adminMiddleware,
   getUserFromContext,
-} from '~/middleware/auth.server';
+} from '#/app/middleware/auth.server';
 
 export const middleware = [userMiddleware, adminMiddleware];
 
@@ -1795,7 +1795,7 @@ Expected: FAIL (route doesn't exist yet)
 ```typescript
 import { Link, Form } from 'react-router';
 import type { Route } from './+types/_admin.drinks._index';
-import { getAllDrinks } from '~/models/drink.server';
+import { getAllDrinks } from '#/app/models/drink.server';
 
 export async function loader() {
   const drinks = await getAllDrinks();
@@ -2075,7 +2075,7 @@ git commit -m "feat: add image crop component"
 import { Form, useNavigation } from 'react-router';
 import { useState } from 'react';
 import { ImageCrop } from './image-crop';
-import type { Drink } from '~/db/schema';
+import type { Drink } from '#/app/db/schema';
 
 type DrinkFormProps = {
   drink?: Drink;
@@ -2333,12 +2333,12 @@ Expected: FAIL
 ```typescript
 import { redirect } from 'react-router';
 import type { Route } from './+types/_admin.drinks.new';
-import { createDrink } from '~/models/drink.server';
-import { uploadImageOrPlaceholder } from '~/utils/imagekit.server';
-import { generateSlug } from '~/utils/slug';
-import { DrinkForm } from '~/admin/drink-form';
-import { purgeSearchCache } from '~/routes/_app.search/cache.server';
-import { purgeDrinkCache } from '~/utils/fastly.server';
+import { createDrink } from '#/app/models/drink.server';
+import { uploadImageOrPlaceholder } from '#/app/utils/imagekit.server';
+import { generateSlug } from '#/app/utils/slug';
+import { DrinkForm } from '#/app/admin/drink-form';
+import { purgeSearchCache } from '#/app/routes/_app.search/cache.server';
+import { purgeDrinkCache } from '#/app/utils/fastly.server';
 
 export default function NewDrinkPage() {
   return (

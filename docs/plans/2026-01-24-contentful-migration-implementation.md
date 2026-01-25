@@ -486,9 +486,9 @@ git commit -m "feat: add database reset utility for testing"
 **Step 1: Create test reset endpoint**
 
 ```typescript
-import type { Route } from './+types/[_].reset-db';
 import { getEnvVars } from '#/app/utils/env.server';
 import { resetAndSeedDatabase } from '#/app/db/reset.server';
+import type { Route } from './+types/[_].reset-db';
 
 const { NODE_ENV } = getEnvVars();
 
@@ -1138,8 +1138,8 @@ Reference: `/home/justin/dev/work/slhs/hand-hygiene/app/routes/logout.tsx`
 
 ```typescript
 import { redirect } from 'react-router';
-import type { Route } from './+types/logout';
 import { getSession, destroySession } from '#/app/auth/session.server';
+import type { Route } from './+types/logout';
 
 export async function action({ request }: Route.ActionArgs) {
   const session = await getSession(request.headers.get('Cookie'));
@@ -1644,12 +1644,12 @@ check). Retrieves user via `getUserFromContext` helper.
 
 ```typescript
 import { Outlet, Link, Form } from 'react-router';
-import type { Route } from './+types/_admin';
 import {
   userMiddleware,
   adminMiddleware,
   getUserFromContext,
 } from '#/app/middleware/auth.server';
+import type { Route } from './+types/_admin';
 
 export const middleware = [userMiddleware, adminMiddleware];
 
@@ -1782,8 +1782,8 @@ Run: `pnpm test:e2e playwright/admin-drinks-list.test.ts` Expected: FAIL (route 
 
 ```typescript
 import { Link, Form } from 'react-router';
-import type { Route } from './+types/_admin.drinks._index';
 import { getAllDrinks } from '#/app/models/drink.server';
+import type { Route } from './+types/_admin.drinks._index';
 
 export async function loader() {
   const drinks = await getAllDrinks();
@@ -2322,13 +2322,13 @@ Run: `pnpm test:e2e playwright/admin-create-drink.test.ts` Expected: FAIL
 
 ```typescript
 import { redirect } from 'react-router';
-import type { Route } from './+types/_admin.drinks.new';
 import { createDrink } from '#/app/models/drink.server';
 import { uploadImageOrPlaceholder } from '#/app/utils/imagekit.server';
 import { generateSlug } from '#/app/utils/slug';
 import { DrinkForm } from '#/app/admin/drink-form';
 import { purgeSearchCache } from '#/app/routes/_app.search/cache.server';
 import { purgeDrinkCache } from '#/app/utils/fastly.server';
+import type { Route } from './+types/_admin.drinks.new';
 
 export default function NewDrinkPage() {
   return (

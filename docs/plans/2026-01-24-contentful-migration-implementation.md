@@ -937,25 +937,43 @@ git commit -m "feat: add google oauth authenticator"
 **Files:**
 - Create: `app/middleware/auth.server.ts`
 
-**Step 1: Create auth middleware**
+**Step 1: Create auth middleware with composable pattern**
 
-Reference: `/home/justin/dev/work/slhs/hand-hygiene/app/middleware/authorization.server.ts`
+Adapts the pattern from `/home/justin/dev/work/slhs/hand-hygiene/app/middleware/authorization.server.ts`:
+- Uses `createContext` for type-safe context access
+- Exports `getUserFromContext` helper for use in route loaders
+- Composable middleware: `userMiddleware` (auth only) + `adminMiddleware` (role check)
 
 ```typescript
-import { redirect } from 'react-router';
-import type { unstable_MiddlewareFunction as MiddlewareFunction } from 'react-router';
+import {
+  createContext,
+  redirect,
+  type RouterContextProvider,
+  type unstable_MiddlewareFunction as MiddlewareFunction,
+} from 'react-router';
 import { getSession, commitSession } from '~/auth/session.server';
 import { getUserById } from '~/models/user.server';
-import { createReturnToUrl, safeRedirectTo } from '~/auth/utils.server';
+import { createReturnToUrl } from '~/auth/utils.server';
 import type { AuthenticatedUser } from '~/auth/types';
 
-declare module 'react-router' {
-  interface AppLoadContext {
-    user?: AuthenticatedUser;
-  }
+const userContext = createContext<AuthenticatedUser>();
+
+/**
+ * Get the authenticated user from the route context.
+ * Use this in route loaders/actions after userMiddleware has run.
+ */
+export function getUserFromContext(
+  context: Readonly<RouterContextProvider>,
+): AuthenticatedUser {
+  return context.get(userContext);
 }
 
-export const adminMiddleware: MiddlewareFunction<Response> = async (
+/**
+ * Middleware that requires an authenticated user. If authenticated, the user
+ * is stored in context (accessible via getUserFromContext). If not authenticated,
+ * redirects to login with returnTo URL preserved.
+ */
+export const userMiddleware: MiddlewareFunction<Response> = async (
   { request, context },
   next,
 ) => {
@@ -969,19 +987,40 @@ export const adminMiddleware: MiddlewareFunction<Response> = async (
     });
   }
 
+  // Verify user still exists in database
   const user = await getUserById(sessionUser.id);
 
-  if (!user || user.role !== 'admin') {
-    throw redirect('/unauthorized');
+  if (!user) {
+    // User was deleted - clear session and redirect to login
+    throw redirect('/login', {
+      headers: { 'Set-Cookie': await commitSession(session) },
+    });
   }
 
-  context.user = {
+  context.set(userContext, {
     id: user.id,
     email: user.email,
     name: user.name,
     avatarUrl: user.avatarUrl,
     role: user.role,
-  };
+  });
+
+  return next();
+};
+
+/**
+ * Middleware that requires the authenticated user has admin role.
+ * Must come after userMiddleware in the middleware chain.
+ */
+export const adminMiddleware: MiddlewareFunction<Response> = async (
+  { context },
+  next,
+) => {
+  const user = getUserFromContext(context);
+
+  if (user.role !== 'admin') {
+    throw redirect('/unauthorized');
+  }
 
   return next();
 };
@@ -991,7 +1030,7 @@ export const adminMiddleware: MiddlewareFunction<Response> = async (
 
 ```bash
 git add app/middleware/auth.server.ts
-git commit -m "feat: add admin auth middleware"
+git commit -m "feat: add composable auth middleware with typed context"
 ```
 
 ---
@@ -1601,15 +1640,23 @@ git commit -m "feat: add slug generation utility"
 
 **Step 1: Create admin layout**
 
+Uses composable middleware chain: `userMiddleware` first (auth), then `adminMiddleware` (role check).
+Retrieves user via `getUserFromContext` helper.
+
 ```typescript
 import { Outlet, Link, Form } from 'react-router';
 import type { Route } from './+types/_admin';
-import { adminMiddleware } from '~/middleware/auth.server';
+import {
+  userMiddleware,
+  adminMiddleware,
+  getUserFromContext,
+} from '~/middleware/auth.server';
 
-export const middleware = [adminMiddleware];
+export const middleware = [userMiddleware, adminMiddleware];
 
 export async function loader({ context }: Route.LoaderArgs) {
-  return { user: context.user };
+  const user = getUserFromContext(context);
+  return { user };
 }
 
 export default function AdminLayout({ loaderData }: Route.ComponentProps) {

@@ -1055,17 +1055,16 @@ git commit -m "feat: add composable auth middleware with typed context"
 Reference: `/home/justin/dev/work/slhs/hand-hygiene/app/routes/login.tsx`
 
 ```typescript
-import type { Route } from './+types/login';
+import { redirect } from 'react-router';
 import { authenticator } from '#/app/auth/auth.server';
+import { getSession } from '#/app/auth/session.server';
+import { safeRedirectTo } from '#/app/auth/utils.server';
+import type { Route } from './+types/login';
 
 export async function loader({ request }: Route.LoaderArgs) {
-  // Single provider - automatically initiate Google OAuth
-  return authenticator.authenticate('google', request);
-}
-
-export default function LoginPage() {
-  // This won't render - loader redirects to Google
-  return null;
+  await authenticator.authenticate('google', request);
+  const session = await getSession(request.headers.get('Cookie'));
+  throw redirect(safeRedirectTo(session.get('returnTo')));
 }
 ```
 

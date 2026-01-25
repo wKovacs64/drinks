@@ -2093,7 +2093,7 @@ export function DrinkForm({ drink, action }: DrinkFormProps) {
 
       const base64 = await new Promise<string>((resolve) => {
         const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result as string);
+        reader.onloadend = () => resolve(typeof reader.result === 'string' ? reader.result : '');
         reader.readAsDataURL(croppedImage);
       });
 
@@ -2344,20 +2344,20 @@ export default function NewDrinkPage() {
 export async function action({ request }: Route.ActionArgs) {
   const formData = await request.formData();
 
-  const title = formData.get('title') as string;
-  const slug = (formData.get('slug') as string) || generateSlug(title);
-  const imageData = formData.get('imageData') as string;
-  const ingredients = (formData.get('ingredients') as string)
+  const title = String(formData.get('title') ?? '');
+  const slug = String(formData.get('slug') ?? '') || generateSlug(title);
+  const imageData = String(formData.get('imageData') ?? '');
+  const ingredients = String(formData.get('ingredients') ?? '')
     .split('\n')
     .map((i) => i.trim())
     .filter(Boolean);
-  const calories = parseInt(formData.get('calories') as string, 10);
-  const tags = (formData.get('tags') as string)
+  const calories = Number.parseInt(String(formData.get('calories') ?? ''), 10);
+  const tags = String(formData.get('tags') ?? '')
     .split(',')
     .map((t) => t.trim())
     .filter(Boolean);
-  const notes = (formData.get('notes') as string) || null;
-  const rank = parseInt(formData.get('rank') as string, 10) || 0;
+  const notes = String(formData.get('notes') ?? '') || null;
+  const rank = Number.parseInt(String(formData.get('rank') ?? ''), 10) || 0;
 
   let imageUrl: string;
   let imageFileId: string;

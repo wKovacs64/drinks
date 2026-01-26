@@ -13,7 +13,8 @@ test.describe('Smoke Tests', () => {
   test('drink detail page loads', async ({ page, _resetDb }) => {
     await page.goto('/test-margarita');
 
-    await expect(page.getByText('Test Margarita')).toBeVisible();
+    // Use heading role to avoid matching breadcrumb and notes
+    await expect(page.getByRole('heading', { name: 'Test Margarita' })).toBeVisible();
     await expect(page.getByText('2 oz tequila')).toBeVisible();
     // calories
     await expect(page.getByText('200')).toBeVisible();

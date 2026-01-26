@@ -34,7 +34,11 @@
     "lint": "eslint --cache --cache-location ./node_modules/.cache/eslint .",
     "start": "cross-env NODE_ENV=production PORT=8080 node ./build/server/index.js",
     "typecheck": "react-router typegen && tsc",
-    "validate": "run-p format:check lint typecheck"
+    "validate": "run-p format:check lint typecheck",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
     "@epic-web/invariant": "1.0.0",

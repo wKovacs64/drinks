@@ -2,65 +2,26 @@ import { data } from 'react-router';
 import { kebabCase } from 'lodash-es';
 import { cacheHeader } from 'pretty-cache-header';
 import { defaultPageTitle, defaultPageDescription } from '#/app/core/config';
+import { getAllTags } from '#/app/models/drink.server';
 import { TagLink } from '#/app/tags/tag-link';
 import { Tag } from '#/app/tags/tag';
 import { getSurrogateKeyForTag } from '#/app/tags/utils';
 import { getEnvVars } from '#/app/utils/env.server';
-import { fetchGraphQL } from '#/app/utils/graphql.server';
-import type { DrinkTagsResponse, Drink } from '#/app/types';
 import type { Route } from './+types/_app.tags._index';
 
-const {
-  CONTENTFUL_ACCESS_TOKEN,
-  CONTENTFUL_URL,
-  CONTENTFUL_PREVIEW,
-  SITE_IMAGE_URL,
-  SITE_IMAGE_ALT,
-} = getEnvVars();
+const { SITE_IMAGE_URL, SITE_IMAGE_ALT } = getEnvVars();
 
 export function headers({ loaderHeaders }: Route.HeadersArgs) {
   return loaderHeaders;
 }
 
 export async function loader() {
-  const allDrinkTagsQuery = /* GraphQL */ `
-    query ($preview: Boolean) {
-      drinkCollection(preview: $preview) {
-        drinks: items {
-          tags
-        }
-      }
-    }
-  `;
-
-  const queryResponse = await fetchGraphQL(
-    CONTENTFUL_URL,
-    CONTENTFUL_ACCESS_TOKEN,
-    allDrinkTagsQuery,
-    {
-      preview: CONTENTFUL_PREVIEW === 'true',
-    },
-  );
-
-  const queryResponseJson: DrinkTagsResponse = await queryResponse.json();
-
-  if (queryResponseJson.errors?.length || !queryResponseJson.data.drinkCollection) {
-    throw data(queryResponseJson, { status: 500 });
-  }
-
-  const {
-    data: {
-      drinkCollection: { drinks: maybeDrinks },
-    },
-  } = queryResponseJson;
-
-  const drinks = maybeDrinks.filter((drink): drink is Drink => Boolean(drink));
-  const uniqueTags = Array.from(new Set(drinks.flatMap((drink) => drink.tags ?? []))).sort();
-  const everyTagSurrogateKey = uniqueTags.map(getSurrogateKeyForTag).join(' ');
+  const tags = await getAllTags();
+  const everyTagSurrogateKey = tags.map(getSurrogateKeyForTag).join(' ');
 
   return data(
     {
-      tags: uniqueTags,
+      tags,
       socialImageUrl: SITE_IMAGE_URL,
       socialImageAlt: SITE_IMAGE_ALT,
     },

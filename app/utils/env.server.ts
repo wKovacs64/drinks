@@ -31,12 +31,6 @@ const envSchema = z.object({
   // CDN
   FASTLY_SERVICE_ID: z.string().optional(),
   FASTLY_PURGE_API_KEY: z.string().optional(),
-
-  // Contentful (will be removed after migration)
-  CONTENTFUL_ACCESS_TOKEN: z.string().min(1),
-  CONTENTFUL_URL: z.string().min(1),
-  CONTENTFUL_PREVIEW: z.string().optional(),
-  CONTENTFUL_WEBHOOK_TOKEN: z.string().min(1),
 });
 
 export function getEnvVars() {

@@ -2,6 +2,13 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan
 > task-by-task.
+>
+> **Progress Tracking:** Tasks are tracked via GitHub issues with the `cms-migration` label.
+>
+> - Find next tasks: `gh issue list -l cms-migration --state open -m "Phase N: ..."`
+> - Each issue has acceptance criteria - close when met: `gh issue close <number>`
+> - Phases are milestones - work through them in order
+> - This document contains full implementation details; issues contain summaries
 
 **Goal:** Replace Contentful CMS with SQLite + ImageKit + in-app admin UI.
 

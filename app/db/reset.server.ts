@@ -1,6 +1,6 @@
+import { TEST_ADMIN_USER, TEST_DRINKS } from '../../playwright/seed-data';
 import { getDb } from './client.server';
 import { users, drinks } from './schema';
-import { TEST_ADMIN_USER, TEST_DRINKS } from '../../playwright/seed-data';
 
 export async function resetAndSeedDatabase() {
   const db = getDb();

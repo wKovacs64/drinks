@@ -9,8 +9,8 @@ async function resetDatabase(request: Page['request']) {
   }
 }
 
-export const test = base.extend<{ resetDb: void }>({
-  resetDb: async ({ request }, use) => {
+export const test = base.extend<{ _resetDb: void }>({
+  _resetDb: async ({ request }, use) => {
     await resetDatabase(request);
     await use();
   },

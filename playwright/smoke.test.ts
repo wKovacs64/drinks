@@ -1,7 +1,7 @@
 import { test, expect } from './playwright-utils';
 
 test.describe('Smoke Tests', () => {
-  test('homepage loads with seeded drinks', async ({ page, resetDb }) => {
+  test('homepage loads with seeded drinks', async ({ page, _resetDb }) => {
     await page.goto('/');
 
     // Check that seeded drinks appear
@@ -10,7 +10,7 @@ test.describe('Smoke Tests', () => {
     await expect(page.getByText('Test Old Fashioned')).toBeVisible();
   });
 
-  test('drink detail page loads', async ({ page, resetDb }) => {
+  test('drink detail page loads', async ({ page, _resetDb }) => {
     await page.goto('/test-margarita');
 
     await expect(page.getByText('Test Margarita')).toBeVisible();

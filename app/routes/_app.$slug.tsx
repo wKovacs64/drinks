@@ -6,57 +6,20 @@ import { getLoaderDataForHandle } from '#/app/core/utils';
 import { Glass } from '#/app/drinks/glass';
 import { DrinkSummary } from '#/app/drinks/drink-summary';
 import { DrinkDetails } from '#/app/drinks/drink-details';
-import { getEnvVars } from '#/app/utils/env.server';
-import { fetchGraphQL } from '#/app/utils/graphql.server';
+import { getDrinkBySlug } from '#/app/models/drink.server';
 import { markdownToHtml } from '#/app/utils/markdown.server';
 import { withPlaceholderImages } from '#/app/utils/placeholder-images.server';
-import type { AppRouteHandle, Drink, DrinksResponse } from '#/app/types';
+import type { AppRouteHandle, Drink } from '#/app/types';
 import type { Route } from './+types/_app.$slug';
-
-const { CONTENTFUL_ACCESS_TOKEN, CONTENTFUL_URL, CONTENTFUL_PREVIEW } = getEnvVars();
 
 export function headers({ loaderHeaders }: Route.HeadersArgs) {
   return loaderHeaders;
 }
 
 export async function loader({ params }: Route.LoaderArgs) {
-  const drinkQuery = /* GraphQL */ `
-    query ($preview: Boolean, $slug: String) {
-      drinkCollection(preview: $preview, limit: 1, where: { slug: $slug }) {
-        drinks: items {
-          title
-          slug
-          image {
-            url
-          }
-          ingredients
-          calories
-          notes
-          tags
-        }
-      }
-    }
-  `;
+  const sqliteDrink = await getDrinkBySlug(params.slug ?? '');
 
-  const queryResponse = await fetchGraphQL(CONTENTFUL_URL, CONTENTFUL_ACCESS_TOKEN, drinkQuery, {
-    preview: CONTENTFUL_PREVIEW === 'true',
-    slug: params.slug,
-  });
-
-  const queryResponseJson: DrinksResponse = await queryResponse.json();
-
-  if (queryResponseJson.errors?.length || !queryResponseJson.data.drinkCollection) {
-    throw data(queryResponseJson, { status: 500 });
-  }
-
-  const {
-    data: {
-      drinkCollection: { drinks: maybeDrinks },
-    },
-  } = queryResponseJson;
-
-  const drinks = maybeDrinks.filter((drink): drink is Drink => Boolean(drink));
-  invariantResponse(drinks.length > 0, 'Drink not found', {
+  invariantResponse(sqliteDrink, 'Drink not found', {
     status: 404,
     headers: {
       'Surrogate-Key': 'all',
@@ -69,7 +32,18 @@ export async function loader({ params }: Route.LoaderArgs) {
     },
   });
 
-  const drinksWithPlaceholderImages = await withPlaceholderImages(drinks);
+  // Transform SQLite drink to the format expected by withPlaceholderImages
+  const drink: Drink = {
+    title: sqliteDrink.title,
+    slug: sqliteDrink.slug,
+    image: { url: sqliteDrink.imageUrl },
+    ingredients: sqliteDrink.ingredients,
+    calories: sqliteDrink.calories,
+    notes: sqliteDrink.notes ?? undefined,
+    tags: sqliteDrink.tags,
+  };
+
+  const drinksWithPlaceholderImages = await withPlaceholderImages([drink]);
   const [enhancedDrink] = drinksWithPlaceholderImages;
 
   if (enhancedDrink.notes) {

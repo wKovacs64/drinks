@@ -1,8 +1,6 @@
 import { remember, forget } from '@epic-web/remember';
-import { data } from 'react-router';
-import { getEnvVars } from '#/app/utils/env.server';
-import { fetchGraphQL } from '#/app/utils/graphql.server';
-import type { Drink, DrinksResponse } from '#/app/types';
+import { getAllDrinks } from '#/app/models/drink.server';
+import type { Drink } from '#/app/types';
 import { createSearchIndex } from './minisearch.server';
 
 export const SEARCH_INSTANCE_CACHE_KEY = 'minisearch-index';
@@ -14,51 +12,23 @@ type SearchData = {
 
 /**
  * Get the cached MiniSearch instance and allDrinks data, creating them if they don't exist
- * (which fetches all drinks from Contentful).
+ * (which fetches all drinks from SQLite).
  */
 export async function getSearchData(): Promise<SearchData> {
   return remember(SEARCH_INSTANCE_CACHE_KEY, async () => {
-    const { CONTENTFUL_ACCESS_TOKEN, CONTENTFUL_URL, CONTENTFUL_PREVIEW } = getEnvVars();
+    const sqliteDrinks = await getAllDrinks();
 
-    const allDrinksQuery = /* GraphQL */ `
-      query ($preview: Boolean) {
-        drinkCollection(preview: $preview, order: [rank_DESC, sys_firstPublishedAt_DESC]) {
-          drinks: items {
-            title
-            slug
-            image {
-              url
-            }
-            ingredients
-            calories
-            notes
-          }
-        }
-      }
-    `;
+    // Transform SQLite drinks to the format expected by createSearchIndex
+    const allDrinks: Drink[] = sqliteDrinks.map((drink) => ({
+      title: drink.title,
+      slug: drink.slug,
+      image: { url: drink.imageUrl },
+      ingredients: drink.ingredients,
+      calories: drink.calories,
+      notes: drink.notes ?? undefined,
+      tags: drink.tags,
+    }));
 
-    const queryResponse = await fetchGraphQL(
-      CONTENTFUL_URL,
-      CONTENTFUL_ACCESS_TOKEN,
-      allDrinksQuery,
-      {
-        preview: CONTENTFUL_PREVIEW === 'true',
-      },
-    );
-
-    const queryResponseJson: DrinksResponse = await queryResponse.json();
-
-    if (queryResponseJson.errors?.length || !queryResponseJson.data.drinkCollection) {
-      throw data(queryResponseJson, { status: 500 });
-    }
-
-    const {
-      data: {
-        drinkCollection: { drinks: maybeDrinks },
-      },
-    } = queryResponseJson;
-
-    const allDrinks = maybeDrinks.filter((drink): drink is Drink => Boolean(drink));
     const searchIndex = createSearchIndex(allDrinks);
 
     return { allDrinks, searchIndex };

@@ -18,12 +18,11 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'pnpm run dev',
-    url: 'http://localhost:5173',
+    command: 'pnpm run dev:test',
+    url: 'http://localhost:5173/_/healthcheck',
     reuseExistingServer: !process.env.CI,
-    env: {
-      NODE_ENV: 'test',
-      DATABASE_URL: './data/test.db',
-    },
+    timeout: 120000,
+    stdout: 'pipe',
+    stderr: 'pipe',
   },
 });

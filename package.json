@@ -28,6 +28,7 @@
     "deploy": "flyctl deploy --remote-only",
     "dev": "pnpm run clean && run-p dev:rr dev:sw",
     "dev:rr": "react-router dev",
+    "dev:test": "dotenv -e .env.test -- react-router dev",
     "dev:sw": "esbuild app/entry.worker.ts --watch --platform=browser --format=esm --outfile=public/sw.js",
     "format": "prettier --cache --write .",
     "format:check": "prettier --cache --check .",
@@ -39,8 +40,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e": "dotenv -e .env.test -- playwright test",
+    "test:e2e:ui": "dotenv -e .env.test -- playwright test --ui"
   },
   "dependencies": {
     "@coji/remix-auth-google": "4.2.0",
@@ -56,6 +57,7 @@
     "clsx": "2.1.1",
     "cross-env": "10.1.0",
     "drizzle-orm": "0.45.1",
+    "is-ip": "5.0.1",
     "isbot": "5.1.34",
     "lodash-es": "4.17.23",
     "marked": "15.0.12",
@@ -89,6 +91,7 @@
     "@wkovacs64/prettier-config": "4.2.4",
     "babel-plugin-react-compiler": "1.0.0",
     "del-cli": "7.0.0",
+    "dotenv-cli": "11.0.0",
     "drizzle-kit": "0.31.8",
     "esbuild": "0.27.2",
     "eslint": "9.39.2",

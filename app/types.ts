@@ -1,37 +1,6 @@
 import type { BreadcrumbHandle } from '#/app/navigation/breadcrumbs';
 
-export type DrinksResponse = {
-  errors?: {
-    message: string;
-    extensions: {
-      contentful: {
-        code: string;
-        requestId: string;
-      };
-    };
-    locations: {
-      line: number;
-      column: number;
-    }[];
-    path: string[];
-  }[];
-  data: {
-    drinkCollection: {
-      drinks: (Drink | null)[];
-    } | null;
-  };
-};
-
-export type DrinkTagsResponse = DrinksResponse & {
-  data: {
-    drinkCollection: {
-      drinks: Pick<Drink, 'tags'>[];
-    } | null;
-  };
-};
-
-// Most of the fields will be null if you start to create a new Drink in
-// Contentful without finishing it.
+// Drink type used for display (with nullable fields for transformation from DB)
 export type Drink = {
   title: string | null;
   slug: string;

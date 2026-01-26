@@ -5,15 +5,38 @@ import { z } from 'zod';
 
 const envSchema = z.object({
   COMMIT_SHA: z.string().min(1).default('unknown'),
+  DEPLOYMENT_ENV: z.string().min(1).default('preview'),
+  SITE_IMAGE_URL: z.string().min(1),
+  SITE_IMAGE_ALT: z.string().min(1),
+
+  // Database
+  DATABASE_URL: z.string().default('./data/drinks.db'),
+
+  // ImageKit
+  IMAGEKIT_PUBLIC_KEY: z.string().min(1),
+  IMAGEKIT_PRIVATE_KEY: z.string().min(1),
+  IMAGEKIT_URL_ENDPOINT: z.string().min(1),
+
+  // Google OAuth
+  GOOGLE_CLIENT_ID: z.string().min(1),
+  GOOGLE_CLIENT_SECRET: z.string().min(1),
+  GOOGLE_REDIRECT_URI: z.string().min(1),
+
+  // Session
+  SESSION_SECRET: z.string().default('dev-secret-change-in-production'),
+
+  // Node environment
+  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+
+  // CDN
+  FASTLY_SERVICE_ID: z.string().optional(),
+  FASTLY_PURGE_API_KEY: z.string().optional(),
+
+  // Contentful (will be removed after migration)
   CONTENTFUL_ACCESS_TOKEN: z.string().min(1),
   CONTENTFUL_URL: z.string().min(1),
   CONTENTFUL_PREVIEW: z.string().optional(),
   CONTENTFUL_WEBHOOK_TOKEN: z.string().min(1),
-  DEPLOYMENT_ENV: z.string().min(1).default('preview'),
-  FASTLY_SERVICE_ID: z.string().optional(),
-  FASTLY_PURGE_API_KEY: z.string().optional(),
-  SITE_IMAGE_URL: z.string().min(1),
-  SITE_IMAGE_ALT: z.string().min(1),
 });
 
 export function getEnvVars() {

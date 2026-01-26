@@ -4,8 +4,8 @@ test.describe('Admin Drinks List', () => {
   test('displays list of drinks with actions', async ({ pageAsAdmin }) => {
     await pageAsAdmin.goto('/admin/drinks');
 
-    // Should see heading
-    await expect(pageAsAdmin.getByRole('heading', { name: 'Drinks' })).toBeVisible();
+    // Should see heading (use exact match to avoid matching the site header "drinks.fyi")
+    await expect(pageAsAdmin.getByRole('heading', { name: 'Drinks', exact: true })).toBeVisible();
 
     // Should see "Add Drink" button
     await expect(pageAsAdmin.getByRole('link', { name: 'Add Drink' })).toBeVisible();

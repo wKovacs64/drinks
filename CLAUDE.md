@@ -21,6 +21,8 @@ _Craft Cocktail Gallery_
 
 ## Code Style
 
+- Native subpath imports (`#` maps to project root)
+- React Router `./+types` imports should always be last in the import list
 - Strict types
   - Avoid type assertions when possible, prefer actual type identification/runtime checks to narrow
 - Prioritize correctness > readability > brevity (optimize for reading, not writing)

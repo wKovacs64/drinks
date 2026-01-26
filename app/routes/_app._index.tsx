@@ -2,63 +2,32 @@ import { data } from 'react-router';
 import { cacheHeader } from 'pretty-cache-header';
 import { defaultPageDescription, defaultPageTitle } from '#/app/core/config';
 import { DrinkList } from '#/app/drinks/drink-list';
+import { getAllDrinks } from '#/app/models/drink.server';
 import { getEnvVars } from '#/app/utils/env.server';
-import { fetchGraphQL } from '#/app/utils/graphql.server';
 import { withPlaceholderImages } from '#/app/utils/placeholder-images.server';
-import type { DrinksResponse, Drink } from '#/app/types';
+import type { Drink } from '#/app/types';
 import type { Route } from './+types/_app._index';
 
-const {
-  CONTENTFUL_ACCESS_TOKEN,
-  CONTENTFUL_URL,
-  CONTENTFUL_PREVIEW,
-  SITE_IMAGE_URL,
-  SITE_IMAGE_ALT,
-} = getEnvVars();
+const { SITE_IMAGE_URL, SITE_IMAGE_ALT } = getEnvVars();
 
 export function headers({ loaderHeaders }: Route.HeadersArgs) {
   return loaderHeaders;
 }
 
 export async function loader() {
-  const allDrinksQuery = /* GraphQL */ `
-    query ($preview: Boolean) {
-      drinkCollection(preview: $preview, order: [rank_DESC, sys_firstPublishedAt_DESC]) {
-        drinks: items {
-          title
-          slug
-          image {
-            url
-          }
-          ingredients
-          calories
-        }
-      }
-    }
-  `;
+  const sqliteDrinks = await getAllDrinks();
 
-  const queryResponse = await fetchGraphQL(
-    CONTENTFUL_URL,
-    CONTENTFUL_ACCESS_TOKEN,
-    allDrinksQuery,
-    {
-      preview: CONTENTFUL_PREVIEW === 'true',
-    },
-  );
+  // Transform SQLite drinks to the format expected by withPlaceholderImages
+  const drinks: Drink[] = sqliteDrinks.map((drink) => ({
+    title: drink.title,
+    slug: drink.slug,
+    image: { url: drink.imageUrl },
+    ingredients: drink.ingredients,
+    calories: drink.calories,
+    notes: drink.notes ?? undefined,
+    tags: drink.tags,
+  }));
 
-  const queryResponseJson: DrinksResponse = await queryResponse.json();
-
-  if (queryResponseJson.errors?.length || !queryResponseJson.data.drinkCollection) {
-    throw data(queryResponseJson, { status: 500 });
-  }
-
-  const {
-    data: {
-      drinkCollection: { drinks: maybeDrinks },
-    },
-  } = queryResponseJson;
-
-  const drinks = maybeDrinks.filter((drink): drink is Drink => Boolean(drink));
   const drinksWithPlaceholderImages = await withPlaceholderImages(drinks);
 
   return data(

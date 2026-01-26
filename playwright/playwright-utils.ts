@@ -1,6 +1,11 @@
 import { test as base, expect, type Page } from '@playwright/test';
+import { getRawSessionCookieValue, sessionCookie } from '#/app/auth/session.server';
+import { MOCK_ADMIN } from './mock-users';
 
-// Will be extended with pageAsAdmin fixture after auth is implemented (Task 25)
+type TestFixtures = {
+  _resetDb: void;
+  pageAsAdmin: Page;
+};
 
 async function resetDatabase(request: Page['request']) {
   const response = await request.post('/_/reset-db');
@@ -9,10 +14,31 @@ async function resetDatabase(request: Page['request']) {
   }
 }
 
-export const test = base.extend<{ _resetDb: void }>({
+export const test = base.extend<TestFixtures>({
   _resetDb: async ({ request }, use) => {
     await resetDatabase(request);
     await use();
+  },
+
+  pageAsAdmin: async ({ page, context, request }, use) => {
+    // Reset database before each test
+    await resetDatabase(request);
+
+    // Inject admin session cookie
+    await context.addCookies([
+      {
+        name: sessionCookie.name,
+        value: await getRawSessionCookieValue(MOCK_ADMIN),
+        domain: 'localhost',
+        httpOnly: true,
+        path: '/',
+        sameSite: 'Lax',
+        secure: false,
+      },
+    ]);
+
+    await use(page);
+    await context.clearCookies();
   },
 });
 

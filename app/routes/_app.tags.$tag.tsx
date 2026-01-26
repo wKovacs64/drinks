@@ -5,70 +5,25 @@ import { invariantResponse } from '@epic-web/invariant';
 import { defaultPageDescription, defaultPageTitle } from '#/app/core/config';
 import { getLoaderDataForHandle } from '#/app/core/utils';
 import { DrinkList } from '#/app/drinks/drink-list';
+import { getDrinksByTag } from '#/app/models/drink.server';
 import { getSurrogateKeyForTag } from '#/app/tags/utils';
 import { getEnvVars } from '#/app/utils/env.server';
-import { fetchGraphQL } from '#/app/utils/graphql.server';
 import { withPlaceholderImages } from '#/app/utils/placeholder-images.server';
-import type { AppRouteHandle, Drink, DrinksResponse } from '#/app/types';
+import type { AppRouteHandle, Drink } from '#/app/types';
 import type { Route } from './+types/_app.tags.$tag';
 
-const {
-  CONTENTFUL_ACCESS_TOKEN,
-  CONTENTFUL_URL,
-  CONTENTFUL_PREVIEW,
-  SITE_IMAGE_URL,
-  SITE_IMAGE_ALT,
-} = getEnvVars();
+const { SITE_IMAGE_URL, SITE_IMAGE_ALT } = getEnvVars();
 
 export function headers({ loaderHeaders }: Route.HeadersArgs) {
   return loaderHeaders;
 }
 
 export async function loader({ params }: Route.LoaderArgs) {
-  const taggedDrinksQuery = /* GraphQL */ `
-    query ($preview: Boolean, $tag: [String]) {
-      drinkCollection(
-        preview: $preview
-        order: [rank_DESC, sys_firstPublishedAt_DESC]
-        where: { tags_contains_all: $tag }
-      ) {
-        drinks: items {
-          title
-          slug
-          image {
-            url
-          }
-          ingredients
-          calories
-        }
-      }
-    }
-  `;
+  // Convert kebab-case tag param to lowercase with spaces for matching
+  const tagToSearch = lowerCase(params.tag);
+  const sqliteDrinks = await getDrinksByTag(tagToSearch);
 
-  const queryResponse = await fetchGraphQL(
-    CONTENTFUL_URL,
-    CONTENTFUL_ACCESS_TOKEN,
-    taggedDrinksQuery,
-    {
-      preview: CONTENTFUL_PREVIEW === 'true',
-      tag: lowerCase(params.tag),
-    },
-  );
-
-  const queryResponseJson: DrinksResponse = await queryResponse.json();
-
-  if (queryResponseJson.errors?.length || !queryResponseJson.data.drinkCollection) {
-    throw data(queryResponseJson, { status: 500 });
-  }
-
-  const {
-    data: {
-      drinkCollection: { drinks: maybeDrinks },
-    },
-  } = queryResponseJson;
-
-  const drinks = maybeDrinks.filter((drink): drink is Drink => Boolean(drink));
-  invariantResponse(drinks.length, 'No drinks found', {
+  invariantResponse(sqliteDrinks.length, 'No drinks found', {
     status: 404,
     headers: {
       'Surrogate-Key': 'all',
@@ -80,6 +35,17 @@ export async function loader({ params }: Route.LoaderArgs) {
       }),
     },
   });
+
+  // Transform SQLite drinks to the format expected by withPlaceholderImages
+  const drinks: Drink[] = sqliteDrinks.map((drink) => ({
+    title: drink.title,
+    slug: drink.slug,
+    image: { url: drink.imageUrl },
+    ingredients: drink.ingredients,
+    calories: drink.calories,
+    notes: drink.notes ?? undefined,
+    tags: drink.tags,
+  }));
 
   const drinksWithPlaceholderImages = await withPlaceholderImages(drinks);
 

@@ -3,9 +3,12 @@
  *
  * This script:
  * 1. Fetches all drinks from Contentful GraphQL API
- * 2. For each drink: downloads image from Contentful CDN, uploads to ImageKit, inserts into SQLite
+ * 2. For each drink:
+ *    - Checks if image already exists in ImageKit (reuses if found)
+ *    - Otherwise downloads from Contentful CDN and uploads to ImageKit
+ *    - Inserts into SQLite with original Contentful publish date as createdAt
  * 3. Logs progress throughout
- * 4. Is idempotent (skips drinks that already exist by slug)
+ * 4. Is idempotent (skips drinks that already exist by slug in database)
  *
  * Usage: pnpm migrate:contentful
  */
@@ -122,6 +125,27 @@ async function downloadImage(url: string): Promise<Buffer> {
   return Buffer.from(arrayBuffer);
 }
 
+async function findExistingImage(
+  imagekit: ImageKit,
+  slug: string,
+): Promise<{ url: string; fileId: string } | null> {
+  // Use prefix search since ImageKit appends a hash to filenames (e.g., slug_jXP8DN-my.jpg)
+  const result = await imagekit.assets.list({
+    searchQuery: `name:"${slug}"`,
+    path: '/drinks',
+  });
+
+  if (result && result.length > 0) {
+    const file = result[0];
+    // Check if it's a file (has type='file') with required properties
+    if (file.type === 'file' && 'url' in file && 'fileId' in file && file.url && file.fileId) {
+      return { url: file.url, fileId: file.fileId };
+    }
+  }
+
+  return null;
+}
+
 async function uploadToImageKit(
   imagekit: ImageKit,
   imageBuffer: Buffer,
@@ -189,11 +213,18 @@ async function migrate() {
     try {
       console.log(pc.blue(`  [MIGRATING] ${title} (${slug})...`));
 
-      // Download and upload image
+      // Check if image already exists in ImageKit, otherwise download and upload
       let imageUrl: string;
       let imageFileId: string;
 
-      if (contentfulDrink.image?.url) {
+      console.log(pc.gray(`    Checking ImageKit for existing image...`));
+      const existingImage = await findExistingImage(imagekit, slug);
+
+      if (existingImage) {
+        console.log(pc.gray(`    Found existing image in ImageKit`));
+        imageUrl = existingImage.url;
+        imageFileId = existingImage.fileId;
+      } else if (contentfulDrink.image?.url) {
         console.log(pc.gray(`    Downloading image from Contentful...`));
         const imageBuffer = await downloadImage(contentfulDrink.image.url);
 

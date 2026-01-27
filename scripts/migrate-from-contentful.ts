@@ -6,7 +6,7 @@
  * 2. For each drink:
  *    - Checks if image already exists in ImageKit (reuses if found)
  *    - Otherwise downloads from Contentful CDN and uploads to ImageKit
- *    - Inserts into SQLite with original Contentful publish date as createdAt
+ *    - Inserts into SQLite with original Contentful first publish date as createdAt
  * 3. Logs progress throughout
  * 4. Is idempotent (skips drinks that already exist by slug in database)
  *
@@ -44,7 +44,7 @@ if (!IMAGEKIT_PRIVATE_KEY) {
 // Types for Contentful response
 type ContentfulDrink = {
   sys: {
-    publishedAt: string;
+    firstPublishedAt: string;
   };
   title: string;
   slug: string;
@@ -72,7 +72,7 @@ const DRINKS_QUERY = `
     drinkCollection(limit: 200) {
       items {
         sys {
-          publishedAt
+          firstPublishedAt
         }
         title
         slug
@@ -240,7 +240,7 @@ async function migrate() {
 
       // Insert into SQLite
       // Convert Contentful's ISO date to SQLite datetime format
-      const createdAt = new Date(contentfulDrink.sys.publishedAt)
+      const createdAt = new Date(contentfulDrink.sys.firstPublishedAt)
         .toISOString()
         .replace('T', ' ')
         .replace('Z', '');

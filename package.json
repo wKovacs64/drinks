@@ -42,7 +42,7 @@
     "db:studio": "drizzle-kit studio",
     "test:e2e": "dotenv -e .env.test -- playwright test",
     "test:e2e:ui": "dotenv -e .env.test -- playwright test --ui",
-    "migrate:contentful": "tsx scripts/migrate-from-contentful.ts"
+    "migrate:contentful": "dotenv -e .env -- tsx scripts/migrate-from-contentful.ts"
   },
   "dependencies": {
     "@coji/remix-auth-google": "4.2.0",

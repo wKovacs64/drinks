@@ -40,6 +40,9 @@ if (!IMAGEKIT_PRIVATE_KEY) {
 
 // Types for Contentful response
 type ContentfulDrink = {
+  sys: {
+    publishedAt: string;
+  };
   title: string;
   slug: string;
   image: {
@@ -65,6 +68,9 @@ const DRINKS_QUERY = `
   query GetAllDrinks {
     drinkCollection(limit: 200) {
       items {
+        sys {
+          publishedAt
+        }
         title
         slug
         image {
@@ -202,6 +208,12 @@ async function migrate() {
       }
 
       // Insert into SQLite
+      // Convert Contentful's ISO date to SQLite datetime format
+      const createdAt = new Date(contentfulDrink.sys.publishedAt)
+        .toISOString()
+        .replace('T', ' ')
+        .replace('Z', '');
+
       console.log(pc.gray(`    Inserting into database...`));
       db.insert(drinks)
         .values({
@@ -215,6 +227,7 @@ async function migrate() {
           tags: contentfulDrink.tags ?? [],
           notes: contentfulDrink.notes ?? null,
           rank: contentfulDrink.rank ?? 0,
+          createdAt,
         })
         .run();
 

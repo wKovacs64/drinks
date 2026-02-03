@@ -142,8 +142,8 @@ importers:
         specifier: 3.0.1
         version: 3.0.1(vite@7.3.1(@types/node@25.0.1)(jiti@2.6.1)(lightningcss@1.30.2))
       vite-plugin-static-copy:
-        specifier: 3.1.6
-        version: 3.1.6(vite@7.3.1(@types/node@25.0.1)(jiti@2.6.1)(lightningcss@1.30.2))
+        specifier: 3.2.0
+        version: 3.2.0(vite@7.3.1(@types/node@25.0.1)(jiti@2.6.1)(lightningcss@1.30.2))
 
 packages:
 
@@ -3164,8 +3164,8 @@ packages:
     peerDependencies:
       vite: '>=5.2.0'
 
-  vite-plugin-static-copy@3.1.6:
-    resolution: {integrity: sha512-dO8Qc71yVCmcrsKrJRgSWmWj9khI7X8fLy8X35/ZFR+Nik8CQ1uUgK7iD2KQc2AQdG51sNegSj8Tb4mDKeNYZA==}
+  vite-plugin-static-copy@3.2.0:
+    resolution: {integrity: sha512-g2k9z8B/1Bx7D4wnFjPLx9dyYGrqWMLTpwTtPHhcU+ElNZP2O4+4OsyaficiDClus0dzVhdGvoGFYMJxoXZ12Q==}
     engines: {node: ^18.0.0 || >=20.0.0}
     peerDependencies:
       vite: ^5.0.0 || ^6.0.0 || ^7.0.0
@@ -6400,7 +6400,7 @@ snapshots:
       tinyexec: 0.3.2
       vite: 7.3.1(@types/node@25.0.1)(jiti@2.6.1)(lightningcss@1.30.2)
 
-  vite-plugin-static-copy@3.1.6(vite@7.3.1(@types/node@25.0.1)(jiti@2.6.1)(lightningcss@1.30.2)):
+  vite-plugin-static-copy@3.2.0(vite@7.3.1(@types/node@25.0.1)(jiti@2.6.1)(lightningcss@1.30.2)):
     dependencies:
       chokidar: 3.6.0
       p-map: 7.0.4

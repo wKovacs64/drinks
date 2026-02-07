@@ -1,7 +1,7 @@
+import { useRef } from 'react';
 import { Form, useNavigation } from 'react-router';
-import { useState } from 'react';
 import type { Drink } from '#/app/db/schema';
-import { ImageCrop } from './image-crop';
+import { ImageCrop, type ImageCropHandle } from './image-crop';
 
 type DrinkFormProps = {
   drink?: Drink;
@@ -11,27 +11,24 @@ type DrinkFormProps = {
 export function DrinkForm({ drink, action }: DrinkFormProps) {
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
-
-  const [croppedImage, setCroppedImage] = useState<Blob | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(drink?.imageUrl ?? null);
-
-  const handleCropComplete = (blob: Blob) => {
-    setCroppedImage(blob);
-    setImagePreview(URL.createObjectURL(blob));
-  };
+  const imageCropRef = useRef<ImageCropHandle>(null);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    if (croppedImage) {
-      event.preventDefault();
-      const formData = new FormData(event.currentTarget);
+    event.preventDefault();
+    const form = event.currentTarget;
+    const croppedBlob = await imageCropRef.current?.getCroppedImage();
+
+    if (croppedBlob) {
+      const formData = new FormData(form);
 
       const base64 = await new Promise<string>((resolve) => {
         const reader = new FileReader();
         reader.onloadend = () => resolve(typeof reader.result === 'string' ? reader.result : '');
-        reader.readAsDataURL(croppedImage);
+        reader.readAsDataURL(croppedBlob);
       });
 
       formData.set('imageData', base64);
+      formData.delete('existingImageUrl');
 
       const response = await fetch(action, {
         method: 'POST',
@@ -41,6 +38,8 @@ export function DrinkForm({ drink, action }: DrinkFormProps) {
       if (response.redirected) {
         window.location.href = response.url;
       }
+    } else {
+      form.submit();
     }
   };
 
@@ -84,18 +83,11 @@ export function DrinkForm({ drink, action }: DrinkFormProps) {
         <span className="block text-xs font-semibold tracking-wider text-zinc-500 uppercase">
           Image
         </span>
-        {imagePreview && (
-          <img
-            src={imagePreview}
-            alt="Preview"
-            className="mb-4 h-32 w-32 rounded border border-zinc-700 object-cover"
-          />
-        )}
-        <ImageCrop onCropComplete={handleCropComplete} />
+        <div className="mt-2">
+          <ImageCrop ref={imageCropRef} existingImageUrl={drink?.imageUrl} />
+        </div>
         <input type="hidden" name="imageData" />
-        {drink?.imageUrl && !croppedImage && (
-          <input type="hidden" name="existingImageUrl" value={drink.imageUrl} />
-        )}
+        {drink?.imageUrl && <input type="hidden" name="existingImageUrl" value={drink.imageUrl} />}
       </div>
 
       <div>

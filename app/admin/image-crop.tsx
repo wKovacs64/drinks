@@ -1,9 +1,13 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useImperativeHandle, forwardRef } from 'react';
 import ReactCrop, { type Crop, centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 
+export type ImageCropHandle = {
+  getCroppedImage: () => Promise<Blob | null>;
+};
+
 type ImageCropProps = {
-  onCropComplete: (croppedImageBlob: Blob) => void;
+  existingImageUrl?: string | null;
 };
 
 function centerAspectCrop(mediaWidth: number, mediaHeight: number, aspect: number): Crop {
@@ -14,10 +18,14 @@ function centerAspectCrop(mediaWidth: number, mediaHeight: number, aspect: numbe
   );
 }
 
-export function ImageCrop({ onCropComplete }: ImageCropProps) {
+export const ImageCrop = forwardRef<ImageCropHandle, ImageCropProps>(function ImageCrop(
+  { existingImageUrl },
+  ref,
+) {
   const [imgSrc, setImgSrc] = useState('');
   const [crop, setCrop] = useState<Crop>();
   const imgRef = useRef<HTMLImageElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const onSelectFile = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
@@ -32,9 +40,17 @@ export function ImageCrop({ onCropComplete }: ImageCropProps) {
     setCrop(centerAspectCrop(width, height, 1));
   };
 
-  const getCroppedImg = useCallback(async () => {
+  const handleChangeImage = () => {
+    setImgSrc('');
+    setCrop(undefined);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const getCroppedImage = useCallback(async (): Promise<Blob | null> => {
     const image = imgRef.current;
-    if (!image || !crop) return;
+    if (!image || !crop) return null;
 
     const canvas = document.createElement('canvas');
     const scaleX = image.naturalWidth / image.width;
@@ -51,7 +67,7 @@ export function ImageCrop({ onCropComplete }: ImageCropProps) {
     canvas.height = pixelCrop.height;
 
     const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    if (!ctx) return null;
 
     ctx.drawImage(
       image,
@@ -65,48 +81,80 @@ export function ImageCrop({ onCropComplete }: ImageCropProps) {
       pixelCrop.height,
     );
 
-    canvas.toBlob(
-      (blob) => {
-        if (blob) {
-          onCropComplete(blob);
-        }
-      },
-      'image/jpeg',
-      0.9,
+    return new Promise<Blob | null>((resolve) => {
+      canvas.toBlob((blob) => resolve(blob), 'image/jpeg', 0.9);
+    });
+  }, [crop]);
+
+  useImperativeHandle(ref, () => ({ getCroppedImage }), [getCroppedImage]);
+
+  const fileInput = (
+    <input
+      ref={fileInputRef}
+      type="file"
+      accept="image/*"
+      onChange={onSelectFile}
+      className="hidden"
+      data-testid="image-upload-input"
+    />
+  );
+
+  // State: cropping a new image
+  if (imgSrc) {
+    return (
+      <div className="space-y-3">
+        {fileInput}
+        <ReactCrop
+          crop={crop}
+          onChange={(_, percentCrop) => setCrop(percentCrop)}
+          aspect={1}
+          className="max-h-96"
+        >
+          <img ref={imgRef} alt="Crop preview" src={imgSrc} onLoad={onImageLoad} />
+        </ReactCrop>
+        <button
+          type="button"
+          onClick={handleChangeImage}
+          className="text-sm text-zinc-400 hover:text-zinc-200"
+        >
+          Change image
+        </button>
+      </div>
     );
-  }, [crop, onCropComplete]);
+  }
 
-  return (
-    <div className="space-y-4">
-      <input
-        type="file"
-        accept="image/*"
-        onChange={onSelectFile}
-        className="block w-full text-sm text-gray-500 file:mr-4 file:rounded file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-blue-700 hover:file:bg-blue-100"
-        data-testid="image-upload-input"
-      />
-
-      {imgSrc && (
-        <>
-          <ReactCrop
-            crop={crop}
-            onChange={(_, percentCrop) => setCrop(percentCrop)}
-            aspect={1}
-            className="max-h-96"
-          >
-            <img ref={imgRef} alt="Crop preview" src={imgSrc} onLoad={onImageLoad} />
-          </ReactCrop>
-
+  // State: existing image (edit mode)
+  if (existingImageUrl) {
+    return (
+      <div className="space-y-3">
+        {fileInput}
+        <div className="flex items-center gap-4 rounded border border-dashed border-zinc-700 bg-zinc-900 p-4">
+          <img src={existingImageUrl} alt="Current" className="h-20 w-20 rounded object-cover" />
           <button
             type="button"
-            onClick={getCroppedImg}
-            className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
-            data-testid="confirm-crop-button"
+            onClick={() => fileInputRef.current?.click()}
+            className="text-sm text-zinc-400 hover:text-zinc-200"
           >
-            Confirm Crop
+            Change image
           </button>
-        </>
-      )}
+        </div>
+      </div>
+    );
+  }
+
+  // State: empty (no image)
+  return (
+    <div className="space-y-3">
+      {fileInput}
+      <div className="flex items-center justify-center rounded border border-dashed border-zinc-700 bg-zinc-900 p-8">
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          className="rounded bg-zinc-800 px-3 py-1.5 text-sm text-zinc-300 hover:bg-zinc-700"
+        >
+          Select image
+        </button>
+      </div>
     </div>
   );
-}
+});

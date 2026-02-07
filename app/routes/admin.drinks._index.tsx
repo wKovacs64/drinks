@@ -13,77 +13,66 @@ export default function AdminDrinksList({ loaderData }: Route.ComponentProps) {
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Drinks</h1>
+        <div className="flex items-baseline gap-2">
+          <h1 className="text-xl font-medium text-zinc-200">Drinks</h1>
+          <span className="text-sm text-zinc-500">{drinks.length}</span>
+        </div>
         <Link
           to="/admin/drinks/new"
-          className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+          className="rounded bg-amber-600 px-3 py-1.5 text-sm font-medium text-zinc-950 hover:bg-amber-500"
         >
           Add Drink
         </Link>
       </div>
 
-      <div className="overflow-hidden rounded-lg bg-white shadow">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase">
-                Title
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase">
-                Slug
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase">
-                Calories
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase">
-                Rank
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium tracking-wider text-gray-500 uppercase">
-                Actions
-              </th>
+      <table className="w-full">
+        <thead>
+          <tr className="border-b border-zinc-800 text-left text-xs tracking-wider text-zinc-500 uppercase">
+            <th className="pb-3 font-medium">Title</th>
+            <th className="pb-3 font-medium">Slug</th>
+            <th className="pb-3 font-medium">Calories</th>
+            <th className="pb-3 font-medium">Rank</th>
+            <th className="pb-3 text-right font-medium">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {drinks.map((drink) => (
+            <tr key={drink.id} className="border-b border-zinc-800/50 hover:bg-zinc-800/30">
+              <td className="py-3 whitespace-nowrap">
+                <div className="flex items-center gap-3">
+                  <img src={drink.imageUrl} alt="" className="h-8 w-8 rounded object-cover" />
+                  <span className="font-medium text-zinc-300">{drink.title}</span>
+                </div>
+              </td>
+              <td className="py-3 text-sm text-zinc-400">{drink.slug}</td>
+              <td className="py-3 text-sm text-zinc-400">{drink.calories}</td>
+              <td className="py-3 text-sm text-zinc-400">{drink.rank}</td>
+              <td className="py-3 text-right text-sm whitespace-nowrap">
+                <Link
+                  to={`/admin/drinks/${drink.slug}/edit`}
+                  className="text-zinc-400 hover:text-amber-500"
+                >
+                  Edit
+                </Link>
+                <Form
+                  method="post"
+                  action={`/admin/drinks/${drink.slug}/delete`}
+                  className="ml-4 inline"
+                  onSubmit={(event) => {
+                    if (!confirm('Are you sure you want to delete this drink?')) {
+                      event.preventDefault();
+                    }
+                  }}
+                >
+                  <button type="submit" className="text-zinc-500 hover:text-red-400">
+                    Delete
+                  </button>
+                </Form>
+              </td>
             </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200 bg-white">
-            {drinks.map((drink) => (
-              <tr key={drink.id}>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center">
-                    <img src={drink.imageUrl} alt="" className="h-10 w-10 rounded object-cover" />
-                    <span className="ml-3 font-medium">{drink.title}</span>
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">{drink.slug}</td>
-                <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">
-                  {drink.calories}
-                </td>
-                <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">{drink.rank}</td>
-                <td className="px-6 py-4 text-right text-sm whitespace-nowrap">
-                  <Link
-                    to={`/admin/drinks/${drink.slug}/edit`}
-                    className="text-blue-600 hover:text-blue-900"
-                  >
-                    Edit
-                  </Link>
-                  <Form
-                    method="post"
-                    action={`/admin/drinks/${drink.slug}/delete`}
-                    className="ml-4 inline"
-                    onSubmit={(event) => {
-                      if (!confirm('Are you sure you want to delete this drink?')) {
-                        event.preventDefault();
-                      }
-                    }}
-                  >
-                    <button type="submit" className="text-red-600 hover:text-red-900">
-                      Delete
-                    </button>
-                  </Form>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

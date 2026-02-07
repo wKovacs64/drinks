@@ -13,29 +13,27 @@ export default function AdminLayout({ loaderData }: Route.ComponentProps) {
   const { user } = loaderData;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
-          <div className="flex items-center gap-4">
-            <Link to="/" className="text-gray-600 hover:text-gray-900">
-              View Site
+    <div className="min-h-screen bg-zinc-950" style={{ fontFamily: 'system-ui, sans-serif' }}>
+      <header className="border-b border-zinc-800 bg-zinc-900">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-3">
+          <div className="flex items-center gap-1 text-sm">
+            <Link to="/" className="text-zinc-400 hover:text-white">
+              drinks.fyi
             </Link>
-            <span className="text-gray-300">|</span>
-            <Link to="/admin/drinks" className="font-semibold text-gray-900">
-              Drinks Admin
-            </Link>
+            <span className="text-zinc-600">/</span>
+            <span className="text-zinc-600">admin</span>
           </div>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-600">{user.email}</span>
+          <div className="flex items-center gap-4 text-sm">
+            <span className="text-zinc-500">{user.email}</span>
             <Form method="post" action="/logout">
-              <button type="submit" className="text-sm text-gray-600 hover:text-gray-900">
-                Logout
+              <button type="submit" className="text-zinc-500 hover:text-white">
+                Sign out
               </button>
             </Form>
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-7xl px-4 py-8">
+      <main className="mx-auto max-w-5xl px-6 py-8">
         <Outlet />
       </main>
     </div>

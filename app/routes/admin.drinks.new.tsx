@@ -10,10 +10,8 @@ import type { Route } from './+types/admin.drinks.new';
 export default function NewDrinkPage() {
   return (
     <div>
-      <h1 className="mb-6 text-2xl font-bold">Add New Drink</h1>
-      <div className="rounded-lg bg-white p-6 shadow">
-        <DrinkForm action="/admin/drinks/new" />
-      </div>
+      <h1 className="mb-6 text-xl font-medium text-zinc-200">Add New Drink</h1>
+      <DrinkForm action="/admin/drinks/new" />
     </div>
   );
 }

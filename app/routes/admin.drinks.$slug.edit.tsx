@@ -21,10 +21,8 @@ export default function EditDrinkPage({ loaderData }: Route.ComponentProps) {
 
   return (
     <div>
-      <h1 className="mb-6 text-2xl font-bold">Edit Drink</h1>
-      <div className="rounded-lg bg-white p-6 shadow">
-        <DrinkForm drink={drink} action={`/admin/drinks/${drink.slug}/edit`} />
-      </div>
+      <h1 className="mb-6 text-xl font-medium text-zinc-200">Edit Drink</h1>
+      <DrinkForm drink={drink} action={`/admin/drinks/${drink.slug}/edit`} />
     </div>
   );
 }

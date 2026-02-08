@@ -1,4 +1,4 @@
-import { Link } from 'react-router';
+import { Link, href } from 'react-router';
 import type { EnhancedDrink } from '#/app/types';
 import { Glass } from './glass';
 import { DrinkSummary } from './drink-summary';
@@ -9,7 +9,7 @@ export function DrinkList({ drinks }: { drinks: EnhancedDrink[] }) {
       {drinks.map((drink, index) => (
         <Link
           key={drink.slug}
-          to={`/${drink.slug}`}
+          to={href('/:slug', { slug: drink.slug })}
           aria-label={drink.title}
           className="group focus-visible:outline-hidden"
           prefetch="viewport"

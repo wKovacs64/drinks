@@ -1,4 +1,4 @@
-import { Outlet, Link, Form } from 'react-router';
+import { Outlet, Link, Form, href } from 'react-router';
 import { userMiddleware, adminMiddleware, getUserFromContext } from '#/app/middleware/auth.server';
 import type { Route } from './+types/admin';
 
@@ -17,11 +17,11 @@ export default function AdminLayout({ loaderData }: Route.ComponentProps) {
       <header className="border-b border-zinc-800 bg-zinc-900">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-3">
           <div className="flex items-center gap-1 text-sm">
-            <Link to="/" className="text-zinc-400 hover:text-white">
+            <Link to={href('/')} className="text-zinc-400 hover:text-white">
               drinks.fyi
             </Link>
             <span className="text-zinc-600">/</span>
-            <Link to="/admin" className="text-zinc-600 hover:text-zinc-400">
+            <Link to={href('/admin')} className="text-zinc-600 hover:text-zinc-400">
               admin
             </Link>
           </div>

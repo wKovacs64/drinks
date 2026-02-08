@@ -1,4 +1,4 @@
-import { Link, Form } from 'react-router';
+import { Link, Form, href } from 'react-router';
 import { getAllDrinks } from '#/app/models/drink.server';
 import type { Route } from './+types/admin.drinks._index';
 
@@ -18,7 +18,7 @@ export default function AdminDrinksList({ loaderData }: Route.ComponentProps) {
           <span className="text-sm text-zinc-500">{drinks.length}</span>
         </div>
         <Link
-          to="/admin/drinks/new"
+          to={href('/admin/drinks/new')}
           className="rounded bg-amber-600 px-3 py-1.5 text-sm font-medium text-zinc-950 hover:bg-amber-500"
         >
           Add Drink
@@ -53,7 +53,7 @@ export default function AdminDrinksList({ loaderData }: Route.ComponentProps) {
               <td className="py-3 text-sm text-zinc-400">{drink.rank}</td>
               <td className="py-3 text-right text-sm whitespace-nowrap">
                 <Link
-                  to={`/admin/drinks/${drink.slug}/edit`}
+                  to={href('/admin/drinks/:slug/edit', { slug: drink.slug })}
                   className="text-zinc-400 hover:text-amber-500"
                 >
                   Edit

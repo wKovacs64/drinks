@@ -10,8 +10,8 @@
 
 - [React Router](https://reactrouter.com/) (full stack web framework)
 - [React](https://reactjs.org/) (UI library)
-- [Contentful](https://www.contentful.com/) (headless CMS) with [GraphQL](https://graphql.org/) (API
-  interaction)
+- [SQLite](https://www.sqlite.org/) + [Drizzle](https://orm.drizzle.team/) (database)
+- [ImageKit](https://imagekit.io/) (image storage/CDN)
 - [MiniSearch](https://github.com/lucaong/minisearch) (search)
 - [Fly](https://fly.io/) (hosting)
 - [Tailwind CSS](https://tailwindcss.com/) (styles)
@@ -19,27 +19,11 @@
 
 ## Run your own:
 
-1. Create a new space, content management token, and content delivery (access) token at
-   [Contentful](https://www.contentful.com/).
-1. Clone this repo and change to the directory.
-   - You'll probably want to edit the name, description, etc.
-
-1. Use the [`contentful-cli`](https://github.com/contentful/contentful-cli) package to run the
-   following:
-
-   ```sh
-   contentful space import --management-token <your-management-token> --space-id <your-space-id> --content-file contentful-space.json
-   ```
-
-1. Copy the provided `.env.example` file to a new `.env` file and fill in the values with your
-   information.
-
-1. Deploy to [Fly](https://fly.io/):
-   - See [Fly docs for Node apps](https://fly.io/docs/getting-started/node/)
-
-1. Create a couple webhooks in Contentful (one for dev and one for prod):
-   - Trigger off `Entry` `Publish` and `Unpublish` events
-   - `POST` requests to `<your-domain>/_/content-change` (domain should differ for dev and prod)
-   - Set custom `X-Contentful-Webhook-Token` header to a private, generated token of your choosing
-     (this will need to match what's in your `CONTENTFUL_ACCESS_TOKEN` environment variable)
-   - Leave the default content type (`application/vnd.contentful.management.v1+json`)
+1. Clone this repo and install dependencies with `pnpm install`
+1. Create an [ImageKit](https://imagekit.io/) account and get your public key, private key, and URL
+   endpoint
+1. Copy `.env.example` to `.env` and fill in your ImageKit credentials and other required values
+1. Run database migrations with `pnpm db:migrate`
+1. Start the dev server with `pnpm dev`
+1. Deploy to [Fly](https://fly.io/) - see
+   [Fly docs for Node apps](https://fly.io/docs/getting-started/node/)

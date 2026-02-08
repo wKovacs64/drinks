@@ -19,10 +19,10 @@ export const middleware: Route.MiddlewareFunction[] = [loggingMiddleware, securi
 export const links: LinksFunction = () => [
   {
     rel: 'preconnect',
-    href: 'https://images.ctfassets.net/',
+    href: 'https://ik.imagekit.io/',
     crossOrigin: 'anonymous',
   },
-  { rel: 'dns-prefetch', href: 'https://images.ctfassets.net/' },
+  { rel: 'dns-prefetch', href: 'https://ik.imagekit.io/' },
   { rel: 'icon', sizes: 'any', href: faviconIcoUrl },
   { rel: 'icon', type: 'image/png', sizes: '32x32', href: icon32Url },
   { rel: 'apple-touch-icon', sizes: '180x180', href: appleTouchIconUrl },

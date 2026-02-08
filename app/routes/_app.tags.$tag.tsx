@@ -19,7 +19,6 @@ export function headers({ loaderHeaders }: Route.HeadersArgs) {
 }
 
 export async function loader({ params }: Route.LoaderArgs) {
-  // Convert kebab-case tag param to lowercase with spaces for matching
   const tagToSearch = lowerCase(params.tag);
   const sqliteDrinks = await getDrinksByTag(tagToSearch);
 
@@ -36,7 +35,6 @@ export async function loader({ params }: Route.LoaderArgs) {
     },
   });
 
-  // Transform SQLite drinks to the format expected by withPlaceholderImages
   const drinks: Drink[] = sqliteDrinks.map((drink) => ({
     title: drink.title,
     slug: drink.slug,

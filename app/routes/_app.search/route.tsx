@@ -39,17 +39,13 @@ export async function loader({ request }: Route.LoaderArgs) {
     );
   }
 
-  // Get all drinks and search index
   const { allDrinks, searchIndex } = await getSearchData();
-
-  // Search
   const slugs = searchDrinks(searchIndex, q);
 
   if (slugs.length === 0) {
     return { drinks: [], socialImageUrl: SITE_IMAGE_URL, socialImageAlt: SITE_IMAGE_ALT };
   }
 
-  // Filter all drinks by search results
   const drinks = slugs
     .map((slug) => allDrinks.find((drink) => drink.slug === slug))
     .filter((drink): drink is Drink => Boolean(drink));

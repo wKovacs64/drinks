@@ -32,7 +32,6 @@ export async function loader({ params }: Route.LoaderArgs) {
     },
   });
 
-  // Transform SQLite drink to the format expected by withPlaceholderImages
   const drink: Drink = {
     title: sqliteDrink.title,
     slug: sqliteDrink.slug,

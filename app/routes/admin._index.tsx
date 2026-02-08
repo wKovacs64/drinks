@@ -1,5 +1,5 @@
-import { redirect } from 'react-router';
+import { redirect, href } from 'react-router';
 
 export function loader() {
-  throw redirect('/admin/drinks');
+  throw redirect(href('/admin/drinks'));
 }

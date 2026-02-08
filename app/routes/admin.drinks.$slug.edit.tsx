@@ -58,12 +58,10 @@ export async function action({ request, params }: Route.ActionArgs) {
   let imageFileId: string;
 
   if (imageBuffer) {
-    // New image uploaded - upload it and delete the old one
     const uploadResult = await uploadImageOrPlaceholder(imageBuffer, `${slug}.jpg`);
     imageUrl = uploadResult.url;
     imageFileId = uploadResult.fileId;
 
-    // Delete old image if it's not a placeholder
     if (drink.imageFileId && drink.imageFileId !== 'test-placeholder') {
       try {
         await deleteImage(drink.imageFileId);
@@ -72,11 +70,9 @@ export async function action({ request, params }: Route.ActionArgs) {
       }
     }
   } else if (existingImageUrl) {
-    // Keep existing image
     imageUrl = drink.imageUrl;
     imageFileId = drink.imageFileId;
   } else {
-    // No image data and no existing - use placeholder
     imageUrl = `https://via.placeholder.com/400x400.png?text=${encodeURIComponent(slug)}`;
     imageFileId = 'test-placeholder';
   }
@@ -96,7 +92,6 @@ export async function action({ request, params }: Route.ActionArgs) {
     rank,
   });
 
-  // Invalidate caches - include both old and new tags
   try {
     purgeSearchCache();
     const allTags = [...new Set([...oldTags, ...tags])];
@@ -112,5 +107,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 
   const session = await getSession(request.headers.get('Cookie'));
   session.flash('toast', { kind: 'success' as const, message: `${title} updated!` });
-  return redirect('/admin/drinks', { headers: { 'Set-Cookie': await commitSession(session) } });
+  return redirect(href('/admin/drinks'), {
+    headers: { 'Set-Cookie': await commitSession(session) },
+  });
 }

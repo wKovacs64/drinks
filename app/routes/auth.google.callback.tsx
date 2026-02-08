@@ -1,4 +1,4 @@
-import { redirect } from 'react-router';
+import { redirect, href } from 'react-router';
 import { getClientIPAddress } from 'remix-utils/get-client-ip-address';
 import { authenticator } from '#/app/auth/auth.server';
 import { commitSession, getSession } from '#/app/auth/session.server';
@@ -15,7 +15,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     console.error(error);
     console.error(`[auth|callback-error] Client IP address: ${getClientIPAddress(request)}`);
     console.error(`[auth|callback-error] User-Agent: ${request.headers.get('User-Agent')}`);
-    throw redirect('/login-failed');
+    throw redirect(href('/login-failed'));
   }
 
   const session = await getSession(request.headers.get('Cookie'));

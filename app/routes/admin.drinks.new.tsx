@@ -69,7 +69,6 @@ export async function action({ request }: Route.ActionArgs) {
     rank,
   });
 
-  // Invalidate caches
   try {
     purgeSearchCache();
     await purgeDrinkCache({ slug: drink.slug, tags: drink.tags });
@@ -80,5 +79,7 @@ export async function action({ request }: Route.ActionArgs) {
 
   const session = await getSession(request.headers.get('Cookie'));
   session.flash('toast', { kind: 'success' as const, message: `${title} created!` });
-  return redirect('/admin/drinks', { headers: { 'Set-Cookie': await commitSession(session) } });
+  return redirect(href('/admin/drinks'), {
+    headers: { 'Set-Cookie': await commitSession(session) },
+  });
 }

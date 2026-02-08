@@ -17,7 +17,6 @@ export function headers({ loaderHeaders }: Route.HeadersArgs) {
 export async function loader() {
   const sqliteDrinks = await getAllDrinks();
 
-  // Transform SQLite drinks to the format expected by withPlaceholderImages
   const drinks: Drink[] = sqliteDrinks.map((drink) => ({
     title: drink.title,
     slug: drink.slug,

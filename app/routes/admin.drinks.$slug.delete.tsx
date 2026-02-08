@@ -1,4 +1,4 @@
-import { redirect, data } from 'react-router';
+import { redirect, data, href } from 'react-router';
 import { invariantResponse } from '@epic-web/invariant';
 import { getDrinkBySlug, deleteDrink } from '#/app/models/drink.server';
 import { deleteImage } from '#/app/utils/imagekit.server';
@@ -7,17 +7,14 @@ import { purgeDrinkCache } from '#/app/utils/fastly.server';
 import { getSession, commitSession } from '#/app/auth/session.server';
 import type { Route } from './+types/admin.drinks.$slug.delete';
 
-// This route only accepts POST requests
 export async function loader() {
-  // Redirect GET requests to the drinks list
-  return redirect('/admin/drinks');
+  return redirect(href('/admin/drinks'));
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
   const drink = await getDrinkBySlug(params.slug);
   invariantResponse(drink, 'Drink not found', { status: 404 });
 
-  // Delete the image if it's not a placeholder
   if (drink.imageFileId && drink.imageFileId !== 'test-placeholder') {
     try {
       await deleteImage(drink.imageFileId);
@@ -26,10 +23,8 @@ export async function action({ request, params }: Route.ActionArgs) {
     }
   }
 
-  // Delete the drink from the database
   await deleteDrink(drink.id);
 
-  // Invalidate caches
   try {
     purgeSearchCache();
     await purgeDrinkCache({ slug: drink.slug, tags: drink.tags });

@@ -2,7 +2,7 @@
 
 _Craft Cocktail Gallery_
 
-## Technologies Uesd
+## Technologies Used
 
 - [React Router](https://reactrouter.com/) (full stack web framework)
 - [React](https://reactjs.org/) (UI library)
@@ -27,6 +27,11 @@ _Craft Cocktail Gallery_
   - Avoid type assertions when possible, prefer actual type identification/runtime checks to narrow
 - Prioritize correctness > readability > brevity (optimize for reading, not writing)
 - Very explicit variable names
+
+## React Compiler
+
+- This project uses the React Compiler, so manual memoization with React.memo or useMemo should not
+  normally be necessary.
 
 ## Validation Commands
 

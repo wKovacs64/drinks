@@ -1,8 +1,10 @@
 import { redirect, data } from 'react-router';
+import { invariantResponse } from '@epic-web/invariant';
 import { getDrinkBySlug, deleteDrink } from '#/app/models/drink.server';
 import { deleteImage } from '#/app/utils/imagekit.server';
 import { purgeSearchCache } from '#/app/routes/_app.search/cache.server';
 import { purgeDrinkCache } from '#/app/utils/fastly.server';
+import { getSession, commitSession } from '#/app/auth/session.server';
 import type { Route } from './+types/admin.drinks.$slug.delete';
 
 // This route only accepts POST requests
@@ -11,12 +13,9 @@ export async function loader() {
   return redirect('/admin/drinks');
 }
 
-export async function action({ params }: Route.ActionArgs) {
+export async function action({ request, params }: Route.ActionArgs) {
   const drink = await getDrinkBySlug(params.slug);
-
-  if (!drink) {
-    throw data(null, { status: 404 });
-  }
+  invariantResponse(drink, 'Drink not found', { status: 404 });
 
   // Delete the image if it's not a placeholder
   if (drink.imageFileId && drink.imageFileId !== 'test-placeholder') {
@@ -39,8 +38,7 @@ export async function action({ params }: Route.ActionArgs) {
     console.error('Cache invalidation failed:', error);
   }
 
-  return new Response(JSON.stringify({ success: true }), {
-    status: 200,
-    headers: { 'Content-Type': 'application/json' },
-  });
+  const session = await getSession(request.headers.get('Cookie'));
+  session.flash('toast', { kind: 'success' as const, message: `${drink.title} deleted!` });
+  return data({ success: true }, { headers: { 'Set-Cookie': await commitSession(session) } });
 }

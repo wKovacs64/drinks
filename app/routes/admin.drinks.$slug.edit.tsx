@@ -1,18 +1,27 @@
-import { redirect, data } from 'react-router';
+import { redirect, href } from 'react-router';
+import { invariantResponse } from '@epic-web/invariant';
+import { parseFormData, type FileUpload } from '@remix-run/form-data-parser';
 import { getDrinkBySlug, updateDrink } from '#/app/models/drink.server';
 import { uploadImageOrPlaceholder, deleteImage } from '#/app/utils/imagekit.server';
 import { DrinkForm } from '#/app/admin/drink-form';
 import { purgeSearchCache } from '#/app/routes/_app.search/cache.server';
 import { purgeDrinkCache } from '#/app/utils/fastly.server';
+import { getSession, commitSession } from '#/app/auth/session.server';
 import type { Route } from './+types/admin.drinks.$slug.edit';
+
+export function meta({ data }: Route.MetaArgs) {
+  return [
+    {
+      title: data?.drink
+        ? `Edit ${data.drink.title} | Admin | drinks.fyi`
+        : 'Edit Drink | Admin | drinks.fyi',
+    },
+  ];
+}
 
 export async function loader({ params }: Route.LoaderArgs) {
   const drink = await getDrinkBySlug(params.slug);
-
-  if (!drink) {
-    throw data(null, { status: 404 });
-  }
-
+  invariantResponse(drink, 'Drink not found', { status: 404 });
   return { drink };
 }
 
@@ -22,23 +31,25 @@ export default function EditDrinkPage({ loaderData }: Route.ComponentProps) {
   return (
     <div>
       <h1 className="mb-6 text-xl font-medium text-zinc-200">Edit Drink</h1>
-      <DrinkForm drink={drink} action={`/admin/drinks/${drink.slug}/edit`} />
+      <DrinkForm drink={drink} action={href('/admin/drinks/:slug/edit', { slug: drink.slug })} />
     </div>
   );
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
   const drink = await getDrinkBySlug(params.slug);
+  invariantResponse(drink, 'Drink not found', { status: 404 });
 
-  if (!drink) {
-    throw data(null, { status: 404 });
+  let imageBuffer: Buffer | undefined;
+  async function uploadHandler(fileUpload: FileUpload) {
+    if (fileUpload.fieldName === 'imageFile') {
+      imageBuffer = Buffer.from(await fileUpload.bytes());
+    }
   }
-
-  const formData = await request.formData();
+  const formData = await parseFormData(request, uploadHandler);
 
   const title = String(formData.get('title') ?? '');
   const slug = String(formData.get('slug') ?? '');
-  const imageData = String(formData.get('imageData') ?? '');
   const existingImageUrl = String(formData.get('existingImageUrl') ?? '');
   const ingredients = String(formData.get('ingredients') ?? '')
     .split('\n')
@@ -55,10 +66,8 @@ export async function action({ request, params }: Route.ActionArgs) {
   let imageUrl: string;
   let imageFileId: string;
 
-  if (imageData && imageData.startsWith('data:')) {
+  if (imageBuffer) {
     // New image uploaded - upload it and delete the old one
-    const base64Data = imageData.split(',')[1];
-    const imageBuffer = Buffer.from(base64Data, 'base64');
     const uploadResult = await uploadImageOrPlaceholder(imageBuffer, `${slug}.jpg`);
     imageUrl = uploadResult.url;
     imageFileId = uploadResult.fileId;
@@ -110,5 +119,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     console.error('Cache invalidation failed:', error);
   }
 
-  return redirect('/admin/drinks');
+  const session = await getSession(request.headers.get('Cookie'));
+  session.flash('toast', { kind: 'success' as const, message: `${title} updated!` });
+  return redirect('/admin/drinks', { headers: { 'Set-Cookie': await commitSession(session) } });
 }

@@ -30,8 +30,19 @@ importers:
         specifier: 7.13.0
         version: 7.13.0(react-router@7.13.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(typescript@5.9.3)
       '@react-router/serve':
+<<<<<<< HEAD
         specifier: 7.13.0
         version: 7.13.0(react-router@7.13.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(typescript@5.9.3)
+=======
+        specifier: 7.12.0
+        version: 7.12.0(react-router@7.12.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(typescript@5.9.3)
+      '@remix-run/form-data-parser':
+        specifier: 0.15.0
+        version: 0.15.0
+      '@sindresorhus/slugify':
+        specifier: 3.0.0
+        version: 3.0.0
+>>>>>>> 55afe495 (feat: enhance admin with toast notifications, sortable list, and multipart uploads)
       '@unpic/react':
         specifier: 1.0.2
 <<<<<<< HEAD
@@ -115,7 +126,13 @@ importers:
 >>>>>>> 165909b9 (feat: add google oauth callback route)
 =======
         version: 9.0.0(@oslojs/crypto@1.0.1)(@oslojs/encoding@1.1.0)(is-ip@5.0.1)(react-router@7.12.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)
+<<<<<<< HEAD
 >>>>>>> 74d5855d (feat: add new drink route with tests)
+=======
+      sonner:
+        specifier: 2.0.7
+        version: 2.0.7(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+>>>>>>> 55afe495 (feat: enhance admin with toast notifications, sortable list, and multipart uploads)
       unpic:
         specifier: 4.2.2
         version: 4.2.2
@@ -1088,8 +1105,22 @@ packages:
     peerDependencies:
       react-router: 7.13.0
 
+<<<<<<< HEAD
   '@remix-run/node-fetch-server@0.13.0':
     resolution: {integrity: sha512-1EsNo0ZpgXu/90AWoRZf/oE3RVTUS80tiTUpt+hv5pjtAkw7icN4WskDwz/KdAw5ARbJLMhZBrO1NqThmy/McA==}
+=======
+  '@remix-run/form-data-parser@0.15.0':
+    resolution: {integrity: sha512-sQP4r9218TWmow6Nt252VjKE674dRi4Z8WTnWUxJJG8I/qNfnGZubZ8LgyE0dR9z1gfaEpkd19MfYMLiOTOkJQ==}
+
+  '@remix-run/headers@0.19.0':
+    resolution: {integrity: sha512-+62NbkXuXm9r/NdG6KfH9OCKofCWm8VjkrVPICiHKtRl8Gf2Vi6eFTN4mGgBlZRhd5mmEVRV4hTIn/JUSHDAOw==}
+
+  '@remix-run/multipart-parser@0.14.2':
+    resolution: {integrity: sha512-yDq9ql4Xz92bRG/Sgl4cg2dRlxxC6A40XBy/oyDhy76hJtTQvgyzx9sfPXYPxcfL1BtqljC+sYHE0PvjmQhSfw==}
+
+  '@remix-run/node-fetch-server@0.9.0':
+    resolution: {integrity: sha512-SoLMv7dbH+njWzXnOY6fI08dFMI5+/dQ+vY3n8RnnbdG7MdJEgiP28Xj/xWlnRnED/aB6SFw56Zop+LbmaaKqA==}
+>>>>>>> 55afe495 (feat: enhance admin with toast notifications, sortable list, and multipart uploads)
 
   '@rollup/rollup-android-arm-eabi@4.53.3':
     resolution: {integrity: sha512-mRSi+4cBjrRLoaal2PnqH82Wqyb+d3HsPUN/W+WslCXsZsyHa9ZeQQX/pQsZaVIWDkPcpV6jJ+3KLbTbgnwv8w==}
@@ -1215,6 +1246,14 @@ packages:
   '@sindresorhus/merge-streams@2.3.0':
     resolution: {integrity: sha512-LtoMMhxAlorcGhmFYI+LhPgbPZCkgP6ra1YL604EeF6U98pLlQ3iWIGMdWSC+vWmPBWBNgmDBAhnAobLROJmwg==}
     engines: {node: '>=18'}
+
+  '@sindresorhus/slugify@3.0.0':
+    resolution: {integrity: sha512-SCrKh1zS96q+CuH5GumHcyQEVPsM4Ve8oE0E6tw7AAhGq50K8ojbTUOQnX/j9Mhcv/AXiIsbCfquovyGOo5fGw==}
+    engines: {node: '>=20'}
+
+  '@sindresorhus/transliterate@2.3.1':
+    resolution: {integrity: sha512-gVaaGtKYMYAMmI8buULVH3A2TXVJ98QiwGwI7ddrWGuGidGC2uRt4FHs22+8iROJ0QTzju9CuMjlVsrvpqsdhA==}
+    engines: {node: '>=20'}
 
   '@stablelib/base64@1.0.1':
     resolution: {integrity: sha512-1bnPQqSxSuc3Ii6MhBysoWCg58j97aUjuCSZrGSmDxNqtytIi0k8utUenAwTZN4V5mXXYGsVUI9zeBqy+jBOSQ==}
@@ -2188,6 +2227,10 @@ packages:
   escape-string-regexp@4.0.0:
     resolution: {integrity: sha512-TtpcNJ3XAzx3Gq8sWRzJaVajRs0uVxA2YAkdb1jm2YkPz4G6egUFAyA3n5vtEIZefPk5Wa4UXbKuS5fKkJWdgA==}
     engines: {node: '>=10'}
+
+  escape-string-regexp@5.0.0:
+    resolution: {integrity: sha512-/veY75JbMK4j1yjvuUxuVsiS/hr/4iHs9FTT6cgTexxdE0Ly/glccBAkloH/DofkjRbZU3bnoj38mOmhkZ0lHw==}
+    engines: {node: '>=12'}
 
   eslint-compat-utils@0.6.5:
     resolution: {integrity: sha512-vAUHYzue4YAa2hNACjB8HvUQj5yehAZgiClyFVVom9cP8z5NSFq3PwB/TtJslN2zAMgRX6FCFCjYBbQh71g5RQ==}
@@ -3544,6 +3587,12 @@ packages:
     resolution: {integrity: sha512-ZA6oR3T/pEyuqwMgAKT0/hAv8oAXckzbkmR0UkUosQ+Mc4RxGoJkRmwHgHufaenlyAgE1Mxgpdcrf75y6XcnDg==}
     engines: {node: '>=14.16'}
 
+  sonner@2.0.7:
+    resolution: {integrity: sha512-W6ZN4p58k8aDKA4XPcx2hpIQXBRAgyiWVkYhT7CvK6D3iAu7xjvVyhQHg2/iaKJZ1XVJ4r7XuwGL+WGEK37i9w==}
+    peerDependencies:
+      react: ^18.0.0 || ^19.0.0 || ^19.0.0-rc
+      react-dom: ^18.0.0 || ^19.0.0 || ^19.0.0-rc
+
   source-map-js@1.2.1:
     resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
     engines: {node: '>=0.10.0'}
@@ -4647,7 +4696,21 @@ snapshots:
       - supports-color
       - typescript
 
+<<<<<<< HEAD
   '@remix-run/node-fetch-server@0.13.0': {}
+=======
+  '@remix-run/form-data-parser@0.15.0':
+    dependencies:
+      '@remix-run/multipart-parser': 0.14.2
+
+  '@remix-run/headers@0.19.0': {}
+
+  '@remix-run/multipart-parser@0.14.2':
+    dependencies:
+      '@remix-run/headers': 0.19.0
+
+  '@remix-run/node-fetch-server@0.9.0': {}
+>>>>>>> 55afe495 (feat: enhance admin with toast notifications, sortable list, and multipart uploads)
 
   '@rollup/rollup-android-arm-eabi@4.53.3':
     optional: true
@@ -4716,6 +4779,13 @@ snapshots:
     optional: true
 
   '@sindresorhus/merge-streams@2.3.0': {}
+
+  '@sindresorhus/slugify@3.0.0':
+    dependencies:
+      '@sindresorhus/transliterate': 2.3.1
+      escape-string-regexp: 5.0.0
+
+  '@sindresorhus/transliterate@2.3.1': {}
 
   '@stablelib/base64@1.0.1': {}
 
@@ -5769,6 +5839,8 @@ snapshots:
   escape-html@1.0.3: {}
 
   escape-string-regexp@4.0.0: {}
+
+  escape-string-regexp@5.0.0: {}
 
   eslint-compat-utils@0.6.5(eslint@9.39.2(jiti@2.6.1)):
     dependencies:
@@ -7144,6 +7216,11 @@ snapshots:
       simple-concat: 1.0.1
 
   slash@5.1.0: {}
+
+  sonner@2.0.7(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
+    dependencies:
+      react: 19.2.3
+      react-dom: 19.2.3(react@19.2.3)
 
   source-map-js@1.2.1: {}
 

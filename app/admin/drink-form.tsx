@@ -1,5 +1,6 @@
-import { useRef } from 'react';
-import { Form, useNavigation } from 'react-router';
+import { useRef, useState } from 'react';
+import { Form, useNavigation, useSubmit } from 'react-router';
+import slugify from '@sindresorhus/slugify';
 import type { Drink } from '#/app/db/schema';
 import { ImageCrop, type ImageCropHandle } from './image-crop';
 
@@ -12,6 +13,9 @@ export function DrinkForm({ drink, action }: DrinkFormProps) {
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
   const imageCropRef = useRef<ImageCropHandle>(null);
+  const submit = useSubmit();
+  const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
+  const [slugValue, setSlugValue] = useState(drink?.slug ?? '');
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -20,31 +24,21 @@ export function DrinkForm({ drink, action }: DrinkFormProps) {
 
     if (croppedBlob) {
       const formData = new FormData(form);
-
-      const base64 = await new Promise<string>((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(typeof reader.result === 'string' ? reader.result : '');
-        reader.readAsDataURL(croppedBlob);
-      });
-
-      formData.set('imageData', base64);
-      formData.delete('existingImageUrl');
-
-      const response = await fetch(action, {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (response.redirected) {
-        window.location.href = response.url;
-      }
+      formData.set('imageFile', croppedBlob, 'cropped.jpg');
+      await submit(formData, { method: 'post', action, encType: 'multipart/form-data' });
     } else {
-      form.submit();
+      await submit(form, { method: 'post', action });
     }
   };
 
   return (
-    <Form method="post" action={action} onSubmit={handleSubmit} className="space-y-6">
+    <Form
+      method="post"
+      action={action}
+      encType="multipart/form-data"
+      onSubmit={handleSubmit}
+      className="space-y-6"
+    >
       <div>
         <label
           htmlFor="title"
@@ -58,6 +52,11 @@ export function DrinkForm({ drink, action }: DrinkFormProps) {
           id="title"
           defaultValue={drink?.title}
           required
+          onChange={(event) => {
+            if (!drink && !isSlugManuallyEdited) {
+              setSlugValue(slugify(event.target.value));
+            }
+          }}
           className="mt-2 block w-full rounded-sm border border-zinc-700 bg-zinc-800 px-3 py-2 text-zinc-200 placeholder-zinc-600 focus:border-amber-600 focus:ring-1 focus:ring-amber-600 focus:outline-none"
         />
       </div>
@@ -73,8 +72,12 @@ export function DrinkForm({ drink, action }: DrinkFormProps) {
           type="text"
           name="slug"
           id="slug"
-          defaultValue={drink?.slug}
+          value={slugValue}
           required
+          onChange={(event) => {
+            setIsSlugManuallyEdited(true);
+            setSlugValue(event.target.value);
+          }}
           className="mt-2 block w-full rounded-sm border border-zinc-700 bg-zinc-800 px-3 py-2 text-zinc-200 placeholder-zinc-600 focus:border-amber-600 focus:ring-1 focus:ring-amber-600 focus:outline-none"
         />
       </div>
@@ -86,7 +89,6 @@ export function DrinkForm({ drink, action }: DrinkFormProps) {
         <div className="mt-2">
           <ImageCrop ref={imageCropRef} existingImageUrl={drink?.imageUrl} />
         </div>
-        <input type="hidden" name="imageData" />
         {drink?.imageUrl && <input type="hidden" name="existingImageUrl" value={drink.imageUrl} />}
       </div>
 

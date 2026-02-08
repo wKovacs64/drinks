@@ -1,27 +1,40 @@
-import { redirect } from 'react-router';
+import { redirect, href } from 'react-router';
+import { parseFormData, type FileUpload } from '@remix-run/form-data-parser';
+import slugify from '@sindresorhus/slugify';
+import { getSession, commitSession } from '#/app/auth/session.server';
 import { createDrink } from '#/app/models/drink.server';
 import { uploadImageOrPlaceholder } from '#/app/utils/imagekit.server';
-import { generateSlug } from '#/app/utils/slug';
 import { DrinkForm } from '#/app/admin/drink-form';
 import { purgeSearchCache } from '#/app/routes/_app.search/cache.server';
 import { purgeDrinkCache } from '#/app/utils/fastly.server';
 import type { Route } from './+types/admin.drinks.new';
 
+export function meta() {
+  return [{ title: 'New Drink | Admin | drinks.fyi' }];
+}
+
 export default function NewDrinkPage() {
   return (
     <div>
       <h1 className="mb-6 text-xl font-medium text-zinc-200">Add New Drink</h1>
-      <DrinkForm action="/admin/drinks/new" />
+      <DrinkForm action={href('/admin/drinks/new')} />
     </div>
   );
 }
 
 export async function action({ request }: Route.ActionArgs) {
-  const formData = await request.formData();
+  let imageBuffer: Buffer | undefined;
+
+  async function uploadHandler(fileUpload: FileUpload) {
+    if (fileUpload.fieldName === 'imageFile') {
+      imageBuffer = Buffer.from(await fileUpload.bytes());
+    }
+  }
+
+  const formData = await parseFormData(request, uploadHandler);
 
   const title = String(formData.get('title') ?? '');
-  const slug = String(formData.get('slug') ?? '') || generateSlug(title);
-  const imageData = String(formData.get('imageData') ?? '');
+  const slug = String(formData.get('slug') ?? '') || slugify(title);
   const ingredients = String(formData.get('ingredients') ?? '')
     .split('\n')
     .map((ingredient) => ingredient.trim())
@@ -37,9 +50,7 @@ export async function action({ request }: Route.ActionArgs) {
   let imageUrl: string;
   let imageFileId: string;
 
-  if (imageData && imageData.startsWith('data:')) {
-    const base64Data = imageData.split(',')[1];
-    const imageBuffer = Buffer.from(base64Data, 'base64');
+  if (imageBuffer) {
     const uploadResult = await uploadImageOrPlaceholder(imageBuffer, `${slug}.jpg`);
     imageUrl = uploadResult.url;
     imageFileId = uploadResult.fileId;
@@ -70,5 +81,7 @@ export async function action({ request }: Route.ActionArgs) {
     console.error('Cache invalidation failed:', error);
   }
 
-  return redirect('/admin/drinks');
+  const session = await getSession(request.headers.get('Cookie'));
+  session.flash('toast', { kind: 'success' as const, message: `${title} created!` });
+  return redirect('/admin/drinks', { headers: { 'Set-Cookie': await commitSession(session) } });
 }

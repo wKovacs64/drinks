@@ -17,7 +17,6 @@ export function DrinkSummary({
     sizes,
     width: breakpoints.at(-1) ?? 640,
     height: breakpoints.at(-1) ?? 640,
-    operations: { contentful: { q: 50 } },
     priority,
   } satisfies SourceProps | ImageProps;
 

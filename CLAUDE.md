@@ -6,8 +6,8 @@ _Craft Cocktail Gallery_
 
 - [React Router](https://reactrouter.com/) (full stack web framework)
 - [React](https://reactjs.org/) (UI library)
-- [Contentful](https://www.contentful.com/) (headless CMS) with [GraphQL](https://graphql.org/) (API
-  interaction)
+- [SQLite](https://www.sqlite.org/) + [Drizzle](https://orm.drizzle.team/) (database)
+- [ImageKit](https://imagekit.io/) (image storage/CDN)
 - [MiniSearch](https://github.com/lucaong/minisearch) (search)
 - [Fly](https://fly.io/) (hosting)
 - [Tailwind CSS](https://tailwindcss.com/) (styles)

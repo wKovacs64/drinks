@@ -82,21 +82,13 @@ export function meta({ loaderData }: Route.MetaArgs) {
   if (!drink) return [];
   const { title, ingredients } = drink;
   const description = ingredients.join(', ');
-  const socialImageUrl = transformUrl(
-    {
-      url: drink.image.url,
-      width: 1200,
-      height: 630,
-      quality: 50,
-      format: 'jpg',
-    },
-    {
-      contentful: {
-        fit: 'thumb',
-        fl: 'progressive',
-      },
-    },
-  );
+  const socialImageUrl = transformUrl({
+    url: drink.image.url,
+    width: 1200,
+    height: 630,
+    quality: 50,
+    format: 'jpg',
+  });
   const socialImageAlt = `${title} in a glass`;
 
   return [

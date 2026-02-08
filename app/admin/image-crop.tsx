@@ -104,18 +104,20 @@ export const ImageCrop = forwardRef<ImageCropHandle, ImageCropProps>(function Im
     return (
       <div className="space-y-3">
         {fileInput}
-        <ReactCrop
-          crop={crop}
-          onChange={(_, percentCrop) => setCrop(percentCrop)}
-          aspect={1}
-          className="max-h-96"
-        >
-          <img ref={imgRef} alt="Crop preview" src={imgSrc} onLoad={onImageLoad} />
-        </ReactCrop>
+        <div>
+          <ReactCrop
+            crop={crop}
+            onChange={(_, percentCrop) => setCrop(percentCrop)}
+            aspect={1}
+            className="max-h-96"
+          >
+            <img ref={imgRef} alt="Crop preview" src={imgSrc} onLoad={onImageLoad} />
+          </ReactCrop>
+        </div>
         <button
           type="button"
           onClick={handleChangeImage}
-          className="text-sm text-zinc-400 hover:text-zinc-200"
+          className="rounded border border-zinc-700 px-2.5 py-1 text-sm text-zinc-400 hover:border-zinc-600 hover:text-zinc-200"
         >
           Change image
         </button>
@@ -133,7 +135,7 @@ export const ImageCrop = forwardRef<ImageCropHandle, ImageCropProps>(function Im
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="text-sm text-zinc-400 hover:text-zinc-200"
+            className="rounded border border-zinc-700 px-2.5 py-1 text-sm text-zinc-400 hover:border-zinc-600 hover:text-zinc-200"
           >
             Change image
           </button>

@@ -21,10 +21,12 @@ export default function AdminLayout({ loaderData }: Route.ComponentProps) {
               drinks.fyi
             </Link>
             <span className="text-zinc-600">/</span>
-            <span className="text-zinc-600">admin</span>
+            <Link to="/admin" className="text-zinc-600 hover:text-zinc-400">
+              admin
+            </Link>
           </div>
           <div className="flex items-center gap-4 text-sm">
-            <span className="text-zinc-500">{user.email}</span>
+            <span className="text-zinc-400">{user.email}</span>
             <Form method="post" action="/logout">
               <button type="submit" className="text-zinc-500 hover:text-white">
                 Sign out

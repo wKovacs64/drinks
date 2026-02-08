@@ -255,5 +255,11 @@ $RECYCLE.BIN/
 # Service worker in development mode
 public/sw.js
 
+# Playwright
+/.playwright
+/.playwright-cli
+/playwright-report
+/test-results
+
 # Claude Code
 /.claude

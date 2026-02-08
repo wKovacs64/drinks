@@ -40,7 +40,11 @@ export default function AdminDrinksList({ loaderData }: Route.ComponentProps) {
             <tr key={drink.id} className="border-b border-zinc-800/50 hover:bg-zinc-800/30">
               <td className="py-3 whitespace-nowrap">
                 <div className="flex items-center gap-3">
-                  <img src={drink.imageUrl} alt="" className="h-8 w-8 rounded object-cover" />
+                  <img
+                    src={`${drink.imageUrl}?tr=w-64,h-64`}
+                    alt=""
+                    className="h-8 w-8 rounded object-cover"
+                  />
                   <span className="font-medium text-zinc-300">{drink.title}</span>
                 </div>
               </td>

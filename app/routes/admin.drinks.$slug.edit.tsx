@@ -9,16 +9,6 @@ import { purgeDrinkCache } from '#/app/utils/fastly.server';
 import { getSession, commitSession } from '#/app/auth/session.server';
 import type { Route } from './+types/admin.drinks.$slug.edit';
 
-export function meta({ data }: Route.MetaArgs) {
-  return [
-    {
-      title: data?.drink
-        ? `Edit ${data.drink.title} | Admin | drinks.fyi`
-        : 'Edit Drink | Admin | drinks.fyi',
-    },
-  ];
-}
-
 export async function loader({ params }: Route.LoaderArgs) {
   const drink = await getDrinkBySlug(params.slug);
   invariantResponse(drink, 'Drink not found', { status: 404 });
@@ -30,6 +20,7 @@ export default function EditDrinkPage({ loaderData }: Route.ComponentProps) {
 
   return (
     <div>
+      <title>{`Edit ${drink.title} | drinks.fyi`}</title>
       <h1 className="mb-6 text-xl font-medium text-zinc-200">Edit Drink</h1>
       <DrinkForm drink={drink} action={href('/admin/drinks/:slug/edit', { slug: drink.slug })} />
     </div>

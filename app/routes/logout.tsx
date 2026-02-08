@@ -10,7 +10,7 @@ export async function action({ request }: Route.ActionArgs) {
   });
 }
 
-export async function loader(_args: Route.LoaderArgs) {
+export async function loader() {
   // Redirect GET requests to home
   throw redirect('/');
 }

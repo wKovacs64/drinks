@@ -9,13 +9,10 @@ import { purgeSearchCache } from '#/app/routes/_app.search/cache.server';
 import { purgeDrinkCache } from '#/app/utils/fastly.server';
 import type { Route } from './+types/admin.drinks.new';
 
-export function meta() {
-  return [{ title: 'New Drink | Admin | drinks.fyi' }];
-}
-
 export default function NewDrinkPage() {
   return (
     <div>
+      <title>New Drink | drinks.fyi</title>
       <h1 className="mb-6 text-xl font-medium text-zinc-200">Add New Drink</h1>
       <DrinkForm action={href('/admin/drinks/new')} />
     </div>

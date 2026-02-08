@@ -4,11 +4,7 @@ import { useSortableData } from '#/app/admin/use-sortable-data';
 import { getAllDrinks } from '#/app/models/drink.server';
 import type { Route } from './+types/admin.drinks._index';
 
-export function meta() {
-  return [{ title: 'Drinks | Admin | drinks.fyi' }];
-}
-
-export async function loader(_args: Route.LoaderArgs) {
+export async function loader() {
   const drinks = await getAllDrinks();
   return { drinks };
 }
@@ -91,6 +87,7 @@ export default function AdminDrinksList({ loaderData }: Route.ComponentProps) {
 
   return (
     <div>
+      <title>All Drinks | drinks.fyi</title>
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-baseline gap-2">
           <h1 className="text-xl font-medium text-zinc-200">Drinks</h1>

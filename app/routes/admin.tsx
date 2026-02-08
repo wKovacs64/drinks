@@ -7,10 +7,6 @@ import type { Route } from './+types/admin';
 
 export const middleware = [userMiddleware, adminMiddleware];
 
-export function meta() {
-  return [{ title: 'Admin | drinks.fyi' }];
-}
-
 export async function loader({ request, context }: Route.LoaderArgs) {
   const user = getUserFromContext(context);
   const session = await getSession(request.headers.get('Cookie'));
@@ -52,6 +48,7 @@ export default function AdminLayout({ loaderData }: Route.ComponentProps) {
           </div>
         </div>
       </header>
+      <title>Admin | drinks.fyi</title>
       <main className="mx-auto max-w-5xl px-6 py-8">
         <Outlet />
       </main>

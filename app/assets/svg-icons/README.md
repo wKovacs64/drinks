@@ -8,23 +8,17 @@ sheet at build time.
 ## Adding Icons
 
 You can add icons manually, or you can add them from existing icon sets in the
-[Sly CLI registry](https://sly-cli.fly.dev/). For example, to add the `filled` variant of the
-`admin_panel_settings` icon from the
-[Material Design Icons](https://marella.me/material-design-icons/demo/svg/) set, you would run:
+[Iconify Framework](https://icon-sets.iconify.design/) via the
+[`@wkovacs64/add-icon`](https://npm.im/@wkovacs64/add-icon/) CLI. For example, to add the `solid`
+variant of the `wrench-screwdriver` icon from the `heroicons` set, you would run:
 
 ```
-npx sly add material-design-icons admin_panel_settings-filled --yes --overwrite
+pnpm exec add-icon heroicons:wrench-screwdriver-solid
 ```
 
-> The name format for the Material Design Icons set in the Sly CLI registry is
-> `<base_icon_name>-<variant>`. Other icon sets may have different naming conventions.
-
-When adding an icon manually, you'll probably want to make sure the `svg` element has the following
-attributes (in addition to `viewBox` of course):
-
-```xml
-<svg stroke-width="0" stroke="currentColor" fill="currentColor">
-```
+> The format for identifying an icon in the Iconify Framework is `<icon-set>:<icon-name>`. Colons
+> don't make very good file name characters, so the `add-icon` command replaces them with hyphens,
+> and that's how you'll reference the icon in your code (shown below).
 
 ## Using Icons
 
@@ -37,7 +31,7 @@ import { Icon } from '#/app/icons/icon';
 function MyComponent() {
   return (
     <div>
-      <Icon name="admin_panel_settings-filled" size={22} />
+      <Icon name="heroicons-wrench-screwdriver-solid" size={22} />
     </div>
   );
 }

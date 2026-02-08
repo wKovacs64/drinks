@@ -18,6 +18,8 @@ _Craft Cocktail Gallery_
 - Single admin
 - Handful of users (friends and family)
 - Low content item count (~50 currently, doubt it will ever reach 100)
+- SQLite is a single-file database stored on a Fly volume, so the app is constrained to a single
+  region. Do not scale to multiple regions without first adding a replication strategy.
 
 ## Code Style
 

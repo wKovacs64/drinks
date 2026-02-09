@@ -7,8 +7,9 @@
  *    - Checks if image already exists in ImageKit (reuses if found)
  *    - Otherwise downloads from Contentful CDN and uploads to ImageKit
  *    - Inserts into SQLite with original Contentful first publish date as createdAt
- * 3. Logs progress throughout
- * 4. Is idempotent (skips drinks that already exist by slug in database)
+ * 3. Seeds the first admin user if FIRST_ADMIN_EMAIL_ADDRESS is set
+ * 4. Logs progress throughout
+ * 5. Is idempotent (skips drinks/users that already exist)
  *
  * Usage: pnpm migrate:contentful
  */
@@ -19,12 +20,13 @@ import { eq } from 'drizzle-orm';
 import { createId } from '@paralleldrive/cuid2';
 import { ImageKit } from '@imagekit/nodejs';
 import pc from 'picocolors';
-import { drinks } from '../app/db/schema';
+import { drinks, users } from '../app/db/schema';
 
 // Environment variables (loaded directly since we're outside the app)
 const CONTENTFUL_URL = process.env.CONTENTFUL_URL;
 const CONTENTFUL_ACCESS_TOKEN = process.env.CONTENTFUL_ACCESS_TOKEN;
 const IMAGEKIT_PRIVATE_KEY = process.env.IMAGEKIT_PRIVATE_KEY;
+const FIRST_ADMIN_EMAIL_ADDRESS = process.env.FIRST_ADMIN_EMAIL_ADDRESS;
 const DATABASE_URL = process.env.DATABASE_URL ?? './data/drinks.db';
 
 // Validate required env vars
@@ -179,7 +181,7 @@ async function migrate() {
   console.log(pc.blue(`Connecting to database: ${DATABASE_URL}`));
   const sqlite = new Database(DATABASE_URL);
   sqlite.pragma('journal_mode = WAL');
-  const db = drizzle(sqlite, { schema: { drinks } });
+  const db = drizzle(sqlite, { schema: { drinks, users } });
 
   // Initialize ImageKit
   console.log(pc.blue('Initializing ImageKit client...'));
@@ -267,6 +269,28 @@ async function migrate() {
         ),
       );
       failed++;
+    }
+  }
+
+  // Seed admin user
+  if (FIRST_ADMIN_EMAIL_ADDRESS) {
+    const existingAdmin = db
+      .select({ email: users.email })
+      .from(users)
+      .where(eq(users.email, FIRST_ADMIN_EMAIL_ADDRESS))
+      .get();
+
+    if (existingAdmin) {
+      console.log(pc.yellow(`\n  [SKIP] Admin user ${FIRST_ADMIN_EMAIL_ADDRESS} already exists`));
+    } else {
+      db.insert(users)
+        .values({
+          id: createId(),
+          email: FIRST_ADMIN_EMAIL_ADDRESS,
+          role: 'admin',
+        })
+        .run();
+      console.log(pc.green(`\n  [OK] Seeded admin user: ${FIRST_ADMIN_EMAIL_ADDRESS}`));
     }
   }
 

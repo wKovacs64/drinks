@@ -69,7 +69,6 @@ export async function action({ request, params }: Route.ActionArgs) {
     const uploadResult = await uploadImageOrPlaceholder(
       imageUpload.buffer,
       `${result.data.slug}.jpg`,
-      imageUpload.contentType,
     );
     imageUrl = uploadResult.url;
     imageFileId = uploadResult.fileId;

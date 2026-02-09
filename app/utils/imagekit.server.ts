@@ -1,4 +1,4 @@
-import { ImageKit } from '@imagekit/nodejs';
+import { ImageKit, toFile } from '@imagekit/nodejs';
 import { getEnvVars } from '#/app/utils/env.server';
 
 const { IMAGEKIT_PRIVATE_KEY, NODE_ENV } = getEnvVars();
@@ -14,18 +14,11 @@ function getImageKit() {
   });
 }
 
-export async function uploadImage(
-  file: Buffer,
-  fileName: string,
-  contentType: string,
-): Promise<UploadResult> {
+export async function uploadImage(file: Buffer, fileName: string): Promise<UploadResult> {
   const imagekit = getImageKit();
 
-  // Convert Buffer to base64 data URL for the ImageKit SDK
-  const base64File = `data:${contentType};base64,${file.toString('base64')}`;
-
   const response = await imagekit.files.upload({
-    file: base64File,
+    file: await toFile(file, fileName),
     fileName,
     folder: '/drinks',
   });
@@ -55,7 +48,6 @@ export async function deleteImage(fileId: string): Promise<void> {
 export async function uploadImageOrPlaceholder(
   file: Buffer,
   fileName: string,
-  contentType: string,
 ): Promise<UploadResult> {
   if (NODE_ENV === 'test') {
     return {
@@ -63,5 +55,5 @@ export async function uploadImageOrPlaceholder(
       fileId: 'test-placeholder',
     };
   }
-  return uploadImage(file, fileName, contentType);
+  return uploadImage(file, fileName);
 }

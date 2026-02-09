@@ -1,5 +1,6 @@
 import {
   createContext,
+  href,
   redirect,
   type RouterContextProvider,
   type MiddlewareFunction,
@@ -30,7 +31,7 @@ export const userMiddleware: MiddlewareFunction<Response> = async ({ request, co
 
   if (!sessionUser) {
     session.set('returnTo', createReturnToUrl(request));
-    throw redirect('/login', {
+    throw redirect(href('/login'), {
       headers: { 'Set-Cookie': await commitSession(session) },
     });
   }
@@ -40,7 +41,7 @@ export const userMiddleware: MiddlewareFunction<Response> = async ({ request, co
 
   if (!user) {
     // User was deleted - clear session and redirect to login
-    throw redirect('/login', {
+    throw redirect(href('/login'), {
       headers: { 'Set-Cookie': await destroySession(session) },
     });
   }
@@ -64,7 +65,7 @@ export const adminMiddleware: MiddlewareFunction<Response> = async ({ context },
   const user = getUserFromContext(context);
 
   if (user.role !== 'admin') {
-    throw redirect('/unauthorized');
+    throw redirect(href('/unauthorized'));
   }
 
   return next();

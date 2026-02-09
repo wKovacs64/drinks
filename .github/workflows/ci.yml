@@ -118,7 +118,7 @@ jobs:
       - name: 🗃️ Setup test database
         run: |
           mkdir -p data
-          dotenv -e .env.test -- pnpm db:migrate
+          pnpm exec dotenv -e .env.test -- pnpm db:migrate
 
       - name: 🎭 Playwright tests
         run: pnpm test:e2e

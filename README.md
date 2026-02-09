@@ -22,7 +22,10 @@
 1. Clone this repo and install dependencies with `pnpm install`
 1. Create an [ImageKit](https://imagekit.io/) account and get your public key, private key, and URL
    endpoint
-1. Copy `.env.example` to `.env` and fill in your ImageKit credentials and other required values
+1. Create a project in the [Google Cloud Console](https://console.cloud.google.com/), configure the
+   OAuth consent screen, and create OAuth 2.0 credentials to get your client ID and client secret
+1. Copy `.env.example` to `.env` and fill in your ImageKit credentials, Google OAuth credentials,
+   and other required values
 1. Run database migrations with `pnpm db:migrate`
 1. Start the dev server with `pnpm dev`
 1. Deploy to [Fly](https://fly.io/) - see

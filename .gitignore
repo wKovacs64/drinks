@@ -258,8 +258,8 @@ public/sw.js
 # Playwright
 /.playwright
 /.playwright-cli
-/playwright-report
-/test-results
+playwright/report
+playwright/results
 
 # Claude Code
 /.claude

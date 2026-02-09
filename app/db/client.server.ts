@@ -1,8 +1,9 @@
 import Database from 'better-sqlite3';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
+import { getEnvVars } from '#/app/utils/env.server';
 import * as schema from './schema';
 
-const DATABASE_URL = process.env.DATABASE_URL || './data/drinks.db';
+const { DATABASE_URL } = getEnvVars();
 
 let sqlite: Database.Database | null = null;
 

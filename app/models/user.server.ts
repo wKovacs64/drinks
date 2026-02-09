@@ -41,7 +41,7 @@ export async function updateUserOnLogin({
     .set({
       name,
       avatarUrl,
-      updatedAt: new Date().toISOString(),
+      updatedAt: new Date(),
     })
     .where(eq(users.id, existingUser.id))
     .returning();

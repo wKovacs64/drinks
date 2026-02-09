@@ -7,12 +7,12 @@ export const users = sqliteTable('users', {
   name: text('name'),
   avatarUrl: text('avatar_url'),
   role: text('role').notNull().$type<'user' | 'admin'>().default('user'),
-  createdAt: text('created_at')
+  createdAt: integer('created_at', { mode: 'timestamp' })
     .notNull()
-    .default(sql`(datetime('now'))`),
-  updatedAt: text('updated_at')
+    .default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' })
     .notNull()
-    .default(sql`(datetime('now'))`),
+    .default(sql`(unixepoch())`),
 });
 
 export const drinks = sqliteTable('drinks', {
@@ -26,12 +26,12 @@ export const drinks = sqliteTable('drinks', {
   tags: text('tags', { mode: 'json' }).notNull().$type<string[]>(),
   notes: text('notes'),
   rank: integer('rank').notNull().default(0),
-  createdAt: text('created_at')
+  createdAt: integer('created_at', { mode: 'timestamp' })
     .notNull()
-    .default(sql`(datetime('now'))`),
-  updatedAt: text('updated_at')
+    .default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' })
     .notNull()
-    .default(sql`(datetime('now'))`),
+    .default(sql`(unixepoch())`),
 });
 
 export type User = typeof users.$inferSelect;

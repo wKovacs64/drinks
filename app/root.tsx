@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useEffect } from 'react';
 import { Links, Meta, Outlet, Scripts, ScrollRestoration, type LinksFunction } from 'react-router';
 import sourceSans3Latin300 from '@fontsource/source-sans-3/latin-300.css?url';
 import sourceSans3Latin400 from '@fontsource/source-sans-3/latin-400.css?url';
@@ -38,7 +38,7 @@ export async function loader() {
 }
 
 export default function App({ loaderData }: Route.ComponentProps) {
-  React.useEffect(() => {
+  useEffect(() => {
     if ('serviceWorker' in navigator) {
       void navigator.serviceWorker.register('/sw.js');
     }

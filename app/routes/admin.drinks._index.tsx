@@ -1,3 +1,4 @@
+import { clsx } from 'clsx';
 import { Link, useFetcher, href } from 'react-router';
 import { Image } from '@unpic/react';
 import { useSortableData } from '#/app/admin/use-sortable-data';
@@ -29,7 +30,7 @@ function SortArrow({
 }) {
   const isActive = sort !== null && sort.key === columnKey;
   return (
-    <span className={`ml-1 ${isActive ? '' : 'invisible'}`}>
+    <span className={clsx('ml-1', !isActive && 'invisible')}>
       {isActive && sort.direction === 'desc' ? '↓' : '↑'}
     </span>
   );
@@ -110,6 +111,7 @@ export default function AdminDrinksList({ loaderData }: Route.ComponentProps) {
             setFilter('');
           }
         }}
+        aria-label="Filter drinks"
         placeholder="Filter drinks..."
         className="mb-4 w-full rounded-sm border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 focus:border-amber-600 focus:ring-1 focus:ring-amber-600 focus:outline-none"
       />

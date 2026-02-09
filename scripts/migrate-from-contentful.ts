@@ -239,11 +239,7 @@ async function migrate() {
       }
 
       // Insert into SQLite
-      // Convert Contentful's ISO date to SQLite datetime format
-      const createdAt = new Date(contentfulDrink.sys.firstPublishedAt)
-        .toISOString()
-        .replace('T', ' ')
-        .replace('Z', '');
+      const createdAt = new Date(contentfulDrink.sys.firstPublishedAt);
 
       console.log(pc.gray(`    Inserting into database...`));
       db.insert(drinks)

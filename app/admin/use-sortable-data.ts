@@ -15,7 +15,7 @@ function matchesFilter(value: unknown, filterLower: string): boolean {
   return false;
 }
 
-export function useSortableData<T>(items: T[]) {
+export function useSortableData<T extends Record<string, unknown>>(items: T[]) {
   const [filter, setFilter] = useState('');
   const [sort, setSort] = useState<SortState<T> | null>(null);
 
@@ -38,7 +38,7 @@ export function useSortableData<T>(items: T[]) {
     filterLower === ''
       ? items
       : items.filter((item) => {
-          for (const value of Object.values(item as Record<string, unknown>)) {
+          for (const value of Object.values(item)) {
             if (matchesFilter(value, filterLower)) {
               return true;
             }
@@ -50,8 +50,8 @@ export function useSortableData<T>(items: T[]) {
     sort === null
       ? filtered
       : [...filtered].sort((a: T, b: T) => {
-          const aValue = (a as Record<string, unknown>)[sort.key];
-          const bValue = (b as Record<string, unknown>)[sort.key];
+          const aValue = a[sort.key];
+          const bValue = b[sort.key];
 
           const aNum = Number(aValue);
           const bNum = Number(bValue);

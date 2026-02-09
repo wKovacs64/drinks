@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "393c86c7-8294-4f79-b335-ea10d6d81ee1",
+  "id": "b84cdca8-adbd-4584-885e-caba8b1e140c",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "drinks": {
@@ -80,19 +80,19 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "text",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "(datetime('now'))"
+          "default": "(unixepoch())"
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "text",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "(datetime('now'))"
+          "default": "(unixepoch())"
         }
       },
       "indexes": {
@@ -144,23 +144,23 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'admin'"
+          "default": "'user'"
         },
         "created_at": {
           "name": "created_at",
-          "type": "text",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "(datetime('now'))"
+          "default": "(unixepoch())"
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "text",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "(datetime('now'))"
+          "default": "(unixepoch())"
         }
       },
       "indexes": {

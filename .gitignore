@@ -263,3 +263,6 @@ public/sw.js
 
 # Claude Code
 /.claude
+
+# Local dev database
+/data

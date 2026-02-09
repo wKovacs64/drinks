@@ -1,13 +1,10 @@
 import { Link, href } from 'react-router';
 import { Icon } from '#/app/icons/icon';
 
-export function meta() {
-  return [{ title: 'Unauthorized | drinks.fyi' }];
-}
-
 export default function Unauthorized() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-950 text-zinc-200">
+      <title>Unauthorized | drinks.fyi</title>
       <div className="flex flex-col items-center gap-4">
         <Icon name="mdi-shield-lock-outline" size={64} className="text-amber-600" />
 

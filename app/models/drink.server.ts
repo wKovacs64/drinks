@@ -67,7 +67,7 @@ export async function updateDrink(
     .update(drinks)
     .set({
       ...data,
-      updatedAt: new Date().toISOString(),
+      updatedAt: new Date(),
     })
     .where(eq(drinks.id, id))
     .returning();

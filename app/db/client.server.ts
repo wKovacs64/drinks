@@ -27,8 +27,6 @@ export function resetDatabaseConnection() {
   return getDatabase();
 }
 
-export const db = drizzle(getDatabase(), { schema });
-
 export function getDb() {
   return drizzle(getDatabase(), { schema });
 }

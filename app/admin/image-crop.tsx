@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useImperativeHandle, forwardRef } from 'react';
+import { type Ref, useState, useRef, useImperativeHandle } from 'react';
 import ReactCrop, { type Crop, centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 
@@ -8,6 +8,7 @@ export type ImageCropHandle = {
 
 type ImageCropProps = {
   existingImageUrl?: string | null;
+  ref?: Ref<ImageCropHandle>;
 };
 
 function centerAspectCrop(mediaWidth: number, mediaHeight: number, aspect: number): Crop {
@@ -18,10 +19,7 @@ function centerAspectCrop(mediaWidth: number, mediaHeight: number, aspect: numbe
   );
 }
 
-export const ImageCrop = forwardRef<ImageCropHandle, ImageCropProps>(function ImageCrop(
-  { existingImageUrl },
-  ref,
-) {
+export function ImageCrop({ existingImageUrl, ref }: ImageCropProps) {
   const [imgSrc, setImgSrc] = useState('');
   const [crop, setCrop] = useState<Crop>();
   const imgRef = useRef<HTMLImageElement>(null);
@@ -48,7 +46,7 @@ export const ImageCrop = forwardRef<ImageCropHandle, ImageCropProps>(function Im
     }
   };
 
-  const getCroppedImage = useCallback(async (): Promise<Blob | null> => {
+  async function getCroppedImage(): Promise<Blob | null> {
     const image = imgRef.current;
     if (!image || !crop) return null;
 
@@ -84,9 +82,9 @@ export const ImageCrop = forwardRef<ImageCropHandle, ImageCropProps>(function Im
     return new Promise<Blob | null>((resolve) => {
       canvas.toBlob((blob) => resolve(blob), 'image/jpeg', 0.9);
     });
-  }, [crop]);
+  }
 
-  useImperativeHandle(ref, () => ({ getCroppedImage }), [getCroppedImage]);
+  useImperativeHandle(ref, () => ({ getCroppedImage }));
 
   const fileInput = (
     <input
@@ -159,4 +157,4 @@ export const ImageCrop = forwardRef<ImageCropHandle, ImageCropProps>(function Im
       </div>
     </div>
   );
-});
+}

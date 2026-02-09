@@ -9,8 +9,8 @@ CREATE TABLE `drinks` (
 	`tags` text NOT NULL,
 	`notes` text,
 	`rank` integer DEFAULT 0 NOT NULL,
-	`created_at` text DEFAULT (datetime('now')) NOT NULL,
-	`updated_at` text DEFAULT (datetime('now')) NOT NULL
+	`created_at` integer DEFAULT (unixepoch()) NOT NULL,
+	`updated_at` integer DEFAULT (unixepoch()) NOT NULL
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `drinks_slug_unique` ON `drinks` (`slug`);--> statement-breakpoint
@@ -19,9 +19,9 @@ CREATE TABLE `users` (
 	`email` text NOT NULL,
 	`name` text,
 	`avatar_url` text,
-	`role` text DEFAULT 'admin' NOT NULL,
-	`created_at` text DEFAULT (datetime('now')) NOT NULL,
-	`updated_at` text DEFAULT (datetime('now')) NOT NULL
+	`role` text DEFAULT 'user' NOT NULL,
+	`created_at` integer DEFAULT (unixepoch()) NOT NULL,
+	`updated_at` integer DEFAULT (unixepoch()) NOT NULL
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `users_email_unique` ON `users` (`email`);

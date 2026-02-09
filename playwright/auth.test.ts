@@ -30,7 +30,7 @@ test.describe('Authentication', () => {
     await pageAsAdmin.goto('/admin/drinks');
 
     // Click logout
-    await pageAsAdmin.getByRole('button', { name: 'Logout' }).click();
+    await pageAsAdmin.getByRole('button', { name: 'Sign out' }).click();
 
     // Should be redirected to home
     await expect(pageAsAdmin).toHaveURL('/');

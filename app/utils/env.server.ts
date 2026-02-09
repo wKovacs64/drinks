@@ -23,7 +23,7 @@ const envSchema = z.object({
   GOOGLE_REDIRECT_URI: z.string().min(1),
 
   // Session
-  SESSION_SECRET: z.string().default('dev-secret-change-in-production'),
+  SESSION_SECRET: z.string().min(1),
 
   // Node environment
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),

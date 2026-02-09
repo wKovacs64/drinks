@@ -2,7 +2,11 @@ import { useEffect } from 'react';
 import { Outlet, Link, Form, href, data } from 'react-router';
 import { Toaster, toast } from 'sonner';
 import { getSession, commitSession } from '#/app/auth/session.server';
-import { userMiddleware, adminMiddleware, getUserFromContext } from '#/app/middleware/auth.server';
+import {
+  userMiddleware,
+  adminMiddleware,
+  getUserFromContext,
+} from '#/app/middleware/authorization.server';
 import type { Route } from './+types/admin';
 
 export const middleware = [userMiddleware, adminMiddleware];

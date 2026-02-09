@@ -4,7 +4,7 @@ import {
   type RouterContextProvider,
   type MiddlewareFunction,
 } from 'react-router';
-import { getSession, commitSession } from '#/app/auth/session.server';
+import { getSession, commitSession, destroySession } from '#/app/auth/session.server';
 import { getUserById } from '#/app/models/user.server';
 import { createReturnToUrl } from '#/app/auth/utils.server';
 import type { AuthenticatedUser } from '#/app/auth/types';
@@ -41,7 +41,7 @@ export const userMiddleware: MiddlewareFunction<Response> = async ({ request, co
   if (!user) {
     // User was deleted - clear session and redirect to login
     throw redirect('/login', {
-      headers: { 'Set-Cookie': await commitSession(session) },
+      headers: { 'Set-Cookie': await destroySession(session) },
     });
   }
 

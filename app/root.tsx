@@ -7,8 +7,8 @@ import faviconIcoUrl from './assets/images/favicon.ico';
 import icon32Url from './assets/images/icon-32x32.png';
 import appleTouchIconUrl from './assets/images/apple-touch-icon.png';
 import { appName, appThemeColor } from './core/config';
-import { securityHeaders } from './middleware/security-headers';
-import { loggingMiddleware } from './middleware/logging';
+import { securityHeaders } from './middleware/security-headers.server';
+import { loggingMiddleware } from './middleware/logging.server';
 import { getEnvVars } from './utils/env.server';
 import type { Route } from './+types/root';
 

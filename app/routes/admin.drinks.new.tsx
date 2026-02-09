@@ -1,10 +1,10 @@
 import { redirect, href, data } from 'react-router';
-import { parseFormData, type FileUpload } from '@remix-run/form-data-parser';
 import slugify from '@sindresorhus/slugify';
 import { getSession, commitSession } from '#/app/auth/session.server';
 import { createDrink } from '#/app/models/drink.server';
 import { uploadImageOrPlaceholder } from '#/app/utils/imagekit.server';
 import { DrinkForm } from '#/app/admin/drink-form';
+import { parseImageUpload } from '#/app/utils/parse-image-upload.server';
 import { purgeSearchCache } from '#/app/routes/_app.search/cache.server';
 import { purgeDrinkCache } from '#/app/utils/fastly.server';
 import { drinkSchema } from '#/app/validation/drink';
@@ -21,15 +21,11 @@ export default function NewDrinkPage({ actionData }: Route.ComponentProps) {
 }
 
 export async function action({ request }: Route.ActionArgs) {
-  let imageBuffer: Buffer | undefined;
+  const { formData, imageUpload, imageError } = await parseImageUpload(request);
 
-  async function uploadHandler(fileUpload: FileUpload) {
-    if (fileUpload.fieldName === 'imageFile') {
-      imageBuffer = Buffer.from(await fileUpload.bytes());
-    }
+  if (imageError) {
+    return data({ errors: [imageError] }, { status: 400 });
   }
-
-  const formData = await parseFormData(request, uploadHandler);
 
   const title = String(formData.get('title') ?? '');
   const slug = String(formData.get('slug') ?? '') || slugify(title);
@@ -53,8 +49,12 @@ export async function action({ request }: Route.ActionArgs) {
   let imageUrl: string;
   let imageFileId: string;
 
-  if (imageBuffer) {
-    const uploadResult = await uploadImageOrPlaceholder(imageBuffer, `${result.data.slug}.jpg`);
+  if (imageUpload) {
+    const uploadResult = await uploadImageOrPlaceholder(
+      imageUpload.buffer,
+      `${result.data.slug}.jpg`,
+      imageUpload.contentType,
+    );
     imageUrl = uploadResult.url;
     imageFileId = uploadResult.fileId;
   } else {

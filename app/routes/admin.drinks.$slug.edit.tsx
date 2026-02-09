@@ -1,9 +1,9 @@
 import { redirect, href, data } from 'react-router';
 import { invariantResponse } from '@epic-web/invariant';
-import { parseFormData, type FileUpload } from '@remix-run/form-data-parser';
 import { getDrinkBySlug, updateDrink } from '#/app/models/drink.server';
 import { uploadImageOrPlaceholder, deleteImage } from '#/app/utils/imagekit.server';
 import { DrinkForm } from '#/app/admin/drink-form';
+import { parseImageUpload } from '#/app/utils/parse-image-upload.server';
 import { purgeSearchCache } from '#/app/routes/_app.search/cache.server';
 import { purgeDrinkCache } from '#/app/utils/fastly.server';
 import { getSession, commitSession } from '#/app/auth/session.server';
@@ -36,13 +36,11 @@ export async function action({ request, params }: Route.ActionArgs) {
   const drink = await getDrinkBySlug(params.slug);
   invariantResponse(drink, 'Drink not found', { status: 404 });
 
-  let imageBuffer: Buffer | undefined;
-  async function uploadHandler(fileUpload: FileUpload) {
-    if (fileUpload.fieldName === 'imageFile') {
-      imageBuffer = Buffer.from(await fileUpload.bytes());
-    }
+  const { formData, imageUpload, imageError } = await parseImageUpload(request);
+
+  if (imageError) {
+    return data({ errors: [imageError] }, { status: 400 });
   }
-  const formData = await parseFormData(request, uploadHandler);
 
   const title = String(formData.get('title') ?? '');
   const slug = String(formData.get('slug') ?? '');
@@ -67,8 +65,12 @@ export async function action({ request, params }: Route.ActionArgs) {
   let imageUrl: string;
   let imageFileId: string;
 
-  if (imageBuffer) {
-    const uploadResult = await uploadImageOrPlaceholder(imageBuffer, `${result.data.slug}.jpg`);
+  if (imageUpload) {
+    const uploadResult = await uploadImageOrPlaceholder(
+      imageUpload.buffer,
+      `${result.data.slug}.jpg`,
+      imageUpload.contentType,
+    );
     imageUrl = uploadResult.url;
     imageFileId = uploadResult.fileId;
 

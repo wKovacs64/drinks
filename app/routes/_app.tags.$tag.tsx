@@ -9,7 +9,7 @@ import { getDrinksByTag } from '#/app/models/drink.server';
 import { getSurrogateKeyForTag } from '#/app/tags/utils';
 import { getEnvVars } from '#/app/utils/env.server';
 import { withPlaceholderImages } from '#/app/utils/placeholder-images.server';
-import type { AppRouteHandle, Drink } from '#/app/types';
+import type { AppRouteHandle } from '#/app/types';
 import type { Route } from './+types/_app.tags.$tag';
 
 const { SITE_IMAGE_URL, SITE_IMAGE_ALT } = getEnvVars();
@@ -20,9 +20,9 @@ export function headers({ loaderHeaders }: Route.HeadersArgs) {
 
 export async function loader({ params }: Route.LoaderArgs) {
   const tagToSearch = lowerCase(params.tag);
-  const sqliteDrinks = await getDrinksByTag(tagToSearch);
+  const drinks = await getDrinksByTag(tagToSearch);
 
-  invariantResponse(sqliteDrinks.length, 'No drinks found', {
+  invariantResponse(drinks.length, 'No drinks found', {
     status: 404,
     headers: {
       'Surrogate-Key': 'all',
@@ -34,16 +34,6 @@ export async function loader({ params }: Route.LoaderArgs) {
       }),
     },
   });
-
-  const drinks: Drink[] = sqliteDrinks.map((drink) => ({
-    title: drink.title,
-    slug: drink.slug,
-    image: { url: drink.imageUrl },
-    ingredients: drink.ingredients,
-    calories: drink.calories,
-    notes: drink.notes ?? undefined,
-    tags: drink.tags,
-  }));
 
   const drinksWithPlaceholderImages = await withPlaceholderImages(drinks);
 

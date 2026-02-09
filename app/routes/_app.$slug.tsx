@@ -9,7 +9,7 @@ import { DrinkDetails } from '#/app/drinks/drink-details';
 import { getDrinkBySlug } from '#/app/models/drink.server';
 import { markdownToHtml } from '#/app/utils/markdown.server';
 import { withPlaceholderImages } from '#/app/utils/placeholder-images.server';
-import type { AppRouteHandle, Drink } from '#/app/types';
+import type { AppRouteHandle } from '#/app/types';
 import type { Route } from './+types/_app.$slug';
 
 export function headers({ loaderHeaders }: Route.HeadersArgs) {
@@ -32,18 +32,7 @@ export async function loader({ params }: Route.LoaderArgs) {
     },
   });
 
-  const drink: Drink = {
-    title: sqliteDrink.title,
-    slug: sqliteDrink.slug,
-    image: { url: sqliteDrink.imageUrl },
-    ingredients: sqliteDrink.ingredients,
-    calories: sqliteDrink.calories,
-    notes: sqliteDrink.notes ?? undefined,
-    tags: sqliteDrink.tags,
-  };
-
-  const drinksWithPlaceholderImages = await withPlaceholderImages([drink]);
-  const [enhancedDrink] = drinksWithPlaceholderImages;
+  const [enhancedDrink] = await withPlaceholderImages([sqliteDrink]);
 
   if (enhancedDrink.notes) {
     enhancedDrink.notes = markdownToHtml(enhancedDrink.notes);

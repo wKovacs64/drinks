@@ -1,5 +1,6 @@
 import { transformUrl } from 'unpic';
-import type { Drink, EnhancedDrink } from '#/app/types';
+import type { Drink } from '#/app/db/schema';
+import type { EnhancedDrink } from '#/app/types';
 
 // Transparent 1x1 pixel GIF as fallback when blur placeholder generation fails
 const FALLBACK_BLUR_DATA_URL =
@@ -41,28 +42,19 @@ async function generateBlurDataUrl(imageUrl: string): Promise<string> {
 }
 
 export async function withPlaceholderImages(drinks: Drink[]): Promise<EnhancedDrink[]> {
-  return (
-    await Promise.all(
-      drinks.map(async (drink) => {
-        if (
-          drink.title === null ||
-          drink.ingredients === null ||
-          drink.calories === null ||
-          !drink.image?.url
-        ) {
-          return null;
-        }
+  return Promise.all(
+    drinks.map(async (drink) => {
+      const blurDataUrl = await generateBlurDataUrl(drink.imageUrl);
 
-        const blurDataUrl = await generateBlurDataUrl(drink.image.url);
-
-        return {
-          ...drink,
-          image: {
-            ...drink.image,
-            blurDataUrl,
-          },
-        };
-      }),
-    )
-  ).filter((drink): drink is EnhancedDrink => drink !== null);
+      return {
+        title: drink.title,
+        slug: drink.slug,
+        image: { url: drink.imageUrl, blurDataUrl },
+        ingredients: drink.ingredients,
+        calories: drink.calories,
+        notes: drink.notes,
+        tags: drink.tags,
+      };
+    }),
+  );
 }

@@ -5,7 +5,6 @@ import { DrinkList } from '#/app/drinks/drink-list';
 import { getAllDrinks } from '#/app/models/drink.server';
 import { getEnvVars } from '#/app/utils/env.server';
 import { withPlaceholderImages } from '#/app/utils/placeholder-images.server';
-import type { Drink } from '#/app/types';
 import type { Route } from './+types/_app._index';
 
 const { SITE_IMAGE_URL, SITE_IMAGE_ALT } = getEnvVars();
@@ -15,18 +14,7 @@ export function headers({ loaderHeaders }: Route.HeadersArgs) {
 }
 
 export async function loader() {
-  const sqliteDrinks = await getAllDrinks();
-
-  const drinks: Drink[] = sqliteDrinks.map((drink) => ({
-    title: drink.title,
-    slug: drink.slug,
-    image: { url: drink.imageUrl },
-    ingredients: drink.ingredients,
-    calories: drink.calories,
-    notes: drink.notes ?? undefined,
-    tags: drink.tags,
-  }));
-
+  const drinks = await getAllDrinks();
   const drinksWithPlaceholderImages = await withPlaceholderImages(drinks);
 
   return data(

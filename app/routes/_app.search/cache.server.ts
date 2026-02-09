@@ -1,6 +1,6 @@
 import { remember, forget } from '@epic-web/remember';
 import { getAllDrinks } from '#/app/models/drink.server';
-import type { Drink } from '#/app/types';
+import type { Drink } from '#/app/db/schema';
 import { createSearchIndex } from './minisearch.server';
 
 export const SEARCH_INSTANCE_CACHE_KEY = 'minisearch-index';
@@ -16,19 +16,7 @@ type SearchData = {
  */
 export async function getSearchData(): Promise<SearchData> {
   return remember(SEARCH_INSTANCE_CACHE_KEY, async () => {
-    const sqliteDrinks = await getAllDrinks();
-
-    // Transform SQLite drinks to the format expected by createSearchIndex
-    const allDrinks: Drink[] = sqliteDrinks.map((drink) => ({
-      title: drink.title,
-      slug: drink.slug,
-      image: { url: drink.imageUrl },
-      ingredients: drink.ingredients,
-      calories: drink.calories,
-      notes: drink.notes ?? undefined,
-      tags: drink.tags,
-    }));
-
+    const allDrinks = await getAllDrinks();
     const searchIndex = createSearchIndex(allDrinks);
 
     return { allDrinks, searchIndex };

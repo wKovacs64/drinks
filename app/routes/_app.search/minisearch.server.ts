@@ -1,20 +1,20 @@
 import MiniSearch from 'minisearch';
-import type { Drink } from '#/app/types';
+import type { Drink } from '#/app/db/schema';
 
 type SearchableDrink = {
-  id: Drink['slug'];
-  slug: Drink['slug'];
-  title: NonNullable<Drink['title']>;
+  id: string;
+  slug: string;
+  title: string;
   ingredients: string;
-  notes: NonNullable<Drink['notes']>;
+  notes: string;
 };
 
 export function createSearchIndex(drinks: Drink[]): MiniSearch<SearchableDrink> {
   const searchableDrinks: SearchableDrink[] = drinks.map((drink) => ({
     id: drink.slug,
     slug: drink.slug,
-    title: drink.title ?? '',
-    ingredients: drink.ingredients?.join(' ') ?? '',
+    title: drink.title,
+    ingredients: drink.ingredients.join(' '),
     notes: drink.notes ?? '',
   }));
 

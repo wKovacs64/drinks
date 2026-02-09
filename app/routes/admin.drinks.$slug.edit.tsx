@@ -1,4 +1,4 @@
-import { redirect, href } from 'react-router';
+import { redirect, href, data } from 'react-router';
 import { invariantResponse } from '@epic-web/invariant';
 import { parseFormData, type FileUpload } from '@remix-run/form-data-parser';
 import { getDrinkBySlug, updateDrink } from '#/app/models/drink.server';
@@ -7,6 +7,7 @@ import { DrinkForm } from '#/app/admin/drink-form';
 import { purgeSearchCache } from '#/app/routes/_app.search/cache.server';
 import { purgeDrinkCache } from '#/app/utils/fastly.server';
 import { getSession, commitSession } from '#/app/auth/session.server';
+import { drinkSchema } from '#/app/validation/drink';
 import type { Route } from './+types/admin.drinks.$slug.edit';
 
 export async function loader({ params }: Route.LoaderArgs) {
@@ -15,14 +16,18 @@ export async function loader({ params }: Route.LoaderArgs) {
   return { drink };
 }
 
-export default function EditDrinkPage({ loaderData }: Route.ComponentProps) {
+export default function EditDrinkPage({ loaderData, actionData }: Route.ComponentProps) {
   const { drink } = loaderData;
 
   return (
     <div>
       <title>{`Edit ${drink.title} | drinks.fyi`}</title>
       <h1 className="mb-6 text-xl font-medium text-zinc-200">Edit Drink</h1>
-      <DrinkForm drink={drink} action={href('/admin/drinks/:slug/edit', { slug: drink.slug })} />
+      <DrinkForm
+        drink={drink}
+        action={href('/admin/drinks/:slug/edit', { slug: drink.slug })}
+        errors={actionData?.errors}
+      />
     </div>
   );
 }
@@ -54,11 +59,16 @@ export async function action({ request, params }: Route.ActionArgs) {
   const notes = String(formData.get('notes') ?? '') || null;
   const rank = Number.parseInt(String(formData.get('rank') ?? ''), 10) || 0;
 
+  const result = drinkSchema.safeParse({ title, slug, ingredients, calories, tags, notes, rank });
+  if (!result.success) {
+    return data({ errors: result.error.issues.map((issue) => issue.message) }, { status: 400 });
+  }
+
   let imageUrl: string;
   let imageFileId: string;
 
   if (imageBuffer) {
-    const uploadResult = await uploadImageOrPlaceholder(imageBuffer, `${slug}.jpg`);
+    const uploadResult = await uploadImageOrPlaceholder(imageBuffer, `${result.data.slug}.jpg`);
     imageUrl = uploadResult.url;
     imageFileId = uploadResult.fileId;
 
@@ -73,7 +83,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     imageUrl = drink.imageUrl;
     imageFileId = drink.imageFileId;
   } else {
-    imageUrl = `https://via.placeholder.com/400x400.png?text=${encodeURIComponent(slug)}`;
+    imageUrl = `https://via.placeholder.com/400x400.png?text=${encodeURIComponent(result.data.slug)}`;
     imageFileId = 'test-placeholder';
   }
 
@@ -81,23 +91,17 @@ export async function action({ request, params }: Route.ActionArgs) {
   const oldTags = drink.tags;
 
   await updateDrink(drink.id, {
-    title,
-    slug,
+    ...result.data,
     imageUrl,
     imageFileId,
-    ingredients,
-    calories,
-    tags,
-    notes,
-    rank,
   });
 
   try {
     purgeSearchCache();
-    const allTags = [...new Set([...oldTags, ...tags])];
-    await purgeDrinkCache({ slug, tags: allTags });
+    const allTags = [...new Set([...oldTags, ...result.data.tags])];
+    await purgeDrinkCache({ slug: result.data.slug, tags: allTags });
     // Also purge the old slug if it changed
-    if (params.slug !== slug) {
+    if (params.slug !== result.data.slug) {
       await purgeDrinkCache({ slug: params.slug, tags: [] });
     }
   } catch (error) {
@@ -106,7 +110,7 @@ export async function action({ request, params }: Route.ActionArgs) {
   }
 
   const session = await getSession(request.headers.get('Cookie'));
-  session.flash('toast', { kind: 'success' as const, message: `${title} updated!` });
+  session.flash('toast', { kind: 'success' as const, message: `${result.data.title} updated!` });
   return redirect(href('/admin/drinks'), {
     headers: { 'Set-Cookie': await commitSession(session) },
   });

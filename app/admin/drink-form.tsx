@@ -7,9 +7,10 @@ import { ImageCrop, type ImageCropHandle } from './image-crop';
 type DrinkFormProps = {
   drink?: Drink;
   action: string;
+  errors?: string[];
 };
 
-export function DrinkForm({ drink, action }: DrinkFormProps) {
+export function DrinkForm({ drink, action, errors }: DrinkFormProps) {
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
   const imageCropRef = useRef<ImageCropHandle>(null);
@@ -39,6 +40,17 @@ export function DrinkForm({ drink, action }: DrinkFormProps) {
       onSubmit={handleSubmit}
       className="space-y-6"
     >
+      {errors && errors.length > 0 && (
+        <div className="rounded border border-red-700 bg-red-950/50 px-4 py-3 text-sm text-red-300">
+          <p className="font-medium">Please fix the following errors:</p>
+          <ul className="mt-1 list-inside list-disc">
+            {errors.map((error) => (
+              <li key={error}>{error}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <div>
         <label
           htmlFor="title"

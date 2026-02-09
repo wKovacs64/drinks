@@ -13,7 +13,9 @@ export async function action({ request }: Route.ActionArgs) {
   invariantResponse(NODE_ENV === 'test', 'Not Found', { status: 404 });
   invariantResponse(request.method === 'POST', 'Method Not Allowed', { status: 405 });
 
+  // This route is used by E2E tests to reset the database to a known state between test runs. The
+  // invariant above ensures this route is only available in the test environment.
   await resetAndSeedDatabase();
 
-  return Response.json({ success: true });
+  return new Response(null, { status: 204 });
 }

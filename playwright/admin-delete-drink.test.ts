@@ -24,7 +24,7 @@ test.describe('Delete Drink', () => {
     // GET should redirect to the drinks list (loader redirects)
     const response = await pageAsAdmin.goto('/admin/drinks/test-margarita/delete');
     // After redirect, we should be at the drinks list
-    expect(pageAsAdmin.url()).toBe('http://localhost:5173/admin/drinks');
+    await expect(pageAsAdmin).toHaveURL('/admin/drinks');
     expect(response?.status()).toBe(200);
   });
 });

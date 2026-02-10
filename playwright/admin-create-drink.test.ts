@@ -23,7 +23,7 @@ test.describe('Create New Drink', () => {
     await expect(pageAsAdmin).toHaveURL('/admin/drinks');
 
     // New drink should appear in list
-    await expect(pageAsAdmin.getByText('New Test Drink', { exact: true })).toBeVisible();
+    await expect(pageAsAdmin.getByRole('cell', { name: 'New Test Drink' })).toBeVisible();
   });
 
   test('new drink form has required fields', async ({ pageAsAdmin }) => {

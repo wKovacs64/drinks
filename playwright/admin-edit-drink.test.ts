@@ -21,7 +21,7 @@ test.describe('Edit Drink', () => {
     await expect(pageAsAdmin).toHaveURL('/admin/drinks');
 
     // Updated drink should appear in list
-    await expect(pageAsAdmin.getByText('Updated Margarita')).toBeVisible();
+    await expect(pageAsAdmin.getByText('Updated Margarita', { exact: true })).toBeVisible();
   });
 
   test('edit form shows existing drink data', async ({ pageAsAdmin }) => {

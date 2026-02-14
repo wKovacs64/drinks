@@ -32,8 +32,8 @@ _Craft Cocktail Gallery_
 
 ## React Compiler
 
-- This project uses the React Compiler, so manual memoization with React.memo or useMemo should not
-  normally be necessary.
+- This project uses the React Compiler, so manual memoization with React.memo, useCallback, or
+  useMemo should not normally be necessary.
 
 ## Validation Commands
 

@@ -5,7 +5,7 @@ import { createDrink } from '#/app/models/drink.server';
 import { uploadImageOrPlaceholder } from '#/app/utils/imagekit.server';
 import { DrinkForm } from '#/app/admin/drink-form';
 import { parseImageUpload } from '#/app/utils/parse-image-upload.server';
-import { purgeSearchCache } from '#/app/routes/_app.search/cache.server';
+import { purgeSearchCache } from '#/app/search/cache.server';
 import { purgeDrinkCache } from '#/app/utils/fastly.server';
 import { drinkSchema } from '#/app/validation/drink';
 import type { Route } from './+types/admin.drinks.new';

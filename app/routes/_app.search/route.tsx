@@ -6,12 +6,12 @@ import { withPlaceholderImages } from '#/app/utils/placeholder-images.server';
 import { DrinkList } from '#/app/drinks/drink-list';
 import type { Drink } from '#/app/db/schema';
 import type { AppRouteHandle } from '#/app/types';
+import { searchDrinks } from '#/app/search/minisearch.server';
+import { getSearchData } from '#/app/search/cache.server';
 import { NoDrinksFound } from './no-drinks-found';
 import { NoSearchTerm } from './no-search-term';
 import { SearchForm } from './search-form';
 import { Searching } from './searching';
-import { searchDrinks } from './minisearch.server';
-import { getSearchData } from './cache.server';
 import type { Route } from './+types/route';
 
 const { SITE_IMAGE_URL, SITE_IMAGE_ALT } = getEnvVars();

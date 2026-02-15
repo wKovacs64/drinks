@@ -4,7 +4,7 @@ import { getDrinkBySlug, updateDrink } from '#/app/models/drink.server';
 import { uploadImageOrPlaceholder, deleteImage } from '#/app/utils/imagekit.server';
 import { DrinkForm } from '#/app/admin/drink-form';
 import { parseImageUpload } from '#/app/utils/parse-image-upload.server';
-import { purgeSearchCache } from '#/app/routes/_app.search/cache.server';
+import { purgeSearchCache } from '#/app/search/cache.server';
 import { purgeDrinkCache } from '#/app/utils/fastly.server';
 import { getSession, commitSession } from '#/app/auth/session.server';
 import { drinkSchema } from '#/app/validation/drink';

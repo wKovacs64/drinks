@@ -1,7 +1,7 @@
 import { remember, forget } from '@epic-web/remember';
 import { getAllDrinks } from '#/app/models/drink.server';
 import type { Drink } from '#/app/db/schema';
-import { createSearchIndex } from './minisearch.server';
+import { createSearchIndex } from '#/app/search/minisearch.server';
 
 export const SEARCH_INSTANCE_CACHE_KEY = 'minisearch-index';
 

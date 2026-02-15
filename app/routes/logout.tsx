@@ -9,7 +9,7 @@ export async function loader() {
 export async function action({ request }: Route.ActionArgs) {
   const session = await getSession(request.headers.get('Cookie'));
 
-  throw redirect('/', {
+  throw redirect(href('/'), {
     headers: { 'Set-Cookie': await destroySession(session) },
   });
 }

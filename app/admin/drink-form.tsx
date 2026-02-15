@@ -41,7 +41,10 @@ export function DrinkForm({ drink, action, errors }: DrinkFormProps) {
       className="space-y-6"
     >
       {errors && errors.length > 0 && (
-        <div className="rounded border border-red-700 bg-red-950/50 px-4 py-3 text-sm text-red-300">
+        <div
+          role="alert"
+          className="rounded border border-red-700 bg-red-950/50 px-4 py-3 text-sm text-red-300"
+        >
           <p className="font-medium">Please fix the following errors:</p>
           <ul className="mt-1 list-inside list-disc">
             {errors.map((error) => (

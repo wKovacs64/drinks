@@ -8,6 +8,13 @@
       "when": 1770665686043,
       "tag": "0000_icy_prowler",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1771173836205,
+      "tag": "0001_add-drinks-indexes",
+      "breakpoints": true
     }
   ]
 }

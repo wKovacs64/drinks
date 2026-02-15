@@ -116,7 +116,7 @@ export function ImageCrop({
         <button
           type="button"
           onClick={handleChangeImage}
-          className="rounded border border-zinc-700 px-2.5 py-1 text-sm text-zinc-400 hover:border-zinc-600 hover:text-zinc-200"
+          className="rounded border border-zinc-700 px-3 py-1.5 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200"
         >
           Change image
         </button>
@@ -140,7 +140,7 @@ export function ImageCrop({
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="rounded border border-zinc-700 px-2.5 py-1 text-sm text-zinc-400 hover:border-zinc-600 hover:text-zinc-200"
+            className="rounded border border-zinc-700 px-3 py-1.5 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200"
           >
             Change image
           </button>
@@ -157,7 +157,7 @@ export function ImageCrop({
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          className="rounded bg-zinc-800 px-3 py-1.5 text-sm text-zinc-300 hover:bg-zinc-700"
+          className="rounded bg-zinc-800 px-4 py-2 text-zinc-300 hover:bg-zinc-700"
         >
           Select image
         </button>

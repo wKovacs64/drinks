@@ -54,7 +54,7 @@ export function DrinkForm({
       {errors && errors.length > 0 ? (
         <div
           role="alert"
-          className="rounded border border-red-700 bg-red-950/50 px-4 py-3 text-sm text-red-300"
+          className="rounded border border-red-700 bg-red-950/50 px-4 py-3 text-red-300"
         >
           <p className="font-medium">Please fix the following errors:</p>
           <ul className="mt-1 list-inside list-disc">
@@ -68,7 +68,7 @@ export function DrinkForm({
       <div>
         <label
           htmlFor="title"
-          className="block text-xs font-semibold tracking-wider text-zinc-500 uppercase"
+          className="block text-sm font-semibold tracking-wider text-zinc-500 uppercase"
         >
           Title
         </label>
@@ -90,7 +90,7 @@ export function DrinkForm({
       <div>
         <label
           htmlFor="slug"
-          className="block text-xs font-semibold tracking-wider text-zinc-500 uppercase"
+          className="block text-sm font-semibold tracking-wider text-zinc-500 uppercase"
         >
           Slug
         </label>
@@ -109,13 +109,13 @@ export function DrinkForm({
       </div>
 
       <div>
-        <span className="block text-xs font-semibold tracking-wider text-zinc-500 uppercase">
+        <span className="block text-sm font-semibold tracking-wider text-zinc-500 uppercase">
           Image
         </span>
         <div className="mt-2">
           <ImageCrop ref={imageCropRef} existingImageUrl={drink?.imageUrl} />
         </div>
-        {imageRequired ? <p className="mt-1 text-sm text-red-400">Image is required</p> : null}
+        {imageRequired ? <p className="mt-1 text-red-400">Image is required</p> : null}
         {drink?.imageUrl ? (
           <input type="hidden" name="existingImageUrl" value={drink.imageUrl} />
         ) : null}
@@ -124,7 +124,7 @@ export function DrinkForm({
       <div>
         <label
           htmlFor="ingredients"
-          className="block text-xs font-semibold tracking-wider text-zinc-500 uppercase"
+          className="block text-sm font-semibold tracking-wider text-zinc-500 uppercase"
         >
           Ingredients (one per line)
         </label>
@@ -141,7 +141,7 @@ export function DrinkForm({
       <div>
         <label
           htmlFor="calories"
-          className="block text-xs font-semibold tracking-wider text-zinc-500 uppercase"
+          className="block text-sm font-semibold tracking-wider text-zinc-500 uppercase"
         >
           Calories
         </label>
@@ -159,7 +159,7 @@ export function DrinkForm({
       <div>
         <label
           htmlFor="tags"
-          className="block text-xs font-semibold tracking-wider text-zinc-500 uppercase"
+          className="block text-sm font-semibold tracking-wider text-zinc-500 uppercase"
         >
           Tags (comma-separated)
         </label>
@@ -176,7 +176,7 @@ export function DrinkForm({
       <div>
         <label
           htmlFor="notes"
-          className="block text-xs font-semibold tracking-wider text-zinc-500 uppercase"
+          className="block text-sm font-semibold tracking-wider text-zinc-500 uppercase"
         >
           Notes (markdown)
         </label>
@@ -192,7 +192,7 @@ export function DrinkForm({
       <div>
         <label
           htmlFor="rank"
-          className="block text-xs font-semibold tracking-wider text-zinc-500 uppercase"
+          className="block text-sm font-semibold tracking-wider text-zinc-500 uppercase"
         >
           Rank
         </label>

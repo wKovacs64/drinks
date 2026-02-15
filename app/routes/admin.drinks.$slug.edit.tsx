@@ -22,7 +22,7 @@ export default function EditDrinkPage({ loaderData, actionData }: Route.Componen
   return (
     <div>
       <title>{`Edit ${drink.title} | drinks.fyi`}</title>
-      <h1 className="mb-6 text-xl font-medium text-zinc-200">Edit Drink</h1>
+      <h1 className="mb-6 text-2xl font-medium text-zinc-200">Edit Drink</h1>
       <DrinkForm
         drink={drink}
         action={href('/admin/drinks/:slug/edit', { slug: drink.slug })}

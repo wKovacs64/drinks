@@ -13,7 +13,7 @@ export default function NewDrinkPage({ actionData }: Route.ComponentProps) {
   return (
     <div>
       <title>New Drink | drinks.fyi</title>
-      <h1 className="mb-6 text-xl font-medium text-zinc-200">Add New Drink</h1>
+      <h1 className="mb-6 text-2xl font-medium text-zinc-200">Add New Drink</h1>
       <DrinkForm action={href('/admin/drinks/new')} errors={actionData?.errors} />
     </div>
   );

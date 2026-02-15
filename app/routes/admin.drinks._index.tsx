@@ -53,10 +53,10 @@ function DrinkRow({ drink }: { drink: Drink }) {
           <span className="font-medium text-zinc-300">{drink.title}</span>
         </div>
       </td>
-      <td className="py-3 text-sm text-zinc-400">{drink.slug}</td>
-      <td className="py-3 text-sm text-zinc-400">{drink.calories}</td>
-      <td className="py-3 text-sm text-zinc-400">{drink.rank}</td>
-      <td className="py-3 text-right text-sm whitespace-nowrap">
+      <td className="py-3 text-zinc-400">{drink.slug}</td>
+      <td className="py-3 text-zinc-400">{drink.calories}</td>
+      <td className="py-3 text-zinc-400">{drink.rank}</td>
+      <td className="py-3 text-right whitespace-nowrap">
         <Link
           to={href('/admin/drinks/:slug/edit', { slug: drink.slug })}
           className="text-zinc-400 hover:text-amber-500"
@@ -91,12 +91,12 @@ export default function AdminDrinksList({ loaderData }: Route.ComponentProps) {
       <title>All Drinks | drinks.fyi</title>
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-baseline gap-2">
-          <h1 className="text-xl font-medium text-zinc-200">Drinks</h1>
-          <span className="text-sm text-zinc-500">{drinks.length}</span>
+          <h1 className="text-2xl font-medium text-zinc-200">Drinks</h1>
+          <span className="text-zinc-500">{drinks.length}</span>
         </div>
         <Link
           to={href('/admin/drinks/new')}
-          className="rounded bg-amber-600 px-3 py-1.5 text-sm font-medium text-zinc-950 hover:bg-amber-500"
+          className="rounded bg-amber-600 px-4 py-2 font-medium text-zinc-950 hover:bg-amber-500"
         >
           Add Drink
         </Link>
@@ -113,12 +113,12 @@ export default function AdminDrinksList({ loaderData }: Route.ComponentProps) {
         }}
         aria-label="Filter drinks"
         placeholder="Filter drinks..."
-        className="mb-4 w-full rounded-sm border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 focus:border-amber-600 focus:ring-1 focus:ring-amber-600 focus:outline-none"
+        className="mb-4 w-full rounded-sm border border-zinc-700 bg-zinc-800 px-3 py-2 text-zinc-200 placeholder-zinc-600 focus:border-amber-600 focus:ring-1 focus:ring-amber-600 focus:outline-none"
       />
 
       <table className="w-full">
         <thead>
-          <tr className="border-b border-zinc-800 text-left text-xs tracking-wider text-zinc-500 uppercase">
+          <tr className="border-b border-zinc-800 text-left text-sm tracking-wider text-zinc-500 uppercase">
             {SORTABLE_COLUMNS.map((column) => (
               <th key={column.key} className="pb-3 font-medium">
                 <button

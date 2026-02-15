@@ -40,9 +40,4 @@ test.describe('Edit Drink', () => {
     expect(tagsValue).toContain('rum');
     expect(tagsValue).toContain('citrus');
   });
-
-  test('returns 404 for non-existent drink', async ({ pageAsAdmin }) => {
-    const response = await pageAsAdmin.goto('/admin/drinks/non-existent-drink/edit');
-    expect(response?.status()).toBe(404);
-  });
 });

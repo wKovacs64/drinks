@@ -94,7 +94,6 @@ export function ImageCrop({
       accept="image/*"
       onChange={onSelectFile}
       className="hidden"
-      data-testid="image-upload-input"
     />
   );
 

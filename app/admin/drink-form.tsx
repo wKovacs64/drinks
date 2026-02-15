@@ -27,7 +27,7 @@ export function DrinkForm({
 
     if (croppedBlob) {
       const formData = new FormData(form);
-      formData.set('imageFile', croppedBlob, 'cropped.jpg');
+      formData.set('imageFile', croppedBlob, 'cropped.png');
       await submit(formData, { method: 'post', action, encType: 'multipart/form-data' });
     } else {
       await submit(form, { method: 'post', action });

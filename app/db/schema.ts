@@ -23,6 +23,7 @@ export const drinks = sqliteTable('drinks', {
   imageFileId: text('image_file_id').notNull(),
   calories: integer('calories').notNull(),
   ingredients: text('ingredients', { mode: 'json' }).notNull().$type<string[]>(),
+  // Denormalized: JSON array for simplicity at small scale
   tags: text('tags', { mode: 'json' }).notNull().$type<string[]>(),
   notes: text('notes'),
   rank: integer('rank').notNull().default(0),

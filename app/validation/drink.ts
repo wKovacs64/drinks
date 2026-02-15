@@ -2,7 +2,11 @@ import { z } from 'zod';
 
 const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
-export const drinkSchema = z.object({
+/**
+ * Validates a pre-parsed drink object (arrays and numbers already resolved).
+ * Used by drinkFormSchema's pipeline — not intended for direct use.
+ */
+const drinkObjectSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   slug: z
     .string()
@@ -14,3 +18,34 @@ export const drinkSchema = z.object({
   notes: z.string().nullable(),
   rank: z.number().int('Rank must be a whole number'),
 });
+
+/**
+ * Accepts raw form strings (newline-delimited ingredients, comma-separated
+ * tags, string numbers) and transforms them into validated drink data.
+ */
+export const drinkSchema = z
+  .object({
+    title: z.string(),
+    slug: z.string(),
+    ingredients: z.string(),
+    calories: z.string(),
+    tags: z.string(),
+    notes: z.string(),
+    rank: z.string(),
+  })
+  .transform((raw) => ({
+    title: raw.title,
+    slug: raw.slug,
+    ingredients: raw.ingredients
+      .split('\n')
+      .map((ingredient) => ingredient.trim())
+      .filter(Boolean),
+    calories: Number.parseInt(raw.calories, 10),
+    tags: raw.tags
+      .split(',')
+      .map((tag) => tag.trim())
+      .filter(Boolean),
+    notes: raw.notes || null,
+    rank: Number.parseInt(raw.rank, 10) || 0,
+  }))
+  .pipe(drinkObjectSchema);

@@ -29,19 +29,16 @@ export async function action({ request }: Route.ActionArgs) {
 
   const title = String(formData.get('title') ?? '');
   const slug = String(formData.get('slug') ?? '') || slugify(title);
-  const ingredients = String(formData.get('ingredients') ?? '')
-    .split('\n')
-    .map((ingredient) => ingredient.trim())
-    .filter(Boolean);
-  const calories = Number.parseInt(String(formData.get('calories') ?? ''), 10);
-  const tags = String(formData.get('tags') ?? '')
-    .split(',')
-    .map((tag) => tag.trim())
-    .filter(Boolean);
-  const notes = String(formData.get('notes') ?? '') || null;
-  const rank = Number.parseInt(String(formData.get('rank') ?? ''), 10) || 0;
 
-  const result = drinkSchema.safeParse({ title, slug, ingredients, calories, tags, notes, rank });
+  const result = drinkSchema.safeParse({
+    title,
+    slug,
+    ingredients: String(formData.get('ingredients') ?? ''),
+    calories: String(formData.get('calories') ?? ''),
+    tags: String(formData.get('tags') ?? ''),
+    notes: String(formData.get('notes') ?? ''),
+    rank: String(formData.get('rank') ?? ''),
+  });
   if (!result.success) {
     return data({ errors: result.error.issues.map((issue) => issue.message) }, { status: 400 });
   }

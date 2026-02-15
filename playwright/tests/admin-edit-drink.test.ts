@@ -1,4 +1,4 @@
-import { test, expect } from './playwright-utils';
+import { test, expect } from '#/playwright/playwright-utils';
 
 test.describe('Edit Drink', () => {
   test('can edit an existing drink', async ({ pageAsAdmin }) => {

@@ -1,4 +1,4 @@
-import { test, expect } from './playwright-utils';
+import { test, expect } from '#/playwright/playwright-utils';
 
 test.describe('Authentication', () => {
   test('unauthenticated user is redirected to login when accessing admin', async ({

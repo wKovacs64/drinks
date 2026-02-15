@@ -1,4 +1,4 @@
-import { test, expect } from './playwright-utils';
+import { test, expect } from '#/playwright/playwright-utils';
 
 test.describe('Smoke Tests', () => {
   test('homepage loads with seeded drinks', async ({ page, _resetDb }) => {

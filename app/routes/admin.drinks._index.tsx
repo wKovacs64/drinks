@@ -41,7 +41,7 @@ function DrinkRow({ drink }: { drink: Drink }) {
 
   return (
     <tr className="border-b border-zinc-800/50 hover:bg-zinc-800/30">
-      <td className="py-3 whitespace-nowrap">
+      <td className="py-3 pr-4 whitespace-nowrap">
         <div className="flex items-center gap-3">
           <Image
             src={drink.imageUrl}
@@ -53,9 +53,9 @@ function DrinkRow({ drink }: { drink: Drink }) {
           <span className="font-medium text-zinc-300">{drink.title}</span>
         </div>
       </td>
-      <td className="py-3 text-zinc-400">{drink.slug}</td>
-      <td className="py-3 text-zinc-400">{drink.calories}</td>
-      <td className="py-3 text-zinc-400">{drink.rank}</td>
+      <td className="py-3 pr-4 whitespace-nowrap text-zinc-400">{drink.slug}</td>
+      <td className="py-3 pr-4 whitespace-nowrap text-zinc-400">{drink.calories}</td>
+      <td className="py-3 pr-4 whitespace-nowrap text-zinc-400">{drink.rank}</td>
       <td className="py-3 text-right whitespace-nowrap">
         <Link
           to={href('/admin/drinks/:slug/edit', { slug: drink.slug })}
@@ -116,30 +116,32 @@ export default function AdminDrinksList({ loaderData }: Route.ComponentProps) {
         className="mb-4 w-full rounded-sm border border-zinc-700 bg-zinc-800 px-3 py-2 text-zinc-200 placeholder-zinc-600 focus:border-amber-600 focus:ring-1 focus:ring-amber-600 focus:outline-none"
       />
 
-      <table className="w-full">
-        <thead>
-          <tr className="border-b border-zinc-800 text-left text-sm tracking-wider text-zinc-500 uppercase">
-            {SORTABLE_COLUMNS.map((column) => (
-              <th key={column.key} className="pb-3 font-medium">
-                <button
-                  type="button"
-                  onClick={() => handleSort(column.key)}
-                  className="cursor-pointer hover:text-zinc-300"
-                >
-                  {column.label}
-                  <SortArrow columnKey={column.key} sort={sort} />
-                </button>
-              </th>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-max">
+          <thead>
+            <tr className="border-b border-zinc-800 text-left text-sm tracking-wider text-zinc-500 uppercase">
+              {SORTABLE_COLUMNS.map((column) => (
+                <th key={column.key} className="pr-4 pb-3 font-medium">
+                  <button
+                    type="button"
+                    onClick={() => handleSort(column.key)}
+                    className="cursor-pointer hover:text-zinc-300"
+                  >
+                    {column.label}
+                    <SortArrow columnKey={column.key} sort={sort} />
+                  </button>
+                </th>
+              ))}
+              <th className="pb-3 text-right font-medium">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {processed.map((drink) => (
+              <DrinkRow key={drink.id} drink={drink} />
             ))}
-            <th className="pb-3 text-right font-medium">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {processed.map((drink) => (
-            <DrinkRow key={drink.id} drink={drink} />
-          ))}
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

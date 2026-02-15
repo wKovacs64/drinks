@@ -1,17 +1,18 @@
 import { test, expect } from './playwright-utils';
 
 test.describe('Delete Drink', () => {
-  test('can delete a drink', async ({ pageAsAdmin }) => {
-    // First verify the drink exists in the list
+  test('can delete a drink via the UI', async ({ pageAsAdmin }) => {
     await pageAsAdmin.goto('/admin/drinks');
     await expect(pageAsAdmin.getByText('Test Old Fashioned')).toBeVisible();
 
-    // Delete the drink via POST to the delete route
-    const response = await pageAsAdmin.request.post('/admin/drinks/test-old-fashioned/delete');
-    expect(response.status()).toBe(200);
+    // Set up dialog handler before clicking delete
+    pageAsAdmin.on('dialog', (dialog) => dialog.accept());
 
-    // Refresh the page and verify the drink is gone
-    await pageAsAdmin.goto('/admin/drinks');
+    // Click the delete button in the Test Old Fashioned row
+    const row = pageAsAdmin.getByRole('row').filter({ hasText: 'Test Old Fashioned' });
+    await row.getByRole('button', { name: 'Delete' }).click();
+
+    // Drink should be removed from the list
     await expect(pageAsAdmin.getByText('Test Old Fashioned')).not.toBeVisible();
   });
 

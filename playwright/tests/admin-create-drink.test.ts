@@ -16,7 +16,19 @@ test.describe('Create New Drink', () => {
     await pageAsAdmin.getByLabel('Notes (markdown)').fill('A test drink');
     await pageAsAdmin.getByLabel('Rank').fill('5');
 
-    // Submit - since no image was cropped, form submits normally with placeholder
+    // Upload a test image so the form passes client-side validation
+    const testImageBuffer = Buffer.from(
+      'iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVQYV2P8/5+hnoEIwDiqEF8oAABkvQMRzBOz/QAAAABJRU5ErkJggg==',
+      'base64',
+    );
+    await pageAsAdmin.locator('input[type="file"]').setInputFiles({
+      name: 'test.png',
+      mimeType: 'image/png',
+      buffer: testImageBuffer,
+    });
+    await expect(pageAsAdmin.getByAltText('Crop preview')).toBeVisible();
+
+    // Submit the form
     await pageAsAdmin.getByRole('button', { name: 'Create Drink' }).click();
 
     // Should redirect to drinks list

@@ -49,22 +49,22 @@ export function useSortableData<T extends Record<string, unknown>>(items: T[]) {
   const processed =
     sort === null
       ? filtered
-      : [...filtered].sort((a: T, b: T) => {
-          const aValue = a[sort.key];
-          const bValue = b[sort.key];
+      : [...filtered].sort((itemA: T, itemB: T) => {
+          const valueA = itemA[sort.key];
+          const valueB = itemB[sort.key];
 
-          const aNum = Number(aValue);
-          const bNum = Number(bValue);
-          const bothNumeric = typeof aValue === 'number' && typeof bValue === 'number';
+          const numA = Number(valueA);
+          const numB = Number(valueB);
+          const bothNumeric = typeof valueA === 'number' && typeof valueB === 'number';
           const bothCoercibleToNumber =
-            !Number.isNaN(aNum) && !Number.isNaN(bNum) && aValue !== '' && bValue !== '';
+            !Number.isNaN(numA) && !Number.isNaN(numB) && valueA !== '' && valueB !== '';
 
           let comparison: number;
 
           if (bothNumeric || bothCoercibleToNumber) {
-            comparison = aNum - bNum;
+            comparison = numA - numB;
           } else {
-            comparison = String(aValue ?? '').localeCompare(String(bValue ?? ''));
+            comparison = String(valueA ?? '').localeCompare(String(valueB ?? ''));
           }
 
           return sort.direction === 'asc' ? comparison : -comparison;

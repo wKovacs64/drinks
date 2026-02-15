@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "b84cdca8-adbd-4584-885e-caba8b1e140c",
+  "id": "940becaa-ff9b-4598-9d82-557551df5375",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "drinks": {
@@ -100,6 +100,16 @@
           "name": "drinks_slug_unique",
           "columns": ["slug"],
           "isUnique": true
+        },
+        "drinks_rank_idx": {
+          "name": "drinks_rank_idx",
+          "columns": ["rank"],
+          "isUnique": false
+        },
+        "drinks_created_at_idx": {
+          "name": "drinks_created_at_idx",
+          "columns": ["created_at"],
+          "isUnique": false
         }
       },
       "foreignKeys": {},

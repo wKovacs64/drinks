@@ -14,6 +14,8 @@ CREATE TABLE `drinks` (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `drinks_slug_unique` ON `drinks` (`slug`);--> statement-breakpoint
+CREATE INDEX `drinks_rank_idx` ON `drinks` (`rank`);--> statement-breakpoint
+CREATE INDEX `drinks_created_at_idx` ON `drinks` (`created_at`);--> statement-breakpoint
 CREATE TABLE `users` (
 	`id` text PRIMARY KEY NOT NULL,
 	`email` text NOT NULL,

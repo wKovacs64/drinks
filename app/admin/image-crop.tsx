@@ -81,7 +81,7 @@ export function ImageCrop({
     );
 
     return new Promise<Blob | null>((resolve) => {
-      canvas.toBlob((blob) => resolve(blob), 'image/png');
+      canvas.toBlob((blob) => resolve(blob), 'image/jpeg', 0.9);
     });
   }
 

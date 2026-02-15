@@ -19,15 +19,24 @@ export function DrinkForm({
   const submit = useSubmit();
   const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
   const [slugValue, setSlugValue] = useState(drink?.slug ?? '');
+  const [imageRequired, setImageRequired] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = event.currentTarget;
     const croppedBlob = await imageCropRef.current?.getCroppedImage();
+    const hasExistingImage = Boolean(drink?.imageUrl);
+
+    if (!croppedBlob && !hasExistingImage) {
+      setImageRequired(true);
+      return;
+    }
+
+    setImageRequired(false);
 
     if (croppedBlob) {
       const formData = new FormData(form);
-      formData.set('imageFile', croppedBlob, 'cropped.png');
+      formData.set('imageFile', croppedBlob, 'cropped.jpg');
       await submit(formData, { method: 'post', action, encType: 'multipart/form-data' });
     } else {
       await submit(form, { method: 'post', action });
@@ -106,6 +115,7 @@ export function DrinkForm({
         <div className="mt-2">
           <ImageCrop ref={imageCropRef} existingImageUrl={drink?.imageUrl} />
         </div>
+        {imageRequired && <p className="mt-1 text-sm text-red-400">Image is required</p>}
         {drink?.imageUrl && <input type="hidden" name="existingImageUrl" value={drink.imageUrl} />}
       </div>
 

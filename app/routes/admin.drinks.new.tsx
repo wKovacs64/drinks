@@ -32,21 +32,16 @@ export async function action({ request }: Route.ActionArgs) {
     return data({ errors: result.error.issues.map((issue) => issue.message) }, { status: 400 });
   }
 
-  let imageUrl: string;
-  let imageFileId: string;
-
-  if (imageUpload) {
-    const uploadResult = await uploadImageOrPlaceholder(
-      imageUpload.buffer,
-      `${result.data.slug}.png`,
-    );
-    imageUrl = uploadResult.url;
-    imageFileId = uploadResult.fileId;
-  } else {
-    // Fallback for tests or when no image provided
-    imageUrl = `https://via.placeholder.com/400x400.png?text=${encodeURIComponent(result.data.slug)}`;
-    imageFileId = 'test-placeholder';
+  if (!imageUpload) {
+    return data({ errors: ['Image is required'] }, { status: 400 });
   }
+
+  const uploadResult = await uploadImageOrPlaceholder(
+    imageUpload.buffer,
+    `${result.data.slug}.jpg`,
+  );
+  const imageUrl = uploadResult.url;
+  const imageFileId = uploadResult.fileId;
 
   const drink = await createDrink({
     ...result.data,

@@ -1,4 +1,4 @@
-import { parseFormData, type FileUpload } from '@remix-run/form-data-parser';
+import { FormDataParseError, parseFormData, type FileUpload } from '@remix-run/form-data-parser';
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
@@ -26,19 +26,28 @@ export async function parseImageUpload(request: Request): Promise<ParseImageUplo
     }
   }
 
-  const formData = await parseFormData(request, uploadHandler);
-
-  if (imageUpload) {
-    if (imageUpload.buffer.length > MAX_IMAGE_SIZE) {
-      return { formData, imageUpload: undefined, imageError: 'Image must be under 5MB' };
-    }
-    if (!ALLOWED_IMAGE_TYPES.includes(imageUpload.contentType)) {
+  let formData: FormData;
+  try {
+    formData = await parseFormData(request, { maxFileSize: MAX_IMAGE_SIZE }, uploadHandler);
+  } catch (error) {
+    if (error instanceof FormDataParseError) {
+      const isFileTooLarge =
+        error.cause instanceof Error && error.cause.name === 'MaxFileSizeExceededError';
       return {
-        formData,
+        formData: new FormData(),
         imageUpload: undefined,
-        imageError: 'Image must be a JPEG, PNG, WebP, or GIF',
+        imageError: isFileTooLarge ? 'Image must be under 5MB' : 'Failed to process image upload',
       };
     }
+    throw error;
+  }
+
+  if (imageUpload && !ALLOWED_IMAGE_TYPES.includes(imageUpload.contentType)) {
+    return {
+      formData,
+      imageUpload: undefined,
+      imageError: 'Image must be a JPEG, PNG, WebP, or GIF',
+    };
   }
 
   return { formData, imageUpload, imageError: undefined };

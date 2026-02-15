@@ -51,7 +51,7 @@ export function DrinkForm({
       onSubmit={handleSubmit}
       className="space-y-6"
     >
-      {errors && errors.length > 0 && (
+      {errors && errors.length > 0 ? (
         <div
           role="alert"
           className="rounded border border-red-700 bg-red-950/50 px-4 py-3 text-sm text-red-300"
@@ -63,7 +63,7 @@ export function DrinkForm({
             ))}
           </ul>
         </div>
-      )}
+      ) : null}
 
       <div>
         <label
@@ -115,8 +115,10 @@ export function DrinkForm({
         <div className="mt-2">
           <ImageCrop ref={imageCropRef} existingImageUrl={drink?.imageUrl} />
         </div>
-        {imageRequired && <p className="mt-1 text-sm text-red-400">Image is required</p>}
-        {drink?.imageUrl && <input type="hidden" name="existingImageUrl" value={drink.imageUrl} />}
+        {imageRequired ? <p className="mt-1 text-sm text-red-400">Image is required</p> : null}
+        {drink?.imageUrl ? (
+          <input type="hidden" name="existingImageUrl" value={drink.imageUrl} />
+        ) : null}
       </div>
 
       <div>

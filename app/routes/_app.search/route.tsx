@@ -101,10 +101,10 @@ export default function SearchPage({ loaderData }: Route.ComponentProps) {
   return (
     <>
       <SearchForm initialSearchTerm={q ?? ''} />
-      {hasNoSearchTerm && <NoSearchTerm />}
-      {isSearching && <Searching />}
-      {hasNoResults && <NoDrinksFound />}
-      {hasResults && <DrinkList drinks={drinks} />}
+      {hasNoSearchTerm ? <NoSearchTerm /> : null}
+      {isSearching ? <Searching /> : null}
+      {hasNoResults ? <NoDrinksFound /> : null}
+      {hasResults ? <DrinkList drinks={drinks} /> : null}
     </>
   );
 }

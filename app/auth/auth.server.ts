@@ -20,12 +20,9 @@ const googleStrategyOptions = {
  * Note: Role checking is NOT done here - that's handled by middleware.
  * This allows the same auth flow for different route protection levels.
  */
-async function verify({
+const verify: ConstructorParameters<typeof GoogleStrategy<AuthenticatedUser>>[1] = async ({
   tokens,
-}: {
-  request: Request;
-  tokens: Parameters<typeof GoogleStrategy.userProfile>[0];
-}): Promise<AuthenticatedUser> {
+}) => {
   const profile = await GoogleStrategy.userProfile(tokens);
 
   const email = profile.emails?.[0]?.value;
@@ -48,7 +45,7 @@ async function verify({
     avatarUrl: user.avatarUrl,
     role: user.role,
   };
-}
+};
 
 export const authenticator = new Authenticator<AuthenticatedUser>();
 

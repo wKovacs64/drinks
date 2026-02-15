@@ -10,7 +10,7 @@ export async function getAllDrinks(): Promise<Drink[]> {
   });
 }
 
-export async function getDrinkBySlug(slug: string): Promise<Drink | undefined> {
+export async function getDrinkBySlug(slug: Drink['slug']): Promise<Drink | undefined> {
   const db = getDb();
   return db.query.drinks.findFirst({
     where: eq(drinks.slug, slug),
@@ -59,7 +59,7 @@ export async function createDrink(
 }
 
 export async function updateDrink(
-  id: string,
+  id: Drink['id'],
   data: Partial<Omit<NewDrink, 'id' | 'createdAt'>>,
 ): Promise<Drink> {
   const db = getDb();
@@ -75,7 +75,7 @@ export async function updateDrink(
   return drink;
 }
 
-export async function deleteDrink(id: string): Promise<void> {
+export async function deleteDrink(id: Drink['id']): Promise<void> {
   const db = getDb();
   await db.delete(drinks).where(eq(drinks.id, id));
 }

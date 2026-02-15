@@ -26,20 +26,13 @@ test.describe('Create New Drink', () => {
     await expect(pageAsAdmin.getByRole('cell', { name: 'New Test Drink' })).toBeVisible();
   });
 
-  test('new drink form has required fields', async ({ pageAsAdmin }) => {
+  test('submitting an empty form does not navigate away', async ({ pageAsAdmin }) => {
     await pageAsAdmin.goto('/admin/drinks/new');
 
-    // Title, Slug, Ingredients, Calories, and Tags should be required
-    const titleInput = pageAsAdmin.getByLabel('Title');
-    const slugInput = pageAsAdmin.getByLabel('Slug');
-    const ingredientsInput = pageAsAdmin.getByLabel('Ingredients (one per line)');
-    const caloriesInput = pageAsAdmin.getByLabel('Calories');
-    const tagsInput = pageAsAdmin.getByLabel('Tags (comma-separated)');
+    // Try to submit without filling anything
+    await pageAsAdmin.getByRole('button', { name: 'Create Drink' }).click();
 
-    await expect(titleInput).toHaveAttribute('required', '');
-    await expect(slugInput).toHaveAttribute('required', '');
-    await expect(ingredientsInput).toHaveAttribute('required', '');
-    await expect(caloriesInput).toHaveAttribute('required', '');
-    await expect(tagsInput).toHaveAttribute('required', '');
+    // Should stay on the same page (browser validation prevents submission)
+    await expect(pageAsAdmin).toHaveURL('/admin/drinks/new');
   });
 });

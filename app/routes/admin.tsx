@@ -30,7 +30,7 @@ export default function AdminLayout({ loaderData }: Route.ComponentProps) {
   }, [toastData]);
 
   return (
-    <div className="min-h-screen bg-zinc-950" style={{ fontFamily: 'system-ui, sans-serif' }}>
+    <div className="min-h-screen bg-zinc-950 font-[system-ui,sans-serif]">
       <header className="border-b border-zinc-800 bg-zinc-900">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-3">
           <div className="flex items-center gap-1 text-sm">

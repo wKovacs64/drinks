@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { useLocation, useMatches, useSearchParams, type UIMatch } from 'react-router';
 import { Nav } from './nav';
 import { NavLink } from './nav-link';

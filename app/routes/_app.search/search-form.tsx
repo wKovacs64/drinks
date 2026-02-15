@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useEffect, useRef } from 'react';
 import { Form } from 'react-router';
 import { Icon } from '#/app/icons/icon';
 
@@ -7,10 +7,10 @@ export function SearchForm({
 }: {
   initialSearchTerm?: HTMLInputElement['value'];
 }) {
-  const formRef = React.useRef<HTMLFormElement>(null);
-  const inputRef = React.useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (inputRef.current) {
       if (!inputRef.current.value && initialSearchTerm) {
         inputRef.current.value = initialSearchTerm;
@@ -19,7 +19,7 @@ export function SearchForm({
     }
   }, [initialSearchTerm]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const handleEsc = ({ key }: KeyboardEvent) => {
       if (key === 'Escape') {
         formRef.current?.reset();
@@ -46,7 +46,7 @@ export function SearchForm({
         autoComplete="off"
         autoCorrect="off"
         // horizontal margin to account for 3px box-shadow on focus
-        className="drinks-focusable mx-[3px] w-full p-4 placeholder:text-slate-500"
+        className="drinks-focusable mx-0.75 w-full p-4 placeholder:text-slate-500"
       />
       <button
         className="drinks-focusable bg-maroon text-cream hover:bg-cream hover:text-maroon focus-visible:bg-cream focus-visible:text-maroon px-2"

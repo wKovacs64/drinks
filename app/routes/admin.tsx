@@ -56,7 +56,7 @@ export default function AdminLayout({ loaderData }: Route.ComponentProps) {
       <main className="mx-auto max-w-5xl px-6 py-8">
         <Outlet />
       </main>
-      <Toaster richColors />
+      <Toaster toastOptions={{ className: 'text-sm! sm:w-auto!' }} richColors />
     </div>
   );
 }

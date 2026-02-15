@@ -1,5 +1,6 @@
 import { type Ref, useState, useRef, useImperativeHandle } from 'react';
 import ReactCrop, { type Crop, centerCrop, makeAspectCrop } from 'react-image-crop';
+import { Image } from '@unpic/react';
 import 'react-image-crop/dist/ReactCrop.css';
 
 export type ImageCropHandle = {
@@ -129,7 +130,13 @@ export function ImageCrop({
       <div className="space-y-3">
         {fileInput}
         <div className="flex items-center gap-4 rounded border border-dashed border-zinc-700 bg-zinc-900 p-4">
-          <img src={existingImageUrl} alt="Current" className="h-20 w-20 rounded object-cover" />
+          <Image
+            src={existingImageUrl}
+            alt="Current"
+            width={80}
+            height={80}
+            className="rounded object-cover"
+          />
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}

@@ -3,7 +3,7 @@ import { Icon } from '#/app/icons/icon';
 
 export function Header() {
   return (
-    <header className="flex flex-col items-center bg-[#111111] p-4 text-stone-300 md:p-8">
+    <header className="bg-dreamless-sleep flex flex-col items-center p-4 text-stone-300 md:p-8">
       <section className="flex w-full flex-wrap items-center justify-between sm:w-104 lg:w-full lg:max-w-240 xl:max-w-7xl">
         {/* TODO: change to h2 or something, move h1 to interesting page content */}
         <h1 className="text-3xl font-light">

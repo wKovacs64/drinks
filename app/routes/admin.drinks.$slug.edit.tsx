@@ -7,7 +7,7 @@ import { parseImageUpload } from '#/app/utils/parse-image-upload.server';
 import { purgeSearchCache } from '#/app/search/cache.server';
 import { purgeDrinkCache } from '#/app/utils/fastly.server';
 import { getSession, commitSession } from '#/app/auth/session.server';
-import { drinkSchema } from '#/app/validation/drink';
+import { drinkFormSchema } from '#/app/validation/drink';
 import type { Route } from './+types/admin.drinks.$slug.edit';
 
 export async function loader({ params }: Route.LoaderArgs) {
@@ -44,15 +44,8 @@ export async function action({ request, params }: Route.ActionArgs) {
 
   const existingImageUrl = String(formData.get('existingImageUrl') ?? '');
 
-  const result = drinkSchema.safeParse({
-    title: String(formData.get('title') ?? ''),
-    slug: String(formData.get('slug') ?? ''),
-    ingredients: String(formData.get('ingredients') ?? ''),
-    calories: String(formData.get('calories') ?? ''),
-    tags: String(formData.get('tags') ?? ''),
-    notes: String(formData.get('notes') ?? ''),
-    rank: String(formData.get('rank') ?? ''),
-  });
+  const result = drinkFormSchema.safeParse(Object.fromEntries(formData));
+
   if (!result.success) {
     return data({ errors: result.error.issues.map((issue) => issue.message) }, { status: 400 });
   }

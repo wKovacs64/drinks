@@ -4,13 +4,15 @@ import slugify from '@sindresorhus/slugify';
 import type { Drink } from '#/app/db/schema';
 import { ImageCrop, type ImageCropHandle } from './image-crop';
 
-type DrinkFormProps = {
+export function DrinkForm({
+  drink,
+  action,
+  errors,
+}: {
   drink?: Drink;
   action: string;
   errors?: string[];
-};
-
-export function DrinkForm({ drink, action, errors }: DrinkFormProps) {
+}) {
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
   const imageCropRef = useRef<ImageCropHandle>(null);

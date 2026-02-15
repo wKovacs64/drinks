@@ -6,11 +6,6 @@ export type ImageCropHandle = {
   getCroppedImage: () => Promise<Blob | null>;
 };
 
-type ImageCropProps = {
-  existingImageUrl?: string | null;
-  ref?: Ref<ImageCropHandle>;
-};
-
 function centerAspectCrop(mediaWidth: number, mediaHeight: number, aspect: number): Crop {
   return centerCrop(
     makeAspectCrop({ unit: '%', width: 90 }, aspect, mediaWidth, mediaHeight),
@@ -19,7 +14,13 @@ function centerAspectCrop(mediaWidth: number, mediaHeight: number, aspect: numbe
   );
 }
 
-export function ImageCrop({ existingImageUrl, ref }: ImageCropProps) {
+export function ImageCrop({
+  existingImageUrl,
+  ref,
+}: {
+  existingImageUrl?: string | null;
+  ref?: Ref<ImageCropHandle>;
+}) {
   const [imgSrc, setImgSrc] = useState('');
   const [crop, setCrop] = useState<Crop>();
   const imgRef = useRef<HTMLImageElement>(null);

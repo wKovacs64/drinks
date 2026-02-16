@@ -81,57 +81,55 @@ jobs:
       - name: 🔎 Type check
         run: pnpm run typecheck
 
-  # vitest:
-  #   name: ⚡ Vitest
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: ⬇️ Checkout repo
-  #       uses: actions/checkout@v3
+  playwright:
+    name: 🎭 Playwright
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v6
 
-  #     - name: ⎔ Setup node
-  #       uses: actions/setup-node@v3
-  #       with:
-  #         cache: npm
-  #         node-version-file: '.nvmrc'
+      - name: 📦 Install pnpm
+        uses: pnpm/action-setup@v4
 
-  #     - name: 📥 Install deps
-  #       run: npm install
+      - name: ⎔ Setup node
+        uses: actions/setup-node@v6
+        with:
+          cache: pnpm
+          node-version-file: '.nvmrc'
 
-  #     - name: ⚡ Run vitest
-  #       run: npm run test -- --coverage
+      - name: 📥 Install deps
+        run: pnpm install
 
-  # cypress:
-  #   name: ⚫️ Cypress
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: ⬇️ Checkout repo
-  #       uses: actions/checkout@v3
+      - name: 🔢 Get Playwright version
+        run: echo "PLAYWRIGHT_VERSION=$(pnpm exec playwright --version | tr ' ' '-')" >> $GITHUB_ENV
 
-  #     - name: 🏄 Copy test env vars
-  #       run: cp .env.example .env
+      - name: 📦 Cache Playwright binaries
+        id: playwright-cache
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
 
-  #     - name: ⎔ Setup node
-  #       uses: actions/setup-node@v3
-  #       with:
-  #         cache: npm
-  #         node-version-file: '.nvmrc'
+      - name: 📥 Install Playwright Browsers
+        run: pnpm exec playwright install --with-deps
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
 
-  #     - name: 📥 Install deps
-  #       run: npm install
+      - name: 🗃️ Setup test database
+        run: |
+          mkdir -p data
+          pnpm exec dotenv -e .env.test -- pnpm db:migrate
 
-  #     - name: 🛠 Setup Database
-  #       run: npx prisma migrate reset --force
+      - name: 🎭 Playwright tests
+        run: pnpm test:e2e
 
-  #     - name: ⚙️ Build
-  #       run: npm run build
-
-  #     - name: 🌳 Cypress run
-  #       uses: cypress-io/github-action@v4
-  #       with:
-  #         start: npm run start:mocks
-  #         wait-on: http://localhost:8811
-  #       env:
-  #         PORT: 8811
+      - name: 📊 Upload report
+        uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright/report/
+          retention-days: 30
 
   build:
     name: 👷‍♂️ Build
@@ -158,7 +156,7 @@ jobs:
   release:
     name: 🆕 Release
     runs-on: ubuntu-latest
-    needs: [prettier, lint, typecheck, build]
+    needs: [prettier, lint, typecheck, playwright, build]
     if: ${{ github.ref == 'refs/heads/main' }}
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}

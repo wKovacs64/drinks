@@ -4,6 +4,7 @@
   --color-maroon: #6d372a;
   --color-burnt-orange: #d09e45;
   --color-cream: #eedebf;
+  --color-dreamless-sleep: #111111;
 
   --font-sans: 'Source Sans 3', 'Source Sans 3 Fallback';
 
@@ -52,8 +53,9 @@
   [role='button']:not(:disabled) {
     cursor: pointer;
   }
-  button(:disabled),
-  [role='button'(:disabled)] {
+
+  button:disabled,
+  [role='button']:disabled {
     cursor: not-allowed;
   }
 }

@@ -1,4 +1,4 @@
-import { Link, isRouteErrorResponse, useRouteError } from 'react-router';
+import { Link, href, isRouteErrorResponse, useRouteError } from 'react-router';
 import { NotFound } from './not-found';
 
 export function ErrorBoundary() {
@@ -66,7 +66,7 @@ function BoundaryError({ children }: { children: React.ReactNode }) {
 function StartOverLink() {
   return (
     <Link
-      to="/"
+      to={href('/')}
       className="drinks-focusable border-b border-solid pb-1 hover:shadow-[inset_0_-2px_0_0] focus-visible:shadow-[inset_0_-2px_0_0] md:text-xl"
       reloadDocument
     >

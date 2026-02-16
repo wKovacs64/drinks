@@ -4,10 +4,15 @@
 #
 
 app = "drinks"
-primary_region = "sea"
+primary_region = "sjc"
 kill_signal = "SIGINT"
 kill_timeout = "5s"
 swap_size_mb = 512
+
+# SQLite volume mount (single machine config - volume can only attach to one machine)
+[mounts]
+  source = "drinks_data"
+  destination = "/data"
 
 [[services]]
   protocol = "tcp"

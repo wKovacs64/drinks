@@ -5,69 +5,23 @@ import { invariantResponse } from '@epic-web/invariant';
 import { defaultPageDescription, defaultPageTitle } from '#/app/core/config';
 import { getLoaderDataForHandle } from '#/app/core/utils';
 import { DrinkList } from '#/app/drinks/drink-list';
+import { getDrinksByTag } from '#/app/models/drink.server';
 import { getSurrogateKeyForTag } from '#/app/tags/utils';
 import { getEnvVars } from '#/app/utils/env.server';
-import { fetchGraphQL } from '#/app/utils/graphql.server';
 import { withPlaceholderImages } from '#/app/utils/placeholder-images.server';
-import type { AppRouteHandle, Drink, DrinksResponse } from '#/app/types';
+import type { AppRouteHandle } from '#/app/types';
 import type { Route } from './+types/_app.tags.$tag';
 
-const {
-  CONTENTFUL_ACCESS_TOKEN,
-  CONTENTFUL_URL,
-  CONTENTFUL_PREVIEW,
-  SITE_IMAGE_URL,
-  SITE_IMAGE_ALT,
-} = getEnvVars();
+const { SITE_IMAGE_URL, SITE_IMAGE_ALT } = getEnvVars();
 
 export function headers({ loaderHeaders }: Route.HeadersArgs) {
   return loaderHeaders;
 }
 
 export async function loader({ params }: Route.LoaderArgs) {
-  const taggedDrinksQuery = /* GraphQL */ `
-    query ($preview: Boolean, $tag: [String]) {
-      drinkCollection(
-        preview: $preview
-        order: [rank_DESC, sys_firstPublishedAt_DESC]
-        where: { tags_contains_all: $tag }
-      ) {
-        drinks: items {
-          title
-          slug
-          image {
-            url
-          }
-          ingredients
-          calories
-        }
-      }
-    }
-  `;
+  const tagToSearch = lowerCase(params.tag);
+  const drinks = await getDrinksByTag(tagToSearch);
 
-  const queryResponse = await fetchGraphQL(
-    CONTENTFUL_URL,
-    CONTENTFUL_ACCESS_TOKEN,
-    taggedDrinksQuery,
-    {
-      preview: CONTENTFUL_PREVIEW === 'true',
-      tag: lowerCase(params.tag),
-    },
-  );
-
-  const queryResponseJson: DrinksResponse = await queryResponse.json();
-
-  if (queryResponseJson.errors?.length || !queryResponseJson.data.drinkCollection) {
-    throw data(queryResponseJson, { status: 500 });
-  }
-
-  const {
-    data: {
-      drinkCollection: { drinks: maybeDrinks },
-    },
-  } = queryResponseJson;
-
-  const drinks = maybeDrinks.filter((drink): drink is Drink => Boolean(drink));
   invariantResponse(drinks.length, 'No drinks found', {
     status: 404,
     headers: {

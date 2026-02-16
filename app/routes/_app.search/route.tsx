@@ -4,13 +4,14 @@ import { defaultPageDescription, defaultPageTitle } from '#/app/core/config';
 import { getEnvVars } from '#/app/utils/env.server';
 import { withPlaceholderImages } from '#/app/utils/placeholder-images.server';
 import { DrinkList } from '#/app/drinks/drink-list';
-import type { AppRouteHandle, Drink } from '#/app/types';
+import type { Drink } from '#/app/db/schema';
+import type { AppRouteHandle } from '#/app/types';
+import { searchDrinks } from '#/app/search/minisearch.server';
+import { getSearchData } from '#/app/search/cache.server';
 import { NoDrinksFound } from './no-drinks-found';
 import { NoSearchTerm } from './no-search-term';
 import { SearchForm } from './search-form';
 import { Searching } from './searching';
-import { searchDrinks } from './minisearch.server';
-import { getSearchData } from './cache.server';
 import type { Route } from './+types/route';
 
 const { SITE_IMAGE_URL, SITE_IMAGE_ALT } = getEnvVars();
@@ -39,17 +40,13 @@ export async function loader({ request }: Route.LoaderArgs) {
     );
   }
 
-  // Get all drinks and search index
   const { allDrinks, searchIndex } = await getSearchData();
-
-  // Search
   const slugs = searchDrinks(searchIndex, q);
 
   if (slugs.length === 0) {
     return { drinks: [], socialImageUrl: SITE_IMAGE_URL, socialImageAlt: SITE_IMAGE_ALT };
   }
 
-  // Filter all drinks by search results
   const drinks = slugs
     .map((slug) => allDrinks.find((drink) => drink.slug === slug))
     .filter((drink): drink is Drink => Boolean(drink));
@@ -104,10 +101,10 @@ export default function SearchPage({ loaderData }: Route.ComponentProps) {
   return (
     <>
       <SearchForm initialSearchTerm={q ?? ''} />
-      {hasNoSearchTerm && <NoSearchTerm />}
-      {isSearching && <Searching />}
-      {hasNoResults && <NoDrinksFound />}
-      {hasResults && <DrinkList drinks={drinks} />}
+      {hasNoSearchTerm ? <NoSearchTerm /> : null}
+      {isSearching ? <Searching /> : null}
+      {hasNoResults ? <NoDrinksFound /> : null}
+      {hasResults ? <DrinkList drinks={drinks} /> : null}
     </>
   );
 }

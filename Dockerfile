@@ -4,11 +4,11 @@ FROM node:24-bullseye-slim AS base
 # set for base and all layers that inherit from it
 ENV NODE_ENV="production"
 
+# set the working directory
+WORKDIR /app
+
 # install pnpm
 RUN npm install -g pnpm@10.29.1
-
-# set the working directory
-WORKDIR /myapp
 
 # Install all node_modules, including dev dependencies
 FROM base AS dev-deps
@@ -20,12 +20,12 @@ RUN pnpm install --frozen-lockfile
 FROM base AS prod-deps
 
 COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --prod --frozen-lockfile 
+RUN pnpm install --frozen-lockfile --prod
 
 # Build the app
 FROM base AS build
 
-COPY --from=dev-deps /myapp/node_modules /myapp/node_modules
+COPY --from=dev-deps /app/node_modules /app/node_modules
 COPY . .
 RUN pnpm run build
 
@@ -34,20 +34,20 @@ FROM base AS runtime
 
 ENV PORT="8080"
 
-COPY --from=prod-deps /myapp/node_modules /myapp/node_modules
-COPY --from=build /myapp/build /myapp/build
-COPY --from=build /myapp/public /myapp/public
-COPY --from=build /myapp/package.json /myapp/package.json
+COPY --from=prod-deps /app/node_modules /app/node_modules
+COPY --from=build /app/build /app/build
+COPY --from=build /app/public /app/public
+COPY --from=build /app/package.json /app/package.json
 
 # run the app as the node (non-root) user
-RUN chown -R node:node /myapp
+RUN chown -R node:node /app
 USER node
 
 # accept some build arguments
 ARG COMMIT_SHA="unknown"
 ARG DEPLOYMENT_ENV="unknown"
 
-# store the build arguments in environment variables
+# store the build arguments in runtime environment variables
 ENV COMMIT_SHA="${COMMIT_SHA}"
 ENV DEPLOYMENT_ENV="${DEPLOYMENT_ENV}"
 

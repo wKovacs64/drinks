@@ -1,4 +1,4 @@
-import { Link } from 'react-router';
+import { Link, href } from 'react-router';
 import { Icon } from '#/app/icons/icon';
 
 export function NotFound() {
@@ -9,7 +9,7 @@ export function NotFound() {
       </p>
       <Icon name="broken_glass" className="text-burnt-orange my-[10vh] inline h-[20vh] w-[20vh]" />
       <Link
-        to="/"
+        to={href('/')}
         className="drinks-focusable border-b border-solid pb-1 hover:shadow-[inset_0_-2px_0_0] focus-visible:shadow-[inset_0_-2px_0_0] md:text-xl"
       >
         Back to Drinks

@@ -2,8 +2,8 @@ import { Icon } from '#/app/icons/icon';
 
 export function Footer() {
   return (
-    <footer className="flex flex-col items-center bg-[#111111] p-4 text-stone-300 md:p-8">
-      <section className="flex w-full flex-wrap items-center justify-between sm:w-[26rem] lg:w-full lg:max-w-[60rem] xl:max-w-[80rem]">
+    <footer className="bg-dreamless-sleep flex flex-col items-center p-4 text-stone-300 md:p-8">
+      <section className="flex w-full flex-wrap items-center justify-between sm:w-104 lg:w-full lg:max-w-240 xl:max-w-7xl">
         {/* TODO: reimplement or remove the feedback form */}
         {/* <button
           type="button"

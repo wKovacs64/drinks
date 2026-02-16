@@ -9,6 +9,9 @@
   "imports": {
     "#/*": "./*"
   },
+  "engines": {
+    "node": ">=24"
+  },
   "author": {
     "name": "Justin Hall",
     "email": "justin.r.hall@gmail.com"
@@ -44,6 +47,7 @@
     "test:e2e:ui": "dotenv -e .env.test -- playwright test --ui",
     "migrate:contentful": "dotenv -e .env -- tsx scripts/migrate-from-contentful.ts"
   },
+  "packageManager": "pnpm@10.29.1",
   "dependencies": {
     "@coji/remix-auth-google": "4.2.0",
     "@epic-web/invariant": "1.0.0",
@@ -113,9 +117,5 @@
     "onlyBuiltDependencies": [
       "better-sqlite3"
     ]
-  },
-  "packageManager": "pnpm@10.29.1",
-  "engines": {
-    "node": ">=20"
   }
 }

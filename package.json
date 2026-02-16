@@ -47,7 +47,7 @@
     "test:e2e:ui": "dotenv -e .env.test -- playwright test --ui",
     "migrate:contentful": "dotenv -e .env -- tsx scripts/migrate-from-contentful.ts"
   },
-  "packageManager": "pnpm@10.29.1",
+  "packageManager": "pnpm@10.29.2",
   "dependencies": {
     "@coji/remix-auth-google": "4.2.0",
     "@epic-web/invariant": "1.0.0",

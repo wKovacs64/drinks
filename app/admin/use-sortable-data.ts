@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-export type SortState<T> = {
+type SortState<T> = {
   key: keyof T & string;
   direction: 'asc' | 'desc';
 };

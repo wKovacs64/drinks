@@ -3,7 +3,7 @@ import { getSurrogateKeyForTag } from '#/app/tags/utils';
 
 const { FASTLY_SERVICE_ID, FASTLY_PURGE_API_KEY } = getEnvVars();
 
-export async function purgeFastlyCache(surrogateKeys: string[]): Promise<void> {
+async function purgeFastlyCache(surrogateKeys: string[]): Promise<void> {
   if (!FASTLY_SERVICE_ID || !FASTLY_PURGE_API_KEY) {
     console.log('Fastly not configured, skipping cache purge');
     return;

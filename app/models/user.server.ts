@@ -9,7 +9,7 @@ export async function getUserById(id: User['id']): Promise<User | undefined> {
   });
 }
 
-export async function getUserByEmail(email: User['email']): Promise<User | undefined> {
+async function getUserByEmail(email: User['email']): Promise<User | undefined> {
   const db = getDb();
   return db.query.users.findFirst({
     where: eq(users.email, email),

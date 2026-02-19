@@ -7,24 +7,12 @@ const { DATABASE_URL } = getEnvVars();
 
 let sqlite: Database.Database | null = null;
 
-export function getDatabase() {
+function getDatabase() {
   if (!sqlite) {
     sqlite = new Database(DATABASE_URL);
     sqlite.pragma('journal_mode = WAL');
   }
   return sqlite;
-}
-
-export function closeDatabase() {
-  if (sqlite) {
-    sqlite.close();
-    sqlite = null;
-  }
-}
-
-export function resetDatabaseConnection() {
-  closeDatabase();
-  return getDatabase();
 }
 
 export function getDb() {

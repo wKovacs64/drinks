@@ -14,7 +14,7 @@ function getImageKit() {
   });
 }
 
-export async function uploadImage(file: Buffer, fileName: string): Promise<UploadResult> {
+async function uploadImage(file: Buffer, fileName: string): Promise<UploadResult> {
   const imagekit = getImageKit();
 
   const response = await imagekit.files.upload({

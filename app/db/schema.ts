@@ -39,6 +39,7 @@ export const drinks = sqliteTable(
   (table) => [
     index('drinks_rank_idx').on(table.rank),
     index('drinks_created_at_idx').on(table.createdAt),
+    index('drinks_updated_at_idx').on(table.updatedAt),
   ],
 );
 

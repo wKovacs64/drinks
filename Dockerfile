@@ -37,7 +37,10 @@ ENV PORT="8080"
 COPY --from=prod-deps /app/node_modules /app/node_modules
 COPY --from=build /app/build /app/build
 COPY --from=build /app/public /app/public
+COPY --from=build /app/drizzle /app/drizzle
+COPY --from=build /app/drizzle.config.ts /app/drizzle.config.ts
 COPY --from=build /app/package.json /app/package.json
+COPY --from=build /app/start.sh /app/start.sh
 
 # run the app as the node (non-root) user
 RUN chown -R node:node /app
@@ -51,4 +54,4 @@ ARG DEPLOYMENT_ENV="unknown"
 ENV COMMIT_SHA="${COMMIT_SHA}"
 ENV DEPLOYMENT_ENV="${DEPLOYMENT_ENV}"
 
-ENTRYPOINT [ "pnpm", "run", "start" ]
+ENTRYPOINT [ "sh", "start.sh" ]

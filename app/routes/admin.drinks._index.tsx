@@ -12,13 +12,15 @@ export async function loader() {
 
 type Drink = Route.ComponentProps['loaderData']['drinks'][number];
 
-type SortableColumn = 'title' | 'slug' | 'calories' | 'rank';
+type SortableColumn = 'title' | 'slug' | 'calories' | 'rank' | 'createdAt' | 'updatedAt';
 
 const SORTABLE_COLUMNS: { key: SortableColumn; label: string; align?: 'right' }[] = [
   { key: 'title', label: 'Title' },
   { key: 'slug', label: 'Slug' },
   { key: 'calories', label: 'Calories' },
   { key: 'rank', label: 'Rank' },
+  { key: 'createdAt', label: 'Created' },
+  { key: 'updatedAt', label: 'Updated' },
 ];
 
 function SortArrow({
@@ -34,6 +36,16 @@ function SortArrow({
       {isActive && sort.direction === 'desc' ? '↓' : '↑'}
     </span>
   );
+}
+
+function formatTimestamp(timestamp: Date) {
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(timestamp);
 }
 
 function DrinkRow({ drink }: { drink: Drink }) {
@@ -56,6 +68,12 @@ function DrinkRow({ drink }: { drink: Drink }) {
       <td className="py-3 pr-4 whitespace-nowrap text-zinc-400">{drink.slug}</td>
       <td className="py-3 pr-4 whitespace-nowrap text-zinc-400">{drink.calories}</td>
       <td className="py-3 pr-4 whitespace-nowrap text-zinc-400">{drink.rank}</td>
+      <td className="py-3 pr-4 whitespace-nowrap text-zinc-400">
+        {formatTimestamp(drink.createdAt)}
+      </td>
+      <td className="py-3 pr-4 whitespace-nowrap text-zinc-400">
+        {formatTimestamp(drink.updatedAt)}
+      </td>
       <td className="py-3 text-right whitespace-nowrap">
         <Link
           to={href('/admin/drinks/:slug/edit', { slug: drink.slug })}

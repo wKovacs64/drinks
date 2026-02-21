@@ -12,14 +12,7 @@ export async function loader() {
 
 type Drink = Route.ComponentProps['loaderData']['drinks'][number];
 
-type SortableColumn =
-  | 'title'
-  | 'slug'
-  | 'calories'
-  | 'rank'
-  | 'status'
-  | 'createdAt'
-  | 'updatedAt';
+type SortableColumn = 'title' | 'slug' | 'calories' | 'rank' | 'status' | 'createdAt' | 'updatedAt';
 
 const SORTABLE_COLUMNS: { key: SortableColumn; label: string; align?: 'right' }[] = [
   { key: 'title', label: 'Title' },

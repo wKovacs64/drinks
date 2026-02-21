@@ -205,6 +205,24 @@ export function DrinkForm({
         />
       </div>
 
+      <div>
+        <label
+          htmlFor="status"
+          className="block text-sm font-semibold tracking-wider text-zinc-500 uppercase"
+        >
+          Status
+        </label>
+        <select
+          name="status"
+          id="status"
+          defaultValue={drink?.status ?? 'published'}
+          className="mt-2 block w-full rounded-sm border border-zinc-700 bg-zinc-800 px-3 py-2 text-zinc-200 focus:border-amber-600 focus:ring-1 focus:ring-amber-600 focus:outline-none"
+        >
+          <option value="published">Published</option>
+          <option value="unpublished">Unpublished</option>
+        </select>
+      </div>
+
       <div className="flex gap-4">
         <button
           type="submit"

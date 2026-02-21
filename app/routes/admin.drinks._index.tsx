@@ -12,13 +12,21 @@ export async function loader() {
 
 type Drink = Route.ComponentProps['loaderData']['drinks'][number];
 
-type SortableColumn = 'title' | 'slug' | 'calories' | 'rank' | 'createdAt' | 'updatedAt';
+type SortableColumn =
+  | 'title'
+  | 'slug'
+  | 'calories'
+  | 'rank'
+  | 'status'
+  | 'createdAt'
+  | 'updatedAt';
 
 const SORTABLE_COLUMNS: { key: SortableColumn; label: string; align?: 'right' }[] = [
   { key: 'title', label: 'Title' },
   { key: 'slug', label: 'Slug' },
   { key: 'calories', label: 'Calories' },
   { key: 'rank', label: 'Rank' },
+  { key: 'status', label: 'Status' },
   { key: 'createdAt', label: 'Created' },
   { key: 'updatedAt', label: 'Updated' },
 ];
@@ -68,6 +76,18 @@ function DrinkRow({ drink }: { drink: Drink }) {
       <td className="py-3 pr-4 whitespace-nowrap text-zinc-400">{drink.slug}</td>
       <td className="py-3 pr-4 whitespace-nowrap text-zinc-400">{drink.calories}</td>
       <td className="py-3 pr-4 whitespace-nowrap text-zinc-400">{drink.rank}</td>
+      <td className="py-3 pr-4 whitespace-nowrap">
+        <span
+          className={clsx(
+            'inline-block rounded px-2 py-0.5 text-xs font-medium',
+            drink.status === 'published'
+              ? 'bg-green-500/20 text-green-400'
+              : 'bg-zinc-500/20 text-zinc-400',
+          )}
+        >
+          {drink.status}
+        </span>
+      </td>
       <td className="py-3 pr-4 whitespace-nowrap text-zinc-400">
         {formatTimestamp(drink.createdAt)}
       </td>

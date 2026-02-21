@@ -10,6 +10,14 @@ export async function getAllDrinks(): Promise<Drink[]> {
   });
 }
 
+export async function getPublishedDrinks(): Promise<Drink[]> {
+  const db = getDb();
+  return db.query.drinks.findMany({
+    where: eq(drinks.status, 'published'),
+    orderBy: [desc(drinks.rank), desc(drinks.createdAt)],
+  });
+}
+
 export async function getDrinkBySlug(slug: Drink['slug']): Promise<Drink | undefined> {
   const db = getDb();
   return db.query.drinks.findFirst({
@@ -20,21 +28,23 @@ export async function getDrinkBySlug(slug: Drink['slug']): Promise<Drink | undef
 export async function getDrinksByTag(tag: string): Promise<Drink[]> {
   const db = getDb();
   // Query drinks where tags JSON array contains the tag
-  const allDrinks = await db.query.drinks.findMany({
+  const publishedDrinks = await db.query.drinks.findMany({
+    where: eq(drinks.status, 'published'),
     orderBy: [desc(drinks.rank), desc(drinks.createdAt)],
   });
 
-  return allDrinks.filter((drink) => drink.tags.includes(tag));
+  return publishedDrinks.filter((drink) => drink.tags.includes(tag));
 }
 
 export async function getAllTags(): Promise<string[]> {
   const db = getDb();
-  const allDrinks = await db.query.drinks.findMany({
+  const publishedDrinks = await db.query.drinks.findMany({
+    where: eq(drinks.status, 'published'),
     columns: { tags: true },
   });
 
   const tagSet = new Set<string>();
-  for (const drink of allDrinks) {
+  for (const drink of publishedDrinks) {
     for (const tag of drink.tags) {
       tagSet.add(tag);
     }

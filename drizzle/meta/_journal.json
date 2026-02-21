@@ -8,6 +8,13 @@
       "when": 1771174809132,
       "tag": "0000_supreme_micromacro",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1771701821280,
+      "tag": "0001_condemned_centennial",
+      "breakpoints": true
     }
   ]
 }

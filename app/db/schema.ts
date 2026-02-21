@@ -29,6 +29,7 @@ export const drinks = sqliteTable(
     tags: text('tags', { mode: 'json' }).notNull().$type<string[]>(),
     notes: text('notes'),
     rank: integer('rank').notNull().default(0),
+    status: text('status').notNull().$type<'published' | 'unpublished'>().default('published'),
     createdAt: integer('created_at', { mode: 'timestamp' })
       .notNull()
       .default(sql`(unixepoch())`),

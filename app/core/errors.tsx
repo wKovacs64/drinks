@@ -1,4 +1,6 @@
 import { Link, href, isRouteErrorResponse, useRouteError } from 'react-router';
+import { backgroundImageStyles } from '#/app/styles/background-image';
+import type { GuardType } from '#/app/types';
 import { NotFound } from './not-found';
 
 export function ErrorBoundary() {
@@ -11,16 +13,14 @@ export function ErrorBoundary() {
 
     return (
       <BoundaryContainer>
-        <h1>
-          <span>
-            {error.status} {error.statusText}
-          </span>
-        </h1>
-        <section className="flex flex-col gap-4">
+        <BoundaryTitle>
+          {error.status} {error.statusText}
+        </BoundaryTitle>
+        <section className="flex flex-col gap-4 text-xl">
           <p>We knew this might happen one day.</p>
           {error.data ? <p>The error message was as follows:</p> : null}
         </section>
-        {error.data ? <BoundaryError>{JSON.stringify(error.data, null, 2)}</BoundaryError> : null}
+        {error.data ? <BoundaryError>{renderRouteErrorData(error.data)}</BoundaryError> : null}
         <StartOverLink />
       </BoundaryContainer>
     );
@@ -28,16 +28,8 @@ export function ErrorBoundary() {
 
   return (
     <BoundaryContainer>
-      <h1 className="flex gap-2">
-        <span role="img" aria-hidden>
-          💥
-        </span>
-        <span>Unhandled Exception</span>
-        <span role="img" aria-hidden>
-          💥
-        </span>
-      </h1>
-      <section className="flex flex-col gap-4">
+      <BoundaryTitle emoji="💥">Unhandled Exception</BoundaryTitle>
+      <section className="flex flex-col gap-4 text-xl">
         <p>Something unexpected happened and we were not prepared. Sorry about that.</p>
         <p>The error message was as follows:</p>
       </section>
@@ -49,16 +41,35 @@ export function ErrorBoundary() {
 
 function BoundaryContainer({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex flex-col items-center gap-8 px-4 text-xl text-white md:gap-16 md:text-2xl lg:text-4xl">
+    <div className="bg-app-image flex flex-1 flex-col items-center gap-8 bg-neutral-800 bg-cover bg-fixed bg-center bg-no-repeat px-4 pt-8 text-gray-100 md:gap-16 md:pt-24">
+      <style dangerouslySetInnerHTML={{ __html: backgroundImageStyles }} />
       {children}
     </div>
   );
 }
 
+function BoundaryTitle({ emoji, children }: { emoji?: string; children: React.ReactNode }) {
+  return (
+    <h1 className="flex gap-4 text-4xl font-normal">
+      {emoji ? (
+        <span role="img" aria-hidden>
+          {emoji}
+        </span>
+      ) : null}
+      {children}
+      {emoji ? (
+        <span role="img" aria-hidden>
+          {emoji}
+        </span>
+      ) : null}
+    </h1>
+  );
+}
+
 function BoundaryError({ children }: { children: React.ReactNode }) {
   return (
-    <pre className="w-full bg-stone-900 p-8">
-      <code className="align-middle text-xl">{children}</code>
+    <pre className="w-full max-w-7xl bg-stone-900 p-12 whitespace-pre-wrap">
+      <code className="text-base">{children}</code>
     </pre>
   );
 }
@@ -73,4 +84,12 @@ function StartOverLink() {
       Try Starting Over
     </Link>
   );
+}
+
+function renderRouteErrorData(routeErrorData: GuardType<typeof isRouteErrorResponse>['data']) {
+  if (typeof routeErrorData === 'object') {
+    return JSON.stringify(routeErrorData, null, 2);
+  }
+
+  return String(routeErrorData);
 }

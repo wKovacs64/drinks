@@ -19,7 +19,7 @@ export function headers({ loaderHeaders }: Route.HeadersArgs) {
 export async function loader({ params }: Route.LoaderArgs) {
   const sqliteDrink = await getDrinkBySlug(params.slug ?? '');
 
-  invariantResponse(sqliteDrink, 'Drink not found', {
+  const notFoundHeaders = {
     status: 404,
     headers: {
       'Surrogate-Key': 'all',
@@ -30,7 +30,10 @@ export async function loader({ params }: Route.LoaderArgs) {
         mustRevalidate: true,
       }),
     },
-  });
+  };
+
+  invariantResponse(sqliteDrink, 'Drink not found', notFoundHeaders);
+  invariantResponse(sqliteDrink.status === 'published', 'Drink not found', notFoundHeaders);
 
   const [enhancedDrink] = await withPlaceholderImages([sqliteDrink]);
 

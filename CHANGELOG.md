@@ -13,10 +13,8 @@
 ### Bug Fixes
 
 * return 404 for unpublished drinks ([#264](https://github.com/wKovacs64/drinks/issues/264)) ([97c9fe1](https://github.com/wKovacs64/drinks/commit/97c9fe1a5accd5ec78899c461540d79c7b200a39))
-* return 404 for unpublished drinks on public detail page ([97c9fe1](https://github.com/wKovacs64/drinks/commit/97c9fe1a5accd5ec78899c461540d79c7b200a39))
 * run drizzle migrations automatically on deploy ([#262](https://github.com/wKovacs64/drinks/issues/262)) ([d2bf519](https://github.com/wKovacs64/drinks/commit/d2bf519e3a710440bbf89be710bca4103ef33b26))
 * targeted surrogate purges + reduce 404 TTL ([#265](https://github.com/wKovacs64/drinks/issues/265)) ([e301c85](https://github.com/wKovacs64/drinks/commit/e301c85b3cddc6cb84218f1f482c96ec8a211cee))
-* use targeted surrogate purges and reduce 404 TTL ([e301c85](https://github.com/wKovacs64/drinks/commit/e301c85b3cddc6cb84218f1f482c96ec8a211cee))
 
 ## [4.0.0](https://github.com/wKovacs64/drinks/compare/v3.7.1...v4.0.0) (2026-02-16)
 

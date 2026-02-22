@@ -16,7 +16,7 @@ export function headers() {
     'Cache-Control': cacheHeader({
       public: true,
       maxAge: '30sec',
-      sMaxage: '5min',
+      sMaxage: '1min',
       mustRevalidate: true,
     }),
   };

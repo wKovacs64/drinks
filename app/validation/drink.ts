@@ -37,4 +37,5 @@ export const drinkFormSchema = z.object({
   tags: commaSeparatedList.pipe(z.array(z.string()).min(1, 'At least one tag is required')),
   notes: trimmedString.transform((value) => value || null),
   rank: intFromString.pipe(z.int('Rank must be a whole number')),
+  status: z.enum(['published', 'unpublished']),
 });

@@ -1,8 +1,14 @@
 import { useRef, useState } from 'react';
 import { Form, useNavigation, useSubmit } from 'react-router';
+import { clsx } from 'clsx';
 import slugify from '@sindresorhus/slugify';
 import type { Drink } from '#/app/db/schema';
 import { ImageCrop, type ImageCropHandle } from './image-crop';
+
+const STATUS_OPTIONS: { value: Drink['status']; label: string; activeClass: string }[] = [
+  { value: 'published', label: 'Published', activeClass: 'bg-green-500/20 text-green-400' },
+  { value: 'unpublished', label: 'Unpublished', activeClass: 'bg-zinc-500/20 text-zinc-400' },
+];
 
 export function DrinkForm({
   drink,
@@ -20,6 +26,7 @@ export function DrinkForm({
   const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
   const [slugValue, setSlugValue] = useState(drink?.slug ?? '');
   const [imageRequired, setImageRequired] = useState(false);
+  const [statusValue, setStatusValue] = useState(drink?.status ?? 'published');
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -203,6 +210,30 @@ export function DrinkForm({
           defaultValue={drink?.rank ?? 0}
           className="mt-2 block w-full rounded-sm border border-zinc-700 bg-zinc-800 px-3 py-2 text-zinc-200 placeholder-zinc-600 focus:border-amber-600 focus:ring-1 focus:ring-amber-600 focus:outline-none"
         />
+      </div>
+
+      <div>
+        <span className="block text-sm font-semibold tracking-wider text-zinc-500 uppercase">
+          Status
+        </span>
+        <input type="hidden" name="status" value={statusValue} />
+        <div className="mt-2 inline-flex divide-x divide-zinc-700 rounded-sm border border-zinc-700">
+          {STATUS_OPTIONS.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => setStatusValue(option.value)}
+              className={clsx(
+                'px-4 py-2 text-sm font-medium transition-colors',
+                statusValue === option.value
+                  ? option.activeClass
+                  : 'bg-zinc-800 text-zinc-500 hover:text-zinc-300',
+              )}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="flex gap-4">

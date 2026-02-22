@@ -32,7 +32,7 @@ export default function AdminLayout({ loaderData }: Route.ComponentProps) {
   return (
     <div className="min-h-screen bg-zinc-950">
       <header className="border-b border-zinc-800 bg-zinc-900">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-3">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
           <div className="flex items-center gap-1">
             <Link to={href('/')} className="text-zinc-400 hover:text-white">
               drinks.fyi
@@ -53,7 +53,7 @@ export default function AdminLayout({ loaderData }: Route.ComponentProps) {
         </div>
       </header>
       <title>Admin | drinks.fyi</title>
-      <main className="mx-auto max-w-5xl px-6 py-8">
+      <main className="mx-auto max-w-7xl px-6 py-8">
         <Outlet />
       </main>
       <Toaster toastOptions={{ className: 'text-sm! sm:w-auto!' }} richColors />

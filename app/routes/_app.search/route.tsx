@@ -43,8 +43,22 @@ export async function loader({ request }: Route.LoaderArgs) {
   const { allDrinks, searchIndex } = await getSearchData();
   const slugs = searchDrinks(searchIndex, q);
 
+  const searchResultsCacheHeaders = {
+    'Surrogate-Key': 'search all',
+    'Cache-Control': cacheHeader({
+      public: true,
+      maxAge: '30sec',
+      sMaxage: '1yr',
+      staleWhileRevalidate: '10min',
+      staleIfError: '1day',
+    }),
+  };
+
   if (slugs.length === 0) {
-    return { drinks: [], socialImageUrl: SITE_IMAGE_URL, socialImageAlt: SITE_IMAGE_ALT };
+    return data(
+      { drinks: [], socialImageUrl: SITE_IMAGE_URL, socialImageAlt: SITE_IMAGE_ALT },
+      { headers: searchResultsCacheHeaders },
+    );
   }
 
   const drinks = slugs
@@ -53,11 +67,14 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   const drinksWithPlaceholderImages = await withPlaceholderImages(drinks);
 
-  return {
-    drinks: drinksWithPlaceholderImages,
-    socialImageUrl: SITE_IMAGE_URL,
-    socialImageAlt: SITE_IMAGE_ALT,
-  };
+  return data(
+    {
+      drinks: drinksWithPlaceholderImages,
+      socialImageUrl: SITE_IMAGE_URL,
+      socialImageAlt: SITE_IMAGE_ALT,
+    },
+    { headers: searchResultsCacheHeaders },
+  );
 }
 
 export const handle: AppRouteHandle = {

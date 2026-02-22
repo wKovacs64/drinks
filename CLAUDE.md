@@ -35,6 +35,15 @@ _Craft Cocktail Gallery_
 - This project uses the React Compiler, so manual memoization with React.memo, useCallback, or
   useMemo should not normally be necessary.
 
+## Git Commits
+
+- This project uses [release-please](https://github.com/googleapis/release-please) to generate
+  changelogs and GitHub releases from conventional commits.
+- **Never repeat a conventional commit prefix (`feat:`, `fix:`, etc.) in the commit body.** The
+  commit body should be plain prose explaining the change, not another conventional commit message.
+  release-please parses the body too, so a prefixed line in the body creates a duplicate changelog
+  entry.
+
 ## Validation Commands
 
 - `pnpm lint`

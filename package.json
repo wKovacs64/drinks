@@ -46,7 +46,7 @@
     "test:e2e": "dotenv -e .env.test -- playwright test",
     "test:e2e:ui": "dotenv -e .env.test -- playwright test --ui"
   },
-  "packageManager": "pnpm@10.29.3",
+  "packageManager": "pnpm@10.30.0",
   "dependencies": {
     "@coji/remix-auth-google": "4.2.0",
     "@epic-web/invariant": "1.0.0",

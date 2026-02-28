@@ -1,7 +1,0 @@
-# .gitignore and...
-
-.cursor/**
-CHANGELOG.md
-package*.json
-pnpm-lock.yaml
-app/db.server/meta/*.json

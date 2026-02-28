@@ -1,9 +1,9 @@
-import { Authenticator } from 'remix-auth';
-import { GoogleStrategy } from '@coji/remix-auth-google';
-import { invariant } from '@epic-web/invariant';
-import { getEnvVars } from '#/app/utils/env.server';
-import { updateUserOnLogin } from '#/app/models/user.server';
-import type { AuthenticatedUser } from './types';
+import { Authenticator } from "remix-auth";
+import { GoogleStrategy } from "@coji/remix-auth-google";
+import { invariant } from "@epic-web/invariant";
+import { getEnvVars } from "#/app/utils/env.server";
+import { updateUserOnLogin } from "#/app/models/user.server";
+import type { AuthenticatedUser } from "./types";
 
 const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI } = getEnvVars();
 
@@ -26,7 +26,7 @@ const verify: ConstructorParameters<typeof GoogleStrategy<AuthenticatedUser>>[1]
   const profile = await GoogleStrategy.userProfile(tokens);
 
   const email = profile.emails?.[0]?.value;
-  invariant(email, 'No email found in Google profile');
+  invariant(email, "No email found in Google profile");
 
   const user = await updateUserOnLogin({
     email,
@@ -36,7 +36,7 @@ const verify: ConstructorParameters<typeof GoogleStrategy<AuthenticatedUser>>[1]
 
   // Allowlist model: user must exist in database to log in
   // Role checking happens in middleware (adminMiddleware, etc.)
-  invariant(user, 'User not authorized');
+  invariant(user, "User not authorized");
 
   return {
     id: user.id,
@@ -49,4 +49,4 @@ const verify: ConstructorParameters<typeof GoogleStrategy<AuthenticatedUser>>[1]
 
 export const authenticator = new Authenticator<AuthenticatedUser>();
 
-authenticator.use(new GoogleStrategy(googleStrategyOptions, verify), 'google');
+authenticator.use(new GoogleStrategy(googleStrategyOptions, verify), "google");

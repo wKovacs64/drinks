@@ -1,9 +1,9 @@
-import { remember, forget } from '@epic-web/remember';
-import { getPublishedDrinks } from '#/app/models/drink.server';
-import type { Drink } from '#/app/db/schema';
-import { createSearchIndex } from '#/app/search/minisearch.server';
+import { remember, forget } from "@epic-web/remember";
+import { getPublishedDrinks } from "#/app/models/drink.server";
+import type { Drink } from "#/app/db/schema";
+import { createSearchIndex } from "#/app/search/minisearch.server";
 
-const SEARCH_INSTANCE_CACHE_KEY = 'minisearch-index';
+const SEARCH_INSTANCE_CACHE_KEY = "minisearch-index";
 
 type SearchData = {
   allDrinks: Drink[];

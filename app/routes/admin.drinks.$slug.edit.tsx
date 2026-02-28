@@ -1,18 +1,18 @@
-import { redirect, href, data } from 'react-router';
-import { invariantResponse } from '@epic-web/invariant';
-import { getDrinkBySlug, updateDrink } from '#/app/models/drink.server';
-import { uploadImageOrPlaceholder, deleteImage } from '#/app/utils/imagekit.server';
-import { DrinkForm } from '#/app/admin/drink-form';
-import { parseImageUpload } from '#/app/utils/parse-image-upload.server';
-import { purgeSearchCache } from '#/app/search/cache.server';
-import { purgeDrinkCache } from '#/app/utils/fastly.server';
-import { getSession, commitSession } from '#/app/auth/session.server';
-import { drinkFormSchema } from '#/app/validation/drink';
-import type { Route } from './+types/admin.drinks.$slug.edit';
+import { redirect, href, data } from "react-router";
+import { invariantResponse } from "@epic-web/invariant";
+import { getDrinkBySlug, updateDrink } from "#/app/models/drink.server";
+import { uploadImageOrPlaceholder, deleteImage } from "#/app/utils/imagekit.server";
+import { DrinkForm } from "#/app/admin/drink-form";
+import { parseImageUpload } from "#/app/utils/parse-image-upload.server";
+import { purgeSearchCache } from "#/app/search/cache.server";
+import { purgeDrinkCache } from "#/app/utils/fastly.server";
+import { getSession, commitSession } from "#/app/auth/session.server";
+import { drinkFormSchema } from "#/app/validation/drink";
+import type { Route } from "./+types/admin.drinks.$slug.edit";
 
 export async function loader({ params }: Route.LoaderArgs) {
   const drink = await getDrinkBySlug(params.slug);
-  invariantResponse(drink, 'Drink not found', { status: 404 });
+  invariantResponse(drink, "Drink not found", { status: 404 });
   return { drink };
 }
 
@@ -25,7 +25,7 @@ export default function EditDrinkPage({ loaderData, actionData }: Route.Componen
       <h1 className="mb-6 text-2xl font-medium text-zinc-200">Edit Drink</h1>
       <DrinkForm
         drink={drink}
-        action={href('/admin/drinks/:slug/edit', { slug: drink.slug })}
+        action={href("/admin/drinks/:slug/edit", { slug: drink.slug })}
         errors={actionData?.errors}
       />
     </div>
@@ -34,7 +34,7 @@ export default function EditDrinkPage({ loaderData, actionData }: Route.Componen
 
 export async function action({ request, params }: Route.ActionArgs) {
   const drink = await getDrinkBySlug(params.slug);
-  invariantResponse(drink, 'Drink not found', { status: 404 });
+  invariantResponse(drink, "Drink not found", { status: 404 });
 
   const { formData, imageUpload, imageError } = await parseImageUpload(request);
 
@@ -42,7 +42,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     return data({ errors: [imageError] }, { status: 400 });
   }
 
-  const existingImageUrl = String(formData.get('existingImageUrl') ?? '');
+  const existingImageUrl = String(formData.get("existingImageUrl") ?? "");
 
   const result = drinkFormSchema.safeParse(Object.fromEntries(formData));
 
@@ -61,11 +61,11 @@ export async function action({ request, params }: Route.ActionArgs) {
     imageUrl = uploadResult.url;
     imageFileId = uploadResult.fileId;
 
-    if (drink.imageFileId && drink.imageFileId !== 'test-placeholder') {
+    if (drink.imageFileId && drink.imageFileId !== "test-placeholder") {
       try {
         await deleteImage(drink.imageFileId);
       } catch (error) {
-        console.error('Failed to delete old image:', error);
+        console.error("Failed to delete old image:", error);
       }
     }
   } else if (existingImageUrl) {
@@ -73,7 +73,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     imageFileId = drink.imageFileId;
   } else {
     imageUrl = `https://via.placeholder.com/400x400.png?text=${encodeURIComponent(result.data.slug)}`;
-    imageFileId = 'test-placeholder';
+    imageFileId = "test-placeholder";
   }
 
   // Collect old tags for cache purge (in case they changed)
@@ -95,12 +95,12 @@ export async function action({ request, params }: Route.ActionArgs) {
     }
   } catch (error) {
     // Cache invalidation failures shouldn't block the request
-    console.error('Cache invalidation failed:', error);
+    console.error("Cache invalidation failed:", error);
   }
 
-  const session = await getSession(request.headers.get('Cookie'));
-  session.flash('toast', { kind: 'success' as const, message: `${result.data.title} updated!` });
-  return redirect(href('/admin/drinks'), {
-    headers: { 'Set-Cookie': await commitSession(session) },
+  const session = await getSession(request.headers.get("Cookie"));
+  session.flash("toast", { kind: "success" as const, message: `${result.data.title} updated!` });
+  return redirect(href("/admin/drinks"), {
+    headers: { "Set-Cookie": await commitSession(session) },
   });
 }

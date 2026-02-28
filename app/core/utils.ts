@@ -1,5 +1,5 @@
-import type { useMatches } from 'react-router';
-import { invariant } from '@epic-web/invariant';
+import type { useMatches } from "react-router";
+import { invariant } from "@epic-web/invariant";
 
 /**
  * Gets loader data for an ancestor route from a route id and the `matches` array returned from the

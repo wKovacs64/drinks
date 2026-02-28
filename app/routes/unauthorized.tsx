@@ -1,5 +1,5 @@
-import { Link, href } from 'react-router';
-import { Icon } from '#/app/icons/icon';
+import { Link, href } from "react-router";
+import { Icon } from "#/app/icons/icon";
 
 export default function Unauthorized() {
   return (
@@ -12,7 +12,7 @@ export default function Unauthorized() {
         <p className="text-zinc-400">You do not have permission to access this page.</p>
 
         <Link
-          to={href('/')}
+          to={href("/")}
           className="mt-2 rounded bg-amber-600 px-4 py-2 font-medium text-zinc-950 hover:bg-amber-500"
         >
           Go home

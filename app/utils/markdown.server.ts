@@ -1,4 +1,4 @@
-import { marked } from 'marked';
+import { marked } from "marked";
 
 export function markdownToHtml(markdownString: string) {
   // https://github.com/markedjs/marked/issues/655#issuecomment-383226346

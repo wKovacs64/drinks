@@ -1,27 +1,27 @@
-import { clsx } from 'clsx';
-import { Link, useFetcher, href } from 'react-router';
-import { Image } from '@unpic/react';
-import { useSortableData } from '#/app/admin/use-sortable-data';
-import { getAllDrinks } from '#/app/models/drink.server';
-import type { Route } from './+types/admin.drinks._index';
+import { clsx } from "clsx";
+import { Link, useFetcher, href } from "react-router";
+import { Image } from "@unpic/react";
+import { useSortableData } from "#/app/admin/use-sortable-data";
+import { getAllDrinks } from "#/app/models/drink.server";
+import type { Route } from "./+types/admin.drinks._index";
 
 export async function loader() {
   const drinks = await getAllDrinks();
   return { drinks };
 }
 
-type Drink = Route.ComponentProps['loaderData']['drinks'][number];
+type Drink = Route.ComponentProps["loaderData"]["drinks"][number];
 
-type SortableColumn = 'title' | 'slug' | 'calories' | 'rank' | 'status' | 'createdAt' | 'updatedAt';
+type SortableColumn = "title" | "slug" | "calories" | "rank" | "status" | "createdAt" | "updatedAt";
 
-const SORTABLE_COLUMNS: { key: SortableColumn; label: string; align?: 'right' }[] = [
-  { key: 'title', label: 'Title' },
-  { key: 'slug', label: 'Slug' },
-  { key: 'calories', label: 'Calories' },
-  { key: 'rank', label: 'Rank' },
-  { key: 'status', label: 'Status' },
-  { key: 'createdAt', label: 'Created' },
-  { key: 'updatedAt', label: 'Updated' },
+const SORTABLE_COLUMNS: { key: SortableColumn; label: string; align?: "right" }[] = [
+  { key: "title", label: "Title" },
+  { key: "slug", label: "Slug" },
+  { key: "calories", label: "Calories" },
+  { key: "rank", label: "Rank" },
+  { key: "status", label: "Status" },
+  { key: "createdAt", label: "Created" },
+  { key: "updatedAt", label: "Updated" },
 ];
 
 function SortArrow({
@@ -29,23 +29,23 @@ function SortArrow({
   sort,
 }: {
   columnKey: string;
-  sort: { key: string; direction: 'asc' | 'desc' } | null;
+  sort: { key: string; direction: "asc" | "desc" } | null;
 }) {
   const isActive = sort !== null && sort.key === columnKey;
   return (
-    <span className={clsx('ml-1', !isActive && 'invisible')}>
-      {isActive && sort.direction === 'desc' ? '↓' : '↑'}
+    <span className={clsx("ml-1", !isActive && "invisible")}>
+      {isActive && sort.direction === "desc" ? "↓" : "↑"}
     </span>
   );
 }
 
 function formatTimestamp(timestamp: Date) {
-  return new Intl.DateTimeFormat('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
+  return new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
   }).format(timestamp);
 }
 
@@ -72,10 +72,10 @@ function DrinkRow({ drink }: { drink: Drink }) {
       <td className="py-3 pr-4 whitespace-nowrap">
         <span
           className={clsx(
-            'inline-block rounded px-2 py-0.5 text-xs font-medium',
-            drink.status === 'published'
-              ? 'bg-green-500/20 text-green-400'
-              : 'bg-zinc-500/20 text-zinc-400',
+            "inline-block rounded px-2 py-0.5 text-xs font-medium",
+            drink.status === "published"
+              ? "bg-green-500/20 text-green-400"
+              : "bg-zinc-500/20 text-zinc-400",
           )}
         >
           {drink.status}
@@ -89,17 +89,17 @@ function DrinkRow({ drink }: { drink: Drink }) {
       </td>
       <td className="py-3 text-right whitespace-nowrap">
         <Link
-          to={href('/admin/drinks/:slug/edit', { slug: drink.slug })}
+          to={href("/admin/drinks/:slug/edit", { slug: drink.slug })}
           className="text-zinc-400 hover:text-amber-500"
         >
           Edit
         </Link>
         <fetcher.Form
           method="post"
-          action={href('/admin/drinks/:slug/delete', { slug: drink.slug })}
+          action={href("/admin/drinks/:slug/delete", { slug: drink.slug })}
           className="ml-4 inline"
           onSubmit={(event) => {
-            if (!confirm('Are you sure you want to delete this drink?')) {
+            if (!confirm("Are you sure you want to delete this drink?")) {
               event.preventDefault();
             }
           }}
@@ -126,7 +126,7 @@ export default function AdminDrinksList({ loaderData }: Route.ComponentProps) {
           <span className="text-zinc-500">{drinks.length}</span>
         </div>
         <Link
-          to={href('/admin/drinks/new')}
+          to={href("/admin/drinks/new")}
           className="rounded bg-amber-600 px-4 py-2 font-medium text-zinc-950 hover:bg-amber-500"
         >
           Add Drink
@@ -138,8 +138,8 @@ export default function AdminDrinksList({ loaderData }: Route.ComponentProps) {
         value={filter}
         onChange={(event) => setFilter(event.target.value)}
         onKeyDown={(event) => {
-          if (event.key === 'Escape') {
-            setFilter('');
+          if (event.key === "Escape") {
+            setFilter("");
           }
         }}
         aria-label="Filter drinks"

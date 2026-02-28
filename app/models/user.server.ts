@@ -1,15 +1,15 @@
-import { eq } from 'drizzle-orm';
-import { getDb } from '#/app/db/client.server';
-import { users, type User } from '#/app/db/schema';
+import { eq } from "drizzle-orm";
+import { getDb } from "#/app/db/client.server";
+import { users, type User } from "#/app/db/schema";
 
-export async function getUserById(id: User['id']): Promise<User | undefined> {
+export async function getUserById(id: User["id"]): Promise<User | undefined> {
   const db = getDb();
   return db.query.users.findFirst({
     where: eq(users.id, id),
   });
 }
 
-async function getUserByEmail(email: User['email']): Promise<User | undefined> {
+async function getUserByEmail(email: User["email"]): Promise<User | undefined> {
   const db = getDb();
   return db.query.users.findFirst({
     where: eq(users.email, email),

@@ -1,0 +1,7 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "sortTailwindcss": {
+    "functions": ["clsx", "cn"]
+  },
+  "ignorePatterns": ["CHANGELOG.md", "pnpm-lock.yaml", "app/db.server/meta/*.json"]
+}

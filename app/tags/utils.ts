@@ -1,3 +1,3 @@
 export function getSurrogateKeyForTag(tag: string) {
-  return tag.replaceAll(' ', '_');
+  return tag.replaceAll(" ", "_");
 }

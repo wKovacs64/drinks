@@ -1,14 +1,14 @@
-import { test as base, expect, type Page } from '@playwright/test';
-import { getRawSessionCookieValue, sessionCookie } from '#/app/auth/session.server';
-import { MOCK_ADMIN } from './mock-users';
+import { test as base, expect, type Page } from "@playwright/test";
+import { getRawSessionCookieValue, sessionCookie } from "#/app/auth/session.server";
+import { MOCK_ADMIN } from "./mock-users";
 
 type TestFixtures = {
   _resetDb: void;
   pageAsAdmin: Page;
 };
 
-async function resetDatabase(request: Page['request']) {
-  const response = await request.post('/_/reset-db');
+async function resetDatabase(request: Page["request"]) {
+  const response = await request.post("/_/reset-db");
   if (!response.ok()) {
     throw new Error(`Failed to reset database: ${response.status()}`);
   }
@@ -29,10 +29,10 @@ export const test = base.extend<TestFixtures>({
       {
         name: sessionCookie.name,
         value: await getRawSessionCookieValue(MOCK_ADMIN),
-        domain: 'localhost',
+        domain: "localhost",
         httpOnly: true,
-        path: '/',
-        sameSite: 'Lax',
+        path: "/",
+        sameSite: "Lax",
         secure: false,
       },
     ]);

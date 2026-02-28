@@ -1,10 +1,10 @@
-import { transformUrl } from 'unpic';
-import type { Drink } from '#/app/db/schema';
-import type { EnhancedDrink } from '#/app/types';
+import { transformUrl } from "unpic";
+import type { Drink } from "#/app/db/schema";
+import type { EnhancedDrink } from "#/app/types";
 
 // Transparent 1x1 pixel GIF as fallback when blur placeholder generation fails
 const FALLBACK_BLUR_DATA_URL =
-  'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+  "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 
 /**
  * Generate a blur placeholder data URL for an image.
@@ -17,7 +17,7 @@ async function generateBlurDataUrl(imageUrl: string): Promise<string> {
     url: imageUrl,
     width: 10,
     quality: 90,
-    format: 'webp',
+    format: "webp",
   });
 
   // If unpic doesn't recognize the URL (returns undefined), use fallback

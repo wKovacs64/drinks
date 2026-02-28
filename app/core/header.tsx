@@ -1,5 +1,5 @@
-import { Link, href, type LinkProps } from 'react-router';
-import { Icon } from '#/app/icons/icon';
+import { Link, href, type LinkProps } from "react-router";
+import { Icon } from "#/app/icons/icon";
 
 export function Header() {
   return (
@@ -7,9 +7,9 @@ export function Header() {
       <section className="flex w-full flex-wrap items-center justify-between sm:w-104 lg:w-full lg:max-w-240 xl:max-w-7xl">
         {/* TODO: change to h2 or something, move h1 to interesting page content */}
         <h1 className="text-3xl font-light">
-          <HeaderLink to={href('/')}>drinks.fyi</HeaderLink>
+          <HeaderLink to={href("/")}>drinks.fyi</HeaderLink>
         </h1>
-        <HeaderLink to={href('/search')}>
+        <HeaderLink to={href("/search")}>
           <span className="sr-only">Search</span>
           <Icon name="ic-baseline-search" aria-hidden size={32} />
         </HeaderLink>

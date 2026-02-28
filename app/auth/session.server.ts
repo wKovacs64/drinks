@@ -1,15 +1,15 @@
-import { createCookie, createCookieSessionStorage } from 'react-router';
-import { getEnvVars } from '#/app/utils/env.server';
-import type { AuthenticatedUser } from './types';
+import { createCookie, createCookieSessionStorage } from "react-router";
+import { getEnvVars } from "#/app/utils/env.server";
+import type { AuthenticatedUser } from "./types";
 
 const { SESSION_SECRET, NODE_ENV } = getEnvVars();
 
-export const sessionCookie = createCookie('__session', {
+export const sessionCookie = createCookie("__session", {
   httpOnly: true,
-  path: '/',
-  sameSite: 'lax',
+  path: "/",
+  sameSite: "lax",
   secrets: [SESSION_SECRET],
-  secure: NODE_ENV === 'production',
+  secure: NODE_ENV === "production",
 });
 
 type SessionData = {
@@ -18,7 +18,7 @@ type SessionData = {
 };
 
 type SessionFlashData = {
-  toast: { kind: 'success' | 'error'; message: string };
+  toast: { kind: "success" | "error"; message: string };
 };
 
 const cookieSessionStorage = createCookieSessionStorage<SessionData, SessionFlashData>({
@@ -33,10 +33,10 @@ export const { getSession, commitSession, destroySession } = cookieSessionStorag
  */
 export async function getRawSessionCookieValue(user: AuthenticatedUser): Promise<string> {
   const session = await getSession();
-  session.set('user', user);
+  session.set("user", user);
   const serializedCookie = await commitSession(session);
   // Extract just the cookie value (before the first semicolon)
-  const [cookiePair] = serializedCookie.split(';');
-  const [, value] = cookiePair.split('=');
+  const [cookiePair] = serializedCookie.split(";");
+  const [, value] = cookiePair.split("=");
   return value;
 }

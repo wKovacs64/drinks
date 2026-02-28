@@ -1,16 +1,16 @@
-import { useEffect } from 'react';
-import { Links, Meta, Outlet, Scripts, ScrollRestoration, type LinksFunction } from 'react-router';
-import sourceSans3Latin300 from '@fontsource/source-sans-3/latin-300.css?url';
-import sourceSans3Latin400 from '@fontsource/source-sans-3/latin-400.css?url';
-import './styles/app.css';
-import faviconIcoUrl from './assets/images/favicon.ico';
-import icon32Url from './assets/images/icon-32x32.png';
-import appleTouchIconUrl from './assets/images/apple-touch-icon.png';
-import { appName, appThemeColor } from './core/config';
-import { securityHeaders } from './middleware/security-headers.server';
-import { loggingMiddleware } from './middleware/logging.server';
-import { getEnvVars } from './utils/env.server';
-import type { Route } from './+types/root';
+import { useEffect } from "react";
+import { Links, Meta, Outlet, Scripts, ScrollRestoration, type LinksFunction } from "react-router";
+import sourceSans3Latin300 from "@fontsource/source-sans-3/latin-300.css?url";
+import sourceSans3Latin400 from "@fontsource/source-sans-3/latin-400.css?url";
+import "./styles/app.css";
+import faviconIcoUrl from "./assets/images/favicon.ico";
+import icon32Url from "./assets/images/icon-32x32.png";
+import appleTouchIconUrl from "./assets/images/apple-touch-icon.png";
+import { appName, appThemeColor } from "./core/config";
+import { securityHeaders } from "./middleware/security-headers.server";
+import { loggingMiddleware } from "./middleware/logging.server";
+import { getEnvVars } from "./utils/env.server";
+import type { Route } from "./+types/root";
 
 const { COMMIT_SHA } = getEnvVars();
 
@@ -18,17 +18,17 @@ export const middleware: Route.MiddlewareFunction[] = [loggingMiddleware, securi
 
 export const links: LinksFunction = () => [
   {
-    rel: 'preconnect',
-    href: 'https://ik.imagekit.io/',
-    crossOrigin: 'anonymous',
+    rel: "preconnect",
+    href: "https://ik.imagekit.io/",
+    crossOrigin: "anonymous",
   },
-  { rel: 'dns-prefetch', href: 'https://ik.imagekit.io/' },
-  { rel: 'icon', sizes: 'any', href: faviconIcoUrl },
-  { rel: 'icon', type: 'image/png', sizes: '32x32', href: icon32Url },
-  { rel: 'apple-touch-icon', sizes: '180x180', href: appleTouchIconUrl },
-  { rel: 'manifest', href: '/manifest.webmanifest' },
-  { rel: 'stylesheet', href: sourceSans3Latin300 },
-  { rel: 'stylesheet', href: sourceSans3Latin400 },
+  { rel: "dns-prefetch", href: "https://ik.imagekit.io/" },
+  { rel: "icon", sizes: "any", href: faviconIcoUrl },
+  { rel: "icon", type: "image/png", sizes: "32x32", href: icon32Url },
+  { rel: "apple-touch-icon", sizes: "180x180", href: appleTouchIconUrl },
+  { rel: "manifest", href: "/manifest.webmanifest" },
+  { rel: "stylesheet", href: sourceSans3Latin300 },
+  { rel: "stylesheet", href: sourceSans3Latin400 },
 ];
 
 export const shouldRevalidate = () => false;
@@ -39,8 +39,8 @@ export async function loader() {
 
 export default function App({ loaderData }: Route.ComponentProps) {
   useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      void navigator.serviceWorker.register('/sw.js');
+    if ("serviceWorker" in navigator) {
+      void navigator.serviceWorker.register("/sw.js");
     }
   }, []);
 

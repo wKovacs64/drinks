@@ -1,12 +1,12 @@
-import type { MiddlewareFunction } from 'react-router';
-import pc from 'picocolors';
+import type { MiddlewareFunction } from "react-router";
+import pc from "picocolors";
 
 export const loggingMiddleware: MiddlewareFunction<Response> = async ({ request }, next) => {
   // Skip logging of certain requests
   const url = new URL(request.url);
   const pathWithSearchParams = `${url.pathname}${url.search}`;
 
-  if (['/_/healthcheck', '/__manifest'].includes(url.pathname) || request.method === 'HEAD') {
+  if (["/_/healthcheck", "/__manifest"].includes(url.pathname) || request.method === "HEAD") {
     return next();
   }
 

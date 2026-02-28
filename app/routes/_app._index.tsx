@@ -1,11 +1,11 @@
-import { data } from 'react-router';
-import { cacheHeader } from 'pretty-cache-header';
-import { defaultPageDescription, defaultPageTitle } from '#/app/core/config';
-import { DrinkList } from '#/app/drinks/drink-list';
-import { getPublishedDrinks } from '#/app/models/drink.server';
-import { getEnvVars } from '#/app/utils/env.server';
-import { withPlaceholderImages } from '#/app/utils/placeholder-images.server';
-import type { Route } from './+types/_app._index';
+import { data } from "react-router";
+import { cacheHeader } from "pretty-cache-header";
+import { defaultPageDescription, defaultPageTitle } from "#/app/core/config";
+import { DrinkList } from "#/app/drinks/drink-list";
+import { getPublishedDrinks } from "#/app/models/drink.server";
+import { getEnvVars } from "#/app/utils/env.server";
+import { withPlaceholderImages } from "#/app/utils/placeholder-images.server";
+import type { Route } from "./+types/_app._index";
 
 const { SITE_IMAGE_URL, SITE_IMAGE_ALT } = getEnvVars();
 
@@ -25,13 +25,13 @@ export async function loader() {
     },
     {
       headers: {
-        'Surrogate-Key': 'all index',
-        'Cache-Control': cacheHeader({
+        "Surrogate-Key": "all index",
+        "Cache-Control": cacheHeader({
           public: true,
-          maxAge: '30sec',
-          sMaxage: '1yr',
-          staleWhileRevalidate: '10min',
-          staleIfError: '1day',
+          maxAge: "30sec",
+          sMaxage: "1yr",
+          staleWhileRevalidate: "10min",
+          staleIfError: "1day",
         }),
       },
     },
@@ -43,15 +43,15 @@ export function meta({ loaderData }: Route.MetaArgs) {
 
   return [
     { title: defaultPageTitle },
-    { name: 'description', content: defaultPageDescription },
-    { property: 'og:title', content: defaultPageTitle },
-    { property: 'og:description', content: defaultPageDescription },
-    { property: 'og:image', content: socialImageUrl },
-    { property: 'og:image:alt', content: socialImageAlt },
-    { name: 'twitter:title', content: defaultPageTitle },
-    { name: 'twitter:description', content: defaultPageDescription },
-    { name: 'twitter:image', content: socialImageUrl },
-    { name: 'twitter:image:alt', content: socialImageAlt },
+    { name: "description", content: defaultPageDescription },
+    { property: "og:title", content: defaultPageTitle },
+    { property: "og:description", content: defaultPageDescription },
+    { property: "og:image", content: socialImageUrl },
+    { property: "og:image:alt", content: socialImageAlt },
+    { name: "twitter:title", content: defaultPageTitle },
+    { name: "twitter:description", content: defaultPageDescription },
+    { name: "twitter:image", content: socialImageUrl },
+    { name: "twitter:image:alt", content: socialImageAlt },
   ];
 }
 

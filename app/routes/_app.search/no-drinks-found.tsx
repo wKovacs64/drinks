@@ -1,4 +1,4 @@
-import { Icon } from '#/app/icons/icon';
+import { Icon } from "#/app/icons/icon";
 
 export function NoDrinksFound() {
   return (

@@ -1,4 +1,4 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
 @theme {
   --color-maroon: #6d372a;
@@ -6,17 +6,17 @@
   --color-cream: #eedebf;
   --color-dreamless-sleep: #111111;
 
-  --font-sans: 'Source Sans 3', 'Source Sans 3 Fallback';
+  --font-sans: "Source Sans 3", "Source Sans 3 Fallback";
 
   --ease-default: ease;
 }
 
 /* Customized fallback fonts to avoid CLS, values courtesy of fontpie */
 @font-face {
-  font-family: 'Source Sans 3 Fallback';
+  font-family: "Source Sans 3 Fallback";
   font-style: normal;
   font-weight: var(--font-weight-light);
-  src: local('Arial');
+  src: local("Arial");
   ascent-override: 112.86%;
   descent-override: 44.08%;
   line-gap-override: 0%;
@@ -24,10 +24,10 @@
 }
 
 @font-face {
-  font-family: 'Source Sans 3 Fallback';
+  font-family: "Source Sans 3 Fallback";
   font-style: normal;
   font-weight: var(--font-weight-normal);
-  src: local('Arial');
+  src: local("Arial");
   ascent-override: 108.71%;
   descent-override: 42.47%;
   line-gap-override: 0%;
@@ -50,12 +50,12 @@
   }
 
   button:not(:disabled),
-  [role='button']:not(:disabled) {
+  [role="button"]:not(:disabled) {
     cursor: pointer;
   }
 
   button:disabled,
-  [role='button']:disabled {
+  [role="button"]:disabled {
     cursor: not-allowed;
   }
 }

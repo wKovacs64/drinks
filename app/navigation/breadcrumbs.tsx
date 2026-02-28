@@ -1,14 +1,14 @@
-import { useLocation, useMatches, useSearchParams, type UIMatch } from 'react-router';
-import { Nav } from './nav';
-import { NavLink } from './nav-link';
-import { NavDivider } from './nav-divider';
+import { useLocation, useMatches, useSearchParams, type UIMatch } from "react-router";
+import { Nav } from "./nav";
+import { NavLink } from "./nav-link";
+import { NavDivider } from "./nav-divider";
 
 export function Breadcrumbs() {
   const matches = useMatches();
   const { pathname: currentPathname } = useLocation();
   const [searchParams] = useSearchParams();
-  const q = searchParams.get('q');
-  const isSearching = currentPathname === '/search' && q;
+  const q = searchParams.get("q");
+  const isSearching = currentPathname === "/search" && q;
   const matchesWithBreadcrumbData = matches.filter(hasHandleWithBreadcrumb);
 
   return (
@@ -45,8 +45,8 @@ export type BreadcrumbHandle = {
 function hasHandleWithBreadcrumb(match: UIMatch): match is UIMatch<unknown, BreadcrumbHandle> {
   return (
     match.handle !== null &&
-    typeof match.handle === 'object' &&
-    'breadcrumb' in match.handle &&
-    typeof match.handle.breadcrumb === 'function'
+    typeof match.handle === "object" &&
+    "breadcrumb" in match.handle &&
+    typeof match.handle.breadcrumb === "function"
   );
 }

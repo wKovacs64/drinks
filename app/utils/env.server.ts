@@ -1,16 +1,16 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 // Note: if you add or update any environment variables, you'll probably need to purge the CDN
 // cache, otherwise the changes won't take effect until the cache expires.
 
 const envSchema = z.object({
-  COMMIT_SHA: z.string().min(1).default('unknown'),
-  DEPLOYMENT_ENV: z.string().min(1).default('preview'),
+  COMMIT_SHA: z.string().min(1).default("unknown"),
+  DEPLOYMENT_ENV: z.string().min(1).default("preview"),
   SITE_IMAGE_URL: z.string().min(1),
   SITE_IMAGE_ALT: z.string().min(1),
 
   // Database
-  DATABASE_URL: z.string().default('./data/drinks.db'),
+  DATABASE_URL: z.string().default("./data/drinks.db"),
 
   // ImageKit
   IMAGEKIT_PUBLIC_KEY: z.string().min(1),
@@ -26,7 +26,7 @@ const envSchema = z.object({
   SESSION_SECRET: z.string().min(1),
 
   // Node environment
-  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+  NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
 
   // CDN
   FASTLY_SERVICE_ID: z.string().optional(),
@@ -38,7 +38,7 @@ export function getEnvVars() {
     return envSchema.parse(process.env);
   } catch (parseError) {
     if (parseError instanceof z.ZodError) {
-      const offendingEnvVars = Object.keys(z.flattenError(parseError).fieldErrors).join(', ');
+      const offendingEnvVars = Object.keys(z.flattenError(parseError).fieldErrors).join(", ");
       const envVarError = new Error(
         `Missing or invalid environment variables: ${offendingEnvVars}`,
       );

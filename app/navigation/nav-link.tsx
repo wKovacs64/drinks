@@ -1,11 +1,11 @@
-import { Link, type LinkProps } from 'react-router';
+import { Link, type LinkProps } from "react-router";
 
 export function NavLink({
   children,
   to,
 }: {
-  children: LinkProps['children'];
-  to: LinkProps['to'];
+  children: LinkProps["children"];
+  to: LinkProps["to"];
 }) {
   return (
     <Link

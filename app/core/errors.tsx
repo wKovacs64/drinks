@@ -1,7 +1,7 @@
-import { Link, href, isRouteErrorResponse, useRouteError } from 'react-router';
-import { backgroundImageStyles } from '#/app/styles/background-image';
-import type { GuardType } from '#/app/types';
-import { NotFound } from './not-found';
+import { Link, href, isRouteErrorResponse, useRouteError } from "react-router";
+import { backgroundImageStyles } from "#/app/styles/background-image";
+import type { GuardType } from "#/app/types";
+import { NotFound } from "./not-found";
 
 export function ErrorBoundary() {
   const error = useRouteError();
@@ -33,7 +33,7 @@ export function ErrorBoundary() {
         <p>Something unexpected happened and we were not prepared. Sorry about that.</p>
         <p>The error message was as follows:</p>
       </section>
-      <BoundaryError>{error instanceof Error ? error.message : 'Unknown Error'}</BoundaryError>
+      <BoundaryError>{error instanceof Error ? error.message : "Unknown Error"}</BoundaryError>
       <StartOverLink />
     </BoundaryContainer>
   );
@@ -77,7 +77,7 @@ function BoundaryError({ children }: { children: React.ReactNode }) {
 function StartOverLink() {
   return (
     <Link
-      to={href('/')}
+      to={href("/")}
       className="drinks-focusable border-b border-solid pb-1 hover:shadow-[inset_0_-2px_0_0] focus-visible:shadow-[inset_0_-2px_0_0] md:text-xl"
       reloadDocument
     >
@@ -86,8 +86,8 @@ function StartOverLink() {
   );
 }
 
-function renderRouteErrorData(routeErrorData: GuardType<typeof isRouteErrorResponse>['data']) {
-  if (typeof routeErrorData === 'object') {
+function renderRouteErrorData(routeErrorData: GuardType<typeof isRouteErrorResponse>["data"]) {
+  if (typeof routeErrorData === "object") {
     return JSON.stringify(routeErrorData, null, 2);
   }
 

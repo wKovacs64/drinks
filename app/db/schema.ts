@@ -1,46 +1,46 @@
-import { sql } from 'drizzle-orm';
-import { index, integer, text, sqliteTable } from 'drizzle-orm/sqlite-core';
+import { sql } from "drizzle-orm";
+import { index, integer, text, sqliteTable } from "drizzle-orm/sqlite-core";
 
-export const users = sqliteTable('users', {
-  id: text('id').primaryKey(),
-  email: text('email').notNull().unique(),
-  name: text('name'),
-  avatarUrl: text('avatar_url'),
-  role: text('role').notNull().$type<'user' | 'admin'>().default('user'),
-  createdAt: integer('created_at', { mode: 'timestamp' })
+export const users = sqliteTable("users", {
+  id: text("id").primaryKey(),
+  email: text("email").notNull().unique(),
+  name: text("name"),
+  avatarUrl: text("avatar_url"),
+  role: text("role").notNull().$type<"user" | "admin">().default("user"),
+  createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .default(sql`(unixepoch())`),
-  updatedAt: integer('updated_at', { mode: 'timestamp' })
+  updatedAt: integer("updated_at", { mode: "timestamp" })
     .notNull()
     .default(sql`(unixepoch())`),
 });
 
 export const drinks = sqliteTable(
-  'drinks',
+  "drinks",
   {
-    id: text('id').primaryKey(),
-    slug: text('slug').notNull().unique(),
-    title: text('title').notNull(),
-    imageUrl: text('image_url').notNull(),
-    imageFileId: text('image_file_id').notNull(),
-    calories: integer('calories').notNull(),
-    ingredients: text('ingredients', { mode: 'json' }).notNull().$type<string[]>(),
+    id: text("id").primaryKey(),
+    slug: text("slug").notNull().unique(),
+    title: text("title").notNull(),
+    imageUrl: text("image_url").notNull(),
+    imageFileId: text("image_file_id").notNull(),
+    calories: integer("calories").notNull(),
+    ingredients: text("ingredients", { mode: "json" }).notNull().$type<string[]>(),
     // Denormalized: JSON array for simplicity at small scale
-    tags: text('tags', { mode: 'json' }).notNull().$type<string[]>(),
-    notes: text('notes'),
-    rank: integer('rank').notNull().default(0),
-    status: text('status').notNull().$type<'published' | 'unpublished'>().default('published'),
-    createdAt: integer('created_at', { mode: 'timestamp' })
+    tags: text("tags", { mode: "json" }).notNull().$type<string[]>(),
+    notes: text("notes"),
+    rank: integer("rank").notNull().default(0),
+    status: text("status").notNull().$type<"published" | "unpublished">().default("published"),
+    createdAt: integer("created_at", { mode: "timestamp" })
       .notNull()
       .default(sql`(unixepoch())`),
-    updatedAt: integer('updated_at', { mode: 'timestamp' })
+    updatedAt: integer("updated_at", { mode: "timestamp" })
       .notNull()
       .default(sql`(unixepoch())`),
   },
   (table) => [
-    index('drinks_rank_idx').on(table.rank),
-    index('drinks_created_at_idx').on(table.createdAt),
-    index('drinks_updated_at_idx').on(table.updatedAt),
+    index("drinks_rank_idx").on(table.rank),
+    index("drinks_created_at_idx").on(table.createdAt),
+    index("drinks_updated_at_idx").on(table.updatedAt),
   ],
 );
 

@@ -1,13 +1,13 @@
-import { useRef, useState } from 'react';
-import { Form, useNavigation, useSubmit } from 'react-router';
-import { clsx } from 'clsx';
-import slugify from '@sindresorhus/slugify';
-import type { Drink } from '#/app/db/schema';
-import { ImageCrop, type ImageCropHandle } from './image-crop';
+import { useRef, useState } from "react";
+import { Form, useNavigation, useSubmit } from "react-router";
+import { clsx } from "clsx";
+import slugify from "@sindresorhus/slugify";
+import type { Drink } from "#/app/db/schema";
+import { ImageCrop, type ImageCropHandle } from "./image-crop";
 
-const STATUS_OPTIONS: { value: Drink['status']; label: string; activeClass: string }[] = [
-  { value: 'published', label: 'Published', activeClass: 'bg-green-500/20 text-green-400' },
-  { value: 'unpublished', label: 'Unpublished', activeClass: 'bg-zinc-500/20 text-zinc-400' },
+const STATUS_OPTIONS: { value: Drink["status"]; label: string; activeClass: string }[] = [
+  { value: "published", label: "Published", activeClass: "bg-green-500/20 text-green-400" },
+  { value: "unpublished", label: "Unpublished", activeClass: "bg-zinc-500/20 text-zinc-400" },
 ];
 
 export function DrinkForm({
@@ -20,13 +20,13 @@ export function DrinkForm({
   errors?: string[];
 }) {
   const navigation = useNavigation();
-  const isSubmitting = navigation.state === 'submitting';
+  const isSubmitting = navigation.state === "submitting";
   const imageCropRef = useRef<ImageCropHandle>(null);
   const submit = useSubmit();
   const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
-  const [slugValue, setSlugValue] = useState(drink?.slug ?? '');
+  const [slugValue, setSlugValue] = useState(drink?.slug ?? "");
   const [imageRequired, setImageRequired] = useState(false);
-  const [statusValue, setStatusValue] = useState(drink?.status ?? 'published');
+  const [statusValue, setStatusValue] = useState(drink?.status ?? "published");
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -43,10 +43,10 @@ export function DrinkForm({
 
     if (croppedBlob) {
       const formData = new FormData(form);
-      formData.set('imageFile', croppedBlob, 'cropped.jpg');
-      await submit(formData, { method: 'post', action, encType: 'multipart/form-data' });
+      formData.set("imageFile", croppedBlob, "cropped.jpg");
+      await submit(formData, { method: "post", action, encType: "multipart/form-data" });
     } else {
-      await submit(form, { method: 'post', action });
+      await submit(form, { method: "post", action });
     }
   };
 
@@ -139,7 +139,7 @@ export function DrinkForm({
           name="ingredients"
           id="ingredients"
           rows={5}
-          defaultValue={drink?.ingredients.join('\n')}
+          defaultValue={drink?.ingredients.join("\n")}
           required
           className="mt-2 block w-full rounded-sm border border-zinc-700 bg-zinc-800 px-3 py-2 text-zinc-200 placeholder-zinc-600 focus:border-amber-600 focus:ring-1 focus:ring-amber-600 focus:outline-none"
         />
@@ -174,7 +174,7 @@ export function DrinkForm({
           type="text"
           name="tags"
           id="tags"
-          defaultValue={drink?.tags.join(', ')}
+          defaultValue={drink?.tags.join(", ")}
           required
           className="mt-2 block w-full rounded-sm border border-zinc-700 bg-zinc-800 px-3 py-2 text-zinc-200 placeholder-zinc-600 focus:border-amber-600 focus:ring-1 focus:ring-amber-600 focus:outline-none"
         />
@@ -191,7 +191,7 @@ export function DrinkForm({
           name="notes"
           id="notes"
           rows={5}
-          defaultValue={drink?.notes ?? ''}
+          defaultValue={drink?.notes ?? ""}
           className="mt-2 block w-full rounded-sm border border-zinc-700 bg-zinc-800 px-3 py-2 text-zinc-200 placeholder-zinc-600 focus:border-amber-600 focus:ring-1 focus:ring-amber-600 focus:outline-none"
         />
       </div>
@@ -224,10 +224,10 @@ export function DrinkForm({
               type="button"
               onClick={() => setStatusValue(option.value)}
               className={clsx(
-                'px-4 py-2 text-sm font-medium transition-colors',
+                "px-4 py-2 text-sm font-medium transition-colors",
                 statusValue === option.value
                   ? option.activeClass
-                  : 'bg-zinc-800 text-zinc-500 hover:text-zinc-300',
+                  : "bg-zinc-800 text-zinc-500 hover:text-zinc-300",
               )}
             >
               {option.label}
@@ -242,7 +242,7 @@ export function DrinkForm({
           disabled={isSubmitting}
           className="rounded bg-amber-600 px-4 py-2 font-medium text-zinc-950 hover:bg-amber-500 disabled:opacity-50"
         >
-          {isSubmitting ? 'Saving...' : drink ? 'Update Drink' : 'Create Drink'}
+          {isSubmitting ? "Saving..." : drink ? "Update Drink" : "Create Drink"}
         </button>
       </div>
     </Form>

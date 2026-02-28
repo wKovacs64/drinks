@@ -26,7 +26,7 @@ To use an icon, import the `Icon` component from `#/app/icons/icon` and pass the
 `name` prop:
 
 ```jsx
-import { Icon } from '#/app/icons/icon';
+import { Icon } from "#/app/icons/icon";
 
 function MyComponent() {
   return (

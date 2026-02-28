@@ -1,21 +1,21 @@
 /// <reference lib="WebWorker" />
 
-const CURRENT_CACHE_VERSION = 'v5';
+const CURRENT_CACHE_VERSION = "v5";
 
-const DOCUMENT_CACHE_NAME = 'document-cache';
-const ASSET_CACHE_NAME = 'asset-cache';
-const DATA_CACHE_NAME = 'data-cache';
+const DOCUMENT_CACHE_NAME = "document-cache";
+const ASSET_CACHE_NAME = "asset-cache";
+const DATA_CACHE_NAME = "data-cache";
 
 declare let self: ServiceWorkerGlobalScope;
 
-self.addEventListener('install', (event) => {
-  console.log('Simple service worker installed');
+self.addEventListener("install", (event) => {
+  console.log("Simple service worker installed");
 
   event.waitUntil(self.skipWaiting());
 });
 
-self.addEventListener('activate', (event) => {
-  console.log('Simple service worker activated');
+self.addEventListener("activate", (event) => {
+  console.log("Simple service worker activated");
 
   event.waitUntil(
     Promise.all([
@@ -50,7 +50,7 @@ async function clearUpOldCaches(cacheNames: string[], version?: string) {
 }
 
 function getCacheNameAndVersion(cacheName: string) {
-  const [cacheActualName, ...rest] = cacheName.split('-');
+  const [cacheActualName, ...rest] = cacheName.split("-");
   const version = rest.at(-1);
 
   return { cacheActualName, version };

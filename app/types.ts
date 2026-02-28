@@ -1,4 +1,4 @@
-import type { BreadcrumbHandle } from '#/app/navigation/breadcrumbs';
+import type { BreadcrumbHandle } from "#/app/navigation/breadcrumbs";
 
 export type EnhancedDrink = {
   title: string;
@@ -20,6 +20,6 @@ export type AppRouteHandle = BreadcrumbHandle;
  *
  * @see https://stackoverflow.com/a/75638165
  */
-export type GuardType<TypeGuardFn> = TypeGuardFn extends (x: any, ...rest: any) => x is infer U
+export type GuardType<TypeGuardFn> = TypeGuardFn extends ((x: any, ...rest: any) => x is infer U)
   ? U
   : never;

@@ -1,5 +1,5 @@
-import { Link, href } from 'react-router';
-import { Icon } from '#/app/icons/icon';
+import { Link, href } from "react-router";
+import { Icon } from "#/app/icons/icon";
 
 export default function LoginFailed() {
   return (
@@ -12,7 +12,7 @@ export default function LoginFailed() {
         <p className="text-zinc-400">Unable to authenticate. Please try again.</p>
 
         <Link
-          to={href('/login')}
+          to={href("/login")}
           className="mt-2 rounded bg-amber-600 px-4 py-2 font-medium text-zinc-950 hover:bg-amber-500"
         >
           Try again

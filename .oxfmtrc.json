@@ -3,9 +3,5 @@
   "sortTailwindcss": {
     "functions": ["clsx", "cn"]
   },
-  "ignorePatterns": [
-    "CHANGELOG.md",
-    "pnpm-lock.yaml",
-    "app/db.server/meta/*.json"
-  ]
+  "ignorePatterns": ["CHANGELOG.md", "pnpm-lock.yaml", "app/db.server/meta/*.json"]
 }

@@ -1,7 +1,7 @@
-import { type Ref, useState, useRef, useImperativeHandle } from 'react';
-import ReactCrop, { type Crop, centerCrop, makeAspectCrop } from 'react-image-crop';
-import { Image } from '@unpic/react';
-import 'react-image-crop/dist/ReactCrop.css';
+import { type Ref, useState, useRef, useImperativeHandle } from "react";
+import ReactCrop, { type Crop, centerCrop, makeAspectCrop } from "react-image-crop";
+import { Image } from "@unpic/react";
+import "react-image-crop/dist/ReactCrop.css";
 
 export type ImageCropHandle = {
   getCroppedImage: () => Promise<Blob | null>;
@@ -9,7 +9,7 @@ export type ImageCropHandle = {
 
 function centerAspectCrop(mediaWidth: number, mediaHeight: number, aspect: number): Crop {
   return centerCrop(
-    makeAspectCrop({ unit: '%', width: 90 }, aspect, mediaWidth, mediaHeight),
+    makeAspectCrop({ unit: "%", width: 90 }, aspect, mediaWidth, mediaHeight),
     mediaWidth,
     mediaHeight,
   );
@@ -22,7 +22,7 @@ export function ImageCrop({
   existingImageUrl?: string | null;
   ref?: Ref<ImageCropHandle>;
 }) {
-  const [imgSrc, setImgSrc] = useState('');
+  const [imgSrc, setImgSrc] = useState("");
   const [crop, setCrop] = useState<Crop>();
   const imgRef = useRef<HTMLImageElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -30,7 +30,7 @@ export function ImageCrop({
   const onSelectFile = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
       const reader = new FileReader();
-      reader.addEventListener('load', () => setImgSrc(reader.result?.toString() || ''));
+      reader.addEventListener("load", () => setImgSrc(reader.result?.toString() || ""));
       reader.readAsDataURL(event.target.files[0]);
     }
   };
@@ -41,10 +41,10 @@ export function ImageCrop({
   };
 
   const handleChangeImage = () => {
-    setImgSrc('');
+    setImgSrc("");
     setCrop(undefined);
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
@@ -52,7 +52,7 @@ export function ImageCrop({
     const image = imgRef.current;
     if (!image || !crop) return null;
 
-    const canvas = document.createElement('canvas');
+    const canvas = document.createElement("canvas");
     const scaleX = image.naturalWidth / image.width;
     const scaleY = image.naturalHeight / image.height;
 
@@ -66,7 +66,7 @@ export function ImageCrop({
     canvas.width = pixelCrop.width;
     canvas.height = pixelCrop.height;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     if (!ctx) return null;
 
     ctx.drawImage(
@@ -82,7 +82,7 @@ export function ImageCrop({
     );
 
     return new Promise<Blob | null>((resolve) => {
-      canvas.toBlob((blob) => resolve(blob), 'image/jpeg', 0.9);
+      canvas.toBlob((blob) => resolve(blob), "image/jpeg", 0.9);
     });
   }
 

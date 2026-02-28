@@ -1,4 +1,4 @@
-import { createHonoServer } from 'react-router-hono-server/node';
+import { createHonoServer } from "react-router-hono-server/node";
 
 // This custom Hono server exists to remove compression as the origin server should not have
 // compression enabled when served behind a CDN that does its own compression (and in our case, so

@@ -1,12 +1,12 @@
 export function safeRedirectTo(
   to: FormDataEntryValue | string | null | undefined,
-  defaultRedirect = '/',
+  defaultRedirect = "/",
 ): string {
-  if (!to || typeof to !== 'string') {
+  if (!to || typeof to !== "string") {
     return defaultRedirect;
   }
 
-  if (!to.startsWith('/') || to.startsWith('//')) {
+  if (!to.startsWith("/") || to.startsWith("//")) {
     return defaultRedirect;
   }
 

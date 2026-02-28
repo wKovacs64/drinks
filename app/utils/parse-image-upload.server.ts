@@ -1,7 +1,7 @@
-import { FormDataParseError, parseFormData, type FileUpload } from '@remix-run/form-data-parser';
+import { FormDataParseError, parseFormData, type FileUpload } from "@remix-run/form-data-parser";
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
-const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 
 type ImageUpload = {
   buffer: Buffer;
@@ -18,7 +18,7 @@ export async function parseImageUpload(request: Request): Promise<ParseImageUplo
   let imageUpload: ImageUpload | undefined;
 
   async function uploadHandler(fileUpload: FileUpload) {
-    if (fileUpload.fieldName === 'imageFile') {
+    if (fileUpload.fieldName === "imageFile") {
       imageUpload = {
         buffer: Buffer.from(await fileUpload.bytes()),
         contentType: fileUpload.type,
@@ -32,11 +32,11 @@ export async function parseImageUpload(request: Request): Promise<ParseImageUplo
   } catch (error) {
     if (error instanceof FormDataParseError) {
       const isFileTooLarge =
-        error.cause instanceof Error && error.cause.name === 'MaxFileSizeExceededError';
+        error.cause instanceof Error && error.cause.name === "MaxFileSizeExceededError";
       return {
         formData: new FormData(),
         imageUpload: undefined,
-        imageError: isFileTooLarge ? 'Image must be under 5MB' : 'Failed to process image upload',
+        imageError: isFileTooLarge ? "Image must be under 5MB" : "Failed to process image upload",
       };
     }
     throw error;
@@ -46,7 +46,7 @@ export async function parseImageUpload(request: Request): Promise<ParseImageUplo
     return {
       formData,
       imageUpload: undefined,
-      imageError: 'Image must be a JPEG, PNG, WebP, or GIF',
+      imageError: "Image must be a JPEG, PNG, WebP, or GIF",
     };
   }
 

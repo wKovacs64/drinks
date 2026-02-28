@@ -1,7 +1,7 @@
-import { eq, desc } from 'drizzle-orm';
-import { createId } from '@paralleldrive/cuid2';
-import { getDb } from '#/app/db/client.server';
-import { drinks, type Drink, type NewDrink } from '#/app/db/schema';
+import { eq, desc } from "drizzle-orm";
+import { createId } from "@paralleldrive/cuid2";
+import { getDb } from "#/app/db/client.server";
+import { drinks, type Drink, type NewDrink } from "#/app/db/schema";
 
 export async function getAllDrinks(): Promise<Drink[]> {
   const db = getDb();
@@ -13,12 +13,12 @@ export async function getAllDrinks(): Promise<Drink[]> {
 export async function getPublishedDrinks(): Promise<Drink[]> {
   const db = getDb();
   return db.query.drinks.findMany({
-    where: eq(drinks.status, 'published'),
+    where: eq(drinks.status, "published"),
     orderBy: [desc(drinks.rank), desc(drinks.createdAt)],
   });
 }
 
-export async function getDrinkBySlug(slug: Drink['slug']): Promise<Drink | undefined> {
+export async function getDrinkBySlug(slug: Drink["slug"]): Promise<Drink | undefined> {
   const db = getDb();
   return db.query.drinks.findFirst({
     where: eq(drinks.slug, slug),
@@ -29,7 +29,7 @@ export async function getDrinksByTag(tag: string): Promise<Drink[]> {
   const db = getDb();
   // Query drinks where tags JSON array contains the tag
   const publishedDrinks = await db.query.drinks.findMany({
-    where: eq(drinks.status, 'published'),
+    where: eq(drinks.status, "published"),
     orderBy: [desc(drinks.rank), desc(drinks.createdAt)],
   });
 
@@ -39,7 +39,7 @@ export async function getDrinksByTag(tag: string): Promise<Drink[]> {
 export async function getAllTags(): Promise<string[]> {
   const db = getDb();
   const publishedDrinks = await db.query.drinks.findMany({
-    where: eq(drinks.status, 'published'),
+    where: eq(drinks.status, "published"),
     columns: { tags: true },
   });
 
@@ -54,7 +54,7 @@ export async function getAllTags(): Promise<string[]> {
 }
 
 export async function createDrink(
-  data: Omit<NewDrink, 'id' | 'createdAt' | 'updatedAt'>,
+  data: Omit<NewDrink, "id" | "createdAt" | "updatedAt">,
 ): Promise<Drink> {
   const db = getDb();
   const [drink] = await db
@@ -69,8 +69,8 @@ export async function createDrink(
 }
 
 export async function updateDrink(
-  id: Drink['id'],
-  data: Partial<Omit<NewDrink, 'id' | 'createdAt'>>,
+  id: Drink["id"],
+  data: Partial<Omit<NewDrink, "id" | "createdAt">>,
 ): Promise<Drink> {
   const db = getDb();
   const [drink] = await db
@@ -85,7 +85,7 @@ export async function updateDrink(
   return drink;
 }
 
-export async function deleteDrink(id: Drink['id']): Promise<void> {
+export async function deleteDrink(id: Drink["id"]): Promise<void> {
   const db = getDb();
   await db.delete(drinks).where(eq(drinks.id, id));
 }

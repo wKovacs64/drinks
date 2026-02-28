@@ -1,6 +1,6 @@
-import { Link, href } from 'react-router';
-import { Icon } from '#/app/icons/icon';
-import { backgroundImageStyles } from '#/app/styles/background-image';
+import { Link, href } from "react-router";
+import { Icon } from "#/app/icons/icon";
+import { backgroundImageStyles } from "#/app/styles/background-image";
 
 export function NotFound() {
   return (
@@ -11,7 +11,7 @@ export function NotFound() {
       </p>
       <Icon name="broken_glass" className="text-burnt-orange my-[10vh] inline h-[20vh] w-[20vh]" />
       <Link
-        to={href('/')}
+        to={href("/")}
         className="drinks-focusable border-b border-solid pb-1 hover:shadow-[inset_0_-2px_0_0] focus-visible:shadow-[inset_0_-2px_0_0] md:text-xl"
       >
         Back to Drinks

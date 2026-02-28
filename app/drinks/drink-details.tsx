@@ -1,8 +1,8 @@
-import { kebabCase } from 'lodash-es';
-import { href } from 'react-router';
-import type { EnhancedDrink } from '#/app/types';
-import { Tag } from '#/app/tags/tag';
-import { TagLink } from '#/app/tags/tag-link';
+import { kebabCase } from "lodash-es";
+import { href } from "react-router";
+import type { EnhancedDrink } from "#/app/types";
+import { Tag } from "#/app/tags/tag";
+import { TagLink } from "#/app/tags/tag-link";
 
 export function DrinkDetails({ drink }: { drink: EnhancedDrink }) {
   return (
@@ -21,7 +21,7 @@ export function DrinkDetails({ drink }: { drink: EnhancedDrink }) {
             <TagLink
               className="mt-4 mr-4 ml-0 leading-tight lg:mr-0 lg:ml-4"
               aria-label={`Find all drinks containing ${tag}`}
-              to={href('/tags/:tag', { tag: kebabCase(tag) })}
+              to={href("/tags/:tag", { tag: kebabCase(tag) })}
               key={tag}
             >
               <Tag className="p-2 text-sm leading-tight font-normal lg:text-base lg:leading-tight lg:font-light">

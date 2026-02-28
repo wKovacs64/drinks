@@ -1,5 +1,5 @@
-import { ImageKit, toFile } from '@imagekit/nodejs';
-import { getEnvVars } from '#/app/utils/env.server';
+import { ImageKit, toFile } from "@imagekit/nodejs";
+import { getEnvVars } from "#/app/utils/env.server";
 
 const { IMAGEKIT_PRIVATE_KEY, NODE_ENV } = getEnvVars();
 
@@ -20,11 +20,11 @@ async function uploadImage(file: Buffer, fileName: string): Promise<UploadResult
   const response = await imagekit.files.upload({
     file: await toFile(file, fileName),
     fileName,
-    folder: '/drinks',
+    folder: "/drinks",
   });
 
   if (!response.url || !response.fileId) {
-    throw new Error('ImageKit upload failed: missing url or fileId in response');
+    throw new Error("ImageKit upload failed: missing url or fileId in response");
   }
 
   return {
@@ -34,7 +34,7 @@ async function uploadImage(file: Buffer, fileName: string): Promise<UploadResult
 }
 
 export async function deleteImage(fileId: string): Promise<void> {
-  if (NODE_ENV === 'test') {
+  if (NODE_ENV === "test") {
     // Skip actual deletion in tests
     return;
   }
@@ -49,10 +49,10 @@ export async function uploadImageOrPlaceholder(
   file: Buffer,
   fileName: string,
 ): Promise<UploadResult> {
-  if (NODE_ENV === 'test') {
+  if (NODE_ENV === "test") {
     return {
       url: `https://via.placeholder.com/400x400.png?text=${encodeURIComponent(fileName)}`,
-      fileId: 'test-placeholder',
+      fileId: "test-placeholder",
     };
   }
   return uploadImage(file, fileName);

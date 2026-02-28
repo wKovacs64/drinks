@@ -1,11 +1,11 @@
-import { useEffect, useRef } from 'react';
-import { Form } from 'react-router';
-import { Icon } from '#/app/icons/icon';
+import { useEffect, useRef } from "react";
+import { Form } from "react-router";
+import { Icon } from "#/app/icons/icon";
 
 export function SearchForm({
   initialSearchTerm,
 }: {
-  initialSearchTerm?: HTMLInputElement['value'];
+  initialSearchTerm?: HTMLInputElement["value"];
 }) {
   const formRef = useRef<HTMLFormElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -21,16 +21,16 @@ export function SearchForm({
 
   useEffect(() => {
     const handleEsc = ({ key }: KeyboardEvent) => {
-      if (key === 'Escape') {
+      if (key === "Escape") {
         formRef.current?.reset();
         inputRef.current?.focus();
       }
     };
 
-    window.addEventListener<'keydown'>('keydown', handleEsc);
+    window.addEventListener<"keydown">("keydown", handleEsc);
 
     return () => {
-      window.removeEventListener<'keydown'>('keydown', handleEsc);
+      window.removeEventListener<"keydown">("keydown", handleEsc);
     };
   }, []);
 

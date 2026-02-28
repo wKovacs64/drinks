@@ -4,11 +4,11 @@ import {
   redirect,
   type RouterContextProvider,
   type MiddlewareFunction,
-} from 'react-router';
-import { getSession, commitSession, destroySession } from '#/app/auth/session.server';
-import { getUserById } from '#/app/models/user.server';
-import { createReturnToUrl } from '#/app/auth/utils.server';
-import type { AuthenticatedUser } from '#/app/auth/types';
+} from "react-router";
+import { getSession, commitSession, destroySession } from "#/app/auth/session.server";
+import { getUserById } from "#/app/models/user.server";
+import { createReturnToUrl } from "#/app/auth/utils.server";
+import type { AuthenticatedUser } from "#/app/auth/types";
 
 const userContext = createContext<AuthenticatedUser>();
 
@@ -26,13 +26,13 @@ export function getUserFromContext(context: Readonly<RouterContextProvider>): Au
  * redirects to login with returnTo URL preserved.
  */
 export const userMiddleware: MiddlewareFunction<Response> = async ({ request, context }, next) => {
-  const session = await getSession(request.headers.get('Cookie'));
-  const sessionUser = session.get('user');
+  const session = await getSession(request.headers.get("Cookie"));
+  const sessionUser = session.get("user");
 
   if (!sessionUser) {
-    session.set('returnTo', createReturnToUrl(request));
-    throw redirect(href('/login'), {
-      headers: { 'Set-Cookie': await commitSession(session) },
+    session.set("returnTo", createReturnToUrl(request));
+    throw redirect(href("/login"), {
+      headers: { "Set-Cookie": await commitSession(session) },
     });
   }
 
@@ -41,8 +41,8 @@ export const userMiddleware: MiddlewareFunction<Response> = async ({ request, co
 
   if (!user) {
     // User was deleted - clear session and redirect to login
-    throw redirect(href('/login'), {
-      headers: { 'Set-Cookie': await destroySession(session) },
+    throw redirect(href("/login"), {
+      headers: { "Set-Cookie": await destroySession(session) },
     });
   }
 
@@ -64,8 +64,8 @@ export const userMiddleware: MiddlewareFunction<Response> = async ({ request, co
 export const adminMiddleware: MiddlewareFunction<Response> = async ({ context }, next) => {
   const user = getUserFromContext(context);
 
-  if (user.role !== 'admin') {
-    throw redirect(href('/unauthorized'));
+  if (user.role !== "admin") {
+    throw redirect(href("/unauthorized"));
   }
 
   return next();

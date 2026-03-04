@@ -36,12 +36,13 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
-    globals: true,
     environment: "node",
-    envFile: ".env.test",
+    include: ["app/**/*.test.ts"],
   },
 });
 ```
+
+> **Note:** No vitest globals — all tests use explicit imports from `vitest`.
 
 **Step 3: Add test script to package.json**
 

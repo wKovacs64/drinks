@@ -40,6 +40,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "test:e2e": "dotenv -e .env.test -- playwright test",
     "test:e2e:ui": "dotenv -e .env.test -- playwright test --ui"
   },
@@ -95,6 +97,7 @@
     "dotenv-cli": "11.0.0",
     "esbuild": "0.27.3",
     "eslint": "9.39.3",
+    "msw": "2.12.10",
     "node-html-parser": "7.1.0",
     "npm-run-all2": "8.0.4",
     "oxfmt": "0.36.0",
@@ -103,7 +106,8 @@
     "vite": "7.3.1",
     "vite-plugin-babel": "1.5.1",
     "vite-plugin-icons-spritesheet": "3.0.1",
-    "vite-plugin-static-copy": "3.2.0"
+    "vite-plugin-static-copy": "3.2.0",
+    "vitest": "4.0.18"
   },
   "engines": {
     "node": ">=24"

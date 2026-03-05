@@ -5,10 +5,10 @@ import {
   type RouterContextProvider,
   type MiddlewareFunction,
 } from "react-router";
-import { getSession, commitSession, destroySession } from "#/app/auth/session.server";
-import { getUserById } from "#/app/models/user.server";
-import { createReturnToUrl } from "#/app/auth/utils.server";
-import type { AuthenticatedUser } from "#/app/auth/types";
+import { getSession, commitSession, destroySession } from "./session.server";
+import { getUserById } from "./queries.server";
+import { createReturnToUrl } from "./utils.server";
+import type { AuthenticatedUser } from "./types";
 
 const userContext = createContext<AuthenticatedUser>();
 

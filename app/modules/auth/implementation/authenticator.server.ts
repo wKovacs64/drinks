@@ -2,7 +2,7 @@ import { Authenticator } from "remix-auth";
 import { GoogleStrategy } from "@coji/remix-auth-google";
 import { invariant } from "@epic-web/invariant";
 import { getEnvVars } from "#/app/utils/env.server";
-import { updateUserOnLogin } from "#/app/models/user.server";
+import { updateUserOnLogin } from "./queries.server";
 import type { AuthenticatedUser } from "./types";
 
 const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI } = getEnvVars();

@@ -6,7 +6,7 @@ import { DrinkForm } from "#/app/admin/drink-form";
 import { parseImageUpload } from "#/app/utils/parse-image-upload.server";
 import { purgeSearchCache } from "#/app/search/cache.server";
 import { purgeDrinkCache } from "#/app/utils/fastly.server";
-import { getSession, commitSession } from "#/app/auth/session.server";
+import { getSession, commitSession } from "#/app/modules/auth";
 import { drinkFormSchema } from "#/app/validation/drink";
 import type { Route } from "./+types/admin.drinks.$slug.edit";
 

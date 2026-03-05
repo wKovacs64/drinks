@@ -4,7 +4,7 @@ import { getDrinkBySlug, deleteDrink } from "#/app/models/drink.server";
 import { deleteImage } from "#/app/utils/imagekit.server";
 import { purgeSearchCache } from "#/app/search/cache.server";
 import { purgeDrinkCache } from "#/app/utils/fastly.server";
-import { getSession, commitSession } from "#/app/auth/session.server";
+import { getSession, commitSession } from "#/app/modules/auth";
 import type { Route } from "./+types/admin.drinks.$slug.delete";
 
 export async function loader() {

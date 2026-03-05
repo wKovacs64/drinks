@@ -1,4 +1,4 @@
-import type { AuthenticatedUser } from "#/app/auth/types";
+import type { AuthenticatedUser } from "#/app/modules/auth";
 import { TEST_ADMIN_USER } from "./seed-data";
 
 export const MOCK_ADMIN: AuthenticatedUser = {

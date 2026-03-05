@@ -18,6 +18,7 @@ module barrels. Shared infra (db, core, navigation, styles) stays put.
 ## Task 1: Set up vitest
 
 **Files:**
+
 - Modify: `package.json`
 - Create: `vitest.config.ts`
 
@@ -75,14 +76,14 @@ Move 6 files into `app/modules/auth/`, create barrel, update all consumers.
 
 **Files to move:**
 
-| Old path | New path |
-| --- | --- |
-| `app/auth/auth.server.ts` | `app/modules/auth/implementation/authenticator.server.ts` |
-| `app/auth/session.server.ts` | `app/modules/auth/implementation/session.server.ts` |
-| `app/auth/types.ts` | `app/modules/auth/implementation/types.ts` |
-| `app/auth/utils.server.ts` | `app/modules/auth/implementation/utils.server.ts` |
-| `app/middleware/authorization.server.ts` | `app/modules/auth/implementation/middleware.server.ts` |
-| `app/models/user.server.ts` | `app/modules/auth/implementation/queries.server.ts` |
+| Old path                                 | New path                                                  |
+| ---------------------------------------- | --------------------------------------------------------- |
+| `app/auth/auth.server.ts`                | `app/modules/auth/implementation/authenticator.server.ts` |
+| `app/auth/session.server.ts`             | `app/modules/auth/implementation/session.server.ts`       |
+| `app/auth/types.ts`                      | `app/modules/auth/implementation/types.ts`                |
+| `app/auth/utils.server.ts`               | `app/modules/auth/implementation/utils.server.ts`         |
+| `app/middleware/authorization.server.ts` | `app/modules/auth/implementation/middleware.server.ts`    |
+| `app/models/user.server.ts`              | `app/modules/auth/implementation/queries.server.ts`       |
 
 **Step 1: Create directories and move files**
 
@@ -148,15 +149,15 @@ export { safeRedirectTo, createReturnToUrl } from "./implementation/utils.server
 Every route that imported from `#/app/auth/*`, `#/app/middleware/authorization*`, or
 `#/app/models/user.server` now imports from `#/app/modules/auth`.
 
-| File | Old imports | New import source |
-| --- | --- | --- |
-| `routes/admin.tsx` | `#/app/auth/session.server`, `#/app/middleware/authorization.server` | `#/app/modules/auth` |
-| `routes/admin.drinks.new.tsx` | `#/app/auth/session.server` | `#/app/modules/auth` |
-| `routes/admin.drinks.$slug.edit.tsx` | `#/app/auth/session.server` | `#/app/modules/auth` |
-| `routes/admin.drinks.$slug.delete.tsx` | `#/app/auth/session.server` | `#/app/modules/auth` |
-| `routes/auth.google.callback.tsx` | `#/app/auth/auth.server`, `#/app/auth/session.server`, `#/app/auth/utils.server`, `#/app/auth/types` | `#/app/modules/auth` |
-| `routes/login.tsx` | `#/app/auth/auth.server`, `#/app/auth/session.server`, `#/app/auth/utils.server` | `#/app/modules/auth` |
-| `routes/logout.tsx` | `#/app/auth/session.server` | `#/app/modules/auth` |
+| File                                   | Old imports                                                                                          | New import source    |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------- | -------------------- |
+| `routes/admin.tsx`                     | `#/app/auth/session.server`, `#/app/middleware/authorization.server`                                 | `#/app/modules/auth` |
+| `routes/admin.drinks.new.tsx`          | `#/app/auth/session.server`                                                                          | `#/app/modules/auth` |
+| `routes/admin.drinks.$slug.edit.tsx`   | `#/app/auth/session.server`                                                                          | `#/app/modules/auth` |
+| `routes/admin.drinks.$slug.delete.tsx` | `#/app/auth/session.server`                                                                          | `#/app/modules/auth` |
+| `routes/auth.google.callback.tsx`      | `#/app/auth/auth.server`, `#/app/auth/session.server`, `#/app/auth/utils.server`, `#/app/auth/types` | `#/app/modules/auth` |
+| `routes/login.tsx`                     | `#/app/auth/auth.server`, `#/app/auth/session.server`, `#/app/auth/utils.server`                     | `#/app/modules/auth` |
+| `routes/logout.tsx`                    | `#/app/auth/session.server`                                                                          | `#/app/modules/auth` |
 
 Example — `routes/admin.tsx` before:
 
@@ -214,25 +215,25 @@ update all consumers.
 
 **Files to move:**
 
-| Old path | New path |
-| --- | --- |
-| `app/models/drink.server.ts` | `app/modules/drinks/implementation/queries.server.ts` |
-| `app/validation/drink.ts` | `app/modules/drinks/implementation/validation.ts` |
-| `app/tags/utils.ts` | `app/modules/drinks/implementation/tags.ts` |
-| `app/utils/imagekit.server.ts` | `app/modules/drinks/implementation/imagekit.server.ts` |
-| `app/utils/fastly.server.ts` | `app/modules/drinks/implementation/fastly.server.ts` |
-| `app/utils/markdown.server.ts` | `app/modules/drinks/implementation/markdown.server.ts` |
+| Old path                                 | New path                                                         |
+| ---------------------------------------- | ---------------------------------------------------------------- |
+| `app/models/drink.server.ts`             | `app/modules/drinks/implementation/queries.server.ts`            |
+| `app/validation/drink.ts`                | `app/modules/drinks/implementation/validation.ts`                |
+| `app/tags/utils.ts`                      | `app/modules/drinks/implementation/tags.ts`                      |
+| `app/utils/imagekit.server.ts`           | `app/modules/drinks/implementation/imagekit.server.ts`           |
+| `app/utils/fastly.server.ts`             | `app/modules/drinks/implementation/fastly.server.ts`             |
+| `app/utils/markdown.server.ts`           | `app/modules/drinks/implementation/markdown.server.ts`           |
 | `app/utils/placeholder-images.server.ts` | `app/modules/drinks/implementation/placeholder-images.server.ts` |
 | `app/utils/parse-image-upload.server.ts` | `app/modules/drinks/implementation/parse-image-upload.server.ts` |
-| `app/drinks/drink-details.tsx` | `app/modules/drinks/ui/drink-details.tsx` |
-| `app/drinks/drink-list.tsx` | `app/modules/drinks/ui/drink-list.tsx` |
-| `app/drinks/drink-summary.tsx` | `app/modules/drinks/ui/drink-summary.tsx` |
-| `app/drinks/glass.tsx` | `app/modules/drinks/ui/glass.tsx` |
-| `app/tags/tag.tsx` | `app/modules/drinks/ui/tag.tsx` |
-| `app/tags/tag-link.tsx` | `app/modules/drinks/ui/tag-link.tsx` |
-| `app/admin/drink-form.tsx` | `app/modules/drinks/ui/drink-form.tsx` |
-| `app/admin/image-crop.tsx` | `app/modules/drinks/ui/image-crop.tsx` |
-| `app/admin/use-sortable-data.ts` | `app/modules/drinks/ui/use-sortable-data.ts` |
+| `app/drinks/drink-details.tsx`           | `app/modules/drinks/ui/drink-details.tsx`                        |
+| `app/drinks/drink-list.tsx`              | `app/modules/drinks/ui/drink-list.tsx`                           |
+| `app/drinks/drink-summary.tsx`           | `app/modules/drinks/ui/drink-summary.tsx`                        |
+| `app/drinks/glass.tsx`                   | `app/modules/drinks/ui/glass.tsx`                                |
+| `app/tags/tag.tsx`                       | `app/modules/drinks/ui/tag.tsx`                                  |
+| `app/tags/tag-link.tsx`                  | `app/modules/drinks/ui/tag-link.tsx`                             |
+| `app/admin/drink-form.tsx`               | `app/modules/drinks/ui/drink-form.tsx`                           |
+| `app/admin/image-crop.tsx`               | `app/modules/drinks/ui/image-crop.tsx`                           |
+| `app/admin/use-sortable-data.ts`         | `app/modules/drinks/ui/use-sortable-data.ts`                     |
 
 Plus one new file: `app/modules/drinks/implementation/types.ts`
 
@@ -388,17 +389,17 @@ Every route that imported from `#/app/models/drink.server`, `#/app/drinks/*`, `#
 `#/app/utils/markdown*`, `#/app/utils/placeholder-images*`, or `#/app/utils/parse-image-upload*`
 now imports from `#/app/modules/drinks`.
 
-| File | Old import sources | Symbols |
-| --- | --- | --- |
-| `routes/_app._index.tsx` | `#/app/drinks/drink-list`, `#/app/models/drink.server`, `#/app/utils/placeholder-images.server` | `DrinkList`, `getPublishedDrinks`, `withPlaceholderImages` |
-| `routes/_app.$slug.tsx` | `#/app/drinks/glass`, `#/app/drinks/drink-summary`, `#/app/drinks/drink-details`, `#/app/models/drink.server`, `#/app/utils/markdown.server`, `#/app/utils/placeholder-images.server` | `Glass`, `DrinkSummary`, `DrinkDetails`, `getDrinkBySlug`, `markdownToHtml`, `withPlaceholderImages` |
-| `routes/_app.tags._index.tsx` | `#/app/models/drink.server`, `#/app/tags/tag-link`, `#/app/tags/tag`, `#/app/tags/utils` | `getAllTags`, `TagLink`, `Tag`, `getSurrogateKeyForTag` |
-| `routes/_app.tags.$tag.tsx` | `#/app/drinks/drink-list`, `#/app/models/drink.server`, `#/app/tags/utils`, `#/app/utils/placeholder-images.server` | `DrinkList`, `getDrinksByTag`, `getSurrogateKeyForTag`, `withPlaceholderImages` |
-| `routes/admin.drinks._index.tsx` | `#/app/admin/use-sortable-data`, `#/app/models/drink.server` | `useSortableData`, `getAllDrinks` |
-| `routes/admin.drinks.new.tsx` | `#/app/models/drink.server`, `#/app/utils/imagekit.server`, `#/app/admin/drink-form`, `#/app/utils/parse-image-upload.server`, `#/app/utils/fastly.server`, `#/app/validation/drink` | `createDrink`, `uploadImageOrPlaceholder`, `DrinkForm`, `parseImageUpload`, `purgeDrinkCache`, `drinkFormSchema` |
-| `routes/admin.drinks.$slug.edit.tsx` | `#/app/models/drink.server`, `#/app/utils/imagekit.server`, `#/app/admin/drink-form`, `#/app/utils/parse-image-upload.server`, `#/app/utils/fastly.server`, `#/app/validation/drink` | `getDrinkBySlug`, `updateDrink`, `uploadImageOrPlaceholder`, `deleteImage`, `DrinkForm`, `parseImageUpload`, `purgeDrinkCache`, `drinkFormSchema` |
-| `routes/admin.drinks.$slug.delete.tsx` | `#/app/models/drink.server`, `#/app/utils/imagekit.server`, `#/app/utils/fastly.server` | `getDrinkBySlug`, `deleteDrink`, `deleteImage`, `purgeDrinkCache` |
-| `routes/_app.search/route.tsx` | `#/app/utils/placeholder-images.server`, `#/app/drinks/drink-list` | `withPlaceholderImages`, `DrinkList` |
+| File                                   | Old import sources                                                                                                                                                                    | Symbols                                                                                                                                           |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `routes/_app._index.tsx`               | `#/app/drinks/drink-list`, `#/app/models/drink.server`, `#/app/utils/placeholder-images.server`                                                                                       | `DrinkList`, `getPublishedDrinks`, `withPlaceholderImages`                                                                                        |
+| `routes/_app.$slug.tsx`                | `#/app/drinks/glass`, `#/app/drinks/drink-summary`, `#/app/drinks/drink-details`, `#/app/models/drink.server`, `#/app/utils/markdown.server`, `#/app/utils/placeholder-images.server` | `Glass`, `DrinkSummary`, `DrinkDetails`, `getDrinkBySlug`, `markdownToHtml`, `withPlaceholderImages`                                              |
+| `routes/_app.tags._index.tsx`          | `#/app/models/drink.server`, `#/app/tags/tag-link`, `#/app/tags/tag`, `#/app/tags/utils`                                                                                              | `getAllTags`, `TagLink`, `Tag`, `getSurrogateKeyForTag`                                                                                           |
+| `routes/_app.tags.$tag.tsx`            | `#/app/drinks/drink-list`, `#/app/models/drink.server`, `#/app/tags/utils`, `#/app/utils/placeholder-images.server`                                                                   | `DrinkList`, `getDrinksByTag`, `getSurrogateKeyForTag`, `withPlaceholderImages`                                                                   |
+| `routes/admin.drinks._index.tsx`       | `#/app/admin/use-sortable-data`, `#/app/models/drink.server`                                                                                                                          | `useSortableData`, `getAllDrinks`                                                                                                                 |
+| `routes/admin.drinks.new.tsx`          | `#/app/models/drink.server`, `#/app/utils/imagekit.server`, `#/app/admin/drink-form`, `#/app/utils/parse-image-upload.server`, `#/app/utils/fastly.server`, `#/app/validation/drink`  | `createDrink`, `uploadImageOrPlaceholder`, `DrinkForm`, `parseImageUpload`, `purgeDrinkCache`, `drinkFormSchema`                                  |
+| `routes/admin.drinks.$slug.edit.tsx`   | `#/app/models/drink.server`, `#/app/utils/imagekit.server`, `#/app/admin/drink-form`, `#/app/utils/parse-image-upload.server`, `#/app/utils/fastly.server`, `#/app/validation/drink`  | `getDrinkBySlug`, `updateDrink`, `uploadImageOrPlaceholder`, `deleteImage`, `DrinkForm`, `parseImageUpload`, `purgeDrinkCache`, `drinkFormSchema` |
+| `routes/admin.drinks.$slug.delete.tsx` | `#/app/models/drink.server`, `#/app/utils/imagekit.server`, `#/app/utils/fastly.server`                                                                                               | `getDrinkBySlug`, `deleteDrink`, `deleteImage`, `purgeDrinkCache`                                                                                 |
+| `routes/_app.search/route.tsx`         | `#/app/utils/placeholder-images.server`, `#/app/drinks/drink-list`                                                                                                                    | `withPlaceholderImages`, `DrinkList`                                                                                                              |
 
 For each file: replace the old scattered imports with a single import from `#/app/modules/drinks`.
 Keep the `#/app/search/*` imports alone — those move in Task 4.
@@ -441,12 +442,12 @@ Move 6 files into `app/modules/search/`, consolidate cache + minisearch into a s
 
 **Files to move:**
 
-| Old path | New path |
-| --- | --- |
-| `app/routes/_app.search/search-form.tsx` | `app/modules/search/ui/search-form.tsx` |
-| `app/routes/_app.search/no-search-term.tsx` | `app/modules/search/ui/no-search-term.tsx` |
+| Old path                                     | New path                                    |
+| -------------------------------------------- | ------------------------------------------- |
+| `app/routes/_app.search/search-form.tsx`     | `app/modules/search/ui/search-form.tsx`     |
+| `app/routes/_app.search/no-search-term.tsx`  | `app/modules/search/ui/no-search-term.tsx`  |
 | `app/routes/_app.search/no-drinks-found.tsx` | `app/modules/search/ui/no-drinks-found.tsx` |
-| `app/routes/_app.search/searching.tsx` | `app/modules/search/ui/searching.tsx` |
+| `app/routes/_app.search/searching.tsx`       | `app/modules/search/ui/searching.tsx`       |
 
 Plus one new file created by merging `app/search/cache.server.ts` and
 `app/search/minisearch.server.ts`: `app/modules/search/implementation/search.server.ts`
@@ -609,10 +610,10 @@ The `type Drink` import from `#/app/db/schema` is no longer needed — remove it
 
 Update `purgeSearchCache` imports in admin routes:
 
-| File | Old import | New import |
-| --- | --- | --- |
-| `routes/admin.drinks.new.tsx` | `#/app/search/cache.server` | `#/app/modules/search` |
-| `routes/admin.drinks.$slug.edit.tsx` | `#/app/search/cache.server` | `#/app/modules/search` |
+| File                                   | Old import                  | New import             |
+| -------------------------------------- | --------------------------- | ---------------------- |
+| `routes/admin.drinks.new.tsx`          | `#/app/search/cache.server` | `#/app/modules/search` |
+| `routes/admin.drinks.$slug.edit.tsx`   | `#/app/search/cache.server` | `#/app/modules/search` |
 | `routes/admin.drinks.$slug.delete.tsx` | `#/app/search/cache.server` | `#/app/modules/search` |
 
 **Step 6: Verify**
@@ -632,8 +633,9 @@ refactor: create search module
 ## Task 5: Consolidate drinks mutations
 
 Create `mutations.server.ts` that orchestrates the full side-effect chain (DB + ImageKit + Fastly
-+ search cache) for create/update/delete. Update the barrel to export these instead of the raw DB
-functions. Simplify route actions.
+
+- search cache) for create/update/delete. Update the barrel to export these instead of the raw DB
+  functions. Simplify route actions.
 
 **Cross-module dependency:** `drinks/mutations.server.ts` imports `purgeSearchCache` from
 `#/app/modules/search`. This creates a bidirectional dependency (search also imports
@@ -641,6 +643,7 @@ functions. Simplify route actions.
 initialization issues.
 
 **Files:**
+
 - Create: `app/modules/drinks/implementation/mutations.server.ts`
 - Modify: `app/modules/drinks/index.ts`
 - Modify: `routes/admin.drinks.new.tsx`
@@ -671,10 +674,7 @@ type ImageUpload = {
   contentType: string;
 };
 
-export async function createDrink(
-  data: DrinkFormData,
-  imageUpload: ImageUpload,
-): Promise<Drink> {
+export async function createDrink(data: DrinkFormData, imageUpload: ImageUpload): Promise<Drink> {
   const { url: imageUrl, fileId: imageFileId } = await uploadImageOrPlaceholder(
     imageUpload.buffer,
     `${data.slug}.jpg`,
@@ -956,6 +956,7 @@ refactor: consolidate drink mutations into module
 ## Task 6: Write auth module tests
 
 **Files:**
+
 - Create: `app/modules/auth/index.test.ts`
 
 **Step 1: Write tests**
@@ -1025,6 +1026,7 @@ test: add auth module tests
 ## Task 7: Write drinks module tests
 
 **Files:**
+
 - Create: `app/modules/drinks/index.test.ts`
 
 These tests run against a real test SQLite DB. The existing `resetAndSeedDatabase()` function
@@ -1236,6 +1238,7 @@ test: add drinks module tests
 ## Task 8: Write search module tests
 
 **Files:**
+
 - Create: `app/modules/search/index.test.ts`
 
 These tests need drinks seeded in the DB so the search index has data.

@@ -1,7 +1,5 @@
 import { redirect } from "react-router";
-import { authenticator } from "#/app/auth/auth.server";
-import { getSession } from "#/app/auth/session.server";
-import { safeRedirectTo } from "#/app/auth/utils.server";
+import { authenticator, getSession, safeRedirectTo } from "#/app/modules/auth";
 import type { Route } from "./+types/login";
 
 export async function loader({ request }: Route.LoaderArgs) {

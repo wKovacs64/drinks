@@ -76,14 +76,14 @@ Stay in `app/routes/`. Become thin orchestration layers that import from module 
 Example after restructure:
 
 ```ts
-import { createDrink, drinkFormSchema, parseImageUpload } from "#/app/modules/drinks"
+import { createDrink, drinkFormSchema, parseImageUpload } from "#/app/modules/drinks";
 
 export async function action({ request, context }: Route.ActionArgs) {
-  const user = getUserFromContext(context)
-  const formData = await parseImageUpload(request)
-  const parsed = drinkFormSchema.safeParse(Object.fromEntries(formData))
-  if (!parsed.success) return { errors: parsed.error.flatten() }
-  await createDrink(parsed.data, formData.get("image"))
+  const user = getUserFromContext(context);
+  const formData = await parseImageUpload(request);
+  const parsed = drinkFormSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { errors: parsed.error.flatten() };
+  await createDrink(parsed.data, formData.get("image"));
   // flash + redirect
 }
 ```
@@ -103,34 +103,34 @@ export async function action({ request, context }: Route.ActionArgs) {
 Playwright tests stay unchanged. They cover the full user-facing flow. Module tests complement
 them with fast feedback on logic correctness.
 
-| Layer | Tool | Speed |
-| --- | --- | --- |
+| Layer      | Tool                       | Speed   |
+| ---------- | -------------------------- | ------- |
 | Module API | vitest + msw + real SQLite | seconds |
-| Full app | Playwright + browser | minutes |
+| Full app   | Playwright + browser       | minutes |
 
 ## Migration map
 
-| Current location | New location |
-| --- | --- |
-| `app/models/drink.server.ts` | `drinks/implementation/queries.server.ts` |
-| `app/models/user.server.ts` | `auth/implementation/queries.server.ts` |
-| `app/admin/drink-form.tsx` | `drinks/ui/drink-form.tsx` |
-| `app/admin/image-crop.tsx` | `drinks/ui/image-crop.tsx` |
-| `app/admin/use-sortable-data.ts` | `drinks/ui/use-sortable-data.ts` |
-| `app/drinks/*.tsx` | `drinks/ui/*.tsx` |
-| `app/tags/tag.tsx, tag-link.tsx` | `drinks/ui/tag.tsx, tag-link.tsx` |
-| `app/tags/utils.ts` | `drinks/implementation/tags.ts` |
-| `app/validation/drink.ts` | `drinks/implementation/validation.ts` |
-| `app/utils/imagekit.server.ts` | `drinks/implementation/imagekit.server.ts` |
-| `app/utils/fastly.server.ts` | `drinks/implementation/fastly.server.ts` |
-| `app/utils/markdown.server.ts` | `drinks/implementation/markdown.server.ts` |
-| `app/utils/placeholder-images.server.ts` | `drinks/implementation/placeholder-images.server.ts` |
-| `app/utils/parse-image-upload.server.ts` | `drinks/implementation/parse-image-upload.server.ts` |
-| `app/auth/*.ts` | `auth/implementation/*.ts` |
-| `app/middleware/authorization.server.ts` | `auth/implementation/middleware.server.ts` |
-| `app/search/*.server.ts` | `search/implementation/*.server.ts` |
-| `app/routes/_app.search/search-form.tsx` etc. | `search/ui/*.tsx` |
-| `app/types.ts` (`EnhancedDrink`) | `drinks/implementation/types.ts` |
+| Current location                              | New location                                         |
+| --------------------------------------------- | ---------------------------------------------------- |
+| `app/models/drink.server.ts`                  | `drinks/implementation/queries.server.ts`            |
+| `app/models/user.server.ts`                   | `auth/implementation/queries.server.ts`              |
+| `app/admin/drink-form.tsx`                    | `drinks/ui/drink-form.tsx`                           |
+| `app/admin/image-crop.tsx`                    | `drinks/ui/image-crop.tsx`                           |
+| `app/admin/use-sortable-data.ts`              | `drinks/ui/use-sortable-data.ts`                     |
+| `app/drinks/*.tsx`                            | `drinks/ui/*.tsx`                                    |
+| `app/tags/tag.tsx, tag-link.tsx`              | `drinks/ui/tag.tsx, tag-link.tsx`                    |
+| `app/tags/utils.ts`                           | `drinks/implementation/tags.ts`                      |
+| `app/validation/drink.ts`                     | `drinks/implementation/validation.ts`                |
+| `app/utils/imagekit.server.ts`                | `drinks/implementation/imagekit.server.ts`           |
+| `app/utils/fastly.server.ts`                  | `drinks/implementation/fastly.server.ts`             |
+| `app/utils/markdown.server.ts`                | `drinks/implementation/markdown.server.ts`           |
+| `app/utils/placeholder-images.server.ts`      | `drinks/implementation/placeholder-images.server.ts` |
+| `app/utils/parse-image-upload.server.ts`      | `drinks/implementation/parse-image-upload.server.ts` |
+| `app/auth/*.ts`                               | `auth/implementation/*.ts`                           |
+| `app/middleware/authorization.server.ts`      | `auth/implementation/middleware.server.ts`           |
+| `app/search/*.server.ts`                      | `search/implementation/*.server.ts`                  |
+| `app/routes/_app.search/search-form.tsx` etc. | `search/ui/*.tsx`                                    |
+| `app/types.ts` (`EnhancedDrink`)              | `drinks/implementation/types.ts`                     |
 
 Directories deleted after migration: `app/models/`, `app/admin/`, `app/drinks/`, `app/tags/`,
 `app/validation/`, `app/auth/`, `app/search/`.

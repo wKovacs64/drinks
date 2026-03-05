@@ -10,7 +10,7 @@ import {
   purgeDrinkCache,
   drinkFormSchema,
 } from "#/app/modules/drinks";
-import { purgeSearchCache } from "#/app/search/cache.server";
+import { purgeSearchCache } from "#/app/modules/search";
 import { getSession, commitSession } from "#/app/modules/auth";
 import type { Route } from "./+types/admin.drinks.$slug.edit";
 

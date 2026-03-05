@@ -3,14 +3,14 @@ import { cacheHeader } from "pretty-cache-header";
 import { defaultPageDescription, defaultPageTitle } from "#/app/core/config";
 import { getEnvVars } from "#/app/utils/env.server";
 import { withPlaceholderImages, DrinkList } from "#/app/modules/drinks";
-import type { Drink } from "#/app/db/schema";
 import type { AppRouteHandle } from "#/app/types";
-import { searchDrinks } from "#/app/search/minisearch.server";
-import { getSearchData } from "#/app/search/cache.server";
-import { NoDrinksFound } from "./no-drinks-found";
-import { NoSearchTerm } from "./no-search-term";
-import { SearchForm } from "./search-form";
-import { Searching } from "./searching";
+import {
+  searchDrinks,
+  SearchForm,
+  NoDrinksFound,
+  NoSearchTerm,
+  Searching,
+} from "#/app/modules/search";
 import type { Route } from "./+types/route";
 
 const { SITE_IMAGE_URL, SITE_IMAGE_ALT } = getEnvVars();
@@ -39,9 +39,6 @@ export async function loader({ request }: Route.LoaderArgs) {
     );
   }
 
-  const { allDrinks, searchIndex } = await getSearchData();
-  const slugs = searchDrinks(searchIndex, q);
-
   const searchResultsCacheHeaders = {
     "Surrogate-Key": "search all",
     "Cache-Control": cacheHeader({
@@ -53,16 +50,14 @@ export async function loader({ request }: Route.LoaderArgs) {
     }),
   };
 
-  if (slugs.length === 0) {
+  const drinks = await searchDrinks(q);
+
+  if (drinks.length === 0) {
     return data(
       { drinks: [], socialImageUrl: SITE_IMAGE_URL, socialImageAlt: SITE_IMAGE_ALT },
       { headers: searchResultsCacheHeaders },
     );
   }
-
-  const drinks = slugs
-    .map((slug) => allDrinks.find((drink) => drink.slug === slug))
-    .filter((drink): drink is Drink => Boolean(drink));
 
   const drinksWithPlaceholderImages = await withPlaceholderImages(drinks);
 

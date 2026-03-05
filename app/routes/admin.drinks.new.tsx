@@ -8,7 +8,7 @@ import {
   purgeDrinkCache,
   drinkFormSchema,
 } from "#/app/modules/drinks";
-import { purgeSearchCache } from "#/app/search/cache.server";
+import { purgeSearchCache } from "#/app/modules/search";
 import type { Route } from "./+types/admin.drinks.new";
 
 export default function NewDrinkPage({ actionData }: Route.ComponentProps) {

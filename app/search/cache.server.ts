@@ -1,5 +1,5 @@
 import { remember, forget } from "@epic-web/remember";
-import { getPublishedDrinks } from "#/app/models/drink.server";
+import { getPublishedDrinks } from "#/app/modules/drinks";
 import type { Drink } from "#/app/db/schema";
 import { createSearchIndex } from "#/app/search/minisearch.server";
 

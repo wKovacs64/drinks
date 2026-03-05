@@ -1,5 +1,5 @@
 import { getEnvVars } from "#/app/utils/env.server";
-import { getSurrogateKeyForTag } from "#/app/tags/utils";
+import { getSurrogateKeyForTag } from "./tags";
 
 const { FASTLY_SERVICE_ID, FASTLY_PURGE_API_KEY } = getEnvVars();
 

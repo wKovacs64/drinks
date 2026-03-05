@@ -1,12 +1,14 @@
 import { redirect, href, data } from "react-router";
 import { getSession, commitSession } from "#/app/modules/auth";
-import { createDrink } from "#/app/models/drink.server";
-import { uploadImageOrPlaceholder } from "#/app/utils/imagekit.server";
-import { DrinkForm } from "#/app/admin/drink-form";
-import { parseImageUpload } from "#/app/utils/parse-image-upload.server";
+import {
+  createDrink,
+  uploadImageOrPlaceholder,
+  DrinkForm,
+  parseImageUpload,
+  purgeDrinkCache,
+  drinkFormSchema,
+} from "#/app/modules/drinks";
 import { purgeSearchCache } from "#/app/search/cache.server";
-import { purgeDrinkCache } from "#/app/utils/fastly.server";
-import { drinkFormSchema } from "#/app/validation/drink";
 import type { Route } from "./+types/admin.drinks.new";
 
 export default function NewDrinkPage({ actionData }: Route.ComponentProps) {

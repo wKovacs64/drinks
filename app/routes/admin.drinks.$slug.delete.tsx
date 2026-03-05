@@ -1,9 +1,7 @@
 import { redirect, data, href } from "react-router";
 import { invariantResponse } from "@epic-web/invariant";
-import { getDrinkBySlug, deleteDrink } from "#/app/models/drink.server";
-import { deleteImage } from "#/app/utils/imagekit.server";
+import { getDrinkBySlug, deleteDrink, deleteImage, purgeDrinkCache } from "#/app/modules/drinks";
 import { purgeSearchCache } from "#/app/search/cache.server";
-import { purgeDrinkCache } from "#/app/utils/fastly.server";
 import { getSession, commitSession } from "#/app/modules/auth";
 import type { Route } from "./+types/admin.drinks.$slug.delete";
 

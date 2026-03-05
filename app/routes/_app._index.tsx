@@ -1,10 +1,8 @@
 import { data } from "react-router";
 import { cacheHeader } from "pretty-cache-header";
 import { defaultPageDescription, defaultPageTitle } from "#/app/core/config";
-import { DrinkList } from "#/app/drinks/drink-list";
-import { getPublishedDrinks } from "#/app/models/drink.server";
+import { DrinkList, getPublishedDrinks, withPlaceholderImages } from "#/app/modules/drinks";
 import { getEnvVars } from "#/app/utils/env.server";
-import { withPlaceholderImages } from "#/app/utils/placeholder-images.server";
 import type { Route } from "./+types/_app._index";
 
 const { SITE_IMAGE_URL, SITE_IMAGE_ALT } = getEnvVars();

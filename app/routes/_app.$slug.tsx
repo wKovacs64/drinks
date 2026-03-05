@@ -3,12 +3,14 @@ import { cacheHeader } from "pretty-cache-header";
 import { invariantResponse } from "@epic-web/invariant";
 import { transformUrl } from "unpic";
 import { getLoaderDataForHandle } from "#/app/core/utils";
-import { Glass } from "#/app/drinks/glass";
-import { DrinkSummary } from "#/app/drinks/drink-summary";
-import { DrinkDetails } from "#/app/drinks/drink-details";
-import { getDrinkBySlug } from "#/app/models/drink.server";
-import { markdownToHtml } from "#/app/utils/markdown.server";
-import { withPlaceholderImages } from "#/app/utils/placeholder-images.server";
+import {
+  Glass,
+  DrinkSummary,
+  DrinkDetails,
+  getDrinkBySlug,
+  markdownToHtml,
+  withPlaceholderImages,
+} from "#/app/modules/drinks";
 import type { AppRouteHandle } from "#/app/types";
 import type { Route } from "./+types/_app.$slug";
 

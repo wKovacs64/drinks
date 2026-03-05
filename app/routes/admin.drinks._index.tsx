@@ -1,8 +1,7 @@
 import { clsx } from "clsx";
 import { Link, useFetcher, href } from "react-router";
 import { Image } from "@unpic/react";
-import { useSortableData } from "#/app/admin/use-sortable-data";
-import { getAllDrinks } from "#/app/models/drink.server";
+import { useSortableData, getAllDrinks } from "#/app/modules/drinks";
 import type { Route } from "./+types/admin.drinks._index";
 
 export async function loader() {

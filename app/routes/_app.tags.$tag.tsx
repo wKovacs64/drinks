@@ -4,11 +4,13 @@ import { cacheHeader } from "pretty-cache-header";
 import { invariantResponse } from "@epic-web/invariant";
 import { defaultPageDescription, defaultPageTitle } from "#/app/core/config";
 import { getLoaderDataForHandle } from "#/app/core/utils";
-import { DrinkList } from "#/app/drinks/drink-list";
-import { getDrinksByTag } from "#/app/models/drink.server";
-import { getSurrogateKeyForTag } from "#/app/tags/utils";
+import {
+  DrinkList,
+  getDrinksByTag,
+  getSurrogateKeyForTag,
+  withPlaceholderImages,
+} from "#/app/modules/drinks";
 import { getEnvVars } from "#/app/utils/env.server";
-import { withPlaceholderImages } from "#/app/utils/placeholder-images.server";
 import type { AppRouteHandle } from "#/app/types";
 import type { Route } from "./+types/_app.tags.$tag";
 

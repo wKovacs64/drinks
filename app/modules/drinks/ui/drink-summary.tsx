@@ -1,6 +1,6 @@
 import { clsx } from "clsx";
 import { Source, Image, type ImageProps, type SourceProps } from "@unpic/react";
-import type { EnhancedDrink } from "#/app/types";
+import type { EnhancedDrink } from "../implementation/types";
 
 export function DrinkSummary({
   className,

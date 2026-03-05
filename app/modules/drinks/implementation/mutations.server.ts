@@ -6,7 +6,7 @@ import {
   updateDrink as patchDrink,
   deleteDrink as removeDrink,
 } from "./queries.server";
-import { uploadImageOrPlaceholder, deleteImage } from "./imagekit.server";
+import { uploadImage, deleteImage } from "./imagekit.server";
 import { purgeDrinkCache } from "./fastly.server";
 import type { drinkFormSchema } from "./validation";
 
@@ -18,7 +18,7 @@ type ImageUpload = {
 };
 
 export async function createDrink(data: DrinkFormData, imageUpload: ImageUpload): Promise<Drink> {
-  const { url: imageUrl, fileId: imageFileId } = await uploadImageOrPlaceholder(
+  const { url: imageUrl, fileId: imageFileId } = await uploadImage(
     imageUpload.buffer,
     `${data.slug}.jpg`,
   );
@@ -49,11 +49,11 @@ export async function updateDrink(
   let imageFileId: string;
 
   if (imageUpload) {
-    const result = await uploadImageOrPlaceholder(imageUpload.buffer, `${data.slug}.jpg`);
+    const result = await uploadImage(imageUpload.buffer, `${data.slug}.jpg`);
     imageUrl = result.url;
     imageFileId = result.fileId;
 
-    if (existingDrink.imageFileId && existingDrink.imageFileId !== "test-placeholder") {
+    if (existingDrink.imageFileId) {
       try {
         await deleteImage(existingDrink.imageFileId);
       } catch (error) {
@@ -64,8 +64,7 @@ export async function updateDrink(
     imageUrl = existingDrink.imageUrl;
     imageFileId = existingDrink.imageFileId;
   } else {
-    imageUrl = `https://via.placeholder.com/400x400.png?text=${encodeURIComponent(data.slug)}`;
-    imageFileId = "test-placeholder";
+    throw new Error("updateDrink requires either imageUpload or keepExistingImage");
   }
 
   const drink = await patchDrink(existingDrink.id, {
@@ -89,7 +88,7 @@ export async function updateDrink(
 }
 
 export async function deleteDrink(existingDrink: Drink): Promise<void> {
-  if (existingDrink.imageFileId && existingDrink.imageFileId !== "test-placeholder") {
+  if (existingDrink.imageFileId) {
     try {
       await deleteImage(existingDrink.imageFileId);
     } catch (error) {

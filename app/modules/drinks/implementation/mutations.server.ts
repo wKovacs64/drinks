@@ -43,7 +43,6 @@ export async function updateDrink(
   existingDrink: Drink,
   data: DrinkFormData,
   imageUpload?: ImageUpload,
-  keepExistingImage?: boolean,
 ): Promise<Drink> {
   let imageUrl: string;
   let imageFileId: string;
@@ -60,11 +59,9 @@ export async function updateDrink(
         console.error("Failed to delete old image:", error);
       }
     }
-  } else if (keepExistingImage) {
+  } else {
     imageUrl = existingDrink.imageUrl;
     imageFileId = existingDrink.imageFileId;
-  } else {
-    throw new Error("updateDrink requires either imageUpload or keepExistingImage");
   }
 
   const drink = await patchDrink(existingDrink.id, {

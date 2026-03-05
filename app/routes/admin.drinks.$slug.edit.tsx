@@ -42,15 +42,13 @@ export async function action({ request, params }: Route.ActionArgs) {
     return data({ errors: [imageError] }, { status: 400 });
   }
 
-  const existingImageUrl = String(formData.get("existingImageUrl") ?? "");
-
   const result = drinkFormSchema.safeParse(Object.fromEntries(formData));
 
   if (!result.success) {
     return data({ errors: result.error.issues.map((issue) => issue.message) }, { status: 400 });
   }
 
-  await updateDrink(drink, result.data, imageUpload, Boolean(existingImageUrl));
+  await updateDrink(drink, result.data, imageUpload);
 
   const session = await getSession(request.headers.get("Cookie"));
   session.flash("toast", { kind: "success" as const, message: `${result.data.title} updated!` });

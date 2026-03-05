@@ -14,11 +14,11 @@ export const handlers = [
   http.post("https://upload.imagekit.io/api/v1/files/upload", async ({ request }) => {
     uploadCounter++;
     const formData = await request.formData();
-    const fileName = formData.get("fileName") ?? `upload-${uploadCounter}`;
+    const fileName = String(formData.get("fileName") ?? `upload-${uploadCounter}`);
 
     return HttpResponse.json({
       fileId: `test-fileId-${uploadCounter}`,
-      name: String(fileName),
+      name: fileName,
       url: `https://ik.imagekit.io/test/drinks/${fileName}`,
       thumbnailUrl: `https://ik.imagekit.io/test/drinks/tr:n-ik_ml_thumbnail/${fileName}`,
       height: 400,

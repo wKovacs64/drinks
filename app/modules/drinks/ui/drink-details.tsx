@@ -1,6 +1,6 @@
 import { kebabCase } from "lodash-es";
 import { href } from "react-router";
-import type { EnhancedDrink } from "../implementation/types";
+import type { EnhancedDrink } from "#/app/modules/drinks/implementation/types";
 import { Tag } from "./tag";
 import { TagLink } from "./tag-link";
 

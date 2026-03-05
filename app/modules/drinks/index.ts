@@ -8,10 +8,10 @@ export {
   getDrinkBySlug,
   getDrinksByTag,
   getAllTags,
-  createDrink,
-  updateDrink,
-  deleteDrink,
 } from "./implementation/queries.server";
+
+// Mutations (orchestrate DB + ImageKit + Fastly + search cache)
+export { createDrink, updateDrink, deleteDrink } from "./implementation/mutations.server";
 
 // Validation
 export { drinkFormSchema } from "./implementation/validation";
@@ -21,11 +21,7 @@ export { withPlaceholderImages } from "./implementation/placeholder-images.serve
 export { parseImageUpload } from "./implementation/parse-image-upload.server";
 export { markdownToHtml } from "./implementation/markdown.server";
 
-// Image management (used by route actions until mutations consolidation)
-export { uploadImageOrPlaceholder, deleteImage } from "./implementation/imagekit.server";
-
 // Cache
-export { purgeDrinkCache } from "./implementation/fastly.server";
 export { getSurrogateKeyForTag } from "./implementation/tags";
 
 // UI

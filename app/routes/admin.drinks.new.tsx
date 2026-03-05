@@ -1,14 +1,6 @@
 import { redirect, href, data } from "react-router";
 import { getSession, commitSession } from "#/app/modules/auth";
-import {
-  createDrink,
-  uploadImageOrPlaceholder,
-  DrinkForm,
-  parseImageUpload,
-  purgeDrinkCache,
-  drinkFormSchema,
-} from "#/app/modules/drinks";
-import { purgeSearchCache } from "#/app/modules/search";
+import { createDrink, drinkFormSchema, parseImageUpload, DrinkForm } from "#/app/modules/drinks";
 import type { Route } from "./+types/admin.drinks.new";
 
 export default function NewDrinkPage({ actionData }: Route.ComponentProps) {
@@ -38,26 +30,7 @@ export async function action({ request }: Route.ActionArgs) {
     return data({ errors: ["Image is required"] }, { status: 400 });
   }
 
-  const uploadResult = await uploadImageOrPlaceholder(
-    imageUpload.buffer,
-    `${result.data.slug}.jpg`,
-  );
-  const imageUrl = uploadResult.url;
-  const imageFileId = uploadResult.fileId;
-
-  const drink = await createDrink({
-    ...result.data,
-    imageUrl,
-    imageFileId,
-  });
-
-  try {
-    purgeSearchCache();
-    await purgeDrinkCache({ slug: drink.slug, tags: drink.tags });
-  } catch (error) {
-    // Cache invalidation failures shouldn't block the request
-    console.error("Cache invalidation failed:", error);
-  }
+  await createDrink(result.data, imageUpload);
 
   const session = await getSession(request.headers.get("Cookie"));
   session.flash("toast", { kind: "success" as const, message: `${result.data.title} created!` });

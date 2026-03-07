@@ -136,8 +136,8 @@ importers:
         specifier: 19.2.3
         version: 19.2.3(@types/react@19.2.14)
       '@wkovacs64/add-icon':
-        specifier: 1.2.1
-        version: 1.2.1
+        specifier: 1.2.2
+        version: 1.2.2
       '@wkovacs64/eslint-config':
         specifier: 7.13.0
         version: 7.13.0(@typescript-eslint/utils@8.56.1(eslint@9.39.3(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.3(jiti@2.6.1))(typescript@5.9.3)
@@ -1628,8 +1628,8 @@ packages:
       vitest:
         optional: true
 
-  '@wkovacs64/add-icon@1.2.1':
-    resolution: {integrity: sha512-0uzt1YMrf+J1J1NKl6HZ3b8ZQxT0ffJfYVY3Dq2WbNQ7x2tp1uZgkMXDh06INjy+2wKBk0so9Aq4/KhQYhQHGQ==}
+  '@wkovacs64/add-icon@1.2.2':
+    resolution: {integrity: sha512-KgWYJUGNF5wP9LsvZ5E42SQnaQvAeiXGv8LZetylFXZvnTrktsQQBfCLyXuN4KG+6yy9vjBCGhVD/6xZuHUnnw==}
     engines: {node: '>=20.19.0'}
     hasBin: true
 
@@ -1881,9 +1881,9 @@ packages:
   color-name@1.1.4:
     resolution: {integrity: sha512-dOy+3AuW3a2wNbZHIuMZpTcgjGuLU/uBL/ubcZF9OXbDo8ff4O8yVp5Bf0efS8uEoYo5q4Fx7dY9OgQGXgAsQA==}
 
-  commander@13.1.0:
-    resolution: {integrity: sha512-/rFeCpNJQbhSZjGVwO9RFV3xPqbnERS8MmIQzCtD/zl6gpJuV/bMLuN92oG3F7d8oDEHHRrujSXNUr8fpjntKw==}
-    engines: {node: '>=18'}
+  commander@14.0.3:
+    resolution: {integrity: sha512-H+y0Jo/T1RZ9qPP4Eh1pkcQcLRglraJaSLoyOtHxu6AapkjWVCy2Sit1QQ4x3Dng8qDlSsZEet7g5Pq06MvTgw==}
+    engines: {node: '>=20'}
 
   comment-parser@1.4.1:
     resolution: {integrity: sha512-buhp5kePrmda3vhc5B9t7pUQXAb2Tnd0qgpkIhPhkHXxJpiPJ11H0ZEU0oBpJ2QztSbzG/ZxMj/CHsYJqRHmyg==}
@@ -5089,10 +5089,10 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@wkovacs64/add-icon@1.2.1':
+  '@wkovacs64/add-icon@1.2.2':
     dependencies:
-      commander: 13.1.0
-      esbuild: 0.25.12
+      commander: 14.0.3
+      esbuild: 0.27.3
       typescript: 5.9.3
 
   '@wkovacs64/eslint-config@7.13.0(@typescript-eslint/utils@8.56.1(eslint@9.39.3(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.3(jiti@2.6.1))(typescript@5.9.3)':
@@ -5413,7 +5413,7 @@ snapshots:
 
   color-name@1.1.4: {}
 
-  commander@13.1.0: {}
+  commander@14.0.3: {}
 
   comment-parser@1.4.1: {}
 

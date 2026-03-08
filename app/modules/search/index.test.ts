@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { resetAndSeedDatabase } from "#/app/db/reset.server";
-import { searchDrinks, purgeSearchCache } from "./index";
+import { searchDrinks, purgeSearchCache } from "./index.server";
 
 beforeEach(async () => {
   await resetAndSeedDatabase();

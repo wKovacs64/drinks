@@ -1,12 +1,12 @@
 import { redirect, href } from "react-router";
 import { getClientIPAddress } from "remix-utils/get-client-ip-address";
+import type { AuthenticatedUser } from "#/app/modules/auth";
 import {
   authenticator,
   commitSession,
   getSession,
   safeRedirectTo,
-  type AuthenticatedUser,
-} from "#/app/modules/auth";
+} from "#/app/modules/auth/index.server";
 import type { Route } from "./+types/auth.google.callback";
 
 export async function loader({ request }: Route.LoaderArgs) {

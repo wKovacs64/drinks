@@ -1,7 +1,8 @@
 import { data } from "react-router";
 import { cacheHeader } from "pretty-cache-header";
 import { defaultPageDescription, defaultPageTitle } from "#/app/core/config";
-import { DrinkList, getPublishedDrinks, withPlaceholderImages } from "#/app/modules/drinks";
+import { getPublishedDrinks, withPlaceholderImages } from "#/app/modules/drinks/index.server";
+import { DrinkList } from "#/app/modules/drinks";
 import { getEnvVars } from "#/app/utils/env.server";
 import type { Route } from "./+types/_app._index";
 

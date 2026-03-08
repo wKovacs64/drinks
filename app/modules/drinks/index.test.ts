@@ -6,10 +6,10 @@ import {
   getDrinkBySlug,
   getDrinksByTag,
   getAllTags,
-  drinkFormSchema,
   createDrink,
   deleteDrink,
-} from "./index";
+} from "./index.server";
+import { drinkFormSchema } from "./index";
 
 beforeEach(async () => {
   await resetAndSeedDatabase();

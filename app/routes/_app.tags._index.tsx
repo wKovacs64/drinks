@@ -2,7 +2,8 @@ import { data, href } from "react-router";
 import { kebabCase } from "lodash-es";
 import { cacheHeader } from "pretty-cache-header";
 import { defaultPageTitle, defaultPageDescription } from "#/app/core/config";
-import { getAllTags, TagLink, Tag, getSurrogateKeyForTag } from "#/app/modules/drinks";
+import { getAllTags } from "#/app/modules/drinks/index.server";
+import { TagLink, Tag, getSurrogateKeyForTag } from "#/app/modules/drinks";
 import { getEnvVars } from "#/app/utils/env.server";
 import type { Route } from "./+types/_app.tags._index";
 

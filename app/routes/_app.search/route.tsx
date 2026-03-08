@@ -2,15 +2,11 @@ import { data, useSearchParams, useNavigation } from "react-router";
 import { cacheHeader } from "pretty-cache-header";
 import { defaultPageDescription, defaultPageTitle } from "#/app/core/config";
 import { getEnvVars } from "#/app/utils/env.server";
-import { withPlaceholderImages, DrinkList } from "#/app/modules/drinks";
+import { withPlaceholderImages } from "#/app/modules/drinks/index.server";
+import { DrinkList } from "#/app/modules/drinks";
 import type { AppRouteHandle } from "#/app/types";
-import {
-  searchDrinks,
-  SearchForm,
-  NoDrinksFound,
-  NoSearchTerm,
-  Searching,
-} from "#/app/modules/search";
+import { searchDrinks } from "#/app/modules/search/index.server";
+import { SearchForm, NoDrinksFound, NoSearchTerm, Searching } from "#/app/modules/search";
 import type { Route } from "./+types/route";
 
 const { SITE_IMAGE_URL, SITE_IMAGE_ALT } = getEnvVars();

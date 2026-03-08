@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { safeRedirectTo, createReturnToUrl } from "./index";
+import { safeRedirectTo, createReturnToUrl } from "./index.server";
 
 describe("safeRedirectTo", () => {
   test("returns the path for a valid relative URL", () => {

@@ -10,8 +10,8 @@ export default [
         {
           patterns: [
             {
-              regex: "#/app/modules/.+/.+",
-              message: "Import from the module's public API (index.ts) instead.",
+              regex: "#/app/modules/.+/.+(?<!index\\.server)$",
+              message: "Import from the module's public API (index.ts or index.server.ts) instead.",
             },
           ],
         },

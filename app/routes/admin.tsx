@@ -7,7 +7,7 @@ import {
   userMiddleware,
   adminMiddleware,
   getUserFromContext,
-} from "#/app/modules/auth";
+} from "#/app/modules/auth/index.server";
 import type { Route } from "./+types/admin";
 
 export const middleware = [userMiddleware, adminMiddleware];

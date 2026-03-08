@@ -1,7 +1,7 @@
 import { redirect, data, href } from "react-router";
 import { invariantResponse } from "@epic-web/invariant";
-import { getSession, commitSession } from "#/app/modules/auth";
-import { getDrinkBySlug, deleteDrink } from "#/app/modules/drinks";
+import { getSession, commitSession } from "#/app/modules/auth/index.server";
+import { getDrinkBySlug, deleteDrink } from "#/app/modules/drinks/index.server";
 import type { Route } from "./+types/admin.drinks.$slug.delete";
 
 export async function loader() {

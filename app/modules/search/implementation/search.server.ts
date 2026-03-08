@@ -1,6 +1,6 @@
 import { remember, forget } from "@epic-web/remember";
 import MiniSearch from "minisearch";
-import { getPublishedDrinks } from "#/app/modules/drinks";
+import { getPublishedDrinks } from "#/app/modules/drinks/index.server";
 import type { Drink } from "#/app/db/schema";
 
 const CACHE_KEY = "minisearch-index";

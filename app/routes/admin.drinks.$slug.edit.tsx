@@ -1,13 +1,8 @@
 import { redirect, href, data } from "react-router";
 import { invariantResponse } from "@epic-web/invariant";
-import { getSession, commitSession } from "#/app/modules/auth";
-import {
-  getDrinkBySlug,
-  updateDrink,
-  DrinkForm,
-  drinkFormSchema,
-  parseImageUpload,
-} from "#/app/modules/drinks";
+import { getSession, commitSession } from "#/app/modules/auth/index.server";
+import { getDrinkBySlug, updateDrink, parseImageUpload } from "#/app/modules/drinks/index.server";
+import { DrinkForm, drinkFormSchema } from "#/app/modules/drinks";
 import type { Route } from "./+types/admin.drinks.$slug.edit";
 
 export async function loader({ params }: Route.LoaderArgs) {

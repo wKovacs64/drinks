@@ -4,13 +4,11 @@ import { invariantResponse } from "@epic-web/invariant";
 import { transformUrl } from "unpic";
 import { getLoaderDataForHandle } from "#/app/core/utils";
 import {
-  Glass,
-  DrinkSummary,
-  DrinkDetails,
   getDrinkBySlug,
   markdownToHtml,
   withPlaceholderImages,
-} from "#/app/modules/drinks";
+} from "#/app/modules/drinks/index.server";
+import { Glass, DrinkSummary, DrinkDetails } from "#/app/modules/drinks";
 import type { AppRouteHandle } from "#/app/types";
 import type { Route } from "./+types/_app.$slug";
 

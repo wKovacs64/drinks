@@ -1,6 +1,7 @@
 import { redirect, href, data } from "react-router";
-import { getSession, commitSession } from "#/app/modules/auth";
-import { createDrink, drinkFormSchema, parseImageUpload, DrinkForm } from "#/app/modules/drinks";
+import { getSession, commitSession } from "#/app/modules/auth/index.server";
+import { createDrink, parseImageUpload } from "#/app/modules/drinks/index.server";
+import { DrinkForm, drinkFormSchema } from "#/app/modules/drinks";
 import type { Route } from "./+types/admin.drinks.new";
 
 export default function NewDrinkPage({ actionData }: Route.ComponentProps) {

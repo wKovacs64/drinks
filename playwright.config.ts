@@ -25,5 +25,8 @@ export default defineConfig({
     timeout: 120000,
     stdout: "pipe",
     stderr: "pipe",
+    env: {
+      NODE_OPTIONS: "--import ./playwright/msw-server-setup.ts",
+    },
   },
 });

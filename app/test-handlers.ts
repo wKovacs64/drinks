@@ -1,4 +1,4 @@
-import { http, HttpResponse } from "msw";
+import { http, HttpResponse, passthrough } from "msw";
 
 // 1x1 transparent WebP (smallest valid WebP)
 const TINY_WEBP = new Uint8Array([
@@ -45,4 +45,8 @@ export const handlers = [
   http.post("https://api.fastly.com/service/:serviceId/purge", () => {
     return HttpResponse.json({ status: "ok" });
   }),
+
+  // ImageKit SDK probes fetch FormData support via `fetch('data:,')`.
+  // Passthrough so MSW doesn't report it as unhandled.
+  http.get("data:*", () => passthrough()),
 ];

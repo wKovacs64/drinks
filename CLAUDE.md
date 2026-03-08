@@ -21,6 +21,13 @@ _Craft Cocktail Gallery_
 - SQLite is a single-file database stored on a Fly volume, so the app is constrained to a single
   region. Do not scale to multiple regions without first adding a replication strategy.
 
+## Deep Module Structure
+
+- Domain modules live in `app/modules/` with `index.ts` as the public API
+- `implementation/` directories are internal — never import from them directly
+- Tests (`index.test.ts`) target the public API only
+- Routes should only import from module index files
+
 ## Code Style
 
 - Native subpath imports (`#` maps to project root)
@@ -49,3 +56,4 @@ _Craft Cocktail Gallery_
 - `pnpm lint`
 - `pnpm typecheck`
 - `pnpm format`
+- `pnpm test`

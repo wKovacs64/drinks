@@ -25,6 +25,10 @@
     "build": "run-s build:*",
     "build:rr": "react-router build",
     "build:sw": "esbuild app/entry.worker.ts --minify --platform=browser --format=esm --outfile=build/client/sw.js",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
     "deploy": "flyctl deploy --remote-only",
     "dev": "run-p dev:rr dev:sw",
     "dev:rr": "react-router dev",
@@ -35,15 +39,11 @@
     "lint": "eslint --cache --cache-location ./node_modules/.cache/eslint .",
     "start": "cross-env NODE_ENV=production PORT=8080 node ./build/server/index.js",
     "typecheck": "react-router typegen && tsc",
-    "validate": "run-p format:check lint typecheck",
-    "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
-    "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "dotenv -e .env.test -- playwright test",
-    "test:e2e:ui": "dotenv -e .env.test -- playwright test --ui"
+    "test:e2e:ui": "dotenv -e .env.test -- playwright test --ui",
+    "validate": "run-p format:check lint typecheck test"
   },
   "dependencies": {
     "@coji/remix-auth-google": "4.2.0",

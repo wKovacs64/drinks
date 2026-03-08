@@ -26,7 +26,7 @@ export default defineConfig({
     stdout: "pipe",
     stderr: "pipe",
     env: {
-      NODE_OPTIONS: "--import ./playwright/msw-server-setup.ts",
+      NODE_OPTIONS: "--import ./playwright/mocks.ts",
     },
   },
 });

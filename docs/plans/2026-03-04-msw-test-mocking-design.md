@@ -21,19 +21,19 @@ test.
 
 ## Production code changes
 
-| File | Change |
-| --- | --- |
-| `imagekit.server.ts` | Remove both `NODE_ENV === "test"` checks. Merge `uploadImageOrPlaceholder` + `uploadImage` into single `uploadImage`. Remove `NODE_ENV` import. |
+| File                  | Change                                                                                                                                                                                               |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `imagekit.server.ts`  | Remove both `NODE_ENV === "test"` checks. Merge `uploadImageOrPlaceholder` + `uploadImage` into single `uploadImage`. Remove `NODE_ENV` import.                                                      |
 | `mutations.server.ts` | Replace `uploadImageOrPlaceholder` calls with `uploadImage`. Remove `"test-placeholder"` sentinel checks (simplify to `if (existingDrink.imageFileId)`). Remove dead `else` branch in `updateDrink`. |
-| `env.server.ts` | No change (NODE_ENV in schema is fine) |
-| `[_].reset-db.ts` | No change (legitimate test-only route guard) |
+| `env.server.ts`       | No change (NODE_ENV in schema is fine)                                                                                                                                                               |
+| `[_].reset-db.ts`     | No change (legitimate test-only route guard)                                                                                                                                                         |
 
 ## Test infrastructure changes
 
-| File | Change |
-| --- | --- |
-| `app/test-setup.ts` | Start MSW server with default handlers before all tests, reset after each, close after all |
-| `app/test-handlers.ts` (new) | Default MSW handlers for ImageKit API, ImageKit CDN, and Fastly API |
+| File                         | Change                                                                                     |
+| ---------------------------- | ------------------------------------------------------------------------------------------ |
+| `app/test-setup.ts`          | Start MSW server with default handlers before all tests, reset after each, close after all |
+| `app/test-handlers.ts` (new) | Default MSW handlers for ImageKit API, ImageKit CDN, and Fastly API                        |
 
 ## MSW handler details
 

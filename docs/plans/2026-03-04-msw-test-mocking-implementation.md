@@ -13,11 +13,13 @@
 ### Task 1: Create MSW test handlers
 
 **Files:**
+
 - Create: `app/test-handlers.ts`
 
 **Step 1: Create the handlers file**
 
 The ImageKit SDK hits these endpoints:
+
 - Upload: `POST https://upload.imagekit.io/api/v1/files/upload`
 - Delete: `DELETE https://api.imagekit.io/v1/files/:fileId`
 
@@ -30,9 +32,8 @@ import { http, HttpResponse } from "msw";
 
 // 1x1 transparent WebP (smallest valid WebP)
 const TINY_WEBP = new Uint8Array([
-  0x52, 0x49, 0x46, 0x46, 0x1a, 0x00, 0x00, 0x00, 0x57, 0x45, 0x42, 0x50,
-  0x56, 0x50, 0x38, 0x4c, 0x0d, 0x00, 0x00, 0x00, 0x2f, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x52, 0x49, 0x46, 0x46, 0x1a, 0x00, 0x00, 0x00, 0x57, 0x45, 0x42, 0x50, 0x56, 0x50, 0x38, 0x4c,
+  0x0d, 0x00, 0x00, 0x00, 0x2f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 ]);
 
 let uploadCounter = 0;
@@ -89,6 +90,7 @@ git commit -m "test: add MSW handlers for external services"
 ### Task 2: Wire MSW into vitest setup
 
 **Files:**
+
 - Modify: `app/test-setup.ts`
 
 **Step 1: Update test-setup.ts to start MSW server**
@@ -139,6 +141,7 @@ git commit -m "test: wire MSW server into vitest setup"
 ### Task 3: Clean up imagekit.server.ts
 
 **Files:**
+
 - Modify: `app/modules/drinks/implementation/imagekit.server.ts`
 
 **Step 1: Remove NODE_ENV checks and merge upload functions**
@@ -188,6 +191,7 @@ export async function deleteImage(fileId: string): Promise<void> {
 ```
 
 Key changes:
+
 - `NODE_ENV` import removed
 - `uploadImageOrPlaceholder` merged into `uploadImage` (no conditional logic)
 - `deleteImage` no longer short-circuits in test
@@ -210,6 +214,7 @@ git commit -m "refactor: remove NODE_ENV checks from imagekit module"
 ### Task 4: Clean up mutations.server.ts
 
 **Files:**
+
 - Modify: `app/modules/drinks/implementation/mutations.server.ts`
 
 **Step 1: Update imports and remove test sentinels**
@@ -327,6 +332,7 @@ export async function deleteDrink(existingDrink: Drink): Promise<void> {
 ```
 
 Key changes:
+
 - Import `uploadImage` instead of `uploadImageOrPlaceholder`
 - `"test-placeholder"` sentinel checks removed (simplified to `if (existingDrink.imageFileId)`)
 - Dead `else` branch replaced with `throw new Error` — this is now an invariant violation

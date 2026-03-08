@@ -6,7 +6,7 @@ export default defineConfig({
     environment: "node",
     include: ["app/**/*.test.ts"],
     env: loadEnv("test", process.cwd(), ""),
-    setupFiles: ["./app/test-setup.ts"],
+    setupFiles: ["./test/setup.ts"],
     // Tests share a single SQLite file, so they must run sequentially
     fileParallelism: false,
   },

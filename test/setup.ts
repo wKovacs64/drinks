@@ -2,7 +2,7 @@ import { afterAll, afterEach, beforeAll } from "vitest";
 import { setupServer } from "msw/node";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { getDb } from "#/app/db/client.server";
-import { handlers } from "#/app/test-handlers";
+import { handlers } from "./msw-handlers";
 
 migrate(getDb(), { migrationsFolder: "./drizzle" });
 

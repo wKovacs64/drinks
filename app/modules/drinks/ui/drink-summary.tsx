@@ -2,6 +2,8 @@ import { clsx } from "clsx";
 import { Source, Image, type ImageProps, type SourceProps } from "@unpic/react";
 import type { EnhancedDrink } from "#/app/modules/drinks/implementation/types";
 
+type DrinkSummaryDrink = Pick<EnhancedDrink, "image" | "title" | "ingredients" | "calories">;
+
 export function DrinkSummary({
   className,
   drink,
@@ -55,7 +57,7 @@ export function DrinkSummary({
 
 type DrinkSummaryProps = {
   className?: React.HTMLAttributes<HTMLElement>["className"];
-  drink: EnhancedDrink;
+  drink: DrinkSummaryDrink;
   breakpoints: NonNullable<ImageProps["breakpoints"]>;
   sizes: NonNullable<ImageProps["sizes"]>;
   stacked?: boolean;

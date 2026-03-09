@@ -9,7 +9,7 @@ const FALLBACK_BLUR_DATA_URL =
 /**
  * Generate a blur placeholder data URL for an image.
  * Uses unpic to transform the URL for supported CDN providers (ImageKit, Contentful, etc.).
- * Falls back to a transparent pixel for unrecognized URLs (e.g., placeholder.com in tests).
+ * Falls back to a transparent pixel for unrecognized URLs or fetch failures.
  */
 async function generateBlurDataUrl(imageUrl: string): Promise<string> {
   // unpic transforms URLs for recognized CDN providers

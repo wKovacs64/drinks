@@ -1,5 +1,5 @@
 // Types
-export type { EnhancedDrink } from "./implementation/types";
+export type { EnhancedDrink, DrinkDetailView } from "./implementation/types";
 
 // Validation
 export { drinkFormSchema } from "./implementation/validation";

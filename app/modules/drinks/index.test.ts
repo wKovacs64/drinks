@@ -1,5 +1,7 @@
-import { beforeEach, describe, expect, test } from "vitest";
+import { afterEach, beforeEach, describe, expect, test } from "vitest";
+import { http, HttpResponse } from "msw";
 import { resetAndSeedDatabase } from "#/app/db/reset.server";
+import { server } from "#/test/server";
 import {
   getAllDrinks,
   getPublishedDrinks,
@@ -7,12 +9,17 @@ import {
   getDrinksByTag,
   getAllTags,
   createDrink,
+  updateDrink,
   deleteDrink,
 } from "./index.server";
 import { drinkFormSchema } from "./index";
 
 beforeEach(async () => {
   await resetAndSeedDatabase();
+});
+
+afterEach(() => {
+  server.resetHandlers();
 });
 
 describe("queries", () => {
@@ -66,15 +73,19 @@ describe("mutations", () => {
         rank: 0,
         status: "published",
       },
-      { buffer: Buffer.from("fake-image"), contentType: "image/jpeg" },
+      { buffer: Buffer.from("fake-image") },
     );
 
     expect(drink.title).toBe("Test Cocktail");
     expect(drink.slug).toBe("test-cocktail");
     expect(drink.id).toBeDefined();
+    expect(drink.imageUrl).toBe("https://ik.imagekit.io/test/drinks/test-cocktail.jpg");
+    expect(drink.imageFileId).toMatch(/^test-fileId-\d+$/);
 
     const found = await getDrinkBySlug("test-cocktail");
     expect(found).toBeDefined();
+    expect(found!.imageUrl).toBe("https://ik.imagekit.io/test/drinks/test-cocktail.jpg");
+    expect(found!.imageFileId).toMatch(/^test-fileId-\d+$/);
   });
 
   test("deleteDrink removes the drink", async () => {
@@ -85,6 +96,205 @@ describe("mutations", () => {
 
     const found = await getDrinkBySlug(drinkToDelete.slug);
     expect(found).toBeUndefined();
+  });
+
+  test("updateDrink updates fields without changing the image", async () => {
+    const existingDrink = await getDrinkBySlug("test-margarita");
+    expect(existingDrink).toBeDefined();
+
+    const { drink } = await updateDrink(
+      existingDrink!,
+      {
+        title: "Updated Margarita",
+        slug: "test-margarita",
+        ingredients: ["3 oz tequila", "1.5 oz lime juice"],
+        calories: 250,
+        tags: ["tequila", "updated"],
+        notes: "Updated notes",
+        rank: 5,
+        status: "published",
+      },
+      undefined,
+    );
+
+    expect(drink.title).toBe("Updated Margarita");
+    expect(drink.calories).toBe(250);
+    expect(drink.ingredients).toEqual(["3 oz tequila", "1.5 oz lime juice"]);
+    expect(drink.tags).toEqual(["tequila", "updated"]);
+    expect(drink.notes).toBe("Updated notes");
+    expect(drink.rank).toBe(5);
+    // Image should remain unchanged
+    expect(drink.imageUrl).toBe(existingDrink!.imageUrl);
+    expect(drink.imageFileId).toBe(existingDrink!.imageFileId);
+
+    const found = await getDrinkBySlug("test-margarita");
+    expect(found).toBeDefined();
+    expect(found!.title).toBe("Updated Margarita");
+  });
+
+  test("updateDrink updates with a new image", async () => {
+    const existingDrink = await getDrinkBySlug("test-margarita");
+    expect(existingDrink).toBeDefined();
+
+    const { drink } = await updateDrink(
+      existingDrink!,
+      {
+        title: "Test Margarita",
+        slug: "test-margarita",
+        ingredients: ["2 oz tequila", "1 oz lime juice", "1 oz triple sec"],
+        calories: 200,
+        tags: ["tequila", "citrus"],
+        notes: "A classic test margarita",
+        rank: 10,
+        status: "published",
+      },
+      { buffer: Buffer.from("new-image") },
+    );
+
+    expect(drink.imageUrl).toBe("https://ik.imagekit.io/test/drinks/test-margarita.jpg");
+    expect(drink.imageFileId).toMatch(/^test-fileId-\d+$/);
+    // New image should differ from seed placeholder
+    expect(drink.imageFileId).not.toBe("test-placeholder");
+
+    const found = await getDrinkBySlug("test-margarita");
+    expect(found).toBeDefined();
+    expect(found!.imageUrl).toBe(drink.imageUrl);
+    expect(found!.imageFileId).toBe(drink.imageFileId);
+  });
+
+  test("updateDrink with a slug change", async () => {
+    const existingDrink = await getDrinkBySlug("test-margarita");
+    expect(existingDrink).toBeDefined();
+
+    const { drink } = await updateDrink(
+      existingDrink!,
+      {
+        title: "Updated Margarita",
+        slug: "updated-margarita",
+        ingredients: ["2 oz tequila", "1 oz lime juice", "1 oz triple sec"],
+        calories: 200,
+        tags: ["tequila", "citrus"],
+        notes: "A classic test margarita",
+        rank: 10,
+        status: "published",
+      },
+      undefined,
+    );
+
+    expect(drink.slug).toBe("updated-margarita");
+
+    const foundNew = await getDrinkBySlug("updated-margarita");
+    expect(foundNew).toBeDefined();
+    expect(foundNew!.title).toBe("Updated Margarita");
+
+    const foundOld = await getDrinkBySlug("test-margarita");
+    expect(foundOld).toBeUndefined();
+  });
+
+  test("updateDrink preserves id and createdAt", async () => {
+    const existingDrink = await getDrinkBySlug("test-margarita");
+    expect(existingDrink).toBeDefined();
+
+    const originalId = existingDrink!.id;
+    const originalCreatedAt = existingDrink!.createdAt;
+
+    const { drink } = await updateDrink(
+      existingDrink!,
+      {
+        title: "Modified Margarita",
+        slug: "test-margarita",
+        ingredients: ["2 oz tequila", "1 oz lime juice", "1 oz triple sec"],
+        calories: 200,
+        tags: ["tequila", "citrus"],
+        notes: "A classic test margarita",
+        rank: 10,
+        status: "published",
+      },
+      undefined,
+    );
+
+    expect(drink.id).toBe(originalId);
+    expect(drink.createdAt).toEqual(originalCreatedAt);
+  });
+
+  test("deleteDrink throws when image deletion fails", async () => {
+    server.use(
+      http.delete("https://api.imagekit.io/v1/files/:fileId", () => {
+        return HttpResponse.json(
+          { message: "Internal Server Error" },
+          { status: 500, headers: { "x-should-retry": "false" } },
+        );
+      }),
+    );
+
+    const existingDrink = await getDrinkBySlug("test-margarita");
+    expect(existingDrink).toBeDefined();
+
+    await expect(deleteDrink(existingDrink!)).rejects.toThrow();
+
+    // Drink should still exist since deletion was aborted
+    const found = await getDrinkBySlug("test-margarita");
+    expect(found).toBeDefined();
+  });
+
+  test("updateDrink returns staleImageError when old image deletion fails", async () => {
+    server.use(
+      http.delete("https://api.imagekit.io/v1/files/:fileId", () => {
+        return HttpResponse.json(
+          { message: "Internal Server Error" },
+          { status: 500, headers: { "x-should-retry": "false" } },
+        );
+      }),
+    );
+
+    const existingDrink = await getDrinkBySlug("test-margarita");
+    expect(existingDrink).toBeDefined();
+
+    const { drink, staleImageError } = await updateDrink(
+      existingDrink!,
+      {
+        title: "Test Margarita",
+        slug: "test-margarita",
+        ingredients: ["2 oz tequila", "1 oz lime juice", "1 oz triple sec"],
+        calories: 200,
+        tags: ["tequila", "citrus"],
+        notes: "A classic test margarita",
+        rank: 10,
+        status: "published",
+      },
+      { buffer: Buffer.from("new-image") },
+    );
+
+    expect(staleImageError).toBeDefined();
+    // DB should still be updated with new image
+    expect(drink.imageFileId).not.toBe("test-placeholder");
+    expect(drink.imageUrl).toBe("https://ik.imagekit.io/test/drinks/test-margarita.jpg");
+
+    const found = await getDrinkBySlug("test-margarita");
+    expect(found).toBeDefined();
+    expect(found!.imageFileId).toBe(drink.imageFileId);
+  });
+
+  test("updateDrink returns no staleImageError on success", async () => {
+    const existingDrink = await getDrinkBySlug("test-margarita");
+    expect(existingDrink).toBeDefined();
+
+    const { staleImageError } = await updateDrink(
+      existingDrink!,
+      {
+        title: "Test Margarita",
+        slug: "test-margarita",
+        ingredients: ["2 oz tequila", "1 oz lime juice", "1 oz triple sec"],
+        calories: 200,
+        tags: ["tequila", "citrus"],
+        notes: "A classic test margarita",
+        rank: 10,
+        status: "published",
+      },
+      { buffer: Buffer.from("new-image") },
+    );
+
+    expect(staleImageError).toBeUndefined();
   });
 });
 

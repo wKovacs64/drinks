@@ -1,6 +1,5 @@
 import type { z } from "zod";
 import type { Drink } from "#/app/db/schema";
-import { purgeSearchCache } from "#/app/modules/search/index.server";
 import {
   createDrink as insertDrink,
   updateDrink as patchDrink,
@@ -14,7 +13,11 @@ type DrinkFormData = z.infer<typeof drinkFormSchema>;
 
 type ImageUpload = {
   buffer: Buffer;
-  contentType: string;
+};
+
+export type UpdateDrinkResult = {
+  drink: Drink;
+  staleImageError?: string;
 };
 
 export async function createDrink(data: DrinkFormData, imageUpload: ImageUpload): Promise<Drink> {
@@ -30,7 +33,6 @@ export async function createDrink(data: DrinkFormData, imageUpload: ImageUpload)
   });
 
   try {
-    purgeSearchCache();
     await purgeDrinkCache({ slug: drink.slug, tags: drink.tags });
   } catch (error) {
     console.error("Cache invalidation failed:", error);
@@ -43,9 +45,10 @@ export async function updateDrink(
   existingDrink: Drink,
   data: DrinkFormData,
   imageUpload?: ImageUpload,
-): Promise<Drink> {
+): Promise<UpdateDrinkResult> {
   let imageUrl: string;
   let imageFileId: string;
+  let staleImageError: string | undefined;
 
   if (imageUpload) {
     const result = await uploadImage(imageUpload.buffer, `${data.slug}.jpg`);
@@ -56,7 +59,8 @@ export async function updateDrink(
       try {
         await deleteImage(existingDrink.imageFileId);
       } catch (error) {
-        console.error("Failed to delete old image:", error);
+        staleImageError =
+          error instanceof Error ? error.message : "Unknown error deleting old image";
       }
     }
   } else {
@@ -71,7 +75,6 @@ export async function updateDrink(
   });
 
   try {
-    purgeSearchCache();
     const allTags = [...new Set([...existingDrink.tags, ...data.tags])];
     await purgeDrinkCache({ slug: data.slug, tags: allTags });
     if (existingDrink.slug !== data.slug) {
@@ -81,22 +84,17 @@ export async function updateDrink(
     console.error("Cache invalidation failed:", error);
   }
 
-  return drink;
+  return { drink, staleImageError };
 }
 
 export async function deleteDrink(existingDrink: Drink): Promise<void> {
   if (existingDrink.imageFileId) {
-    try {
-      await deleteImage(existingDrink.imageFileId);
-    } catch (error) {
-      console.error("Failed to delete drink image:", error);
-    }
+    await deleteImage(existingDrink.imageFileId);
   }
 
   await removeDrink(existingDrink.id);
 
   try {
-    purgeSearchCache();
     await purgeDrinkCache({ slug: existingDrink.slug, tags: existingDrink.tags });
   } catch (error) {
     console.error("Cache invalidation failed:", error);

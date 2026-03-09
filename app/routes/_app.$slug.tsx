@@ -5,7 +5,7 @@ import { transformUrl } from "unpic";
 import { getLoaderDataForHandle } from "#/app/core/utils";
 import {
   getDrinkBySlug,
-  markdownToHtml,
+  withRenderedNotes,
   withPlaceholderImages,
 } from "#/app/modules/drinks/index.server";
 import { Glass, DrinkSummary, DrinkDetails } from "#/app/modules/drinks";
@@ -36,16 +36,13 @@ export async function loader({ params }: Route.LoaderArgs) {
   invariantResponse(sqliteDrink.status === "published", "Drink not found", notFoundHeaders);
 
   const [enhancedDrink] = await withPlaceholderImages([sqliteDrink]);
-
-  if (enhancedDrink.notes) {
-    enhancedDrink.notes = markdownToHtml(enhancedDrink.notes);
-  }
+  const drinkDetailView = withRenderedNotes(enhancedDrink);
 
   return data(
-    { drink: enhancedDrink },
+    { drink: drinkDetailView },
     {
       headers: {
-        "Surrogate-Key": `all ${enhancedDrink.slug}`,
+        "Surrogate-Key": `all ${drinkDetailView.slug}`,
         "Cache-Control": cacheHeader({
           public: true,
           maxAge: "30sec",

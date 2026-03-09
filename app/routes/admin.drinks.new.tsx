@@ -1,6 +1,7 @@
 import { redirect, href, data } from "react-router";
 import { getSession, commitSession } from "#/app/modules/auth/index.server";
 import { createDrink, parseImageUpload } from "#/app/modules/drinks/index.server";
+import { purgeSearchCache } from "#/app/modules/search/index.server";
 import { DrinkForm, drinkFormSchema } from "#/app/modules/drinks";
 import type { Route } from "./+types/admin.drinks.new";
 
@@ -32,6 +33,7 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   await createDrink(result.data, imageUpload);
+  purgeSearchCache();
 
   const session = await getSession(request.headers.get("Cookie"));
   session.flash("toast", { kind: "success" as const, message: `${result.data.title} created!` });

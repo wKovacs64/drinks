@@ -1,6 +1,7 @@
 import { marked } from "marked";
+import type { DrinkDetailView, EnhancedDrink } from "./types";
 
-export function markdownToHtml(markdownString: string) {
+function markdownToHtml(markdownString: string) {
   // https://github.com/markedjs/marked/issues/655#issuecomment-383226346
   const renderer = new marked.Renderer();
   const linkRenderer = renderer.link;
@@ -14,4 +15,12 @@ export function markdownToHtml(markdownString: string) {
   // Type assertion here because marked types aren't great and it "could" be a
   // Promise (it's not).
   return marked(markdownString, { renderer }) as string;
+}
+
+export function withRenderedNotes(drink: EnhancedDrink): DrinkDetailView {
+  const { notes, ...rest } = drink;
+  return {
+    ...rest,
+    notesHtml: notes ? markdownToHtml(notes) : null,
+  };
 }

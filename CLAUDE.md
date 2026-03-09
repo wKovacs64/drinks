@@ -23,10 +23,12 @@ _Craft Cocktail Gallery_
 
 ## Deep Module Structure
 
-- Domain modules live in `app/modules/` with `index.ts` as the public API
-- `implementation/` directories are internal — never import from them directly
+- Domain modules live in `app/modules/` with two public APIs: `index.ts` (client) and
+  `index.server.ts` (server)
+- Everything else inside a module (`implementation/`, `ui/`, etc.) is internal — routes and other
+  modules must not import from these paths directly (enforced by ESLint)
+- Files within the same module may freely import from each other
 - Tests (`index.test.ts`) target the public API only
-- Routes should only import from module index files
 
 ## Code Style
 

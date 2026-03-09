@@ -27,7 +27,6 @@ export async function getDrinkBySlug(slug: Drink["slug"]): Promise<Drink | undef
 
 export async function getDrinksByTag(tag: string): Promise<Drink[]> {
   const db = getDb();
-  // Query drinks where tags JSON array contains the tag
   const publishedDrinks = await db.query.drinks.findMany({
     where: eq(drinks.status, "published"),
     orderBy: [desc(drinks.rank), desc(drinks.createdAt)],

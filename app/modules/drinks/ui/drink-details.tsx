@@ -1,17 +1,17 @@
 import { kebabCase } from "lodash-es";
 import { href } from "react-router";
-import type { EnhancedDrink } from "#/app/modules/drinks/implementation/types";
+import type { DrinkDetailView } from "#/app/modules/drinks/implementation/types";
 import { Tag } from "./tag";
 import { TagLink } from "./tag-link";
 
-export function DrinkDetails({ drink }: { drink: EnhancedDrink }) {
+export function DrinkDetails({ drink }: { drink: DrinkDetailView }) {
   return (
     <section className="bg-gray-100 p-8 text-xl leading-tight xl:leading-snug">
-      {drink.notes ? (
+      {drink.notesHtml ? (
         <div
           className="[&_a]:ease-default mb-4 lg:mb-8 [&_a]:border-b [&_a]:border-solid [&_a]:border-orange-400 [&_a]:transition-shadow [&_a]:hover:border-b-yellow-900 [&_a]:focus:border-b-yellow-900 [&_a]:focus-visible:ring-3 [&_a]:focus-visible:outline-hidden [&_h1]:mb-4 [&_h2]:mb-4 [&_h3]:mb-4 [&_h4]:mb-4 [&_h5]:mb-4 [&_h6]:mb-4 [&_p]:my-5 [&_ul]:ml-4 [&_ul]:list-[square] [&_ul]:pl-4 [&_ul]:leading-tight [&_ul>li]:mb-5"
           dangerouslySetInnerHTML={{
-            __html: drink.notes,
+            __html: drink.notesHtml,
           }}
         />
       ) : null}

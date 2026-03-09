@@ -7,3 +7,7 @@ export type EnhancedDrink = {
   notes: string | null;
   tags: string[];
 };
+
+export type DrinkDetailView = Omit<EnhancedDrink, "notes"> & {
+  notesHtml: string | null;
+};

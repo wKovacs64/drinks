@@ -1,4 +1,4 @@
-import type { NewUser, NewDrink } from "#/app/db/schema";
+import type { NewUser, NewDrink } from "#/app/db";
 
 // 1x1 transparent PNG as a data URI to avoid external network requests in tests
 const TEST_IMAGE_URL =

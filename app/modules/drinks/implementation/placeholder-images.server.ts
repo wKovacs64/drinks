@@ -1,5 +1,5 @@
 import { transformUrl } from "unpic";
-import type { Drink } from "#/app/db/schema";
+import type { Drink } from "#/app/db";
 import type { EnhancedDrink } from "./types";
 
 // Transparent 1x1 pixel GIF as fallback when blur placeholder generation fails

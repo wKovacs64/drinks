@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
-import { getDb } from "#/app/db/client.server";
-import { users, type User } from "#/app/db/schema";
+import type { User } from "#/app/db";
+import { getDb, users } from "#/app/db/index.server";
 
 export async function getUserById(id: User["id"]): Promise<User | undefined> {
   const db = getDb();

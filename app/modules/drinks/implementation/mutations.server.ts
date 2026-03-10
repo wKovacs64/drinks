@@ -1,5 +1,5 @@
 import type { z } from "zod";
-import type { Drink } from "#/app/db/schema";
+import type { Drink } from "#/app/db";
 import {
   createDrink as insertDrink,
   updateDrink as patchDrink,

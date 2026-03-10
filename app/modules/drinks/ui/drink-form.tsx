@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { Form, useNavigation, useSubmit } from "react-router";
 import { clsx } from "clsx";
 import slugify from "@sindresorhus/slugify";
-import type { Drink } from "#/app/db/schema";
+import type { Drink } from "#/app/db";
 import { ImageCrop, type ImageCropHandle } from "./image-crop";
 
 const STATUS_OPTIONS: { value: Drink["status"]; label: string; activeClass: string }[] = [

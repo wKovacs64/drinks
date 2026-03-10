@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import { http, HttpResponse } from "msw";
-import { resetAndSeedDatabase } from "#/app/db/reset.server";
+import { resetAndSeedDatabase } from "#/app/db/index.server";
 import { server } from "#/test/server";
 import {
   getAllDrinks,

@@ -1,7 +1,7 @@
 import { eq, desc } from "drizzle-orm";
 import { createId } from "@paralleldrive/cuid2";
-import { getDb } from "#/app/db/client.server";
-import { drinks, type Drink, type NewDrink } from "#/app/db/schema";
+import type { Drink, NewDrink } from "#/app/db";
+import { getDb, drinks } from "#/app/db/index.server";
 
 export async function getAllDrinks(): Promise<Drink[]> {
   const db = getDb();

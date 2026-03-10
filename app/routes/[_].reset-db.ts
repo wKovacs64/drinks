@@ -1,6 +1,6 @@
 import { invariantResponse } from "@epic-web/invariant";
 import { getEnvVars } from "#/app/utils/env.server";
-import { resetAndSeedDatabase } from "#/app/db/reset.server";
+import { resetAndSeedDatabase } from "#/app/db/index.server";
 import type { Route } from "./+types/[_].reset-db";
 
 const { NODE_ENV } = getEnvVars();

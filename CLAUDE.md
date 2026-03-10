@@ -32,7 +32,8 @@ _Craft Cocktail Gallery_
 
 ## Code Style
 
-- Native subpath imports (`#` maps to project root)
+- Native subpath imports (`#` maps to project root) for cross-module references; relative imports
+  (`./`) for intra-module references
 - React Router `./+types` imports should always be last in the import list
 - Strict types
   - Avoid type assertions when possible, prefer actual type identification/runtime checks to narrow

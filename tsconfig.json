@@ -17,6 +17,7 @@
     "paths": {
       "#/*": ["./*"]
     },
+    "allowImportingTsExtensions": true,
     "skipLibCheck": true,
     "verbatimModuleSyntax": true,
     "noEmit": true

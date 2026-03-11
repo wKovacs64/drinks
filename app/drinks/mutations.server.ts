@@ -17,10 +17,7 @@ export type UpdateDrinkResult = {
   staleImageError?: string;
 };
 
-export async function createDrink(
-  data: DrinkFormData,
-  imageUpload: ImageUpload,
-): Promise<Drink> {
+export async function createDrink(data: DrinkFormData, imageUpload: ImageUpload): Promise<Drink> {
   const { url: imageUrl, fileId: imageFileId } = await uploadImage(
     imageUpload.buffer,
     `${data.slug}.jpg`,

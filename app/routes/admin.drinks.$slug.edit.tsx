@@ -1,7 +1,7 @@
 import { redirect, href, data } from "react-router";
 import { invariantResponse } from "@epic-web/invariant";
 import { getDrinkBySlug, updateDrink } from "#/app/models/drink.server";
-import { uploadImageOrPlaceholder, deleteImage } from "#/app/utils/imagekit.server";
+import { uploadImage, deleteImage } from "#/app/utils/imagekit.server";
 import { DrinkForm } from "#/app/admin/drink-form";
 import { parseImageUpload } from "#/app/utils/parse-image-upload.server";
 import { purgeSearchCache } from "#/app/search/cache.server";
@@ -42,8 +42,6 @@ export async function action({ request, params }: Route.ActionArgs) {
     return data({ errors: [imageError] }, { status: 400 });
   }
 
-  const existingImageUrl = String(formData.get("existingImageUrl") ?? "");
-
   const result = drinkFormSchema.safeParse(Object.fromEntries(formData));
 
   if (!result.success) {
@@ -54,26 +52,20 @@ export async function action({ request, params }: Route.ActionArgs) {
   let imageFileId: string;
 
   if (imageUpload) {
-    const uploadResult = await uploadImageOrPlaceholder(
-      imageUpload.buffer,
-      `${result.data.slug}.jpg`,
-    );
+    const uploadResult = await uploadImage(imageUpload.buffer, `${result.data.slug}.jpg`);
     imageUrl = uploadResult.url;
     imageFileId = uploadResult.fileId;
 
-    if (drink.imageFileId && drink.imageFileId !== "test-placeholder") {
+    if (drink.imageFileId) {
       try {
         await deleteImage(drink.imageFileId);
       } catch (error) {
         console.error("Failed to delete old image:", error);
       }
     }
-  } else if (existingImageUrl) {
+  } else {
     imageUrl = drink.imageUrl;
     imageFileId = drink.imageFileId;
-  } else {
-    imageUrl = `https://via.placeholder.com/400x400.png?text=${encodeURIComponent(result.data.slug)}`;
-    imageFileId = "test-placeholder";
   }
 
   // Collect old tags for cache purge (in case they changed)

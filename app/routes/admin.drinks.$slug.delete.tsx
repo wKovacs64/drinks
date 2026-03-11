@@ -15,7 +15,7 @@ export async function action({ request, params }: Route.ActionArgs) {
   const drink = await getDrinkBySlug(params.slug);
   invariantResponse(drink, "Drink not found", { status: 404 });
 
-  if (drink.imageFileId && drink.imageFileId !== "test-placeholder") {
+  if (drink.imageFileId) {
     try {
       await deleteImage(drink.imageFileId);
     } catch (error) {

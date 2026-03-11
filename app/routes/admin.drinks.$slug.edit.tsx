@@ -1,6 +1,6 @@
 import { redirect, href, data } from "react-router";
 import { invariantResponse } from "@epic-web/invariant";
-import { getDrinkBySlug, updateDrink } from "#/app/models/drink.server";
+import { getDrinkBySlug, updateDrinkRow } from "#/app/models/drink.server";
 import { uploadImage, deleteImage } from "#/app/utils/imagekit.server";
 import { DrinkForm } from "#/app/admin/drink-form";
 import { parseImageUpload } from "#/app/utils/parse-image-upload.server";
@@ -71,7 +71,7 @@ export async function action({ request, params }: Route.ActionArgs) {
   // Collect old tags for cache purge (in case they changed)
   const oldTags = drink.tags;
 
-  await updateDrink(drink.id, {
+  await updateDrinkRow(drink.id, {
     ...result.data,
     imageUrl,
     imageFileId,

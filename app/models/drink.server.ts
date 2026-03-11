@@ -53,7 +53,7 @@ export async function getAllTags(): Promise<string[]> {
   return Array.from(tagSet).sort();
 }
 
-export async function createDrink(
+export async function insertDrinkRow(
   data: Omit<NewDrink, "id" | "createdAt" | "updatedAt">,
 ): Promise<Drink> {
   const db = getDb();
@@ -68,7 +68,7 @@ export async function createDrink(
   return drink;
 }
 
-export async function updateDrink(
+export async function updateDrinkRow(
   id: Drink["id"],
   data: Partial<Omit<NewDrink, "id" | "createdAt">>,
 ): Promise<Drink> {
@@ -85,7 +85,7 @@ export async function updateDrink(
   return drink;
 }
 
-export async function deleteDrink(id: Drink["id"]): Promise<void> {
+export async function deleteDrinkRow(id: Drink["id"]): Promise<void> {
   const db = getDb();
   await db.delete(drinks).where(eq(drinks.id, id));
 }

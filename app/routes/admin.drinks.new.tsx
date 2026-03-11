@@ -1,6 +1,6 @@
 import { redirect, href, data } from "react-router";
 import { getSession, commitSession } from "#/app/auth/session.server";
-import { createDrink } from "#/app/models/drink.server";
+import { insertDrinkRow } from "#/app/models/drink.server";
 import { uploadImage } from "#/app/utils/imagekit.server";
 import { DrinkForm } from "#/app/admin/drink-form";
 import { parseImageUpload } from "#/app/utils/parse-image-upload.server";
@@ -40,7 +40,7 @@ export async function action({ request }: Route.ActionArgs) {
   const imageUrl = uploadResult.url;
   const imageFileId = uploadResult.fileId;
 
-  const drink = await createDrink({
+  const drink = await insertDrinkRow({
     ...result.data,
     imageUrl,
     imageFileId,

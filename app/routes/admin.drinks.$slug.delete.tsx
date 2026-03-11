@@ -1,6 +1,6 @@
 import { redirect, data, href } from "react-router";
 import { invariantResponse } from "@epic-web/invariant";
-import { getDrinkBySlug, deleteDrink } from "#/app/models/drink.server";
+import { getDrinkBySlug, deleteDrinkRow } from "#/app/models/drink.server";
 import { deleteImage } from "#/app/utils/imagekit.server";
 import { purgeSearchCache } from "#/app/search/cache.server";
 import { purgeDrinkCache } from "#/app/utils/fastly.server";
@@ -23,7 +23,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     }
   }
 
-  await deleteDrink(drink.id);
+  await deleteDrinkRow(drink.id);
 
   try {
     purgeSearchCache();

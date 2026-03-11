@@ -1,7 +1,7 @@
 import { redirect, href, data } from "react-router";
 import { getSession, commitSession } from "#/app/auth/session.server";
 import { createDrink } from "#/app/models/drink.server";
-import { uploadImageOrPlaceholder } from "#/app/utils/imagekit.server";
+import { uploadImage } from "#/app/utils/imagekit.server";
 import { DrinkForm } from "#/app/admin/drink-form";
 import { parseImageUpload } from "#/app/utils/parse-image-upload.server";
 import { purgeSearchCache } from "#/app/search/cache.server";
@@ -36,10 +36,7 @@ export async function action({ request }: Route.ActionArgs) {
     return data({ errors: ["Image is required"] }, { status: 400 });
   }
 
-  const uploadResult = await uploadImageOrPlaceholder(
-    imageUpload.buffer,
-    `${result.data.slug}.jpg`,
-  );
+  const uploadResult = await uploadImage(imageUpload.buffer, `${result.data.slug}.jpg`);
   const imageUrl = uploadResult.url;
   const imageFileId = uploadResult.fileId;
 

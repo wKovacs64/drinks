@@ -1,5 +1,6 @@
 import MiniSearch from "minisearch";
 import type { Drink } from "#/app/db/schema";
+import { getSearchData } from "./cache.server";
 
 type SearchableDrink = {
   id: string;
@@ -33,7 +34,11 @@ export function createSearchIndex(drinks: Drink[]): MiniSearch<SearchableDrink> 
   return miniSearch;
 }
 
-export function searchDrinks(searchIndex: MiniSearch<SearchableDrink>, query: string): string[] {
+export async function searchDrinks(query: string): Promise<Drink[]> {
+  const { allDrinks, searchIndex } = await getSearchData();
   const results = searchIndex.search(query, { combineWith: "AND" });
-  return results.map((result) => result.slug);
+
+  return results
+    .map((result) => allDrinks.find((drink) => drink.slug === result.slug))
+    .filter((drink): drink is Drink => Boolean(drink));
 }

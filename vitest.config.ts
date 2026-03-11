@@ -1,3 +1,4 @@
+// TODO: add a `test` job to the CI workflow
 import { loadEnv } from "vite";
 import { defineConfig } from "vitest/config";
 

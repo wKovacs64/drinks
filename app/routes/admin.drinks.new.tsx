@@ -1,11 +1,8 @@
 import { redirect, href, data } from "react-router";
 import { getSession, commitSession } from "#/app/auth/session.server";
-import { insertDrinkRow } from "#/app/models/drink.server";
-import { uploadImage } from "#/app/utils/imagekit.server";
-import { DrinkForm } from "#/app/admin/drink-form";
+import { createDrink } from "#/app/drinks/mutations.server";
 import { parseImageUpload } from "#/app/utils/parse-image-upload.server";
-import { purgeSearchCache } from "#/app/search/cache.server";
-import { purgeDrinkCache } from "#/app/utils/fastly.server";
+import { DrinkForm } from "#/app/admin/drink-form";
 import { drinkFormSchema } from "#/app/validation/drink";
 import type { Route } from "./+types/admin.drinks.new";
 
@@ -36,23 +33,7 @@ export async function action({ request }: Route.ActionArgs) {
     return data({ errors: ["Image is required"] }, { status: 400 });
   }
 
-  const uploadResult = await uploadImage(imageUpload.buffer, `${result.data.slug}.jpg`);
-  const imageUrl = uploadResult.url;
-  const imageFileId = uploadResult.fileId;
-
-  const drink = await insertDrinkRow({
-    ...result.data,
-    imageUrl,
-    imageFileId,
-  });
-
-  try {
-    purgeSearchCache();
-    await purgeDrinkCache({ slug: drink.slug, tags: drink.tags });
-  } catch (error) {
-    // Cache invalidation failures shouldn't block the request
-    console.error("Cache invalidation failed:", error);
-  }
+  await createDrink(result.data, imageUpload);
 
   const session = await getSession(request.headers.get("Cookie"));
   session.flash("toast", { kind: "success" as const, message: `${result.data.title} created!` });

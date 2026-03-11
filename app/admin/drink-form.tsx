@@ -123,9 +123,6 @@ export function DrinkForm({
           <ImageCrop ref={imageCropRef} existingImageUrl={drink?.imageUrl} />
         </div>
         {imageRequired ? <p className="mt-1 text-red-400">Image is required</p> : null}
-        {drink?.imageUrl ? (
-          <input type="hidden" name="existingImageUrl" value={drink.imageUrl} />
-        ) : null}
       </div>
 
       <div>

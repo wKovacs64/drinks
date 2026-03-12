@@ -14,10 +14,7 @@ type UpdateDrinkResult = {
 };
 
 export async function createDrink(data: DrinkFormData, imageBuffer: Buffer): Promise<Drink> {
-  const { url: imageUrl, fileId: imageFileId } = await uploadImage(
-    imageBuffer,
-    `${data.slug}.jpg`,
-  );
+  const { url: imageUrl, fileId: imageFileId } = await uploadImage(imageBuffer, `${data.slug}.jpg`);
 
   const drink = await insertDrinkRow({
     ...data,

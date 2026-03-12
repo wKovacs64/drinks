@@ -4,10 +4,8 @@ import { defaultPageDescription, defaultPageTitle } from "#/app/core/config";
 import { getEnvVars } from "#/app/utils/env.server";
 import { withPlaceholderImages } from "#/app/utils/placeholder-images.server";
 import { DrinkList } from "#/app/drinks/drink-list";
-import type { Drink } from "#/app/db/schema";
 import type { AppRouteHandle } from "#/app/types";
 import { searchDrinks } from "#/app/search/minisearch.server";
-import { getSearchData } from "#/app/search/cache.server";
 import { NoDrinksFound } from "./no-drinks-found";
 import { NoSearchTerm } from "./no-search-term";
 import { SearchForm } from "./search-form";
@@ -40,8 +38,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     );
   }
 
-  const { allDrinks, searchIndex } = await getSearchData();
-  const slugs = searchDrinks(searchIndex, q);
+  const drinks = await searchDrinks(q);
 
   const searchResultsCacheHeaders = {
     "Surrogate-Key": "search all",
@@ -54,16 +51,12 @@ export async function loader({ request }: Route.LoaderArgs) {
     }),
   };
 
-  if (slugs.length === 0) {
+  if (drinks.length === 0) {
     return data(
       { drinks: [], socialImageUrl: SITE_IMAGE_URL, socialImageAlt: SITE_IMAGE_ALT },
       { headers: searchResultsCacheHeaders },
     );
   }
-
-  const drinks = slugs
-    .map((slug) => allDrinks.find((drink) => drink.slug === slug))
-    .filter((drink): drink is Drink => Boolean(drink));
 
   const drinksWithPlaceholderImages = await withPlaceholderImages(drinks);
 

@@ -22,12 +22,14 @@ export async function action({ request, params }: Route.ActionArgs) {
       kind: "error" as const,
       message: `Failed to delete ${drink.title} — please try again`,
     });
-    return data(
-      { success: false },
-      { status: 500, headers: { "Set-Cookie": await commitSession(session) } },
-    );
+    return data(null, {
+      status: 500,
+      headers: { "Set-Cookie": await commitSession(session) },
+    });
   }
 
   session.flash("toast", { kind: "success" as const, message: `${drink.title} deleted!` });
-  return data({ success: true }, { headers: { "Set-Cookie": await commitSession(session) } });
+  return redirect(href("/admin/drinks"), {
+    headers: { "Set-Cookie": await commitSession(session) },
+  });
 }

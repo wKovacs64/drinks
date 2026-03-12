@@ -20,9 +20,12 @@ export async function action({ request, params }: Route.ActionArgs) {
   } catch {
     session.flash("toast", {
       kind: "error" as const,
-      message: `Failed to delete ${drink.title} — image cleanup failed`,
+      message: `Failed to delete ${drink.title} — please try again`,
     });
-    return data({ success: false }, { headers: { "Set-Cookie": await commitSession(session) } });
+    return data(
+      { success: false },
+      { status: 500, headers: { "Set-Cookie": await commitSession(session) } },
+    );
   }
 
   session.flash("toast", { kind: "success" as const, message: `${drink.title} deleted!` });

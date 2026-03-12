@@ -46,7 +46,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     return data({ errors: result.error.issues.map((issue) => issue.message) }, { status: 400 });
   }
 
-  const { staleImageError } = await updateDrink(drink, result.data, imageUpload);
+  const { staleImageError } = await updateDrink(drink, result.data, imageUpload?.buffer);
 
   const session = await getSession(request.headers.get("Cookie"));
 

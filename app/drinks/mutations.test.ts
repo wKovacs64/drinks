@@ -71,7 +71,7 @@ describe("mutations", () => {
         rank: 0,
         status: "published",
       },
-      { buffer: Buffer.from("fake-image") },
+      Buffer.from("fake-image"),
     );
 
     expect(drink.title).toBe("Test Cocktail");
@@ -137,7 +137,7 @@ describe("mutations", () => {
         rank: 10,
         status: "published",
       },
-      { buffer: Buffer.from("new-image") },
+      Buffer.from("new-image"),
     );
 
     expect(drink.imageUrl).toBe("https://ik.imagekit.io/test/drinks/test-margarita.jpg");
@@ -239,7 +239,7 @@ describe("mutations", () => {
         rank: 10,
         status: "published",
       },
-      { buffer: Buffer.from("new-image") },
+      Buffer.from("new-image"),
     );
 
     expect(staleImageError).toBeDefined();
@@ -264,7 +264,7 @@ describe("mutations", () => {
         rank: 10,
         status: "published",
       },
-      { buffer: Buffer.from("new-image") },
+      Buffer.from("new-image"),
     );
 
     expect(staleImageError).toBeUndefined();

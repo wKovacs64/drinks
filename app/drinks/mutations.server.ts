@@ -8,18 +8,14 @@ import type { drinkFormSchema } from "#/app/validation/drink";
 
 type DrinkFormData = z.infer<typeof drinkFormSchema>;
 
-type ImageUpload = {
-  buffer: Buffer;
-};
-
-export type UpdateDrinkResult = {
+type UpdateDrinkResult = {
   drink: Drink;
   staleImageError?: string;
 };
 
-export async function createDrink(data: DrinkFormData, imageUpload: ImageUpload): Promise<Drink> {
+export async function createDrink(data: DrinkFormData, imageBuffer: Buffer): Promise<Drink> {
   const { url: imageUrl, fileId: imageFileId } = await uploadImage(
-    imageUpload.buffer,
+    imageBuffer,
     `${data.slug}.jpg`,
   );
 
@@ -42,14 +38,14 @@ export async function createDrink(data: DrinkFormData, imageUpload: ImageUpload)
 export async function updateDrink(
   existingDrink: Drink,
   data: DrinkFormData,
-  imageUpload?: ImageUpload,
+  imageBuffer?: Buffer,
 ): Promise<UpdateDrinkResult> {
   let imageUrl: string;
   let imageFileId: string;
   let staleImageError: string | undefined;
 
-  if (imageUpload) {
-    const result = await uploadImage(imageUpload.buffer, `${data.slug}.jpg`);
+  if (imageBuffer) {
+    const result = await uploadImage(imageBuffer, `${data.slug}.jpg`);
     imageUrl = result.url;
     imageFileId = result.fileId;
 

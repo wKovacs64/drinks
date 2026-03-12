@@ -33,7 +33,7 @@ export async function action({ request }: Route.ActionArgs) {
     return data({ errors: ["Image is required"] }, { status: 400 });
   }
 
-  await createDrink(result.data, imageUpload);
+  await createDrink(result.data, imageUpload.buffer);
 
   const session = await getSession(request.headers.get("Cookie"));
   session.flash("toast", { kind: "success" as const, message: `${result.data.title} created!` });

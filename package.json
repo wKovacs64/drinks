@@ -107,7 +107,7 @@
     "vite-plugin-babel": "1.5.1",
     "vite-plugin-icons-spritesheet": "3.0.1",
     "vite-plugin-static-copy": "3.2.0",
-    "vitest": "4.0.18"
+    "vitest": "4.1.0"
   },
   "engines": {
     "node": ">=24"

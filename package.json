@@ -57,7 +57,7 @@
     "@remix-run/form-data-parser": "0.15.0",
     "@sindresorhus/slugify": "3.0.0",
     "@unpic/react": "1.0.2",
-    "better-sqlite3": "12.6.2",
+    "better-sqlite3": "12.8.0",
     "clsx": "2.1.1",
     "cross-env": "10.1.0",
     "drizzle-kit": "0.31.9",

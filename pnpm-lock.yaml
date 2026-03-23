@@ -90,8 +90,8 @@ importers:
         specifier: 7.13.1
         version: 7.13.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       react-router-hono-server:
-        specifier: 2.25.1
-        version: 2.25.1(@hono/node-server@1.19.7(hono@4.11.7))(@react-router/dev@7.13.1(@react-router/serve@7.13.1(react-router@7.13.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(typescript@5.9.3))(@types/node@25.0.1)(jiti@2.6.1)(lightningcss@1.31.1)(react-router@7.13.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(tsx@4.21.0)(typescript@5.9.3)(vite@7.3.1(@types/node@25.0.1)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0)))(@types/react@19.2.14)(hono@4.11.7)(react-router@7.13.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(vite@7.3.1(@types/node@25.0.1)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0))
+        specifier: 2.25.2
+        version: 2.25.2(@hono/node-server@1.19.11(hono@4.11.7))(@react-router/dev@7.13.1(@react-router/serve@7.13.1(react-router@7.13.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(typescript@5.9.3))(@types/node@25.0.1)(jiti@2.6.1)(lightningcss@1.31.1)(react-router@7.13.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(tsx@4.21.0)(typescript@5.9.3)(vite@7.3.1(@types/node@25.0.1)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0)))(@types/react@19.2.14)(hono@4.11.7)(react-router@7.13.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(vite@7.3.1(@types/node@25.0.1)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0))
       remix-auth:
         specifier: 4.2.0
         version: 4.2.0
@@ -853,8 +853,8 @@ packages:
   '@fontsource/source-sans-3@5.2.9':
     resolution: {integrity: sha512-u3ymIq4rfmCCyB9MEw/sFR5lPVJ1yTNXmIMbUz+9kVCFIHvNtfzXOEBuvkg3Tk0zhmioPeJ28ZK5smZ7TurezQ==}
 
-  '@hono/node-server@1.19.7':
-    resolution: {integrity: sha512-vUcD0uauS7EU2caukW8z5lJKtoGMokxNbJtBiwHgpqxEXokaHCBkQUmCHhjFB1VUTWdqj25QoMkMKzgjq+uhrw==}
+  '@hono/node-server@1.19.11':
+    resolution: {integrity: sha512-dr8/3zEaB+p0D2n/IUrlPF1HZm586qgJNXK1a9fhg/PzdtkK7Ksd5l312tJX2yBuALqDYBlG20QEbayqPyxn+g==}
     engines: {node: '>=18.14.1'}
     peerDependencies:
       hono: ^4
@@ -866,8 +866,8 @@ packages:
       '@hono/node-server': ^1.19.2
       hono: ^4.6.0
 
-  '@hono/vite-dev-server@0.25.0':
-    resolution: {integrity: sha512-4j5rs7yUTOObU2/yCEHeWbf3C8m95SD9lhdUUE6CJ462Emp9vS94yiza2dsA8+ly5pdaIQW0cd4nhNVcwYL5tA==}
+  '@hono/vite-dev-server@0.25.1':
+    resolution: {integrity: sha512-H6EqoPtCV+uH1fu8nKyRy5Wh3LU012QxloEYMlUcyMjjEfVFiRXPjHx/0TQiiRi140Vu8San5A4XQWyElKFKaw==}
     engines: {node: '>=18.14.1'}
     peerDependencies:
       hono: '*'
@@ -3152,9 +3152,6 @@ packages:
     resolution: {integrity: sha512-oRjTw/97aTBN0RHbYCdtF1MQfvusSIBQM0IZEgzl6426+8jSC0nF1a/GmnVLpfB9yyr6g6FTqWqiZVbxrtaCIg==}
     engines: {node: 18 || 20 || >=22}
 
-  minimatch@3.1.2:
-    resolution: {integrity: sha512-J7p63hRiAjw1NDEww1W7i37+ByIrOWO5XQQAzZ3VOcL0PNybwpfmV/N05zFAzwQ9USyEcX6t3UO+K5aqBQOIHw==}
-
   minimatch@3.1.5:
     resolution: {integrity: sha512-VgjWUsnnT6n+NUk6eZq77zeFdpW2LWDzP6zFGrCbHXiYNul5Dzqk2HHQ5uFH2DNW5Xbp8+jVzaeNt94ssEEl4w==}
 
@@ -3479,20 +3476,20 @@ packages:
     resolution: {integrity: sha512-jCvmsr+1IUSMUyzOkRcvnVbX3ZYC6g9TDrDbFuFmRDq7PD4yaGbLKNQL6k2jnArV8hjYxh7hVhAZB6s9HDGpZA==}
     engines: {node: '>=0.10.0'}
 
-  react-router-hono-server@2.25.1:
-    resolution: {integrity: sha512-zJT8C3YG9BHVDdfN1mpGy6wH4NqiEQFiznwlUIooqYLzOE/ZleZvo2c5+HbadZl/V69Ec+3UAE45DlRb3d6FyQ==}
+  react-router-hono-server@2.25.2:
+    resolution: {integrity: sha512-hNgPx9lB8lTtlJAt7GWIB/S3LIStQTi4Y24ZcX3kCw05McDhUwEFxnN5WIK+F5j1iQxLgkX2vnkjsWdS7zc7Ng==}
     engines: {node: '>=22.20.0'}
     hasBin: true
     peerDependencies:
       '@cloudflare/workers-types': ^4.20250317.0
-      '@hono/node-server': ^1.19.0
+      '@hono/node-server': ^1.19.11
       '@react-router/dev': ^7.9.0
       '@types/react': ^19.0.0
-      hono: ^4.11.0
+      hono: ^4.12.8
       miniflare: ^3.20241205.0
-      react-router: ^7.9.0
-      vite: ^7.0.0
-      wrangler: ^4.2.0
+      react-router: ^7.13.1
+      vite: '>=7.3.1'
+      wrangler: ^4.73.0
     peerDependenciesMeta:
       '@cloudflare/workers-types':
         optional: true
@@ -4707,22 +4704,22 @@ snapshots:
 
   '@fontsource/source-sans-3@5.2.9': {}
 
-  '@hono/node-server@1.19.7(hono@4.11.7)':
+  '@hono/node-server@1.19.11(hono@4.11.7)':
     dependencies:
       hono: 4.11.7
 
-  '@hono/node-ws@1.3.0(@hono/node-server@1.19.7(hono@4.11.7))(hono@4.11.7)':
+  '@hono/node-ws@1.3.0(@hono/node-server@1.19.11(hono@4.11.7))(hono@4.11.7)':
     dependencies:
-      '@hono/node-server': 1.19.7(hono@4.11.7)
+      '@hono/node-server': 1.19.11(hono@4.11.7)
       hono: 4.11.7
       ws: 8.18.3
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
 
-  '@hono/vite-dev-server@0.25.0(hono@4.11.7)':
+  '@hono/vite-dev-server@0.25.1(hono@4.11.7)':
     dependencies:
-      '@hono/node-server': 1.19.7(hono@4.11.7)
+      '@hono/node-server': 1.19.11(hono@4.11.7)
       hono: 4.11.7
       minimatch: 9.0.5
 
@@ -6252,7 +6249,7 @@ snapshots:
       hasown: 2.0.2
       jsx-ast-utils: 3.3.5
       language-tags: 1.0.9
-      minimatch: 3.1.2
+      minimatch: 3.1.5
       object.fromentries: 2.0.8
       safe-regex-test: 1.1.0
       string.prototype.includes: 2.0.1
@@ -6285,7 +6282,7 @@ snapshots:
       estraverse: 5.3.0
       hasown: 2.0.2
       jsx-ast-utils: 3.3.5
-      minimatch: 3.1.2
+      minimatch: 3.1.5
       object.entries: 1.1.9
       object.fromentries: 2.0.8
       object.values: 1.2.1
@@ -6980,10 +6977,6 @@ snapshots:
     dependencies:
       brace-expansion: 5.0.3
 
-  minimatch@3.1.2:
-    dependencies:
-      brace-expansion: 1.1.12
-
   minimatch@3.1.5:
     dependencies:
       brace-expansion: 1.1.12
@@ -7328,12 +7321,12 @@ snapshots:
 
   react-refresh@0.14.2: {}
 
-  react-router-hono-server@2.25.1(@hono/node-server@1.19.7(hono@4.11.7))(@react-router/dev@7.13.1(@react-router/serve@7.13.1(react-router@7.13.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(typescript@5.9.3))(@types/node@25.0.1)(jiti@2.6.1)(lightningcss@1.31.1)(react-router@7.13.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(tsx@4.21.0)(typescript@5.9.3)(vite@7.3.1(@types/node@25.0.1)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0)))(@types/react@19.2.14)(hono@4.11.7)(react-router@7.13.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(vite@7.3.1(@types/node@25.0.1)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0)):
+  react-router-hono-server@2.25.2(@hono/node-server@1.19.11(hono@4.11.7))(@react-router/dev@7.13.1(@react-router/serve@7.13.1(react-router@7.13.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(typescript@5.9.3))(@types/node@25.0.1)(jiti@2.6.1)(lightningcss@1.31.1)(react-router@7.13.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(tsx@4.21.0)(typescript@5.9.3)(vite@7.3.1(@types/node@25.0.1)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0)))(@types/react@19.2.14)(hono@4.11.7)(react-router@7.13.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(vite@7.3.1(@types/node@25.0.1)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0)):
     dependencies:
       '@drizzle-team/brocli': 0.11.0
-      '@hono/node-server': 1.19.7(hono@4.11.7)
-      '@hono/node-ws': 1.3.0(@hono/node-server@1.19.7(hono@4.11.7))(hono@4.11.7)
-      '@hono/vite-dev-server': 0.25.0(hono@4.11.7)
+      '@hono/node-server': 1.19.11(hono@4.11.7)
+      '@hono/node-ws': 1.3.0(@hono/node-server@1.19.11(hono@4.11.7))(hono@4.11.7)
+      '@hono/vite-dev-server': 0.25.1(hono@4.11.7)
       '@react-router/dev': 7.13.1(@react-router/serve@7.13.1(react-router@7.13.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(typescript@5.9.3))(@types/node@25.0.1)(jiti@2.6.1)(lightningcss@1.31.1)(react-router@7.13.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(tsx@4.21.0)(typescript@5.9.3)(vite@7.3.1(@types/node@25.0.1)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0))
       '@types/react': 19.2.14
       hono: 4.11.7

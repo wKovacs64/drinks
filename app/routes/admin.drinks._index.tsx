@@ -123,7 +123,7 @@ export default function AdminDrinksList({ loaderData }: Route.ComponentProps) {
   const { processed, filter, setFilter, sort, handleSort } = useSortableData(drinks);
 
   return (
-    <div>
+    <div className="p-1">
       <title>All Drinks | drinks.fyi</title>
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-baseline gap-2">

@@ -4,8 +4,11 @@ import { Breadcrumbs } from "#/app/navigation/breadcrumbs";
 import { SkipNavLink } from "#/app/core/skip-nav-link";
 import { Header } from "#/app/core/header";
 import { Footer } from "#/app/core/footer";
+import { optionalUserMiddleware } from "#/app/middleware/authorization.server";
 import type { AppRouteHandle } from "#/app/types";
 import type { Route } from "./+types/_app";
+
+export const middleware = [optionalUserMiddleware];
 
 // This pathless layout route wraps all public-facing routes with the site chrome (Header,
 // Breadcrumbs, Footer, background image, etc.). It also renders an error fallback for any errors

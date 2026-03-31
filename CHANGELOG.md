@@ -1,5 +1,19 @@
 # Changelog
 
+## [4.2.0](https://github.com/wKovacs64/drinks/compare/v4.1.0...v4.2.0) (2026-03-31)
+
+
+### Features
+
+* allow admins to view unpublished drink detail pages ([#281](https://github.com/wKovacs64/drinks/issues/281)) ([94e8cf8](https://github.com/wKovacs64/drinks/commit/94e8cf8553b992df5c360ea891a70ef3921101ec))
+* link drink titles in admin list to their public page ([#279](https://github.com/wKovacs64/drinks/issues/279)) ([35a9f96](https://github.com/wKovacs64/drinks/commit/35a9f96420b50b2db8e153d619f2a56a4546970f))
+
+
+### Bug Fixes
+
+* increase default height of notes textarea ([#280](https://github.com/wKovacs64/drinks/issues/280)) ([f8e1b12](https://github.com/wKovacs64/drinks/commit/f8e1b1297a168b2c3e0ef63c6e63bf87f9bf1131))
+* prevent focus ring clipping in admin drink list ([#283](https://github.com/wKovacs64/drinks/issues/283)) ([4cab420](https://github.com/wKovacs64/drinks/commit/4cab4209f22b6ab5ffbd885f016264f5dd954a5b))
+
 ## [4.1.0](https://github.com/wKovacs64/drinks/compare/v4.0.0...v4.1.0) (2026-02-22)
 
 

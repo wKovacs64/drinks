@@ -92,8 +92,12 @@ export const optionalUserMiddleware: MiddlewareFunction<Response> = async (
         avatarUrl: user.avatarUrl,
         role: user.role,
       });
+
+      return next();
     }
   }
+
+  context.set(optionalUserContext, undefined);
 
   return next();
 };

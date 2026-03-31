@@ -187,7 +187,7 @@ export function DrinkForm({
         <textarea
           name="notes"
           id="notes"
-          rows={5}
+          rows={12}
           defaultValue={drink?.notes ?? ""}
           className="mt-2 block w-full rounded-sm border border-zinc-700 bg-zinc-800 px-3 py-2 text-zinc-200 placeholder-zinc-600 focus:border-amber-600 focus:ring-1 focus:ring-amber-600 focus:outline-none"
         />

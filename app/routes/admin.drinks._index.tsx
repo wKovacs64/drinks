@@ -152,7 +152,7 @@ export default function AdminDrinksList({ loaderData }: Route.ComponentProps) {
         className="mb-4 w-full rounded-sm border border-zinc-700 bg-zinc-800 px-3 py-2 text-zinc-200 placeholder-zinc-600 focus:border-amber-600 focus:ring-1 focus:ring-amber-600 focus:outline-none"
       />
 
-      <div className="overflow-x-auto">
+      <div className="-m-2 overflow-x-auto p-2">
         <table className="w-full min-w-max">
           <thead>
             <tr className="border-b border-zinc-800 text-left text-sm tracking-wider text-zinc-500 uppercase">

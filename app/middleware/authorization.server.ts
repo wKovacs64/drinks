@@ -11,6 +11,7 @@ import { createReturnToUrl } from "#/app/auth/utils.server";
 import type { AuthenticatedUser } from "#/app/auth/types";
 
 const userContext = createContext<AuthenticatedUser>();
+const optionalUserContext = createContext<AuthenticatedUser | undefined>(undefined);
 
 /**
  * Get the authenticated user from the route context.
@@ -53,6 +54,50 @@ export const userMiddleware: MiddlewareFunction<Response> = async ({ request, co
     avatarUrl: user.avatarUrl,
     role: user.role,
   });
+
+  return next();
+};
+
+/**
+ * Get the optionally-authenticated user from the route context.
+ * Returns undefined if no user is logged in.
+ * Use this in route loaders/actions after optionalUserMiddleware has run.
+ */
+export function getOptionalUserFromContext(
+  context: Readonly<RouterContextProvider>,
+): AuthenticatedUser | undefined {
+  return context.get(optionalUserContext);
+}
+
+/**
+ * Middleware that optionally populates user context. If a valid session exists
+ * and the user still exists in the database, the user is stored in context.
+ * Never redirects or throws — always calls next.
+ */
+export const optionalUserMiddleware: MiddlewareFunction<Response> = async (
+  { request, context },
+  next,
+) => {
+  const session = await getSession(request.headers.get("Cookie"));
+  const sessionUser = session.get("user");
+
+  if (sessionUser) {
+    const user = await getUserById(sessionUser.id);
+
+    if (user) {
+      context.set(optionalUserContext, {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        avatarUrl: user.avatarUrl,
+        role: user.role,
+      });
+
+      return next();
+    }
+  }
+
+  context.set(optionalUserContext, undefined);
 
   return next();
 };

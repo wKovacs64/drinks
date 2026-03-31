@@ -9,6 +9,7 @@ import { DrinkDetails } from "#/app/drinks/drink-details";
 import { getDrinkBySlug } from "#/app/models/drink.server";
 import { markdownToHtml } from "#/app/utils/markdown.server";
 import { withPlaceholderImages } from "#/app/utils/placeholder-images.server";
+import { getOptionalUserFromContext } from "#/app/middleware/authorization.server";
 import type { AppRouteHandle } from "#/app/types";
 import type { Route } from "./+types/_app.$slug";
 
@@ -16,7 +17,7 @@ export function headers({ loaderHeaders }: Route.HeadersArgs) {
   return loaderHeaders;
 }
 
-export async function loader({ params }: Route.LoaderArgs) {
+export async function loader({ params, context }: Route.LoaderArgs) {
   const sqliteDrink = await getDrinkBySlug(params.slug ?? "");
 
   const notFoundHeaders = {
@@ -33,7 +34,13 @@ export async function loader({ params }: Route.LoaderArgs) {
   };
 
   invariantResponse(sqliteDrink, "Drink not found", notFoundHeaders);
-  invariantResponse(sqliteDrink.status === "published", "Drink not found", notFoundHeaders);
+
+  const optionalUser = getOptionalUserFromContext(context);
+  const isAdmin = optionalUser?.role === "admin";
+
+  if (!isAdmin) {
+    invariantResponse(sqliteDrink.status === "published", "Drink not found", notFoundHeaders);
+  }
 
   const [enhancedDrink] = await withPlaceholderImages([sqliteDrink]);
 
@@ -41,21 +48,23 @@ export async function loader({ params }: Route.LoaderArgs) {
     enhancedDrink.notes = markdownToHtml(enhancedDrink.notes);
   }
 
-  return data(
-    { drink: enhancedDrink },
-    {
-      headers: {
-        "Surrogate-Key": `all ${enhancedDrink.slug}`,
-        "Cache-Control": cacheHeader({
-          public: true,
-          maxAge: "30sec",
-          sMaxage: "1yr",
-          staleWhileRevalidate: "10min",
-          staleIfError: "1day",
-        }),
-      },
-    },
-  );
+  const responseHeaders: Record<string, string> =
+    sqliteDrink.status === "published"
+      ? {
+          "Surrogate-Key": `all ${enhancedDrink.slug}`,
+          "Cache-Control": cacheHeader({
+            public: true,
+            maxAge: "30sec",
+            sMaxage: "1yr",
+            staleWhileRevalidate: "10min",
+            staleIfError: "1day",
+          }),
+        }
+      : {
+          "Cache-Control": cacheHeader({ private: true, noStore: true }),
+        };
+
+  return data({ drink: enhancedDrink }, { headers: responseHeaders });
 }
 
 export const handle: AppRouteHandle = {

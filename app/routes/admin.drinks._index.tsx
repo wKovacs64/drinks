@@ -63,7 +63,12 @@ function DrinkRow({ drink }: { drink: Drink }) {
             alt=""
             className="rounded object-cover"
           />
-          <span className="font-medium text-zinc-300">{drink.title}</span>
+          <Link
+            to={href("/:slug", { slug: drink.slug })}
+            className="font-medium text-zinc-300 hover:text-amber-500"
+          >
+            {drink.title}
+          </Link>
         </div>
       </td>
       <td className="py-3 pr-4 whitespace-nowrap text-zinc-400">{drink.slug}</td>

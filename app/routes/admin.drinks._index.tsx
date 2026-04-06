@@ -1,12 +1,14 @@
 import { clsx } from "clsx";
 import { Link, useFetcher, href } from "react-router";
 import { Image } from "@unpic/react";
-import { useSortableData } from "#/app/admin/use-sortable-data";
-import { getAllDrinks } from "#/app/models/drink.server";
+import { useSortableData } from "#/app/ui/admin/use-sortable-data";
+import { getDb } from "#/app/db/client.server";
+import { createDrinksService } from "#/app/modules/drinks/drinks.server";
 import type { Route } from "./+types/admin.drinks._index";
 
 export async function loader() {
-  const drinks = await getAllDrinks();
+  const drinksService = createDrinksService({ db: getDb() });
+  const drinks = await drinksService.getAllDrinks();
   return { drinks };
 }
 

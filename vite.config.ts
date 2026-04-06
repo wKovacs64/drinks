@@ -21,7 +21,7 @@ export default defineConfig({
     reactRouterHonoServer(),
     iconsSpritesheet({
       inputDir: path.resolve("./app/assets/svg-icons"),
-      outputDir: path.resolve("./app/icons"),
+      outputDir: path.resolve("./app/ui/icons"),
       fileName: "icons-sprite.svg",
       iconNameTransformer: (fileName) => fileName,
       withTypes: true,

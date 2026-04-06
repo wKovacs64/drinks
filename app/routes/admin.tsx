@@ -1,23 +1,22 @@
 import { useEffect } from "react";
 import { Outlet, Link, Form, href, data } from "react-router";
 import { Toaster, toast } from "sonner";
-import { getSession, commitSession } from "#/app/auth/session.server";
+import { getToast } from "#/app/core/toast.server";
 import {
-  userMiddleware,
-  adminMiddleware,
   getUserFromContext,
-} from "#/app/middleware/authorization.server";
+  requireRole,
+  requireUser,
+} from "#/app/modules/identity/identity.server";
 import type { Route } from "./+types/admin";
 
-export const middleware = [userMiddleware, adminMiddleware];
+export const middleware = [requireUser, requireRole(["admin"])];
 
 export async function loader({ request, context }: Route.LoaderArgs) {
   const user = getUserFromContext(context);
-  const session = await getSession(request.headers.get("Cookie"));
-  const toastData = session.get("toast");
+  const { toast: toastData, headers } = await getToast(request);
   return data(
     { user, toast: toastData ? { ...toastData, timestamp: Date.now() } : undefined },
-    { headers: { "Set-Cookie": await commitSession(session) } },
+    { headers },
   );
 }
 
@@ -26,7 +25,17 @@ export default function AdminLayout({ loaderData }: Route.ComponentProps) {
 
   useEffect(() => {
     if (!toastData) return;
-    toast[toastData.kind](toastData.message);
+    switch (toastData.kind) {
+      case "success":
+        toast.success(toastData.message);
+        break;
+      case "warning":
+        toast.warning(toastData.message);
+        break;
+      case "error":
+        toast.error(toastData.message);
+        break;
+    }
   }, [toastData]);
 
   return (

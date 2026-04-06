@@ -1,5 +1,5 @@
 import { test as base, expect, type Page } from "@playwright/test";
-import { getRawSessionCookieValue, sessionCookie } from "#/app/auth/session.server";
+import { getRawSessionCookieValue, sessionCookie } from "#/app/modules/identity/identity.server";
 import { MOCK_ADMIN } from "./mock-users";
 
 type TestFixtures = {

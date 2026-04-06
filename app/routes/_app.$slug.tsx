@@ -3,13 +3,12 @@ import { cacheHeader } from "pretty-cache-header";
 import { invariantResponse } from "@epic-web/invariant";
 import { transformUrl } from "unpic";
 import { getLoaderDataForHandle } from "#/app/core/utils";
-import { Glass } from "#/app/drinks/glass";
-import { DrinkSummary } from "#/app/drinks/drink-summary";
-import { DrinkDetails } from "#/app/drinks/drink-details";
-import { getDrinkBySlug } from "#/app/models/drink.server";
-import { markdownToHtml } from "#/app/utils/markdown.server";
-import { withPlaceholderImages } from "#/app/utils/placeholder-images.server";
-import { getOptionalUserFromContext } from "#/app/middleware/authorization.server";
+import { getDb } from "#/app/db/client.server";
+import { Glass } from "#/app/ui/drinks/glass";
+import { DrinkSummary } from "#/app/ui/drinks/drink-summary";
+import { DrinkDetails } from "#/app/ui/drinks/drink-details";
+import { createDrinksService } from "#/app/modules/drinks/drinks.server";
+import { getOptionalUserFromContext } from "#/app/modules/identity/identity.server";
 import type { AppRouteHandle } from "#/app/types";
 import type { Route } from "./+types/_app.$slug";
 
@@ -18,7 +17,7 @@ export function headers({ loaderHeaders }: Route.HeadersArgs) {
 }
 
 export async function loader({ params, context }: Route.LoaderArgs) {
-  const sqliteDrink = await getDrinkBySlug(params.slug ?? "");
+  const drinksService = createDrinksService({ db: getDb() });
 
   const notFoundHeaders = {
     status: 404,
@@ -33,25 +32,19 @@ export async function loader({ params, context }: Route.LoaderArgs) {
     },
   };
 
-  invariantResponse(sqliteDrink, "Drink not found", notFoundHeaders);
-
   const optionalUser = getOptionalUserFromContext(context);
-  const isAdmin = optionalUser?.role === "admin";
+  const viewerRole = optionalUser?.role === "admin" ? "admin" : "user";
+  const drinkForViewer = await drinksService.getDrinkBySlug({
+    slug: params.slug,
+    viewerRole,
+  });
 
-  if (!isAdmin) {
-    invariantResponse(sqliteDrink.status === "published", "Drink not found", notFoundHeaders);
-  }
-
-  const [enhancedDrink] = await withPlaceholderImages([sqliteDrink]);
-
-  if (enhancedDrink.notes) {
-    enhancedDrink.notes = markdownToHtml(enhancedDrink.notes);
-  }
+  invariantResponse(drinkForViewer, "Drink not found", notFoundHeaders);
 
   const responseHeaders: Record<string, string> =
-    sqliteDrink.status === "published"
+    drinkForViewer.visibility === "public"
       ? {
-          "Surrogate-Key": `all ${enhancedDrink.slug}`,
+          "Surrogate-Key": `all ${drinkForViewer.drink.slug}`,
           "Cache-Control": cacheHeader({
             public: true,
             maxAge: "30sec",
@@ -64,7 +57,7 @@ export async function loader({ params, context }: Route.LoaderArgs) {
           "Cache-Control": cacheHeader({ private: true, noStore: true }),
         };
 
-  return data({ drink: enhancedDrink }, { headers: responseHeaders });
+  return data({ drink: drinkForViewer.drink }, { headers: responseHeaders });
 }
 
 export const handle: AppRouteHandle = {

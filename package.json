@@ -21,7 +21,7 @@
     "#/*": "./*"
   },
   "scripts": {
-    "clean": "del-cli .cache app/icons/icons-sprite.svg app/icons/types.ts build node_modules/.vite public/sw.js",
+    "clean": "del-cli .cache app/ui/icons/icons-sprite.svg app/ui/icons/types.ts build node_modules/.vite public/sw.js",
     "build": "run-s build:*",
     "build:rr": "react-router build",
     "build:sw": "esbuild app/entry.worker.ts --minify --platform=browser --format=esm --outfile=build/client/sw.js",

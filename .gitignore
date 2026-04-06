@@ -249,8 +249,8 @@ $RECYCLE.BIN/
 .env
 
 # Generated SVG icons sprite and correpsonding types
-/app/icons/icons-sprite.svg
-/app/icons/types.ts
+/app/ui/icons/icons-sprite.svg
+/app/ui/icons/types.ts
 
 # Service worker in development mode
 public/sw.js

@@ -1,5 +1,5 @@
 import { Link, href } from "react-router";
-import { Icon } from "#/app/icons/icon";
+import { Icon } from "#/app/ui/icons/icon";
 
 export default function LoginFailed() {
   return (

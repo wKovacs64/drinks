@@ -1,8 +1,9 @@
-import { redirect, data, href } from "react-router";
-import { invariantResponse } from "@epic-web/invariant";
-import { getDrinkBySlug } from "#/app/models/drink.server";
-import { deleteDrink } from "#/app/drinks/mutations.server";
-import { getSession, commitSession } from "#/app/auth/session.server";
+import { redirect, href } from "react-router";
+import { intent, routeAction } from "#/app/core/route-action.server";
+import { getDb } from "#/app/db/client.server";
+import { purgeDrinkCache } from "#/app/integrations/fastly.server";
+import { deleteImage, uploadImage } from "#/app/integrations/imagekit.server";
+import { createDrinksService } from "#/app/modules/drinks/drinks.server";
 import type { Route } from "./+types/admin.drinks.$slug.delete";
 
 export async function loader() {
@@ -10,26 +11,23 @@ export async function loader() {
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
-  const drink = await getDrinkBySlug(params.slug);
-  invariantResponse(drink, "Drink not found", { status: 404 });
-
-  const session = await getSession(request.headers.get("Cookie"));
-
-  try {
-    await deleteDrink(drink);
-  } catch {
-    session.flash("toast", {
-      kind: "error" as const,
-      message: `Failed to delete ${drink.title} — please try again`,
-    });
-    return data(null, {
-      status: 500,
-      headers: { "Set-Cookie": await commitSession(session) },
-    });
-  }
-
-  session.flash("toast", { kind: "success" as const, message: `${drink.title} deleted!` });
-  return redirect(href("/admin/drinks"), {
-    headers: { "Set-Cookie": await commitSession(session) },
+  const drinksService = createDrinksService({
+    db: getDb(),
+    writeEffects: {
+      uploadImage,
+      deleteImage,
+      purgeDrinkCache,
+    },
   });
+
+  return routeAction(
+    request,
+    intent({
+      operation: async () => drinksService.deleteDrink({ slug: params.slug }),
+      redirectTo: href("/admin/drinks"),
+      toast: {
+        successMessage: "Drink deleted!",
+      },
+    }),
+  );
 }

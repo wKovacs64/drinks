@@ -1,5 +1,5 @@
 import { redirect, href } from "react-router";
-import { destroySession, getSession } from "#/app/auth/session.server";
+import { logout } from "#/app/modules/identity/identity.server";
 import type { Route } from "./+types/logout";
 
 export async function loader() {
@@ -7,9 +7,5 @@ export async function loader() {
 }
 
 export async function action({ request }: Route.ActionArgs) {
-  const session = await getSession(request.headers.get("Cookie"));
-
-  throw redirect(href("/"), {
-    headers: { "Set-Cookie": await destroySession(session) },
-  });
+  throw await logout(request);
 }

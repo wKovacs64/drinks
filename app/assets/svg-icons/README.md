@@ -22,11 +22,11 @@ pnpm exec add-icon heroicons:wrench-screwdriver-solid
 
 ## Using Icons
 
-To use an icon, import the `Icon` component from `#/app/icons/icon` and pass the icon name to the
+To use an icon, import the `Icon` component from `#/app/ui/icons/icon` and pass the icon name to the
 `name` prop:
 
 ```jsx
-import { Icon } from "#/app/icons/icon";
+import { Icon } from "#/app/ui/icons/icon";
 
 function MyComponent() {
   return (

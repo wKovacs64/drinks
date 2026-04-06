@@ -5,11 +5,9 @@ import {
   notFoundPageDescription,
   notFoundPageTitle,
 } from "#/app/core/config";
-import { NotFound } from "#/app/core/not-found";
-import { getEnvVars } from "#/app/utils/env.server";
+import { NotFound } from "#/app/ui/core/not-found";
+import { getEnvVars } from "#/app/core/env.server";
 import type { Route } from "./+types/_app.$";
-
-const { SITE_IMAGE_URL, SITE_IMAGE_ALT } = getEnvVars();
 
 export function headers() {
   return {
@@ -23,6 +21,7 @@ export function headers() {
 }
 
 export async function loader() {
+  const { SITE_IMAGE_URL, SITE_IMAGE_ALT } = getEnvVars();
   return { socialImageUrl: SITE_IMAGE_URL, socialImageAlt: SITE_IMAGE_ALT };
 }
 

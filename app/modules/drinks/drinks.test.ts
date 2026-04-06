@@ -4,9 +4,8 @@ import { getDb } from "#/app/db/client.server";
 import { FieldDomainError } from "#/app/core/errors";
 import { drinks } from "#/app/db/schema";
 import { resetAndSeedDatabase } from "#/app/db/reset.server";
-import { SaveDrinkNoticeCodes } from "./drinks";
-import { createDrinksService, DrinkEditorNotFoundError } from "./drinks.server";
-import { purgeSearchCache } from "./drinks-search.server";
+import { drinkDraftSchema, SaveDrinkNoticeCodes } from "./drinks";
+import { createDrinksService, DrinkEditorNotFoundError, purgeSearchCache } from "./drinks.server";
 
 type TestDrinksServiceOverrides = {
   db?: ReturnType<typeof getDb>;
@@ -382,5 +381,137 @@ describe("createDrinksService", () => {
       slug: "test-margarita",
       tags: ["tequila", "citrus"],
     });
+  });
+});
+
+describe("searchPublishedDrinks", () => {
+  function readOnlyService() {
+    return createDrinksService({ db: getDb() });
+  }
+
+  test("returns matching drinks for a title query", async () => {
+    const results = await readOnlyService().searchPublishedDrinks({ query: "margarita" });
+    expect(results.length).toBe(1);
+    expect(results[0]?.slug).toBe("test-margarita");
+  });
+
+  test("returns matching drinks for an ingredient query", async () => {
+    const results = await readOnlyService().searchPublishedDrinks({ query: "bourbon" });
+    expect(results.length).toBe(1);
+    expect(results[0]?.slug).toBe("test-old-fashioned");
+  });
+
+  test("returns empty array for non-matching query", async () => {
+    const results = await readOnlyService().searchPublishedDrinks({ query: "xyznonexistent123" });
+    expect(results).toEqual([]);
+  });
+
+  test("returns enhanced drink shape", async () => {
+    const results = await readOnlyService().searchPublishedDrinks({ query: "mojito" });
+    expect(results.length).toBe(1);
+    const drink = results[0];
+    expect(drink).toMatchObject({
+      slug: "test-mojito",
+      title: "Test Mojito",
+      calories: 150,
+    });
+    expect(drink?.image.url.length).toBeGreaterThan(0);
+    expect(drink?.ingredients).toBeInstanceOf(Array);
+    expect(drink?.tags).toBeInstanceOf(Array);
+  });
+});
+
+describe("purgeSearchCache", () => {
+  test("causes index rebuild on next search", async () => {
+    const service = createDrinksService({ db: getDb() });
+    const firstResults = await service.searchPublishedDrinks({ query: "margarita" });
+    purgeSearchCache();
+    const secondResults = await service.searchPublishedDrinks({ query: "margarita" });
+    expect(secondResults.length).toBe(firstResults.length);
+  });
+});
+
+describe("drinkDraftSchema", () => {
+  test("accepts valid input", () => {
+    const result = drinkDraftSchema.safeParse({
+      title: "Margarita",
+      slug: "margarita",
+      ingredients: "tequila\nlime juice\ntriple sec",
+      calories: "200",
+      tags: "tequila, citrus",
+      notes: "A classic cocktail",
+      rank: "1",
+      status: "published",
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  test("rejects invalid slug", () => {
+    const result = drinkDraftSchema.safeParse({
+      title: "Test",
+      slug: "INVALID SLUG!!!",
+      ingredients: "a",
+      calories: "100",
+      tags: "a",
+      notes: "",
+      rank: "0",
+      status: "published",
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  test("rejects missing title", () => {
+    const result = drinkDraftSchema.safeParse({
+      title: "",
+      slug: "test",
+      ingredients: "a",
+      calories: "100",
+      tags: "a",
+      notes: "",
+      rank: "0",
+      status: "published",
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  test("parses newline-separated ingredients", () => {
+    const result = drinkDraftSchema.safeParse({
+      title: "Test",
+      slug: "test",
+      ingredients: "gin\ntonic\nlime",
+      calories: "100",
+      tags: "gin",
+      notes: "",
+      rank: "0",
+      status: "published",
+    });
+
+    expect(result.success).toBe(true);
+    if (!result.success) {
+      return;
+    }
+    expect(result.data.ingredients).toEqual(["gin", "tonic", "lime"]);
+  });
+
+  test("parses comma-separated tags", () => {
+    const result = drinkDraftSchema.safeParse({
+      title: "Test",
+      slug: "test",
+      ingredients: "a",
+      calories: "100",
+      tags: "gin, refreshing, summer",
+      notes: "",
+      rank: "0",
+      status: "published",
+    });
+
+    expect(result.success).toBe(true);
+    if (!result.success) {
+      return;
+    }
+    expect(result.data.tags).toEqual(["gin", "refreshing", "summer"]);
   });
 });

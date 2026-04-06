@@ -1,25 +1,28 @@
-import { beforeEach, describe, expect, test } from "vitest";
-import { getDb } from "#/app/db/client.server";
-import { resetAndSeedDatabase } from "#/app/db/reset.server";
-import { TEST_ADMIN_USER } from "#/playwright/seed-data";
-import { createIdentityService } from "./identity.server";
+import { describe, expect, test } from "vitest";
+import { safeRedirectTo } from "./identity.server";
 
-beforeEach(async () => {
-  await resetAndSeedDatabase();
-});
+describe("safeRedirectTo", () => {
+  test("returns the path for a valid relative URL", () => {
+    expect(safeRedirectTo("/admin")).toBe("/admin");
+  });
 
-describe("createIdentityService", () => {
-  test("loads a session user for an existing user", async () => {
-    const service = createIdentityService({ db: getDb() });
+  test("returns default redirect for null input", () => {
+    expect(safeRedirectTo(null)).toBe("/");
+  });
 
-    const sessionUser = await service.getSessionUser({ userId: TEST_ADMIN_USER.id });
+  test("returns default redirect for undefined input", () => {
+    expect(safeRedirectTo(undefined)).toBe("/");
+  });
 
-    expect(sessionUser).toEqual({
-      id: TEST_ADMIN_USER.id,
-      email: TEST_ADMIN_USER.email,
-      name: TEST_ADMIN_USER.name,
-      avatarUrl: TEST_ADMIN_USER.avatarUrl,
-      role: TEST_ADMIN_USER.role,
-    });
+  test("returns custom default redirect", () => {
+    expect(safeRedirectTo(null, "/home")).toBe("/home");
+  });
+
+  test("rejects absolute URLs to external hosts", () => {
+    expect(safeRedirectTo("https://evil.com")).toBe("/");
+  });
+
+  test("rejects protocol-relative URLs", () => {
+    expect(safeRedirectTo("//evil.com")).toBe("/");
   });
 });

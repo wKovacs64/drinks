@@ -13,6 +13,7 @@ export {
   getRawSessionCookieValue,
   sessionCookie,
 } from "./identity-session.server";
+export { createReturnToUrl, safeRedirectTo } from "./identity-navigation.server";
 
 type CreateIdentityServiceDeps = {
   db: ReturnType<typeof getDb>;

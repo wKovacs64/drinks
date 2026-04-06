@@ -7,6 +7,8 @@ import { drinks, type Drink } from "#/app/db/schema";
 import { markdownToHtml } from "./drinks-markdown.server";
 import { withPlaceholderImages } from "./drinks-images.server";
 import { purgeSearchCache, searchDrinks } from "./drinks-search.server";
+
+export { purgeSearchCache };
 import {
   SaveDrinkNoticeCodes,
   type DrinkDraft,

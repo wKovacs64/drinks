@@ -1,4 +1,5 @@
 import { data, href } from "react-router";
+import { DomainError } from "#/app/core/errors";
 import { parseImageUpload } from "#/app/core/image-upload.server";
 import { intent, routeAction } from "#/app/core/route-action.server";
 import { getFormErrors } from "#/app/core/utils";
@@ -67,12 +68,16 @@ export async function action({ request, params }: Route.ActionArgs) {
           imageBuffer: imageUpload?.buffer,
         }),
       redirectTo: href("/admin/drinks"),
-      toast: (saveResult) =>
-        saveResult.notices.some(
+      toast: (operationResult) => {
+        if (operationResult instanceof DomainError) {
+          return { kind: "error", message: operationResult.message };
+        }
+        return operationResult.notices.some(
           (notice) => notice.code === SaveDrinkNoticeCodes.oldImageCleanupFailed,
         )
           ? { kind: "warning", message: "Drink updated, but old image cleanup failed" }
-          : { kind: "success", message: "Drink updated!" },
+          : { kind: "success", message: "Drink updated!" };
+      },
     }),
   );
 }

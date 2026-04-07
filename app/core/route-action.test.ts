@@ -1,6 +1,6 @@
 import { describe, expect, test, vi } from "vitest";
 import { z } from "zod";
-import { FieldDomainError, FormDomainError } from "./errors";
+import { DomainError, FieldDomainError, FormDomainError } from "./errors";
 import { intent, routeAction } from "./route-action.server";
 import { getToast } from "./toast.server";
 
@@ -312,10 +312,14 @@ describe("routeAction", () => {
           schema: testSchema,
           operation,
           redirectTo: "/items",
-          toast: (result) =>
-            result.needsWarning
+          toast: (operationResult) => {
+            if (operationResult instanceof DomainError) {
+              return { kind: "error", message: operationResult.message };
+            }
+            return operationResult.needsWarning
               ? { kind: "warning", message: "Saved with caveats" }
-              : { kind: "success", message: "Saved" },
+              : { kind: "success", message: "Saved" };
+          },
         }),
       ),
     );
@@ -329,6 +333,82 @@ describe("routeAction", () => {
       }),
     );
     expect(toast).toEqual({ kind: "warning", message: "Saved with caveats" });
+  });
+
+  test("function toast returning undefined on success suppresses toast", async () => {
+    const response = await catchRedirect(() =>
+      routeAction(
+        buildFormRequest({ name: "Test" }),
+        intent({
+          schema: testSchema,
+          operation: vi.fn().mockResolvedValue({ id: "1" }),
+          redirectTo: "/items",
+          toast: () => undefined,
+        }),
+      ),
+    );
+
+    expect(response.status).toBe(302);
+    expect(response.headers.get("Location")).toBe("/items");
+    expect(response.headers.get("Set-Cookie")).toBeNull();
+  });
+
+  test("function toast receives DomainError on FieldDomainError", async () => {
+    const toastFn = vi.fn((operationResult: unknown) => {
+      if (operationResult instanceof DomainError) {
+        return { kind: "error" as const, message: `Failed: ${operationResult.message}` };
+      }
+      return { kind: "success" as const, message: "Created" };
+    });
+
+    const result = unwrapData(
+      await routeAction(
+        buildFormRequest({ name: "Taken" }),
+        intent({
+          schema: testSchema,
+          operation: vi.fn().mockRejectedValue(new FieldDomainError("name", "Already exists")),
+          redirectTo: "/items",
+          toast: toastFn,
+        }),
+      ),
+    );
+
+    expect(toastFn).toHaveBeenCalledWith(expect.any(FieldDomainError));
+    expect(result.status).toBe(400);
+    expect(result.body).toMatchObject({
+      fieldErrors: { name: ["Already exists"] },
+      formErrors: [],
+    });
+
+    const { toast } = await getToast(
+      new Request("http://test.local/", {
+        headers: { Cookie: result.headers.get("Set-Cookie")! },
+      }),
+    );
+    expect(toast).toEqual({ kind: "error", message: "Failed: Already exists" });
+  });
+
+  test("function toast returning undefined on error suppresses toast", async () => {
+    const result = unwrapData(
+      await routeAction(
+        buildFormRequest({ name: "Taken" }),
+        intent({
+          schema: testSchema,
+          operation: vi.fn().mockRejectedValue(new FieldDomainError("name", "Already exists")),
+          redirectTo: "/items",
+          toast: (operationResult) => {
+            if (operationResult instanceof DomainError) return undefined;
+            return { kind: "success", message: "Created" };
+          },
+        }),
+      ),
+    );
+
+    expect(result.status).toBe(400);
+    expect(result.body).toMatchObject({
+      fieldErrors: { name: ["Already exists"] },
+    });
+    expect(result.headers.get("Set-Cookie")).toBeNull();
   });
 
   test("non-navigating success returns data payload", async () => {
@@ -374,6 +454,30 @@ describe("routeAction", () => {
       }),
     );
     expect(toast).toEqual({ kind: "success", message: "Saved!" });
+  });
+
+  test("non-navigating intent with function toast sets toast cookie", async () => {
+    const operation = vi.fn().mockResolvedValue({ count: 3 });
+
+    const result = unwrapData(
+      await routeAction(
+        buildFormRequest({ name: "Test" }),
+        intent({
+          schema: testSchema,
+          operation,
+          toast: () => ({ kind: "success", message: "Saved" }),
+        }),
+      ),
+    );
+
+    expect(result.headers.get("Set-Cookie")).toContain("__toast");
+
+    const { toast } = await getToast(
+      new Request("http://test.local/", {
+        headers: { Cookie: result.headers.get("Set-Cookie")! },
+      }),
+    );
+    expect(toast).toEqual({ kind: "success", message: "Saved" });
   });
 
   test("non-navigating without toast produces no Set-Cookie header", async () => {

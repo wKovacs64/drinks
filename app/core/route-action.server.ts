@@ -13,8 +13,9 @@ export type ToastConfig =
   | { successMessage: string; errorMessage?: string | true }
   | { successMessage?: string; errorMessage: string | true };
 
-/** Static copy + optional error toast, or a function of the operation result (success path only). */
-export type IntentToast<TResult = unknown> = ToastConfig | ((result: TResult) => ToastMessage);
+export type IntentToast<TResult = unknown> =
+  | ToastConfig
+  | ((operationResult: TResult | DomainError) => ToastMessage | undefined);
 
 const INTENT_BRAND: unique symbol = Symbol();
 
@@ -87,7 +88,7 @@ export async function routeAction(request: Request, intentOrMap: Intent | Record
   async function errorResult(
     body: Pick<ActionData, "fieldErrors" | "formErrors">,
     status: number,
-    errorMessage?: string,
+    errorToast?: ToastMessage,
   ) {
     const payload: ActionData = {
       fieldErrors: body.fieldErrors,
@@ -95,8 +96,8 @@ export async function routeAction(request: Request, intentOrMap: Intent | Record
       ...(isMultiIntent ? { actionIntent: intentKey } : {}),
     };
 
-    if (errorMessage) {
-      return dataWithToast(payload, { kind: "error", message: errorMessage }, { status });
+    if (errorToast) {
+      return dataWithToast(payload, errorToast, { status });
     }
 
     return data(payload, { status });
@@ -155,6 +156,7 @@ export async function routeAction(request: Request, intentOrMap: Intent | Record
     }
 
     if (error instanceof FieldDomainError) {
+      const errorToast = resolveErrorToast(intentDef.toast, error);
       return errorResult(
         {
           fieldErrors: {
@@ -163,18 +165,19 @@ export async function routeAction(request: Request, intentOrMap: Intent | Record
           formErrors: [],
         },
         400,
-        resolveErrorMessage(intentDef, error),
+        errorToast,
       );
     }
 
     if (error instanceof FormDomainError) {
+      const errorToast = resolveErrorToast(intentDef.toast, error);
       return errorResult(
         {
           fieldErrors: {},
           formErrors: [error.message],
         },
         400,
-        resolveErrorMessage(intentDef, error),
+        errorToast,
       );
     }
 
@@ -202,36 +205,25 @@ function parseSubmission<TInput>(formData: FormData, schema: ZodType<TInput>) {
   };
 }
 
-function toastConfigForErrors(toast: IntentToast<unknown> | undefined): ToastConfig | undefined {
-  if (!toast || typeof toast === "function") {
-    return undefined;
-  }
-  return toast;
-}
-
 function resolveSuccessToast(
   toast: IntentToast<unknown> | undefined,
   operationResult: unknown,
 ): ToastMessage | undefined {
-  if (!toast) {
-    return undefined;
-  }
-  if (typeof toast === "function") {
-    return toast(operationResult);
-  }
-  if ("successMessage" in toast && toast.successMessage) {
-    return { kind: "success", message: toast.successMessage };
-  }
+  if (!toast) return undefined;
+  if (typeof toast === "function") return toast(operationResult) ?? undefined;
+  if (toast.successMessage) return { kind: "success", message: toast.successMessage };
   return undefined;
 }
 
-function resolveErrorMessage(intentDef: IntentDef, error: DomainError) {
-  const config = toastConfigForErrors(intentDef.toast)?.errorMessage;
-  if (!config) {
-    return undefined;
-  }
-
-  return config === true ? error.message : config;
+function resolveErrorToast(
+  toast: IntentToast<unknown> | undefined,
+  error: DomainError,
+): ToastMessage | undefined {
+  if (!toast) return undefined;
+  if (typeof toast === "function") return toast(error) ?? undefined;
+  const cfg = toast.errorMessage;
+  if (!cfg) return undefined;
+  return { kind: "error", message: cfg === true ? error.message : cfg };
 }
 
 async function readFormData(request: Request) {

@@ -100,7 +100,7 @@
     "msw": "2.12.14",
     "node-html-parser": "7.1.0",
     "npm-run-all2": "8.0.4",
-    "oxfmt": "0.42.0",
+    "oxfmt": "0.43.0",
     "tailwindcss": "4.2.2",
     "typescript": "5.9.3",
     "vite": "7.3.2",

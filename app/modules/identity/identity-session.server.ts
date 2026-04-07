@@ -44,6 +44,6 @@ export async function getRawSessionCookieValue(user: AuthenticatedUser): Promise
   session.set("user", user);
   const serializedCookie = await commitSession(session);
   const [cookiePair] = serializedCookie.split(";");
-  const [, value] = cookiePair.split("=");
+  const value = cookiePair.split("=").slice(1).join("=");
   return value;
 }

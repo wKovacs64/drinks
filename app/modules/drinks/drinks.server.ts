@@ -60,6 +60,17 @@ function buildDrinksServiceReadMethods(deps: { db: Db }): DrinksServiceWithoutMu
     },
     async getAllDrinks() {
       return deps.db.query.drinks.findMany({
+        columns: {
+          id: true,
+          title: true,
+          slug: true,
+          imageUrl: true,
+          calories: true,
+          rank: true,
+          status: true,
+          createdAt: true,
+          updatedAt: true,
+        },
         orderBy: [desc(drinks.rank), desc(drinks.createdAt)],
       });
     },
@@ -100,6 +111,7 @@ function buildDrinksServiceReadMethods(deps: { db: Db }): DrinksServiceWithoutMu
       const normalizedTag = lowerCase(tag);
       const publishedDrinks = await deps.db.query.drinks.findMany({
         where: eq(drinks.status, "published"),
+        orderBy: [desc(drinks.rank), desc(drinks.createdAt)],
       });
       const matchingDrinks = publishedDrinks.filter((drink) => drink.tags.includes(normalizedTag));
 

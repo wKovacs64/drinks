@@ -187,7 +187,7 @@ jobs:
           field: app
 
       - name: 🚀 Deploy
-        uses: superfly/flyctl-actions@1.5
+        uses: superfly/flyctl-actions@1.6
         with:
           args: deploy --remote-only --build-arg COMMIT_SHA=${{ github.sha }} --build-arg DEPLOYMENT_ENV=dev --app ${{ steps.app_name.outputs.value }}-dev
         env:
@@ -210,7 +210,7 @@ jobs:
           field: app
 
       - name: 🚀 Deploy
-        uses: superfly/flyctl-actions@1.5
+        uses: superfly/flyctl-actions@1.6
         with:
           args: deploy --remote-only --build-arg COMMIT_SHA=${{ github.sha }} --build-arg DEPLOYMENT_ENV=prod --app ${{ steps.app_name.outputs.value }}
         env:

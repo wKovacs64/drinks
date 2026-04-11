@@ -1,20 +1,16 @@
 import path from "node:path";
+import { cpSync } from "node:fs";
 import tailwindcss from "@tailwindcss/vite";
 import { reactRouterHonoServer } from "react-router-hono-server/dev";
 import { reactRouter } from "@react-router/dev/vite";
-import { defineConfig, normalizePath } from "vite";
-import { viteStaticCopy } from "vite-plugin-static-copy";
+import { defineConfig, type Plugin } from "vite";
 import { iconsSpritesheet } from "vite-plugin-icons-spritesheet";
-import babel from "vite-plugin-babel";
+import babel from "@rolldown/plugin-babel";
+import { reactCompilerPreset } from "@vitejs/plugin-react";
 
 export default defineConfig({
   build: {
     target: "esnext",
-  },
-  esbuild: {
-    supported: {
-      "top-level-await": true,
-    },
   },
   plugins: [
     tailwindcss(),
@@ -28,21 +24,18 @@ export default defineConfig({
     }),
     reactRouter(),
     babel({
-      exclude: ["**/node_modules/**"],
-      filter: /\.[jt]sx?$/u,
-      loader: "jsx",
-      babelConfig: {
-        presets: ["@babel/preset-typescript"],
-        plugins: [["babel-plugin-react-compiler"]],
-      },
+      presets: [reactCompilerPreset()],
     }),
-    viteStaticCopy({
-      targets: [
-        {
-          src: "app/assets/images/favicon.ico",
-          dest: normalizePath(path.resolve("./build/client")),
-        },
-      ],
-    }),
+    copyFaviconPlugin(),
   ],
 });
+
+function copyFaviconPlugin(): Plugin {
+  return {
+    name: "copy-favicon",
+    writeBundle() {
+      if (this.environment && this.environment.name !== "client") return;
+      cpSync("app/assets/images/favicon.ico", "build/client/favicon.ico");
+    },
+  };
+}

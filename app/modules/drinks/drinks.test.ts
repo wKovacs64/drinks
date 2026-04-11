@@ -1,0 +1,517 @@
+import { beforeEach, describe, expect, test, vi } from "vitest";
+import { eq } from "drizzle-orm";
+import { getDb } from "#/app/db/client.server";
+import { FieldDomainError } from "#/app/core/errors";
+import { drinks } from "#/app/db/schema";
+import { resetAndSeedDatabase } from "#/app/db/reset.server";
+import { drinkDraftSchema, SaveDrinkNoticeCodes } from "./drinks";
+import { createDrinksService, DrinkEditorNotFoundError, purgeSearchCache } from "./drinks.server";
+
+type TestDrinksServiceOverrides = {
+  db?: ReturnType<typeof getDb>;
+  writeEffects?: Partial<NonNullable<Parameters<typeof createDrinksService>[0]["writeEffects"]>>;
+};
+
+function testDrinksService(overrides: TestDrinksServiceOverrides = {}) {
+  const defaultWriteEffects = {
+    uploadImage: vi.fn(),
+    deleteImage: vi.fn(),
+    purgeDrinkCache: vi.fn(),
+  };
+
+  return createDrinksService({
+    db: overrides.db ?? getDb(),
+    ...overrides,
+    writeEffects: {
+      ...defaultWriteEffects,
+      ...overrides.writeEffects,
+    },
+  });
+}
+
+beforeEach(async () => {
+  await resetAndSeedDatabase();
+  purgeSearchCache();
+});
+
+async function setDrinkStatus(slug: string, status: "published" | "unpublished"): Promise<void> {
+  const db = getDb();
+  await db.update(drinks).set({ status }).where(eq(drinks.slug, slug));
+}
+
+describe("createDrinksService", () => {
+  test("returns published drinks for read-only and default test services", async () => {
+    const readOnlyService = createDrinksService({ db: getDb() });
+    const defaultService = testDrinksService();
+
+    const fromReadOnly = await readOnlyService.getPublishedDrinks();
+    const fromDefault = await defaultService.getPublishedDrinks();
+
+    const expectedSlugs = ["test-margarita", "test-mojito", "test-old-fashioned"];
+    expect(fromReadOnly.map((drink) => drink.slug)).toEqual(expectedSlugs);
+    expect(fromDefault.map((drink) => drink.slug)).toEqual(expectedSlugs);
+
+    expect(fromDefault[0]).toMatchObject({
+      title: "Test Margarita",
+      calories: 200,
+      notes: "A classic test margarita",
+      tags: ["tequila", "citrus"],
+    });
+    expect(fromDefault[0]?.image).toEqual({
+      url: expect.any(String),
+      blurDataUrl: expect.any(String),
+    });
+  });
+
+  test("loads a new-drink editor with form-shaped defaults", async () => {
+    const service = testDrinksService();
+
+    const editor = await service.getNewDrinkEditor();
+
+    expect(editor).toEqual({
+      mode: "create",
+      initialValues: {
+        title: "",
+        slug: "",
+        ingredients: "",
+        calories: "",
+        tags: "",
+        notes: "",
+        rank: "0",
+        status: "published",
+      },
+    });
+  });
+
+  test("returns a drink for viewer when a published drink is requested", async () => {
+    const service = testDrinksService();
+
+    const drinkForViewer = await service.getDrinkBySlug({
+      slug: "test-margarita",
+      viewerRole: "user",
+    });
+
+    expect(drinkForViewer?.visibility).toBe("public");
+    expect(drinkForViewer?.drink).toMatchObject({
+      title: "Test Margarita",
+      slug: "test-margarita",
+      calories: 200,
+      tags: ["tequila", "citrus"],
+    });
+    expect(drinkForViewer?.drink.image).toEqual({
+      url: expect.any(String),
+      blurDataUrl: expect.any(String),
+    });
+    expect(drinkForViewer?.drink.notes).toContain("<p>A classic test margarita</p>");
+  });
+
+  test("hides an unpublished drink from non-admin viewers", async () => {
+    await setDrinkStatus("test-margarita", "unpublished");
+    const service = testDrinksService();
+
+    const drinkForViewer = await service.getDrinkBySlug({
+      slug: "test-margarita",
+      viewerRole: "user",
+    });
+
+    expect(drinkForViewer).toBeNull();
+  });
+
+  test("returns an unpublished drink to admin viewers with private visibility", async () => {
+    await setDrinkStatus("test-margarita", "unpublished");
+    const service = testDrinksService();
+
+    const drinkForViewer = await service.getDrinkBySlug({
+      slug: "test-margarita",
+      viewerRole: "admin",
+    });
+
+    expect(drinkForViewer?.visibility).toBe("private");
+    expect(drinkForViewer?.drink.slug).toBe("test-margarita");
+    expect(drinkForViewer?.drink.image).toEqual({
+      url: expect.any(String),
+      blurDataUrl: expect.any(String),
+    });
+    expect(drinkForViewer?.drink.notes).toContain("<p>A classic test margarita</p>");
+  });
+
+  test("returns published drinks for a case-insensitive tag", async () => {
+    const service = testDrinksService();
+
+    const taggedDrinks = await service.getDrinksByTag("Citrus");
+
+    expect(taggedDrinks?.map((drink) => drink.slug)).toEqual(["test-margarita", "test-mojito"]);
+  });
+
+  test("returns all published tags as a direct list", async () => {
+    await setDrinkStatus("test-old-fashioned", "unpublished");
+    const service = testDrinksService();
+
+    const tags = await service.getAllTags();
+
+    expect(tags).toEqual(["citrus", "mint", "rum", "tequila"]);
+  });
+
+  test("returns published search results as a direct list", async () => {
+    const service = testDrinksService();
+
+    const searchResults = await service.searchPublishedDrinks({ query: "tequila" });
+
+    expect(searchResults.map((drink) => drink.slug)).toEqual(["test-margarita"]);
+    expect(searchResults[0]?.image).toEqual({
+      url: expect.any(String),
+      blurDataUrl: expect.any(String),
+    });
+  });
+
+  test("returns an empty search result list when query is blank", async () => {
+    const service = testDrinksService();
+
+    const emptySearchResults = await service.searchPublishedDrinks({ query: "" });
+
+    expect(emptySearchResults).toEqual([]);
+  });
+
+  test("returns all drinks for admin list views as a direct list", async () => {
+    const service = testDrinksService();
+
+    const allDrinks = await service.getAllDrinks();
+
+    expect(allDrinks.map((drink) => drink.slug)).toEqual([
+      "test-margarita",
+      "test-mojito",
+      "test-old-fashioned",
+    ]);
+    expect(allDrinks[0]).toMatchObject({
+      title: "Test Margarita",
+      status: "published",
+      calories: 200,
+      rank: 10,
+    });
+  });
+
+  test("creates a drink and exposes it through the editor boundary", async () => {
+    const service = testDrinksService({
+      writeEffects: {
+        uploadImage: vi.fn().mockResolvedValue({
+          url: "https://ik.imagekit.io/test/drinks/test-cocktail.jpg",
+          fileId: "new-file-id",
+        }),
+        purgeDrinkCache: vi.fn().mockResolvedValue(undefined),
+      },
+    });
+
+    const result = await service.createDrink({
+      draft: {
+        title: "Test Cocktail",
+        slug: "test-cocktail",
+        ingredients: ["gin", "tonic"],
+        calories: 150,
+        tags: ["gin", "refreshing"],
+        notes: null,
+        rank: 0,
+        status: "published",
+      },
+      imageBuffer: Buffer.from("fake-image"),
+    });
+
+    expect(result).toEqual({
+      drinkSlug: "test-cocktail",
+      notices: [],
+    });
+
+    const editor = await service.getDrinkEditorBySlug("test-cocktail");
+
+    expect(editor).toEqual({
+      mode: "edit",
+      drinkSlug: "test-cocktail",
+      imageUrl: "https://ik.imagekit.io/test/drinks/test-cocktail.jpg",
+      initialValues: {
+        title: "Test Cocktail",
+        slug: "test-cocktail",
+        ingredients: "gin\ntonic",
+        calories: "150",
+        tags: "gin, refreshing",
+        notes: "",
+        rank: "0",
+        status: "published",
+      },
+    });
+  });
+
+  test("throws a typed slug error when creating with a duplicate slug", async () => {
+    const service = testDrinksService({
+      writeEffects: {
+        uploadImage: vi.fn().mockResolvedValue({
+          url: "https://ik.imagekit.io/test/drinks/test-margarita.jpg",
+          fileId: "new-file-id",
+        }),
+      },
+    });
+
+    await expect(
+      service.createDrink({
+        draft: {
+          title: "Duplicate Margarita",
+          slug: "test-margarita",
+          ingredients: ["gin"],
+          calories: 150,
+          tags: ["gin"],
+          notes: null,
+          rank: 0,
+          status: "published",
+        },
+        imageBuffer: Buffer.from("fake-image"),
+      }),
+    ).rejects.toEqual(new FieldDomainError("slug", "Slug already exists"));
+  });
+
+  test("updates an existing drink without replacing its image", async () => {
+    const uploadImage = vi.fn();
+    const deleteImage = vi.fn();
+    const purgeDrinkCache = vi.fn().mockResolvedValue(undefined);
+
+    const service = testDrinksService({
+      writeEffects: {
+        uploadImage,
+        deleteImage,
+        purgeDrinkCache,
+      },
+    });
+
+    const result = await service.updateDrink({
+      slug: "test-margarita",
+      draft: {
+        title: "Updated Margarita",
+        slug: "test-margarita",
+        ingredients: ["3 oz tequila", "1.5 oz lime juice"],
+        calories: 250,
+        tags: ["tequila", "updated"],
+        notes: "Updated notes",
+        rank: 5,
+        status: "published",
+      },
+    });
+
+    expect(result).toEqual({
+      drinkSlug: "test-margarita",
+      notices: [],
+    });
+
+    expect(uploadImage).not.toHaveBeenCalled();
+    expect(deleteImage).not.toHaveBeenCalled();
+    expect(purgeDrinkCache).toHaveBeenCalledWith({
+      slug: "test-margarita",
+      tags: ["tequila", "citrus", "updated"],
+    });
+
+    const editor = await service.getDrinkEditorBySlug("test-margarita");
+
+    expect(editor).toEqual({
+      mode: "edit",
+      drinkSlug: "test-margarita",
+      imageUrl:
+        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+      initialValues: {
+        title: "Updated Margarita",
+        slug: "test-margarita",
+        ingredients: "3 oz tequila\n1.5 oz lime juice",
+        calories: "250",
+        tags: "tequila, updated",
+        notes: "Updated notes",
+        rank: "5",
+        status: "published",
+      },
+    });
+  });
+
+  test("returns warning metadata when old image cleanup fails after a successful update", async () => {
+    const service = testDrinksService({
+      writeEffects: {
+        uploadImage: vi.fn().mockResolvedValue({
+          url: "https://ik.imagekit.io/test/drinks/test-margarita.jpg",
+          fileId: "replacement-file-id",
+        }),
+        deleteImage: vi.fn().mockRejectedValue(new Error("cleanup failed")),
+        purgeDrinkCache: vi.fn().mockResolvedValue(undefined),
+      },
+    });
+
+    const result = await service.updateDrink({
+      slug: "test-margarita",
+      draft: {
+        title: "Test Margarita",
+        slug: "test-margarita",
+        ingredients: ["2 oz tequila", "1 oz lime juice", "1 oz triple sec"],
+        calories: 200,
+        tags: ["tequila", "citrus"],
+        notes: "A classic test margarita",
+        rank: 10,
+        status: "published",
+      },
+      imageBuffer: Buffer.from("new-image"),
+    });
+
+    expect(result).toEqual({
+      drinkSlug: "test-margarita",
+      notices: [{ code: SaveDrinkNoticeCodes.oldImageCleanupFailed, message: "cleanup failed" }],
+    });
+
+    const editor = await service.getDrinkEditorBySlug("test-margarita");
+    expect(editor.initialValues.title).toBe("Test Margarita");
+  });
+
+  test("deletes a drink through the service boundary", async () => {
+    const deleteImage = vi.fn().mockResolvedValue(undefined);
+    const purgeDrinkCache = vi.fn().mockResolvedValue(undefined);
+    const service = testDrinksService({
+      writeEffects: {
+        deleteImage,
+        purgeDrinkCache,
+      },
+    });
+
+    await service.deleteDrink({ slug: "test-margarita" });
+
+    await expect(service.getDrinkEditorBySlug("test-margarita")).rejects.toThrowError(
+      DrinkEditorNotFoundError,
+    );
+    expect(deleteImage).toHaveBeenCalledWith("seed-fileId-1");
+    expect(purgeDrinkCache).toHaveBeenCalledWith({
+      slug: "test-margarita",
+      tags: ["tequila", "citrus"],
+    });
+  });
+});
+
+describe("searchPublishedDrinks", () => {
+  function readOnlyService() {
+    return createDrinksService({ db: getDb() });
+  }
+
+  test("returns matching drinks for a title query", async () => {
+    const results = await readOnlyService().searchPublishedDrinks({ query: "margarita" });
+    expect(results.length).toBe(1);
+    expect(results[0]?.slug).toBe("test-margarita");
+  });
+
+  test("returns matching drinks for an ingredient query", async () => {
+    const results = await readOnlyService().searchPublishedDrinks({ query: "bourbon" });
+    expect(results.length).toBe(1);
+    expect(results[0]?.slug).toBe("test-old-fashioned");
+  });
+
+  test("returns empty array for non-matching query", async () => {
+    const results = await readOnlyService().searchPublishedDrinks({ query: "xyznonexistent123" });
+    expect(results).toEqual([]);
+  });
+
+  test("returns enhanced drink shape", async () => {
+    const results = await readOnlyService().searchPublishedDrinks({ query: "mojito" });
+    expect(results.length).toBe(1);
+    const drink = results[0];
+    expect(drink).toMatchObject({
+      slug: "test-mojito",
+      title: "Test Mojito",
+      calories: 150,
+    });
+    expect(drink?.image.url.length).toBeGreaterThan(0);
+    expect(drink?.ingredients).toBeInstanceOf(Array);
+    expect(drink?.tags).toBeInstanceOf(Array);
+  });
+});
+
+describe("purgeSearchCache", () => {
+  test("causes index rebuild on next search", async () => {
+    const service = createDrinksService({ db: getDb() });
+    const firstResults = await service.searchPublishedDrinks({ query: "margarita" });
+    purgeSearchCache();
+    const secondResults = await service.searchPublishedDrinks({ query: "margarita" });
+    expect(secondResults.length).toBe(firstResults.length);
+  });
+});
+
+describe("drinkDraftSchema", () => {
+  test("accepts valid input", () => {
+    const result = drinkDraftSchema.safeParse({
+      title: "Margarita",
+      slug: "margarita",
+      ingredients: "tequila\nlime juice\ntriple sec",
+      calories: "200",
+      tags: "tequila, citrus",
+      notes: "A classic cocktail",
+      rank: "1",
+      status: "published",
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  test("rejects invalid slug", () => {
+    const result = drinkDraftSchema.safeParse({
+      title: "Test",
+      slug: "INVALID SLUG!!!",
+      ingredients: "a",
+      calories: "100",
+      tags: "a",
+      notes: "",
+      rank: "0",
+      status: "published",
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  test("rejects missing title", () => {
+    const result = drinkDraftSchema.safeParse({
+      title: "",
+      slug: "test",
+      ingredients: "a",
+      calories: "100",
+      tags: "a",
+      notes: "",
+      rank: "0",
+      status: "published",
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  test("parses newline-separated ingredients", () => {
+    const result = drinkDraftSchema.safeParse({
+      title: "Test",
+      slug: "test",
+      ingredients: "gin\ntonic\nlime",
+      calories: "100",
+      tags: "gin",
+      notes: "",
+      rank: "0",
+      status: "published",
+    });
+
+    expect(result.success).toBe(true);
+    if (!result.success) {
+      return;
+    }
+    expect(result.data.ingredients).toEqual(["gin", "tonic", "lime"]);
+  });
+
+  test("parses comma-separated tags", () => {
+    const result = drinkDraftSchema.safeParse({
+      title: "Test",
+      slug: "test",
+      ingredients: "a",
+      calories: "100",
+      tags: "gin, refreshing, summer",
+      notes: "",
+      rank: "0",
+      status: "published",
+    });
+
+    expect(result.success).toBe(true);
+    if (!result.success) {
+      return;
+    }
+    expect(result.data.tags).toEqual(["gin", "refreshing", "summer"]);
+  });
+});

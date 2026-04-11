@@ -1,25 +1,24 @@
 import { data } from "react-router";
 import { cacheHeader } from "pretty-cache-header";
 import { defaultPageDescription, defaultPageTitle } from "#/app/core/config";
-import { DrinkList } from "#/app/drinks/drink-list";
-import { getPublishedDrinks } from "#/app/models/drink.server";
-import { getEnvVars } from "#/app/utils/env.server";
-import { withPlaceholderImages } from "#/app/utils/placeholder-images.server";
+import { getEnvVars } from "#/app/core/env.server";
+import { getDb } from "#/app/db/client.server";
+import { createDrinksService } from "#/app/modules/drinks/drinks.server";
+import { DrinkList } from "#/app/ui/drinks/drink-list";
 import type { Route } from "./+types/_app._index";
-
-const { SITE_IMAGE_URL, SITE_IMAGE_ALT } = getEnvVars();
 
 export function headers({ loaderHeaders }: Route.HeadersArgs) {
   return loaderHeaders;
 }
 
 export async function loader() {
-  const drinks = await getPublishedDrinks();
-  const drinksWithPlaceholderImages = await withPlaceholderImages(drinks);
+  const { SITE_IMAGE_URL, SITE_IMAGE_ALT } = getEnvVars();
+  const drinksService = createDrinksService({ db: getDb() });
+  const drinks = await drinksService.getPublishedDrinks();
 
   return data(
     {
-      drinks: drinksWithPlaceholderImages,
+      drinks,
       socialImageUrl: SITE_IMAGE_URL,
       socialImageAlt: SITE_IMAGE_ALT,
     },

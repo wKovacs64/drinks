@@ -3,26 +3,24 @@ import { lowerCase, startCase } from "lodash-es";
 import { cacheHeader } from "pretty-cache-header";
 import { invariantResponse } from "@epic-web/invariant";
 import { defaultPageDescription, defaultPageTitle } from "#/app/core/config";
-import { getLoaderDataForHandle } from "#/app/core/utils";
-import { DrinkList } from "#/app/drinks/drink-list";
-import { getDrinksByTag } from "#/app/models/drink.server";
-import { getSurrogateKeyForTag } from "#/app/tags/utils";
-import { getEnvVars } from "#/app/utils/env.server";
-import { withPlaceholderImages } from "#/app/utils/placeholder-images.server";
+import { getLoaderDataForHandle, getSurrogateKeyForTag } from "#/app/core/utils";
+import { getEnvVars } from "#/app/core/env.server";
+import { getDb } from "#/app/db/client.server";
+import { createDrinksService } from "#/app/modules/drinks/drinks.server";
+import { DrinkList } from "#/app/ui/drinks/drink-list";
 import type { AppRouteHandle } from "#/app/types";
 import type { Route } from "./+types/_app.tags.$tag";
-
-const { SITE_IMAGE_URL, SITE_IMAGE_ALT } = getEnvVars();
 
 export function headers({ loaderHeaders }: Route.HeadersArgs) {
   return loaderHeaders;
 }
 
 export async function loader({ params }: Route.LoaderArgs) {
-  const tagToSearch = lowerCase(params.tag);
-  const drinks = await getDrinksByTag(tagToSearch);
+  const { SITE_IMAGE_URL, SITE_IMAGE_ALT } = getEnvVars();
+  const drinksService = createDrinksService({ db: getDb() });
+  const drinks = await drinksService.getDrinksByTag(params.tag);
 
-  invariantResponse(drinks.length, "No drinks found", {
+  invariantResponse(drinks, "No drinks found", {
     status: 404,
     headers: {
       "Surrogate-Key": "all",
@@ -35,11 +33,9 @@ export async function loader({ params }: Route.LoaderArgs) {
     },
   });
 
-  const drinksWithPlaceholderImages = await withPlaceholderImages(drinks);
-
   return data(
     {
-      drinks: drinksWithPlaceholderImages,
+      drinks,
       socialImageUrl: SITE_IMAGE_URL,
       socialImageAlt: SITE_IMAGE_ALT,
     },

@@ -46,6 +46,7 @@ export const handlers = [
   }),
 
   // ImageKit SDK probes fetch FormData support via `fetch('data:,')`.
-  // Passthrough so MSW doesn't report it as unhandled.
+  // MSW's `data:*` does not match `data:,` (unhandled shows as "GET null,").
+  http.get("data:,", () => passthrough()),
   http.get("data:*", () => passthrough()),
 ];

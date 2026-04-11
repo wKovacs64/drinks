@@ -1,9 +1,8 @@
 import { cacheHeader } from "pretty-cache-header";
-import { getEnvVars } from "#/app/utils/env.server";
-
-const { DEPLOYMENT_ENV } = getEnvVars();
+import { getEnvVars } from "#/app/core/env.server";
 
 export async function loader() {
+  const { DEPLOYMENT_ENV } = getEnvVars();
   const body = `User-agent: *\n${DEPLOYMENT_ENV === "prod" ? "Allow: /" : "Disallow: /"}`;
 
   return new Response(body, {

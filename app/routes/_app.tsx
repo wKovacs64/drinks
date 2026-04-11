@@ -1,14 +1,14 @@
 import { Outlet } from "react-router";
 import { backgroundImageStyles } from "#/app/styles/background-image";
-import { Breadcrumbs } from "#/app/navigation/breadcrumbs";
-import { SkipNavLink } from "#/app/core/skip-nav-link";
-import { Header } from "#/app/core/header";
-import { Footer } from "#/app/core/footer";
-import { optionalUserMiddleware } from "#/app/middleware/authorization.server";
+import { Breadcrumbs } from "#/app/ui/navigation/breadcrumbs";
+import { SkipNavLink } from "#/app/ui/core/skip-nav-link";
+import { Header } from "#/app/ui/core/header";
+import { Footer } from "#/app/ui/core/footer";
+import { optionalUser } from "#/app/modules/identity/identity.server";
 import type { AppRouteHandle } from "#/app/types";
 import type { Route } from "./+types/_app";
 
-export const middleware = [optionalUserMiddleware];
+export const middleware = [optionalUser];
 
 // This pathless layout route wraps all public-facing routes with the site chrome (Header,
 // Breadcrumbs, Footer, background image, etc.). It also renders an error fallback for any errors
@@ -48,4 +48,4 @@ export default function AppLayout() {
   );
 }
 
-export { ErrorBoundary } from "#/app/core/errors";
+export { ErrorBoundary } from "#/app/ui/core/errors";

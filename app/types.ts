@@ -1,14 +1,4 @@
-import type { BreadcrumbHandle } from "#/app/navigation/breadcrumbs";
-
-export type EnhancedDrink = {
-  title: string;
-  slug: string;
-  image: { url: string; blurDataUrl: string };
-  ingredients: string[];
-  calories: number;
-  notes: string | null;
-  tags: string[];
-};
+import type { BreadcrumbHandle } from "#/app/ui/navigation/breadcrumbs";
 
 // While this only includes BreadcrumbHandle at the moment, they are
 // semantically different and it may end up an intersection of multiple types in

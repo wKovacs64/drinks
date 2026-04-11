@@ -1,22 +1,23 @@
 import { data, href } from "react-router";
 import { kebabCase } from "lodash-es";
 import { cacheHeader } from "pretty-cache-header";
-import { defaultPageTitle, defaultPageDescription } from "#/app/core/config";
-import { getAllTags } from "#/app/models/drink.server";
-import { TagLink } from "#/app/tags/tag-link";
-import { Tag } from "#/app/tags/tag";
-import { getSurrogateKeyForTag } from "#/app/tags/utils";
-import { getEnvVars } from "#/app/utils/env.server";
+import { defaultPageDescription, defaultPageTitle } from "#/app/core/config";
+import { getSurrogateKeyForTag } from "#/app/core/utils";
+import { getEnvVars } from "#/app/core/env.server";
+import { getDb } from "#/app/db/client.server";
+import { createDrinksService } from "#/app/modules/drinks/drinks.server";
+import { TagLink } from "#/app/ui/tags/tag-link";
+import { Tag } from "#/app/ui/tags/tag";
 import type { Route } from "./+types/_app.tags._index";
-
-const { SITE_IMAGE_URL, SITE_IMAGE_ALT } = getEnvVars();
 
 export function headers({ loaderHeaders }: Route.HeadersArgs) {
   return loaderHeaders;
 }
 
 export async function loader() {
-  const tags = await getAllTags();
+  const { SITE_IMAGE_URL, SITE_IMAGE_ALT } = getEnvVars();
+  const drinksService = createDrinksService({ db: getDb() });
+  const tags = await drinksService.getAllTags();
   const everyTagSurrogateKey = tags.map(getSurrogateKeyForTag).join(" ");
 
   return data(

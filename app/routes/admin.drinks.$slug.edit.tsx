@@ -1,68 +1,83 @@
-import { redirect, href, data } from "react-router";
-import { invariantResponse } from "@epic-web/invariant";
-import { getDrinkBySlug } from "#/app/models/drink.server";
-import { getSession, commitSession } from "#/app/auth/session.server";
-import { updateDrink } from "#/app/drinks/mutations.server";
-import { parseImageUpload } from "#/app/utils/parse-image-upload.server";
-import { DrinkForm } from "#/app/admin/drink-form";
-import { drinkFormSchema } from "#/app/validation/drink";
+import { data, href } from "react-router";
+import { DomainError } from "#/app/core/errors";
+import { parseImageUpload } from "#/app/core/image-upload.server";
+import { intent, routeAction } from "#/app/core/route-action.server";
+import { getFormErrors } from "#/app/core/utils";
+import { getDb } from "#/app/db/client.server";
+import { purgeDrinkCache } from "#/app/integrations/fastly.server";
+import { deleteImage, uploadImage } from "#/app/integrations/imagekit.server";
+import { drinkDraftSchema, SaveDrinkNoticeCodes } from "#/app/modules/drinks/drinks";
+import { createDrinksService, DrinkEditorNotFoundError } from "#/app/modules/drinks/drinks.server";
+import { DrinkForm } from "#/app/ui/admin/drink-form";
 import type { Route } from "./+types/admin.drinks.$slug.edit";
 
 export async function loader({ params }: Route.LoaderArgs) {
-  const drink = await getDrinkBySlug(params.slug);
-  invariantResponse(drink, "Drink not found", { status: 404 });
-  return { drink };
+  const drinksService = createDrinksService({ db: getDb() });
+
+  try {
+    const editor = await drinksService.getDrinkEditorBySlug(params.slug);
+    return { editor, slug: params.slug };
+  } catch (error) {
+    if (error instanceof DrinkEditorNotFoundError) {
+      throw new Response("Drink not found", { status: 404 });
+    }
+
+    throw error;
+  }
 }
 
 export default function EditDrinkPage({ loaderData, actionData }: Route.ComponentProps) {
-  const { drink } = loaderData;
+  const { editor, slug } = loaderData;
 
   return (
     <div>
-      <title>{`Edit ${drink.title} | drinks.fyi`}</title>
+      <title>{`Edit ${editor.initialValues.title} | drinks.fyi`}</title>
       <h1 className="mb-6 text-2xl font-medium text-zinc-200">Edit Drink</h1>
       <DrinkForm
-        drink={drink}
-        action={href("/admin/drinks/:slug/edit", { slug: drink.slug })}
-        errors={actionData?.errors}
+        editor={editor}
+        action={href("/admin/drinks/:slug/edit", { slug })}
+        errors={getFormErrors(actionData)}
       />
     </div>
   );
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
-  const drink = await getDrinkBySlug(params.slug);
-  invariantResponse(drink, "Drink not found", { status: 404 });
-
-  const { formData, imageUpload, imageError } = await parseImageUpload(request);
+  const drinksService = createDrinksService({
+    db: getDb(),
+    writeEffects: {
+      uploadImage,
+      deleteImage,
+      purgeDrinkCache,
+    },
+  });
+  const { imageUpload, imageError } = await parseImageUpload(request.clone());
 
   if (imageError) {
-    return data({ errors: [imageError] }, { status: 400 });
+    return data({ fieldErrors: {}, formErrors: [imageError] }, { status: 400 });
   }
 
-  const result = drinkFormSchema.safeParse(Object.fromEntries(formData));
-
-  if (!result.success) {
-    return data({ errors: result.error.issues.map((issue) => issue.message) }, { status: 400 });
-  }
-
-  const { staleImageError } = await updateDrink(drink, result.data, imageUpload?.buffer);
-
-  const session = await getSession(request.headers.get("Cookie"));
-
-  if (staleImageError) {
-    session.flash("toast", {
-      kind: "error" as const,
-      message: `${result.data.title} updated, but old image cleanup failed`,
-    });
-  } else {
-    session.flash("toast", {
-      kind: "success" as const,
-      message: `${result.data.title} updated!`,
-    });
-  }
-
-  return redirect(href("/admin/drinks"), {
-    headers: { "Set-Cookie": await commitSession(session) },
-  });
+  return routeAction(
+    request,
+    intent({
+      schema: drinkDraftSchema,
+      operation: async (draft) =>
+        drinksService.updateDrink({
+          slug: params.slug,
+          draft,
+          imageBuffer: imageUpload?.buffer,
+        }),
+      redirectTo: href("/admin/drinks"),
+      toast: (operationResult) => {
+        if (operationResult instanceof DomainError) {
+          return { kind: "error", message: operationResult.message };
+        }
+        return operationResult.notices.some(
+          (notice) => notice.code === SaveDrinkNoticeCodes.oldImageCleanupFailed,
+        )
+          ? { kind: "warning", message: "Drink updated, but old image cleanup failed" }
+          : { kind: "success", message: "Drink updated!" };
+      },
+    }),
+  );
 }

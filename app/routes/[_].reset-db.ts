@@ -1,15 +1,14 @@
 import { invariantResponse } from "@epic-web/invariant";
-import { getEnvVars } from "#/app/utils/env.server";
+import { getEnvVars } from "#/app/core/env.server";
 import { resetAndSeedDatabase } from "#/app/db/reset.server";
 import type { Route } from "./+types/[_].reset-db";
-
-const { NODE_ENV } = getEnvVars();
 
 export async function loader() {
   invariantResponse(false, "Not Found", { status: 404 });
 }
 
 export async function action({ request }: Route.ActionArgs) {
+  const { NODE_ENV } = getEnvVars();
   invariantResponse(NODE_ENV === "test", "Not Found", { status: 404 });
   invariantResponse(request.method === "POST", "Method Not Allowed", { status: 405 });
 

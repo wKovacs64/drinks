@@ -7,12 +7,10 @@ import faviconIcoUrl from "./assets/images/favicon.ico";
 import icon32Url from "./assets/images/icon-32x32.png";
 import appleTouchIconUrl from "./assets/images/apple-touch-icon.png";
 import { appName, appThemeColor } from "./core/config";
-import { securityHeaders } from "./middleware/security-headers.server";
-import { loggingMiddleware } from "./middleware/logging.server";
-import { getEnvVars } from "./utils/env.server";
+import { securityHeaders } from "./core/middleware/security-headers.server";
+import { loggingMiddleware } from "./core/middleware/logging.server";
+import { getEnvVars } from "./core/env.server";
 import type { Route } from "./+types/root";
-
-const { COMMIT_SHA } = getEnvVars();
 
 export const middleware: Route.MiddlewareFunction[] = [loggingMiddleware, securityHeaders];
 
@@ -34,6 +32,7 @@ export const links: LinksFunction = () => [
 export const shouldRevalidate = () => false;
 
 export async function loader() {
+  const { COMMIT_SHA } = getEnvVars();
   return { commit: COMMIT_SHA };
 }
 

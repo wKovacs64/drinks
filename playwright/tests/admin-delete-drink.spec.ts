@@ -13,6 +13,6 @@ test.describe("Delete Drink", () => {
     await row.getByRole("button", { name: "Delete" }).click();
 
     // Drink should be removed from the list
-    await expect(pageAsAdmin.getByText("Test Old Fashioned")).not.toBeVisible();
+    await expect(pageAsAdmin.getByText("Test Old Fashioned")).toBeHidden();
   });
 });

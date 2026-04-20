@@ -85,7 +85,7 @@
     "@playwright/test": "1.59.1",
     "@react-router/dev": "7.14.0",
     "@react-router/fs-routes": "7.14.0",
-    "@rolldown/plugin-babel": "0.2.2",
+    "@rolldown/plugin-babel": "0.2.3",
     "@tailwindcss/vite": "4.2.2",
     "@types/better-sqlite3": "7.6.13",
     "@types/lodash-es": "4.17.12",

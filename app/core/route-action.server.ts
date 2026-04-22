@@ -28,6 +28,44 @@ type IntentDef = {
 
 export type Intent = IntentDef & { [INTENT_BRAND]: true };
 
+/**
+ * Defines a single action "intent" for `routeAction()`.
+ *
+ * Think of this as the per-submit configuration object that tells the action pipeline:
+ * - how to validate the form (`schema`)
+ * - what business operation to run (`operation`)
+ * - whether success should redirect somewhere (`redirectTo`)
+ * - which success/error toast to show (`toast`)
+ *
+ * Common patterns:
+ * - Use `schema + operation` for normal form submissions.
+ * - Use only `operation` for button actions that don't need parsed form fields.
+ * - Add `redirectTo` when success should navigate away.
+ * - Omit `redirectTo` for fetcher or same-page submissions that should receive an `ActionData`
+ *   payload.
+ *
+ * `toast` may be a simple config object or a function. When you provide a function, it receives
+ * either the successful operation result or a caught domain error, so you can build dynamic toast
+ * messages from either case.
+ *
+ * @example
+ * const createDrinkIntent = intent({
+ *   schema: drinkDraftSchema,
+ *   operation: (draft) => drinksService.createDrink({
+ *     draft,
+ *     imageBuffer,
+ *   }),
+ *   redirectTo: href("/admin/drinks"),
+ *   toast: { successMessage: "Drink created!" },
+ * });
+ *
+ * @example
+ * const deleteDrinkIntent = intent({
+ *   operation: () => drinksService.deleteDrink({ slug: params.slug }),
+ *   redirectTo: href("/admin/drinks"),
+ *   toast: { successMessage: "Drink deleted!" },
+ * });
+ */
 export function intent<TInput, TResult>(config: {
   schema: ZodType<TInput>;
   operation: (data: TInput) => Promise<TResult>;
@@ -57,6 +95,53 @@ function isBrandedIntent(value: unknown): value is Intent {
   return typeof value === "object" && value !== null && INTENT_BRAND in value;
 }
 
+/**
+ * Standard action pipeline for React Router form submissions.
+ *
+ * Pass either:
+ * - a single `intent(...)` for routes with one action, or
+ * - a record of `intent(...)` values for multi-action forms keyed by the submitted `intent`
+ *   button value.
+ *
+ * What this does for you:
+ * - reads `request.formData()`
+ * - picks the matching intent (for multi-intent actions)
+ * - validates the form with the intent's Zod schema, if present
+ * - calls the intent `operation()` with the parsed form value
+ * - converts `FieldDomainError` / `FormDomainError` into field/form errors
+ * - adds success/error toasts when configured
+ * - throws a redirect when `redirectTo` is configured, otherwise returns an `ActionData` payload
+ * - includes `actionIntent` on multi-intent responses so the UI knows which action ran
+ *
+ * Use `redirectTo` for normal form posts that should navigate away after success. Omit it for
+ * fetcher forms or same-page submissions where the caller should receive the submission result.
+ *
+ * Routes may still do pre-validation work before calling `routeAction`, such as multipart image
+ * parsing. In that case, return the preparation failure directly and only pass the ready intent to
+ * `routeAction`.
+ *
+ * @example
+ * // Single-intent action
+ * const preparation = await workflow.prepareCreate({ request });
+ * if (preparation.kind === "invalid") return data(preparation, { status: preparation.status });
+ * return routeAction(request, preparation.intent);
+ *
+ * @example
+ * // Multi-intent action: submit with <button name="intent" value="delete" />
+ * return routeAction(request, {
+ *   update: intent({
+ *     schema: drinkDraftSchema,
+ *     operation: (draft) => drinksService.updateDrink({ slug: params.slug, draft }),
+ *     redirectTo: href("/admin/drinks"),
+ *     toast: { successMessage: "Drink updated!" },
+ *   }),
+ *   delete: intent({
+ *     operation: () => drinksService.deleteDrink({ slug: params.slug }),
+ *     redirectTo: href("/admin/drinks"),
+ *     toast: { successMessage: "Drink deleted!" },
+ *   }),
+ * });
+ */
 export async function routeAction(request: Request, intentOrMap: Intent | Record<string, Intent>) {
   const formData = await readFormData(request);
 

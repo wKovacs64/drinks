@@ -83,8 +83,35 @@ export type CreateAdminDrinkCommand = {
   imageBuffer: Buffer;
 };
 
+export type UpdateAdminDrinkCommand = {
+  slug: string;
+  draft: DrinkDraft;
+  imageBuffer?: Buffer;
+};
+
+export type AdminDrinkWriteSuccessResult = SaveDrinkResult & {
+  kind: "success";
+};
+
+export type AdminDrinkWriteFieldErrorResult = {
+  kind: "fieldError";
+  fieldErrors: Record<string, string[] | undefined>;
+  formErrors: string[];
+};
+
+export type AdminDrinkWriteNotFoundResult = {
+  kind: "notFound";
+  slug: string;
+};
+
+export type UpdateAdminDrinkResult =
+  | AdminDrinkWriteSuccessResult
+  | AdminDrinkWriteFieldErrorResult
+  | AdminDrinkWriteNotFoundResult;
+
 export interface AdminDrinksWriteService {
   create(command: CreateAdminDrinkCommand): Promise<SaveDrinkResult>;
+  update(command: UpdateAdminDrinkCommand): Promise<UpdateAdminDrinkResult>;
 }
 
 export interface DrinksService {

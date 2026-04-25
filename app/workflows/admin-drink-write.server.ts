@@ -1,5 +1,5 @@
 import { href } from "react-router";
-import { DomainError } from "#/app/core/errors";
+import { DomainError, FieldDomainError } from "#/app/core/errors";
 import { intent, type Intent } from "#/app/core/route-action.server";
 import type { getDb } from "#/app/db/client.server";
 import { drinkDraftSchema, SaveDrinkNoticeCodes } from "#/app/modules/drinks/drinks";
@@ -50,6 +50,7 @@ export function createAdminDrinkWriteWorkflow(deps: {
     db: deps.db,
     writeEffects: {
       uploadImage: deps.uploadImage,
+      deleteImage: deps.deleteImage,
       purgeDrinkCache: deps.purgeDrinkCache,
     },
   });
@@ -101,12 +102,24 @@ export function createAdminDrinkWriteWorkflow(deps: {
         formData: submission.formData,
         intent: intent({
           schema: drinkDraftSchema,
-          operation: async (draft) =>
-            drinksService.updateDrink({
+          operation: async (draft) => {
+            const result = await adminDrinksWriteService.update({
               slug,
               draft,
               imageBuffer: submission.imageUpload?.buffer,
-            }),
+            });
+
+            if (result.kind === "notFound") {
+              throw new Response("Drink not found", { status: 404 });
+            }
+
+            if (result.kind === "fieldError") {
+              const [field, messages] = Object.entries(result.fieldErrors)[0] ?? [];
+              throw new FieldDomainError(field ?? "slug", messages?.[0] ?? "Invalid drink");
+            }
+
+            return result;
+          },
           redirectTo: href("/admin/drinks"),
           toast: (operationResult) => {
             if (operationResult instanceof DomainError) {

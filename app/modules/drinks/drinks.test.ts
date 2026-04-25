@@ -259,6 +259,7 @@ describe("createDrinksService", () => {
           url: "https://ik.imagekit.io/test/drinks/admin-write-cocktail.jpg",
           fileId: "admin-write-file-id",
         }),
+        deleteImage: vi.fn().mockResolvedValue(undefined),
         purgeDrinkCache: vi.fn().mockResolvedValue(undefined),
       },
     });
@@ -286,6 +287,92 @@ describe("createDrinksService", () => {
     const editor = await readService.getDrinkEditorBySlug("admin-write-cocktail");
     expect(editor.initialValues.title).toBe("Admin Write Cocktail");
     expect(editor.imageUrl).toBe("https://ik.imagekit.io/test/drinks/admin-write-cocktail.jpg");
+  });
+
+  test("updates through the transport-agnostic admin write boundary", async () => {
+    const purgeDrinkCache = vi.fn().mockResolvedValue(undefined);
+    const adminWriteService = createAdminDrinksWriteService({
+      db: getDb(),
+      writeEffects: {
+        uploadImage: vi.fn(),
+        deleteImage: vi.fn(),
+        purgeDrinkCache,
+      },
+    });
+
+    const result = await adminWriteService.update({
+      slug: "test-margarita",
+      draft: {
+        title: "Admin Updated Margarita",
+        slug: "admin-updated-margarita",
+        ingredients: ["tequila", "lime"],
+        calories: 210,
+        tags: ["tequila", "lime"],
+        notes: null,
+        rank: 1,
+        status: "published",
+      },
+    });
+
+    expect(result).toEqual({
+      kind: "success",
+      drinkSlug: "admin-updated-margarita",
+      notices: [],
+    });
+    expect(purgeDrinkCache).toHaveBeenCalledWith({
+      slugs: ["test-margarita", "admin-updated-margarita"],
+      tags: ["tequila", "citrus", "lime"],
+    });
+
+    const editor = await createDrinksService({ db: getDb() }).getDrinkEditorBySlug(
+      "admin-updated-margarita",
+    );
+    expect(editor.initialValues.title).toBe("Admin Updated Margarita");
+  });
+
+  test("returns typed admin write outcomes for duplicate update slugs and missing drinks", async () => {
+    const adminWriteService = createAdminDrinksWriteService({
+      db: getDb(),
+      writeEffects: {
+        uploadImage: vi.fn(),
+        deleteImage: vi.fn(),
+        purgeDrinkCache: vi.fn(),
+      },
+    });
+
+    const duplicateResult = await adminWriteService.update({
+      slug: "test-margarita",
+      draft: {
+        title: "Duplicate Margarita",
+        slug: "test-old-fashioned",
+        ingredients: ["tequila"],
+        calories: 210,
+        tags: ["tequila"],
+        notes: null,
+        rank: 1,
+        status: "published",
+      },
+    });
+    const notFoundResult = await adminWriteService.update({
+      slug: "missing-drink",
+      draft: {
+        title: "Missing Drink",
+        slug: "missing-drink",
+        ingredients: ["tequila"],
+        calories: 210,
+        tags: ["tequila"],
+        notes: null,
+        rank: 1,
+        status: "published",
+      },
+    });
+
+    expect(duplicateResult).toEqual({
+      kind: "fieldError",
+      fieldErrors: { slug: ["Slug already exists"] },
+      formErrors: [],
+    });
+    expect(notFoundResult).toEqual({ kind: "notFound", slug: "missing-drink" });
   });
 
   test("throws a typed slug error when creating with a duplicate slug", async () => {

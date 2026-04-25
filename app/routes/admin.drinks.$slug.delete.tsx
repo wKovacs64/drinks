@@ -1,9 +1,9 @@
 import { redirect, href } from "react-router";
-import { routeAction } from "#/app/core/route-action.server";
+import { intent, routeAction } from "#/app/core/route-action.server";
 import { getDb } from "#/app/db/client.server";
 import { purgeDrinkCache } from "#/app/integrations/fastly.server";
 import { deleteImage, uploadImage } from "#/app/integrations/imagekit.server";
-import { createAdminDrinkWriteWorkflow } from "#/app/workflows/admin-drink-write.server";
+import { createAdminDrinksWriteService } from "#/app/modules/drinks/drinks.server";
 import type { Route } from "./+types/admin.drinks.$slug.delete";
 
 export async function loader() {
@@ -11,14 +11,25 @@ export async function loader() {
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
-  const workflow = createAdminDrinkWriteWorkflow({
+  const adminDrinksWriteService = createAdminDrinksWriteService({
     db: getDb(),
-    uploadImage,
-    deleteImage,
-    purgeDrinkCache,
+    writeEffects: { uploadImage, deleteImage, purgeDrinkCache },
   });
 
-  const deleteIntent = await workflow.prepareDelete({ slug: params.slug });
+  return routeAction(
+    request,
+    intent({
+      operation: async () => {
+        const result = await adminDrinksWriteService.delete({ slug: params.slug });
 
-  return routeAction(request, deleteIntent);
+        if (result.kind === "notFound") {
+          throw new Response("Drink not found", { status: 404 });
+        }
+
+        return result;
+      },
+      redirectTo: href("/admin/drinks"),
+      toast: { successMessage: "Drink deleted!" },
+    }),
+  );
 }

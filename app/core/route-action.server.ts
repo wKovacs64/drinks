@@ -122,9 +122,9 @@ function isBrandedIntent(value: unknown): value is Intent {
  *
  * @example
  * // Single-intent action
- * const preparation = await workflow.prepareCreate({ request });
- * if (preparation.kind === "invalid") return data(preparation, { status: preparation.status });
- * return routeAction(request, preparation.intent);
+ * const submission = await parseCreateDrinkSubmission(request);
+ * if (submission.kind === "invalid") return data(submission, { status: submission.status });
+ * return routeAction(request, createDrinkIntent, { formData: submission.formData });
  *
  * @example
  * // Multi-intent action: submit with <button name="intent" value="delete" />

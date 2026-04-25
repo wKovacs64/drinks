@@ -51,7 +51,7 @@ describe("drink submission parsing", () => {
       return;
     }
     expect(result.imageUpload).toBeUndefined();
-    expect(result.draft.title).toBe("Parsed Cocktail");
+    expect(result.formData.get("title")).toBe("Parsed Cocktail");
   });
 
   test.each([
@@ -102,27 +102,23 @@ describe("drink submission parsing", () => {
     },
   );
 
-  test("valid submissions return normalized draft data and image upload data", async () => {
+  test("valid submissions return form data and image upload data without validating drink draft fields", async () => {
+    const request = buildDrinkFormRequest({
+      imageFile: new File(["fake-image"], "parsed-cocktail.png", { type: "image/png" }),
+    });
+    const formData = await request.formData();
+    formData.set("calories", "not a number");
+
     const result = await parseCreateDrinkSubmission(
-      buildDrinkFormRequest({
-        imageFile: new File(["fake-image"], "parsed-cocktail.png", { type: "image/png" }),
-      }),
+      new Request(request.url, { method: "POST", body: formData }),
     );
 
     expect(result.kind).toBe("ready");
     if (result.kind !== "ready") {
       return;
     }
-    expect(result.draft).toMatchObject({
-      title: "Parsed Cocktail",
-      slug: "parsed-cocktail",
-      ingredients: ["gin", "tonic"],
-      calories: 150,
-      tags: ["gin", "refreshing"],
-      rank: 0,
-      status: "published",
-    });
     expect(result.formData.get("title")).toBe("Parsed Cocktail");
+    expect(result.formData.get("calories")).toBe("not a number");
     expectTypeOf(result.imageUpload).toEqualTypeOf<{ buffer: Buffer; contentType: string }>();
     expect(result.imageUpload).toEqual({
       buffer: Buffer.from("fake-image"),

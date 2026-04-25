@@ -1,6 +1,5 @@
 import { href } from "react-router";
 import { DomainError } from "#/app/core/errors";
-import { parseImageUpload } from "#/app/core/image-upload.server";
 import { intent, type Intent } from "#/app/core/route-action.server";
 import type { getDb } from "#/app/db/client.server";
 import { drinkDraftSchema, SaveDrinkNoticeCodes } from "#/app/modules/drinks/drinks";
@@ -8,12 +7,15 @@ import {
   createAdminDrinksWriteService,
   createDrinksService,
 } from "#/app/modules/drinks/drinks.server";
+import {
+  parseCreateDrinkSubmission,
+  parseUpdateDrinkSubmission,
+} from "./admin-drink-submission.server";
 
 type Db = ReturnType<typeof getDb>;
 type UploadImage = (file: Buffer, fileName: string) => Promise<{ url: string; fileId: string }>;
 type DeleteImage = (fileId: string) => Promise<void>;
 type PurgeDrinkCache = (drink: { slug: string; tags: string[] }) => Promise<void>;
-type ImageUpload = NonNullable<Awaited<ReturnType<typeof parseImageUpload>>["imageUpload"]>;
 
 type DrinkWritePreparationInvalidResult = {
   kind: "invalid";
@@ -24,6 +26,7 @@ type DrinkWritePreparationInvalidResult = {
 
 type DrinkWritePreparationReadyResult = {
   kind: "ready";
+  formData: FormData;
   intent: Intent;
 };
 
@@ -61,18 +64,18 @@ export function createAdminDrinkWriteWorkflow(deps: {
 
   return {
     async prepareCreate({ request }) {
-      const imagePreparation = await prepareImageUpload(request);
-      if (imagePreparation.kind === "invalid") {
-        return imagePreparation;
+      const submission = await parseCreateDrinkSubmission(request);
+      if (submission.kind === "invalid") {
+        return submission;
       }
-
-      const imageUpload = imagePreparation.imageUpload;
-      if (!imageUpload) {
-        return invalidPreparation("Image is required");
+      if (!submission.imageUpload) {
+        throw new Error("Create drink submission parser returned ready without an image upload");
       }
+      const imageUpload = submission.imageUpload;
 
       return {
         kind: "ready",
+        formData: submission.formData,
         intent: intent({
           schema: drinkDraftSchema,
           operation: async (draft) =>
@@ -88,20 +91,21 @@ export function createAdminDrinkWriteWorkflow(deps: {
       };
     },
     async prepareUpdate({ request, slug }) {
-      const imagePreparation = await prepareImageUpload(request);
-      if (imagePreparation.kind === "invalid") {
-        return imagePreparation;
+      const submission = await parseUpdateDrinkSubmission(request);
+      if (submission.kind === "invalid") {
+        return submission;
       }
 
       return {
         kind: "ready",
+        formData: submission.formData,
         intent: intent({
           schema: drinkDraftSchema,
           operation: async (draft) =>
             drinksService.updateDrink({
               slug,
               draft,
-              imageBuffer: imagePreparation.imageUpload?.buffer,
+              imageBuffer: submission.imageUpload?.buffer,
             }),
           redirectTo: href("/admin/drinks"),
           toast: (operationResult) => {
@@ -126,33 +130,5 @@ export function createAdminDrinkWriteWorkflow(deps: {
         },
       });
     },
-  };
-}
-
-async function prepareImageUpload(
-  request: Request,
-): Promise<
-  { kind: "ready"; imageUpload: ImageUpload | undefined } | DrinkWritePreparationInvalidResult
-> {
-  const { imageUpload, imageError } = await parseImageUpload(request.clone());
-
-  if (imageError) {
-    return invalidPreparation(imageError);
-  }
-
-  return {
-    kind: "ready",
-    imageUpload,
-  };
-}
-
-function invalidPreparation(message: string): DrinkWritePreparationInvalidResult {
-  return {
-    kind: "invalid",
-    fieldErrors: {
-      imageFile: [message],
-    },
-    formErrors: [],
-    status: 400,
   };
 }

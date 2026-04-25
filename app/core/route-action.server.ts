@@ -142,8 +142,12 @@ function isBrandedIntent(value: unknown): value is Intent {
  *   }),
  * });
  */
-export async function routeAction(request: Request, intentOrMap: Intent | Record<string, Intent>) {
-  const formData = await readFormData(request);
+export async function routeAction(
+  request: Request,
+  intentOrMap: Intent | Record<string, Intent>,
+  options: { formData?: FormData } = {},
+) {
+  const formData = options.formData ?? (await readFormData(request));
 
   let intentKey: string | undefined;
   let intentDef: IntentDef;

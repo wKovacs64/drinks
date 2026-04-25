@@ -38,5 +38,5 @@ export async function action({ request }: Route.ActionArgs) {
     );
   }
 
-  return routeAction(request, preparation.intent);
+  return routeAction(request, preparation.intent, { formData: preparation.formData });
 }

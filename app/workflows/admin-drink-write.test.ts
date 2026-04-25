@@ -127,7 +127,9 @@ describe("createAdminDrinkWriteWorkflow", () => {
       return;
     }
 
-    const response = await catchRedirect(() => routeAction(request, result.intent));
+    const response = await catchRedirect(() =>
+      routeAction(request, result.intent, { formData: result.formData }),
+    );
 
     expect(response.status).toBe(302);
     expect(response.headers.get("Location")).toBe("/admin/drinks");
@@ -167,7 +169,9 @@ describe("createAdminDrinkWriteWorkflow", () => {
       return;
     }
 
-    const response = await catchRedirect(() => routeAction(request, result.intent));
+    const response = await catchRedirect(() =>
+      routeAction(request, result.intent, { formData: result.formData }),
+    );
 
     const { toast } = await getToast(
       new Request("http://test.local/admin", {

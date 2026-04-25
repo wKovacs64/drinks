@@ -4,20 +4,13 @@ import {
   parseUpdateDrinkSubmission,
 } from "./admin-drink-submission.server";
 
-function buildDrinkFormRequest(
+function buildMultipartRequest(
   overrides: {
     imageFile?: File;
   } = {},
 ) {
   const formData = new FormData();
-  formData.set("title", "Parsed Cocktail");
-  formData.set("slug", "parsed-cocktail");
-  formData.set("ingredients", "gin\ntonic");
-  formData.set("calories", "150");
-  formData.set("tags", "gin, refreshing");
-  formData.set("notes", "Built in parser tests");
-  formData.set("rank", "0");
-  formData.set("status", "published");
+  formData.set("caption", "Multipart parser payload");
 
   if (overrides.imageFile) {
     formData.set("imageFile", overrides.imageFile);
@@ -31,7 +24,7 @@ function buildDrinkFormRequest(
 
 describe("drink submission parsing", () => {
   test("create submissions require an image", async () => {
-    const result = await parseCreateDrinkSubmission(buildDrinkFormRequest());
+    const result = await parseCreateDrinkSubmission(buildMultipartRequest());
 
     expect(result).toEqual({
       kind: "invalid",
@@ -44,14 +37,14 @@ describe("drink submission parsing", () => {
   });
 
   test("update submissions allow keeping the current image", async () => {
-    const result = await parseUpdateDrinkSubmission(buildDrinkFormRequest());
+    const result = await parseUpdateDrinkSubmission(buildMultipartRequest());
 
     expect(result.kind).toBe("ready");
     if (result.kind !== "ready") {
       return;
     }
     expect(result.imageUpload).toBeUndefined();
-    expect(result.formData.get("title")).toBe("Parsed Cocktail");
+    expect(result.formData.get("caption")).toBe("Multipart parser payload");
   });
 
   test.each([
@@ -61,7 +54,7 @@ describe("drink submission parsing", () => {
     "%s submissions with unsupported image types return an imageFile field error",
     async (_, parse) => {
       const result = await parse(
-        buildDrinkFormRequest({
+        buildMultipartRequest({
           imageFile: new File(["not-an-image"], "bad.txt", { type: "text/plain" }),
         }),
       );
@@ -86,7 +79,7 @@ describe("drink submission parsing", () => {
       const oversizedBytes = new Uint8Array(5 * 1024 * 1024 + 1);
 
       const result = await parse(
-        buildDrinkFormRequest({
+        buildMultipartRequest({
           imageFile: new File([oversizedBytes], "large.png", { type: "image/png" }),
         }),
       );
@@ -102,23 +95,18 @@ describe("drink submission parsing", () => {
     },
   );
 
-  test("valid submissions return form data and image upload data without validating drink draft fields", async () => {
-    const request = buildDrinkFormRequest({
-      imageFile: new File(["fake-image"], "parsed-cocktail.png", { type: "image/png" }),
-    });
-    const formData = await request.formData();
-    formData.set("calories", "not a number");
-
+  test("valid create submissions return form data and image upload data", async () => {
     const result = await parseCreateDrinkSubmission(
-      new Request(request.url, { method: "POST", body: formData }),
+      buildMultipartRequest({
+        imageFile: new File(["fake-image"], "parsed-cocktail.png", { type: "image/png" }),
+      }),
     );
 
     expect(result.kind).toBe("ready");
     if (result.kind !== "ready") {
       return;
     }
-    expect(result.formData.get("title")).toBe("Parsed Cocktail");
-    expect(result.formData.get("calories")).toBe("not a number");
+    expect(result.formData.get("caption")).toBe("Multipart parser payload");
     expectTypeOf(result.imageUpload).toEqualTypeOf<{ buffer: Buffer; contentType: string }>();
     expect(result.imageUpload).toEqual({
       buffer: Buffer.from("fake-image"),

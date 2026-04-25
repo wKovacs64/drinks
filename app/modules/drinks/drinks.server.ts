@@ -22,10 +22,15 @@ import {
 
 type Db = ReturnType<typeof getDb>;
 
+type AffectedDrinkPages = {
+  slugs: string[];
+  tags: string[];
+};
+
 type DrinksWriteEffects = {
   uploadImage: (file: Buffer, fileName: string) => Promise<{ url: string; fileId: string }>;
   deleteImage: (fileId: string) => Promise<void>;
-  purgeDrinkCache: (drink: { slug: string; tags: string[] }) => Promise<void>;
+  purgeDrinkCache: (affectedPages: AffectedDrinkPages) => Promise<void>;
 };
 
 export class DrinkEditorNotFoundError extends Error {
@@ -227,7 +232,7 @@ function buildDrinksServiceMutationMethods(
 
       purgeSearchCache();
       await writeEffects.purgeDrinkCache({
-        slug: updatedDrink.slug,
+        slugs: [...new Set([existingDrink.slug, updatedDrink.slug])],
         tags: [...new Set([...existingDrink.tags, ...updatedDrink.tags])],
       });
 
@@ -250,7 +255,10 @@ function buildDrinksServiceMutationMethods(
       await db.delete(drinks).where(eq(drinks.id, existingDrink.id));
 
       purgeSearchCache();
-      await writeEffects.purgeDrinkCache({ slug: existingDrink.slug, tags: existingDrink.tags });
+      await writeEffects.purgeDrinkCache({
+        slugs: [existingDrink.slug],
+        tags: existingDrink.tags,
+      });
     },
   };
 }
@@ -275,7 +283,10 @@ async function createAdminDrink(
   });
 
   purgeSearchCache();
-  await writeEffects.purgeDrinkCache({ slug: createdDrink.slug, tags: createdDrink.tags });
+  await writeEffects.purgeDrinkCache({
+    slugs: [createdDrink.slug],
+    tags: createdDrink.tags,
+  });
 
   return {
     drinkSlug: createdDrink.slug,

@@ -228,7 +228,7 @@ describe("createDrinksService", () => {
     });
     expect(uploadImage).toHaveBeenCalledWith(Buffer.from("fake-image"), "test-cocktail.jpg");
     expect(purgeDrinkCache).toHaveBeenCalledWith({
-      slug: "test-cocktail",
+      slugs: ["test-cocktail"],
       tags: ["gin", "refreshing"],
     });
 
@@ -350,7 +350,7 @@ describe("createDrinksService", () => {
     expect(uploadImage).not.toHaveBeenCalled();
     expect(deleteImage).not.toHaveBeenCalled();
     expect(purgeDrinkCache).toHaveBeenCalledWith({
-      slug: "test-margarita",
+      slugs: ["test-margarita"],
       tags: ["tequila", "citrus", "updated"],
     });
 
@@ -371,6 +371,34 @@ describe("createDrinksService", () => {
         rank: "5",
         status: "published",
       },
+    });
+  });
+
+  test("invalidates both old and new detail pages when a drink slug changes", async () => {
+    const purgeDrinkCache = vi.fn().mockResolvedValue(undefined);
+    const service = testDrinksService({
+      writeEffects: {
+        purgeDrinkCache,
+      },
+    });
+
+    await service.updateDrink({
+      slug: "test-margarita",
+      draft: {
+        title: "Renamed Margarita",
+        slug: "renamed-margarita",
+        ingredients: ["2 oz tequila", "1 oz lime juice", "1 oz triple sec"],
+        calories: 200,
+        tags: ["tequila", "citrus"],
+        notes: "A classic test margarita",
+        rank: 10,
+        status: "published",
+      },
+    });
+
+    expect(purgeDrinkCache).toHaveBeenCalledWith({
+      slugs: ["test-margarita", "renamed-margarita"],
+      tags: ["tequila", "citrus"],
     });
   });
 
@@ -427,7 +455,7 @@ describe("createDrinksService", () => {
     );
     expect(deleteImage).toHaveBeenCalledWith("seed-fileId-1");
     expect(purgeDrinkCache).toHaveBeenCalledWith({
-      slug: "test-margarita",
+      slugs: ["test-margarita"],
       tags: ["tequila", "citrus"],
     });
   });

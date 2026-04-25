@@ -15,7 +15,7 @@ import {
 type Db = ReturnType<typeof getDb>;
 type UploadImage = (file: Buffer, fileName: string) => Promise<{ url: string; fileId: string }>;
 type DeleteImage = (fileId: string) => Promise<void>;
-type PurgeDrinkCache = (drink: { slug: string; tags: string[] }) => Promise<void>;
+type PurgeDrinkCache = (affectedPages: { slugs: string[]; tags: string[] }) => Promise<void>;
 
 type DrinkWritePreparationInvalidResult = {
   kind: "invalid";

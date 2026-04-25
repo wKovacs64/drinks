@@ -1,3 +1,4 @@
+import { kebabCase } from "lodash-es";
 import { z } from "zod";
 
 export const drinkStatusValues = ["published", "unpublished"] as const;
@@ -20,6 +21,22 @@ const commaSeparatedList = z.string().transform((value) =>
     .filter(Boolean),
 );
 
+const canonicalTagList = commaSeparatedList.transform((tags) => {
+  const canonicalTagsBySlug = new Map<string, string>();
+
+  for (const tag of tags) {
+    const tagSlug = kebabCase(tag);
+
+    if (!tagSlug || canonicalTagsBySlug.has(tagSlug)) {
+      continue;
+    }
+
+    canonicalTagsBySlug.set(tagSlug, tagSlug.replaceAll("-", " "));
+  }
+
+  return Array.from(canonicalTagsBySlug.values());
+});
+
 const intFromString = z.string().transform((value) => Number.parseInt(value, 10));
 
 export const drinkDraftSchema = z.object({
@@ -36,7 +53,7 @@ export const drinkDraftSchema = z.object({
   calories: intFromString.pipe(
     z.int("Calories must be a whole number").min(0, "Calories cannot be negative"),
   ),
-  tags: commaSeparatedList.pipe(z.array(z.string()).min(1, "At least one tag is required")),
+  tags: canonicalTagList.pipe(z.array(z.string()).min(1, "At least one tag is required")),
   notes: trimmedString.transform((value) => value || null),
   rank: intFromString.pipe(z.int("Rank must be a whole number")),
   status: z.enum(drinkStatusValues),

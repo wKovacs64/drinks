@@ -8,6 +8,11 @@ export type DrinkStatus = (typeof drinkStatusValues)[number];
  * Used for published-only lists/search/tags and for slug detail — including
  * unpublished rows when {@link DrinkForViewer.visibility} is `"private"`.
  */
+export type DrinkTagView = {
+  displayName: string;
+  slug: string;
+};
+
 export type DrinkView = {
   title: string;
   slug: string;
@@ -15,7 +20,7 @@ export type DrinkView = {
   ingredients: string[];
   calories: number;
   notes: string | null;
-  tags: string[];
+  tags: DrinkTagView[];
 };
 
 export { drinkDraftSchema, drinkStatusValues };
@@ -120,12 +125,17 @@ export interface AdminDrinksWriteService {
   delete(command: DeleteAdminDrinkCommand): Promise<DeleteAdminDrinkResult>;
 }
 
+export type DrinksByTagSlug = {
+  tag: DrinkTagView;
+  drinks: DrinkView[];
+};
+
 export interface DrinksService {
   getPublishedDrinks(): Promise<DrinkView[]>;
   getAllDrinks(): Promise<AdminDrinkListItem[]>;
   getDrinkBySlug(input: { slug: string; viewerRole: ViewerRole }): Promise<DrinkForViewer | null>;
-  getDrinksByTag(tag: string): Promise<DrinkView[] | null>;
-  getAllTags(): Promise<string[]>;
+  getDrinksByTagSlug(input: { tagSlug: string }): Promise<DrinksByTagSlug | null>;
+  getAllTags(): Promise<DrinkTagView[]>;
   searchPublishedDrinks(input: { query: string }): Promise<DrinkView[]>;
   getNewDrinkEditor(): Promise<DrinkEditor>;
   getDrinkEditorBySlug(slug: string): Promise<DrinkEditor>;

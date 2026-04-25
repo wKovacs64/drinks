@@ -1,6 +1,7 @@
 import { transformUrl } from "unpic";
 import type { Drink } from "#/app/db/schema";
 import type { DrinkView } from "./drinks";
+import { toDrinkTagViews } from "./drinks-tags.server";
 
 // Transparent 1x1 pixel GIF as fallback when blur placeholder generation fails
 const FALLBACK_BLUR_DATA_URL =
@@ -53,7 +54,7 @@ export async function withPlaceholderImages(drinks: Drink[]): Promise<DrinkView[
         ingredients: drink.ingredients,
         calories: drink.calories,
         notes: drink.notes,
-        tags: drink.tags,
+        tags: toDrinkTagViews(drink.tags),
       };
     }),
   );

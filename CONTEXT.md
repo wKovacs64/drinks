@@ -23,8 +23,16 @@ A **Drink** whose visibility state restricts viewing to an **Admin**.
 _Avoid_: draft drink, hidden drink
 
 **Tag**:
-A label attached to a **Drink** for grouping and discovery.
+A label attached to a **Drink** for grouping and discovery. A **Tag** is canonically stored as a lowercase phrase derived from its URL slug. Equivalent **Tags** that share the same URL slug collapse to one **Tag**.
 _Avoid_: category, facet, label
+
+**Tag display name**:
+The lowercase phrase shown to viewers for a **Tag**.
+_Avoid_: label, title
+
+**Tag slug**:
+The URL-safe identity for a **Tag**. The **Tag display name** is derived from the **Tag slug**.
+_Avoid_: tag id, route param
 
 **Drink for viewer**:
 A **Drink view** paired with the visibility outcome for a specific viewer.

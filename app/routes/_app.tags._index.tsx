@@ -1,5 +1,4 @@
 import { data, href } from "react-router";
-import { kebabCase } from "lodash-es";
 import { cacheHeader } from "pretty-cache-header";
 import { defaultPageDescription, defaultPageTitle } from "#/app/core/config";
 import { getSurrogateKeyForTag } from "#/app/core/utils";
@@ -18,7 +17,7 @@ export async function loader() {
   const { SITE_IMAGE_URL, SITE_IMAGE_ALT } = getEnvVars();
   const drinksService = createDrinksService({ db: getDb() });
   const tags = await drinksService.getAllTags();
-  const everyTagSurrogateKey = tags.map(getSurrogateKeyForTag).join(" ");
+  const everyTagSurrogateKey = tags.map((tag) => getSurrogateKeyForTag(tag.slug)).join(" ");
 
   return data(
     {
@@ -67,8 +66,8 @@ export default function TagsPage({ loaderData }: Route.ComponentProps) {
       className="mx-4 grid gap-4 sm:mx-0 sm:gap-8 lg:grid-cols-2 xl:grid-cols-3"
     >
       {tags.map((tag) => (
-        <TagLink to={href("/tags/:tag", { tag: kebabCase(tag) })} key={tag}>
-          <Tag className="p-4 text-2xl lg:p-6 lg:text-4xl">{tag}</Tag>
+        <TagLink to={href("/tags/:tag", { tag: tag.slug })} key={tag.slug}>
+          <Tag className="p-4 text-2xl lg:p-6 lg:text-4xl">{tag.displayName}</Tag>
         </TagLink>
       ))}
     </div>

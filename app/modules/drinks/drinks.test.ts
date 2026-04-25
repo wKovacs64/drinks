@@ -173,13 +173,38 @@ describe("createDrinksService", () => {
     ]);
   });
 
-  test("returns all published tags as a direct list", async () => {
+  test("returns all published tags as link-ready tag views", async () => {
     await setDrinkStatus("test-old-fashioned", "unpublished");
     const service = createDrinksService({ db: getDb() });
 
     const tags = await service.getAllTags();
 
-    expect(tags).toEqual(["citrus", "mint", "rum", "tequila"]);
+    expect(tags).toEqual([
+      { displayName: "citrus", slug: "citrus" },
+      { displayName: "mint", slug: "mint" },
+      { displayName: "rum", slug: "rum" },
+      { displayName: "tequila", slug: "tequila" },
+    ]);
+  });
+
+  test("defensively canonicalizes and de-duplicates all published tags", async () => {
+    const db = getDb();
+    await db
+      .update(drinks)
+      .set({ tags: ["Tequila!", "bright citrus", "bright-citrus", " "] })
+      .where(eq(drinks.slug, "test-margarita"));
+    await setDrinkStatus("test-old-fashioned", "unpublished");
+    const service = createDrinksService({ db });
+
+    const tags = await service.getAllTags();
+
+    expect(tags).toEqual([
+      { displayName: "bright citrus", slug: "bright-citrus" },
+      { displayName: "citrus", slug: "citrus" },
+      { displayName: "mint", slug: "mint" },
+      { displayName: "rum", slug: "rum" },
+      { displayName: "tequila", slug: "tequila" },
+    ]);
   });
 
   test("defensively canonicalizes stored tags when returning drink views", async () => {

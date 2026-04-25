@@ -130,7 +130,7 @@ export interface DrinksService {
   getAllDrinks(): Promise<AdminDrinkListItem[]>;
   getDrinkBySlug(input: { slug: string; viewerRole: ViewerRole }): Promise<DrinkForViewer | null>;
   getDrinksByTag(tag: string): Promise<DrinkView[] | null>;
-  getAllTags(): Promise<string[]>;
+  getAllTags(): Promise<DrinkTagView[]>;
   searchPublishedDrinks(input: { query: string }): Promise<DrinkView[]>;
   getNewDrinkEditor(): Promise<DrinkEditor>;
   getDrinkEditorBySlug(slug: string): Promise<DrinkEditor>;

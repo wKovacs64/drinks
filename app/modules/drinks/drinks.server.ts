@@ -7,6 +7,7 @@ import { drinks, type Drink } from "#/app/db/schema";
 import { markdownToHtml } from "./drinks-markdown.server";
 import { withPlaceholderImages } from "./drinks-images.server";
 import { purgeSearchCache, searchDrinks } from "./drinks-search.server";
+import { toDrinkTagViews } from "./drinks-tags.server";
 
 export { purgeSearchCache };
 import {
@@ -94,7 +95,9 @@ function buildDrinksServiceReadMethods(deps: { db: Db }): DrinksService {
         where: eq(drinks.status, "published"),
         columns: { tags: true },
       });
-      return Array.from(new Set(publishedTags.flatMap((drink) => drink.tags))).sort();
+      return toDrinkTagViews(publishedTags.flatMap((drink) => drink.tags)).sort((left, right) =>
+        left.displayName.localeCompare(right.displayName),
+      );
     },
     async getDrinkBySlug({ slug, viewerRole }) {
       const drink = await deps.db.query.drinks.findFirst({

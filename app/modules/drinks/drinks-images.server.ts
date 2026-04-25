@@ -1,7 +1,7 @@
-import { kebabCase } from "lodash-es";
 import { transformUrl } from "unpic";
 import type { Drink } from "#/app/db/schema";
-import type { DrinkTagView, DrinkView } from "./drinks";
+import type { DrinkView } from "./drinks";
+import { toDrinkTagViews } from "./drinks-tags.server";
 
 // Transparent 1x1 pixel GIF as fallback when blur placeholder generation fails
 const FALLBACK_BLUR_DATA_URL =
@@ -40,30 +40,6 @@ async function generateBlurDataUrl(imageUrl: string): Promise<string> {
     // Fetch failed, use fallback
     return FALLBACK_BLUR_DATA_URL;
   }
-}
-
-function toDrinkTagView(tag: string): DrinkTagView | null {
-  const slug = kebabCase(tag);
-
-  if (!slug) {
-    return null;
-  }
-
-  return { displayName: slug.replaceAll("-", " "), slug };
-}
-
-function toDrinkTagViews(tags: string[]): DrinkTagView[] {
-  const tagViewsBySlug = new Map<string, DrinkTagView>();
-
-  for (const tag of tags) {
-    const tagView = toDrinkTagView(tag);
-
-    if (tagView && !tagViewsBySlug.has(tagView.slug)) {
-      tagViewsBySlug.set(tagView.slug, tagView);
-    }
-  }
-
-  return Array.from(tagViewsBySlug.values());
 }
 
 export async function withPlaceholderImages(drinks: Drink[]): Promise<DrinkView[]> {

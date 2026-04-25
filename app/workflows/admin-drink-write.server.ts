@@ -4,7 +4,10 @@ import { parseImageUpload } from "#/app/core/image-upload.server";
 import { intent, type Intent } from "#/app/core/route-action.server";
 import type { getDb } from "#/app/db/client.server";
 import { drinkDraftSchema, SaveDrinkNoticeCodes } from "#/app/modules/drinks/drinks";
-import { createDrinksService } from "#/app/modules/drinks/drinks.server";
+import {
+  createAdminDrinksWriteService,
+  createDrinksService,
+} from "#/app/modules/drinks/drinks.server";
 
 type Db = ReturnType<typeof getDb>;
 type UploadImage = (file: Buffer, fileName: string) => Promise<{ url: string; fileId: string }>;
@@ -40,6 +43,13 @@ export function createAdminDrinkWriteWorkflow(deps: {
   deleteImage: DeleteImage;
   purgeDrinkCache: PurgeDrinkCache;
 }): AdminDrinkWriteWorkflow {
+  const adminDrinksWriteService = createAdminDrinksWriteService({
+    db: deps.db,
+    writeEffects: {
+      uploadImage: deps.uploadImage,
+      purgeDrinkCache: deps.purgeDrinkCache,
+    },
+  });
   const drinksService = createDrinksService({
     db: deps.db,
     writeEffects: {
@@ -66,7 +76,7 @@ export function createAdminDrinkWriteWorkflow(deps: {
         intent: intent({
           schema: drinkDraftSchema,
           operation: async (draft) =>
-            drinksService.createDrink({
+            adminDrinksWriteService.create({
               draft,
               imageBuffer: imageUpload.buffer,
             }),

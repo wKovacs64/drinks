@@ -5,7 +5,12 @@ import { FieldDomainError } from "#/app/core/errors";
 import { drinks } from "#/app/db/schema";
 import { resetAndSeedDatabase } from "#/app/db/reset.server";
 import { drinkDraftSchema, SaveDrinkNoticeCodes } from "./drinks";
-import { createDrinksService, DrinkEditorNotFoundError, purgeSearchCache } from "./drinks.server";
+import {
+  createAdminDrinksWriteService,
+  createDrinksService,
+  DrinkEditorNotFoundError,
+  purgeSearchCache,
+} from "./drinks.server";
 
 type TestDrinksServiceOverrides = {
   db?: ReturnType<typeof getDb>;
@@ -191,13 +196,15 @@ describe("createDrinksService", () => {
   });
 
   test("creates a drink and exposes it through the editor boundary", async () => {
+    const uploadImage = vi.fn().mockResolvedValue({
+      url: "https://ik.imagekit.io/test/drinks/test-cocktail.jpg",
+      fileId: "new-file-id",
+    });
+    const purgeDrinkCache = vi.fn().mockResolvedValue(undefined);
     const service = testDrinksService({
       writeEffects: {
-        uploadImage: vi.fn().mockResolvedValue({
-          url: "https://ik.imagekit.io/test/drinks/test-cocktail.jpg",
-          fileId: "new-file-id",
-        }),
-        purgeDrinkCache: vi.fn().mockResolvedValue(undefined),
+        uploadImage,
+        purgeDrinkCache,
       },
     });
 
@@ -219,6 +226,11 @@ describe("createDrinksService", () => {
       drinkSlug: "test-cocktail",
       notices: [],
     });
+    expect(uploadImage).toHaveBeenCalledWith(Buffer.from("fake-image"), "test-cocktail.jpg");
+    expect(purgeDrinkCache).toHaveBeenCalledWith({
+      slug: "test-cocktail",
+      tags: ["gin", "refreshing"],
+    });
 
     const editor = await service.getDrinkEditorBySlug("test-cocktail");
 
@@ -237,6 +249,43 @@ describe("createDrinksService", () => {
         status: "published",
       },
     });
+  });
+
+  test("creates through the transport-agnostic admin write boundary", async () => {
+    const adminWriteService = createAdminDrinksWriteService({
+      db: getDb(),
+      writeEffects: {
+        uploadImage: vi.fn().mockResolvedValue({
+          url: "https://ik.imagekit.io/test/drinks/admin-write-cocktail.jpg",
+          fileId: "admin-write-file-id",
+        }),
+        purgeDrinkCache: vi.fn().mockResolvedValue(undefined),
+      },
+    });
+
+    const result = await adminWriteService.create({
+      draft: {
+        title: "Admin Write Cocktail",
+        slug: "admin-write-cocktail",
+        ingredients: ["rye", "vermouth"],
+        calories: 175,
+        tags: ["rye", "stirred"],
+        notes: null,
+        rank: 0,
+        status: "published",
+      },
+      imageBuffer: Buffer.from("admin-write-image"),
+    });
+
+    expect(result).toEqual({
+      drinkSlug: "admin-write-cocktail",
+      notices: [],
+    });
+
+    const readService = createDrinksService({ db: getDb() });
+    const editor = await readService.getDrinkEditorBySlug("admin-write-cocktail");
+    expect(editor.initialValues.title).toBe("Admin Write Cocktail");
+    expect(editor.imageUrl).toBe("https://ik.imagekit.io/test/drinks/admin-write-cocktail.jpg");
   });
 
   test("throws a typed slug error when creating with a duplicate slug", async () => {

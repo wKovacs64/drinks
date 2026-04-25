@@ -11,6 +11,8 @@ import { purgeSearchCache, searchDrinks } from "./drinks-search.server";
 export { purgeSearchCache };
 import {
   SaveDrinkNoticeCodes,
+  type AdminDrinksWriteService,
+  type CreateAdminDrinkCommand,
   type DrinkDraft,
   type DrinksService,
   type DrinksServiceMutationKey,
@@ -46,6 +48,17 @@ export function createDrinksService(
     return read;
   }
   return { ...read, ...buildDrinksServiceMutationMethods(deps.db, deps.writeEffects) };
+}
+
+export function createAdminDrinksWriteService(deps: {
+  db: Db;
+  writeEffects: Pick<DrinksWriteEffects, "uploadImage" | "purgeDrinkCache">;
+}): AdminDrinksWriteService {
+  return {
+    async create(command) {
+      return createAdminDrink(deps.db, deps.writeEffects, command);
+    },
+  };
 }
 
 function buildDrinksServiceReadMethods(deps: { db: Db }): DrinksServiceWithoutMutations {
@@ -173,28 +186,8 @@ function buildDrinksServiceMutationMethods(
   writeEffects: DrinksWriteEffects,
 ): Pick<DrinksService, DrinksServiceMutationKey> {
   return {
-    async createDrink({ draft, imageBuffer }) {
-      if (!imageBuffer) {
-        throw new Error("Image buffer is required when creating a drink");
-      }
-
-      await ensureSlugAvailable(db, draft.slug);
-
-      const uploadedImage = await writeEffects.uploadImage(imageBuffer, `${draft.slug}.jpg`);
-
-      const createdDrink = await insertDrinkRow(db, {
-        ...draft,
-        imageUrl: uploadedImage.url,
-        imageFileId: uploadedImage.fileId,
-      });
-
-      purgeSearchCache();
-      await writeEffects.purgeDrinkCache({ slug: createdDrink.slug, tags: createdDrink.tags });
-
-      return {
-        drinkSlug: createdDrink.slug,
-        notices: [],
-      };
+    async createDrink(command) {
+      return createAdminDrink(db, writeEffects, command);
     },
     async updateDrink({ slug, draft, imageBuffer }) {
       const existingDrink = await db.query.drinks.findFirst({
@@ -259,6 +252,34 @@ function buildDrinksServiceMutationMethods(
       purgeSearchCache();
       await writeEffects.purgeDrinkCache({ slug: existingDrink.slug, tags: existingDrink.tags });
     },
+  };
+}
+
+async function createAdminDrink(
+  db: Db,
+  writeEffects: Pick<DrinksWriteEffects, "uploadImage" | "purgeDrinkCache">,
+  { draft, imageBuffer }: CreateAdminDrinkCommand,
+) {
+  if (!imageBuffer) {
+    throw new Error("Image buffer is required when creating a drink");
+  }
+
+  await ensureSlugAvailable(db, draft.slug);
+
+  const uploadedImage = await writeEffects.uploadImage(imageBuffer, `${draft.slug}.jpg`);
+
+  const createdDrink = await insertDrinkRow(db, {
+    ...draft,
+    imageUrl: uploadedImage.url,
+    imageFileId: uploadedImage.fileId,
+  });
+
+  purgeSearchCache();
+  await writeEffects.purgeDrinkCache({ slug: createdDrink.slug, tags: createdDrink.tags });
+
+  return {
+    drinkSlug: createdDrink.slug,
+    notices: [],
   };
 }
 

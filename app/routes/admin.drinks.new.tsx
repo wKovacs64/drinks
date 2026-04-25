@@ -7,7 +7,7 @@ import { deleteImage, uploadImage } from "#/app/integrations/imagekit.server";
 import { drinkDraftSchema } from "#/app/modules/drinks/drinks";
 import { createAdminDrinksWriteService } from "#/app/modules/drinks/drinks.server";
 import { DrinkForm } from "#/app/ui/admin/drink-form";
-import { parseCreateDrinkSubmission } from "#/app/workflows/admin-drink-submission.server";
+import { parseCreateDrinkSubmission } from "./admin-drink-submission.server";
 import type { Route } from "./+types/admin.drinks.new";
 
 export default function NewDrinkPage({ actionData }: Route.ComponentProps) {

@@ -12,7 +12,7 @@ import {
   DrinkEditorNotFoundError,
 } from "#/app/modules/drinks/drinks.server";
 import { DrinkForm } from "#/app/ui/admin/drink-form";
-import { parseUpdateDrinkSubmission } from "#/app/workflows/admin-drink-submission.server";
+import { parseUpdateDrinkSubmission } from "./admin-drink-submission.server";
 import type { Route } from "./+types/admin.drinks.$slug.edit";
 
 export async function loader({ params }: Route.LoaderArgs) {

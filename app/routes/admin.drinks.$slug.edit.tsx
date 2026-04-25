@@ -1,18 +1,15 @@
-import { data, href } from "react-router";
-import { DomainError, FieldDomainError } from "#/app/core/errors";
-import { intent, routeAction } from "#/app/core/route-action.server";
+import { href } from "react-router";
 import { getFormErrors } from "#/app/core/utils";
 import { getDb } from "#/app/db/client.server";
 import { purgeDrinkCache } from "#/app/integrations/fastly.server";
 import { deleteImage, uploadImage } from "#/app/integrations/imagekit.server";
-import { drinkDraftSchema, SaveDrinkNoticeCodes } from "#/app/modules/drinks/drinks";
 import {
   createAdminDrinksWriteService,
   createDrinksService,
   DrinkEditorNotFoundError,
 } from "#/app/modules/drinks/drinks.server";
 import { DrinkForm } from "#/app/ui/admin/drink-form";
-import { parseUpdateDrinkSubmission } from "#/app/web/admin-drink-submission.server";
+import { updateAdminDrinkActionAdapter } from "#/app/web/admin-drink-write-route-adapter.server";
 import type { Route } from "./+types/admin.drinks.$slug.edit";
 
 export async function loader({ params }: Route.LoaderArgs) {
@@ -47,57 +44,14 @@ export default function EditDrinkPage({ loaderData, actionData }: Route.Componen
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
-  const submission = await parseUpdateDrinkSubmission(request);
-
-  if (submission.kind === "invalid") {
-    return data(
-      {
-        fieldErrors: submission.fieldErrors,
-        formErrors: submission.formErrors,
-      },
-      { status: submission.status },
-    );
-  }
-
   const adminDrinksWriteService = createAdminDrinksWriteService({
     db: getDb(),
     writeEffects: { uploadImage, deleteImage, purgeDrinkCache },
   });
 
-  return routeAction(
+  return updateAdminDrinkActionAdapter({
     request,
-    intent({
-      schema: drinkDraftSchema,
-      operation: async (draft) => {
-        const result = await adminDrinksWriteService.update({
-          slug: params.slug,
-          draft,
-          imageBuffer: submission.imageUpload?.buffer,
-        });
-
-        if (result.kind === "notFound") {
-          throw new Response("Drink not found", { status: 404 });
-        }
-
-        if (result.kind === "fieldError") {
-          const [field, messages] = Object.entries(result.fieldErrors)[0] ?? [];
-          throw new FieldDomainError(field ?? "slug", messages?.[0] ?? "Invalid drink");
-        }
-
-        return result;
-      },
-      redirectTo: href("/admin/drinks"),
-      toast: (operationResult) => {
-        if (operationResult instanceof DomainError) {
-          return { kind: "error", message: operationResult.message };
-        }
-        return operationResult.notices.some(
-          (notice) => notice.code === SaveDrinkNoticeCodes.oldImageCleanupFailed,
-        )
-          ? { kind: "warning", message: "Drink updated, but old image cleanup failed" }
-          : { kind: "success", message: "Drink updated!" };
-      },
-    }),
-    { formData: submission.formData },
-  );
+    slug: params.slug,
+    adminDrinksWriteService,
+  });
 }

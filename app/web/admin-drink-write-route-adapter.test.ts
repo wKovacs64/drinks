@@ -1,9 +1,12 @@
 import { describe, expect, test, vi } from "vitest";
 import { getToast } from "#/app/core/toast.server";
 import type { AdminDrinksWriteService } from "#/app/modules/drinks/drinks";
-import { createAdminDrinkActionAdapter } from "./admin-drink-write-route-adapter.server";
+import {
+  createAdminDrinkActionAdapter,
+  updateAdminDrinkActionAdapter,
+} from "./admin-drink-write-route-adapter.server";
 
-function buildCreateRequest(input: { slug?: string; imageFile?: File } = {}) {
+function buildDrinkFormData(input: { slug?: string; imageFile?: File } = {}) {
   const formData = new FormData();
   formData.set("title", "Adapter Cocktail");
   formData.set("slug", input.slug ?? "adapter-cocktail");
@@ -18,9 +21,20 @@ function buildCreateRequest(input: { slug?: string; imageFile?: File } = {}) {
     formData.set("imageFile", input.imageFile);
   }
 
+  return formData;
+}
+
+function buildCreateRequest(input: { slug?: string; imageFile?: File } = {}) {
   return new Request("http://test.local/admin/drinks/new", {
     method: "POST",
-    body: formData,
+    body: buildDrinkFormData(input),
+  });
+}
+
+function buildUpdateRequest(input: { slug?: string; imageFile?: File } = {}) {
+  return new Request("http://test.local/admin/drinks/old-fashioned/edit", {
+    method: "POST",
+    body: buildDrinkFormData(input),
   });
 }
 
@@ -119,6 +133,135 @@ describe("createAdminDrinkActionAdapter", () => {
         formErrors: [],
       },
       init: { status: 400 },
+    });
+  });
+});
+
+describe("updateAdminDrinkActionAdapter", () => {
+  test("updates through the admin write path without an image buffer when keeping the current image", async () => {
+    const adminDrinksWriteService = buildService({
+      update: vi.fn().mockResolvedValue({
+        kind: "success",
+        drinkSlug: "adapter-cocktail",
+        notices: [],
+      }),
+    });
+
+    let redirectResponse: Response | undefined;
+    try {
+      await updateAdminDrinkActionAdapter({
+        request: buildUpdateRequest(),
+        slug: "old-fashioned",
+        adminDrinksWriteService,
+      });
+    } catch (error) {
+      if (!(error instanceof Response)) throw error;
+      redirectResponse = error;
+    }
+
+    expect(redirectResponse).toMatchObject({ status: 302 });
+    expect(redirectResponse?.headers.get("Location")).toBe("/admin/drinks");
+    expect(adminDrinksWriteService.update).toHaveBeenCalledWith({
+      slug: "old-fashioned",
+      draft: {
+        title: "Adapter Cocktail",
+        slug: "adapter-cocktail",
+        ingredients: ["gin", "tonic"],
+        calories: 150,
+        tags: ["gin", "refreshing"],
+        notes: null,
+        rank: 0,
+        status: "published",
+      },
+      imageBuffer: undefined,
+    });
+
+    const { toast } = await getToast(
+      new Request("http://test.local/admin", {
+        headers: { Cookie: redirectResponse?.headers.get("Set-Cookie") ?? "" },
+      }),
+    );
+    expect(toast).toEqual({ kind: "success", message: "Drink updated!" });
+  });
+
+  test("translates typed duplicate slug update outcomes into slug field errors", async () => {
+    const adminDrinksWriteService = buildService({
+      update: vi.fn().mockResolvedValue({
+        kind: "fieldError",
+        fieldErrors: { slug: ["Slug already exists"] },
+        formErrors: [],
+      }),
+    });
+
+    const response = await updateAdminDrinkActionAdapter({
+      request: buildUpdateRequest({ slug: "test-margarita" }),
+      slug: "old-fashioned",
+      adminDrinksWriteService,
+    });
+
+    expect(response).toMatchObject({
+      data: {
+        fieldErrors: { slug: ["Slug already exists"] },
+        formErrors: [],
+      },
+      init: { status: 400 },
+    });
+  });
+
+  test("translates typed missing update targets into not-found responses", async () => {
+    const adminDrinksWriteService = buildService({
+      update: vi.fn().mockResolvedValue({ kind: "notFound", slug: "missing-drink" }),
+    });
+
+    await expect(
+      updateAdminDrinkActionAdapter({
+        request: buildUpdateRequest(),
+        slug: "missing-drink",
+        adminDrinksWriteService,
+      }),
+    ).rejects.toMatchObject({ status: 404 });
+  });
+
+  test("translates old image cleanup notices into the existing warning toast", async () => {
+    const adminDrinksWriteService = buildService({
+      update: vi.fn().mockResolvedValue({
+        kind: "success",
+        drinkSlug: "adapter-cocktail",
+        notices: [
+          {
+            code: "oldImageCleanupFailed",
+            message: "Old image cleanup failed",
+          },
+        ],
+      }),
+    });
+
+    let redirectResponse: Response | undefined;
+    try {
+      await updateAdminDrinkActionAdapter({
+        request: buildUpdateRequest({
+          imageFile: new File(["replacement-image"], "drink.png", { type: "image/png" }),
+        }),
+        slug: "old-fashioned",
+        adminDrinksWriteService,
+      });
+    } catch (error) {
+      if (!(error instanceof Response)) throw error;
+      redirectResponse = error;
+    }
+
+    expect(adminDrinksWriteService.update).toHaveBeenCalledWith(
+      expect.objectContaining({ imageBuffer: Buffer.from("replacement-image") }),
+    );
+
+    const { toast } = await getToast(
+      new Request("http://test.local/admin", {
+        headers: { Cookie: redirectResponse?.headers.get("Set-Cookie") ?? "" },
+      }),
+    );
+    expect(toast).toEqual({
+      kind: "warning",
+      message: "Drink updated, but old image cleanup failed",
     });
   });
 });

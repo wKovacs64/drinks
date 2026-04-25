@@ -89,6 +89,10 @@ export type UpdateAdminDrinkCommand = {
   imageBuffer?: Buffer;
 };
 
+export type DeleteAdminDrinkCommand = {
+  slug: string;
+};
+
 export type AdminDrinkWriteSuccessResult = SaveDrinkResult & {
   kind: "success";
 };
@@ -109,9 +113,16 @@ export type UpdateAdminDrinkResult =
   | AdminDrinkWriteFieldErrorResult
   | AdminDrinkWriteNotFoundResult;
 
+export type DeleteAdminDrinkSuccessResult = {
+  kind: "success";
+};
+
+export type DeleteAdminDrinkResult = DeleteAdminDrinkSuccessResult | AdminDrinkWriteNotFoundResult;
+
 export interface AdminDrinksWriteService {
   create(command: CreateAdminDrinkCommand): Promise<SaveDrinkResult>;
   update(command: UpdateAdminDrinkCommand): Promise<UpdateAdminDrinkResult>;
+  delete(command: DeleteAdminDrinkCommand): Promise<DeleteAdminDrinkResult>;
 }
 
 export interface DrinksService {

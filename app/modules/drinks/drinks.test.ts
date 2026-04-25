@@ -375,6 +375,50 @@ describe("createDrinksService", () => {
     expect(notFoundResult).toEqual({ kind: "notFound", slug: "missing-drink" });
   });
 
+  test("deletes through the transport-agnostic admin write boundary", async () => {
+    const deleteImage = vi.fn().mockResolvedValue(undefined);
+    const purgeDrinkCache = vi.fn().mockResolvedValue(undefined);
+    const adminWriteService = createAdminDrinksWriteService({
+      db: getDb(),
+      writeEffects: {
+        uploadImage: vi.fn(),
+        deleteImage,
+        purgeDrinkCache,
+      },
+    });
+
+    const result = await adminWriteService.delete({ slug: "test-margarita" });
+
+    expect(result).toEqual({ kind: "success" });
+    expect(deleteImage).toHaveBeenCalledWith("seed-fileId-1");
+    expect(purgeDrinkCache).toHaveBeenCalledWith({
+      slugs: ["test-margarita"],
+      tags: ["tequila", "citrus"],
+    });
+    await expect(
+      createDrinksService({ db: getDb() }).getDrinkEditorBySlug("test-margarita"),
+    ).rejects.toThrowError(DrinkEditorNotFoundError);
+  });
+
+  test("returns a typed not-found outcome when admin delete cannot find a drink", async () => {
+    const deleteImage = vi.fn().mockResolvedValue(undefined);
+    const purgeDrinkCache = vi.fn().mockResolvedValue(undefined);
+    const adminWriteService = createAdminDrinksWriteService({
+      db: getDb(),
+      writeEffects: {
+        uploadImage: vi.fn(),
+        deleteImage,
+        purgeDrinkCache,
+      },
+    });
+
+    const result = await adminWriteService.delete({ slug: "missing-drink" });
+
+    expect(result).toEqual({ kind: "notFound", slug: "missing-drink" });
+    expect(deleteImage).not.toHaveBeenCalled();
+    expect(purgeDrinkCache).not.toHaveBeenCalled();
+  });
+
   test("throws a typed slug error when creating with a duplicate slug", async () => {
     const service = testDrinksService({
       writeEffects: {

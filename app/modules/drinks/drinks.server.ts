@@ -13,6 +13,8 @@ import {
   SaveDrinkNoticeCodes,
   type AdminDrinksWriteService,
   type CreateAdminDrinkCommand,
+  type DeleteAdminDrinkCommand,
+  type DeleteAdminDrinkResult,
   type DrinkDraft,
   type DrinksService,
   type DrinksServiceMutationKey,
@@ -67,6 +69,9 @@ export function createAdminDrinksWriteService(deps: {
     },
     async update(command) {
       return updateAdminDrink(deps.db, deps.writeEffects, command);
+    },
+    async delete(command) {
+      return deleteAdminDrink(deps.db, deps.writeEffects, command);
     },
   };
 }
@@ -217,25 +222,39 @@ function buildDrinksServiceMutationMethods(
       };
     },
     async deleteDrink({ slug }) {
-      const existingDrink = await db.query.drinks.findFirst({
-        where: eq(drinks.slug, slug),
-      });
+      const result = await deleteAdminDrink(db, writeEffects, { slug });
 
-      if (!existingDrink) {
-        throw new Error(`Drink not found for slug "${slug}"`);
+      if (result.kind === "notFound") {
+        throw new Error(`Drink not found for slug "${result.slug}"`);
       }
-
-      await writeEffects.deleteImage(existingDrink.imageFileId);
-
-      await db.delete(drinks).where(eq(drinks.id, existingDrink.id));
-
-      purgeSearchCache();
-      await writeEffects.purgeDrinkCache({
-        slugs: [existingDrink.slug],
-        tags: existingDrink.tags,
-      });
     },
   };
+}
+
+async function deleteAdminDrink(
+  db: Db,
+  writeEffects: Pick<DrinksWriteEffects, "deleteImage" | "purgeDrinkCache">,
+  { slug }: DeleteAdminDrinkCommand,
+): Promise<DeleteAdminDrinkResult> {
+  const existingDrink = await db.query.drinks.findFirst({
+    where: eq(drinks.slug, slug),
+  });
+
+  if (!existingDrink) {
+    return { kind: "notFound", slug };
+  }
+
+  await writeEffects.deleteImage(existingDrink.imageFileId);
+
+  await db.delete(drinks).where(eq(drinks.id, existingDrink.id));
+
+  purgeSearchCache();
+  await writeEffects.purgeDrinkCache({
+    slugs: [existingDrink.slug],
+    tags: existingDrink.tags,
+  });
+
+  return { kind: "success" };
 }
 
 async function updateAdminDrink(

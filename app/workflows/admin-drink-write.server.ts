@@ -3,10 +3,7 @@ import { DomainError, FieldDomainError } from "#/app/core/errors";
 import { intent, type Intent } from "#/app/core/route-action.server";
 import type { getDb } from "#/app/db/client.server";
 import { drinkDraftSchema, SaveDrinkNoticeCodes } from "#/app/modules/drinks/drinks";
-import {
-  createAdminDrinksWriteService,
-  createDrinksService,
-} from "#/app/modules/drinks/drinks.server";
+import { createAdminDrinksWriteService } from "#/app/modules/drinks/drinks.server";
 import {
   parseCreateDrinkSubmission,
   parseUpdateDrinkSubmission,
@@ -47,14 +44,6 @@ export function createAdminDrinkWriteWorkflow(deps: {
   purgeDrinkCache: PurgeDrinkCache;
 }): AdminDrinkWriteWorkflow {
   const adminDrinksWriteService = createAdminDrinksWriteService({
-    db: deps.db,
-    writeEffects: {
-      uploadImage: deps.uploadImage,
-      deleteImage: deps.deleteImage,
-      purgeDrinkCache: deps.purgeDrinkCache,
-    },
-  });
-  const drinksService = createDrinksService({
     db: deps.db,
     writeEffects: {
       uploadImage: deps.uploadImage,
@@ -136,7 +125,15 @@ export function createAdminDrinkWriteWorkflow(deps: {
     },
     async prepareDelete({ slug }) {
       return intent({
-        operation: async () => drinksService.deleteDrink({ slug }),
+        operation: async () => {
+          const result = await adminDrinksWriteService.delete({ slug });
+
+          if (result.kind === "notFound") {
+            throw new Response("Drink not found", { status: 404 });
+          }
+
+          return result;
+        },
         redirectTo: href("/admin/drinks"),
         toast: {
           successMessage: "Drink deleted!",

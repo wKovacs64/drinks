@@ -5,7 +5,12 @@ import { FieldDomainError } from "#/app/core/errors";
 import { drinks } from "#/app/db/schema";
 import { resetAndSeedDatabase } from "#/app/db/reset.server";
 import { drinkDraftSchema, SaveDrinkNoticeCodes } from "./drinks";
-import { createDrinksService, DrinkEditorNotFoundError, purgeSearchCache } from "./drinks.server";
+import {
+  createAdminDrinksWriteService,
+  createDrinksService,
+  DrinkEditorNotFoundError,
+  purgeSearchCache,
+} from "./drinks.server";
 
 type TestDrinksServiceOverrides = {
   db?: ReturnType<typeof getDb>;
@@ -191,13 +196,15 @@ describe("createDrinksService", () => {
   });
 
   test("creates a drink and exposes it through the editor boundary", async () => {
+    const uploadImage = vi.fn().mockResolvedValue({
+      url: "https://ik.imagekit.io/test/drinks/test-cocktail.jpg",
+      fileId: "new-file-id",
+    });
+    const purgeDrinkCache = vi.fn().mockResolvedValue(undefined);
     const service = testDrinksService({
       writeEffects: {
-        uploadImage: vi.fn().mockResolvedValue({
-          url: "https://ik.imagekit.io/test/drinks/test-cocktail.jpg",
-          fileId: "new-file-id",
-        }),
-        purgeDrinkCache: vi.fn().mockResolvedValue(undefined),
+        uploadImage,
+        purgeDrinkCache,
       },
     });
 
@@ -219,6 +226,11 @@ describe("createDrinksService", () => {
       drinkSlug: "test-cocktail",
       notices: [],
     });
+    expect(uploadImage).toHaveBeenCalledWith(Buffer.from("fake-image"), "test-cocktail.jpg");
+    expect(purgeDrinkCache).toHaveBeenCalledWith({
+      slugs: ["test-cocktail"],
+      tags: ["gin", "refreshing"],
+    });
 
     const editor = await service.getDrinkEditorBySlug("test-cocktail");
 
@@ -237,6 +249,174 @@ describe("createDrinksService", () => {
         status: "published",
       },
     });
+  });
+
+  test("creates through the transport-agnostic admin write boundary", async () => {
+    const adminWriteService = createAdminDrinksWriteService({
+      db: getDb(),
+      writeEffects: {
+        uploadImage: vi.fn().mockResolvedValue({
+          url: "https://ik.imagekit.io/test/drinks/admin-write-cocktail.jpg",
+          fileId: "admin-write-file-id",
+        }),
+        deleteImage: vi.fn().mockResolvedValue(undefined),
+        purgeDrinkCache: vi.fn().mockResolvedValue(undefined),
+      },
+    });
+
+    const result = await adminWriteService.create({
+      draft: {
+        title: "Admin Write Cocktail",
+        slug: "admin-write-cocktail",
+        ingredients: ["rye", "vermouth"],
+        calories: 175,
+        tags: ["rye", "stirred"],
+        notes: null,
+        rank: 0,
+        status: "published",
+      },
+      imageBuffer: Buffer.from("admin-write-image"),
+    });
+
+    expect(result).toEqual({
+      drinkSlug: "admin-write-cocktail",
+      notices: [],
+    });
+
+    const readService = createDrinksService({ db: getDb() });
+    const editor = await readService.getDrinkEditorBySlug("admin-write-cocktail");
+    expect(editor.initialValues.title).toBe("Admin Write Cocktail");
+    expect(editor.imageUrl).toBe("https://ik.imagekit.io/test/drinks/admin-write-cocktail.jpg");
+  });
+
+  test("updates through the transport-agnostic admin write boundary", async () => {
+    const purgeDrinkCache = vi.fn().mockResolvedValue(undefined);
+    const adminWriteService = createAdminDrinksWriteService({
+      db: getDb(),
+      writeEffects: {
+        uploadImage: vi.fn(),
+        deleteImage: vi.fn(),
+        purgeDrinkCache,
+      },
+    });
+
+    const result = await adminWriteService.update({
+      slug: "test-margarita",
+      draft: {
+        title: "Admin Updated Margarita",
+        slug: "admin-updated-margarita",
+        ingredients: ["tequila", "lime"],
+        calories: 210,
+        tags: ["tequila", "lime"],
+        notes: null,
+        rank: 1,
+        status: "published",
+      },
+    });
+
+    expect(result).toEqual({
+      kind: "success",
+      drinkSlug: "admin-updated-margarita",
+      notices: [],
+    });
+    expect(purgeDrinkCache).toHaveBeenCalledWith({
+      slugs: ["test-margarita", "admin-updated-margarita"],
+      tags: ["tequila", "citrus", "lime"],
+    });
+
+    const editor = await createDrinksService({ db: getDb() }).getDrinkEditorBySlug(
+      "admin-updated-margarita",
+    );
+    expect(editor.initialValues.title).toBe("Admin Updated Margarita");
+  });
+
+  test("returns typed admin write outcomes for duplicate update slugs and missing drinks", async () => {
+    const adminWriteService = createAdminDrinksWriteService({
+      db: getDb(),
+      writeEffects: {
+        uploadImage: vi.fn(),
+        deleteImage: vi.fn(),
+        purgeDrinkCache: vi.fn(),
+      },
+    });
+
+    const duplicateResult = await adminWriteService.update({
+      slug: "test-margarita",
+      draft: {
+        title: "Duplicate Margarita",
+        slug: "test-old-fashioned",
+        ingredients: ["tequila"],
+        calories: 210,
+        tags: ["tequila"],
+        notes: null,
+        rank: 1,
+        status: "published",
+      },
+    });
+    const notFoundResult = await adminWriteService.update({
+      slug: "missing-drink",
+      draft: {
+        title: "Missing Drink",
+        slug: "missing-drink",
+        ingredients: ["tequila"],
+        calories: 210,
+        tags: ["tequila"],
+        notes: null,
+        rank: 1,
+        status: "published",
+      },
+    });
+
+    expect(duplicateResult).toEqual({
+      kind: "fieldError",
+      fieldErrors: { slug: ["Slug already exists"] },
+      formErrors: [],
+    });
+    expect(notFoundResult).toEqual({ kind: "notFound", slug: "missing-drink" });
+  });
+
+  test("deletes through the transport-agnostic admin write boundary", async () => {
+    const deleteImage = vi.fn().mockResolvedValue(undefined);
+    const purgeDrinkCache = vi.fn().mockResolvedValue(undefined);
+    const adminWriteService = createAdminDrinksWriteService({
+      db: getDb(),
+      writeEffects: {
+        uploadImage: vi.fn(),
+        deleteImage,
+        purgeDrinkCache,
+      },
+    });
+
+    const result = await adminWriteService.delete({ slug: "test-margarita" });
+
+    expect(result).toEqual({ kind: "success" });
+    expect(deleteImage).toHaveBeenCalledWith("seed-fileId-1");
+    expect(purgeDrinkCache).toHaveBeenCalledWith({
+      slugs: ["test-margarita"],
+      tags: ["tequila", "citrus"],
+    });
+    await expect(
+      createDrinksService({ db: getDb() }).getDrinkEditorBySlug("test-margarita"),
+    ).rejects.toThrowError(DrinkEditorNotFoundError);
+  });
+
+  test("returns a typed not-found outcome when admin delete cannot find a drink", async () => {
+    const deleteImage = vi.fn().mockResolvedValue(undefined);
+    const purgeDrinkCache = vi.fn().mockResolvedValue(undefined);
+    const adminWriteService = createAdminDrinksWriteService({
+      db: getDb(),
+      writeEffects: {
+        uploadImage: vi.fn(),
+        deleteImage,
+        purgeDrinkCache,
+      },
+    });
+
+    const result = await adminWriteService.delete({ slug: "missing-drink" });
+
+    expect(result).toEqual({ kind: "notFound", slug: "missing-drink" });
+    expect(deleteImage).not.toHaveBeenCalled();
+    expect(purgeDrinkCache).not.toHaveBeenCalled();
   });
 
   test("throws a typed slug error when creating with a duplicate slug", async () => {
@@ -301,7 +481,7 @@ describe("createDrinksService", () => {
     expect(uploadImage).not.toHaveBeenCalled();
     expect(deleteImage).not.toHaveBeenCalled();
     expect(purgeDrinkCache).toHaveBeenCalledWith({
-      slug: "test-margarita",
+      slugs: ["test-margarita"],
       tags: ["tequila", "citrus", "updated"],
     });
 
@@ -322,6 +502,34 @@ describe("createDrinksService", () => {
         rank: "5",
         status: "published",
       },
+    });
+  });
+
+  test("invalidates both old and new detail pages when a drink slug changes", async () => {
+    const purgeDrinkCache = vi.fn().mockResolvedValue(undefined);
+    const service = testDrinksService({
+      writeEffects: {
+        purgeDrinkCache,
+      },
+    });
+
+    await service.updateDrink({
+      slug: "test-margarita",
+      draft: {
+        title: "Renamed Margarita",
+        slug: "renamed-margarita",
+        ingredients: ["2 oz tequila", "1 oz lime juice", "1 oz triple sec"],
+        calories: 200,
+        tags: ["tequila", "citrus"],
+        notes: "A classic test margarita",
+        rank: 10,
+        status: "published",
+      },
+    });
+
+    expect(purgeDrinkCache).toHaveBeenCalledWith({
+      slugs: ["test-margarita", "renamed-margarita"],
+      tags: ["tequila", "citrus"],
     });
   });
 
@@ -378,7 +586,7 @@ describe("createDrinksService", () => {
     );
     expect(deleteImage).toHaveBeenCalledWith("seed-fileId-1");
     expect(purgeDrinkCache).toHaveBeenCalledWith({
-      slug: "test-margarita",
+      slugs: ["test-margarita"],
       tags: ["tequila", "citrus"],
     });
   });

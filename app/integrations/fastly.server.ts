@@ -25,7 +25,16 @@ async function purgeFastlyCache(surrogateKeys: string[]): Promise<void> {
  * Purge targeted cache keys affected by a drink change.
  * The `all` key is intentionally excluded here; it is only purged on deploy.
  */
-export async function purgeDrinkCache(drink: { slug: string; tags: string[] }): Promise<void> {
-  const keys = ["index", "search", drink.slug, "tags", ...drink.tags.map(getSurrogateKeyForTag)];
+export async function purgeDrinkCache(affectedPages: {
+  slugs: string[];
+  tags: string[];
+}): Promise<void> {
+  const keys = [
+    "index",
+    "search",
+    ...affectedPages.slugs,
+    "tags",
+    ...affectedPages.tags.map(getSurrogateKeyForTag),
+  ];
   await purgeFastlyCache(keys);
 }

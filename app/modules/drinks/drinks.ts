@@ -78,6 +78,53 @@ export const drinksServiceMutationKeys = ["createDrink", "updateDrink", "deleteD
 export type DrinksServiceMutationKey = (typeof drinksServiceMutationKeys)[number];
 
 /** One drinks module service; mutations omitted when the factory is built without `writeEffects`. */
+export type CreateAdminDrinkCommand = {
+  draft: DrinkDraft;
+  imageBuffer: Buffer;
+};
+
+export type UpdateAdminDrinkCommand = {
+  slug: string;
+  draft: DrinkDraft;
+  imageBuffer?: Buffer;
+};
+
+export type DeleteAdminDrinkCommand = {
+  slug: string;
+};
+
+export type AdminDrinkWriteSuccessResult = SaveDrinkResult & {
+  kind: "success";
+};
+
+export type AdminDrinkWriteFieldErrorResult = {
+  kind: "fieldError";
+  fieldErrors: Record<string, string[] | undefined>;
+  formErrors: string[];
+};
+
+export type AdminDrinkWriteNotFoundResult = {
+  kind: "notFound";
+  slug: string;
+};
+
+export type UpdateAdminDrinkResult =
+  | AdminDrinkWriteSuccessResult
+  | AdminDrinkWriteFieldErrorResult
+  | AdminDrinkWriteNotFoundResult;
+
+export type DeleteAdminDrinkSuccessResult = {
+  kind: "success";
+};
+
+export type DeleteAdminDrinkResult = DeleteAdminDrinkSuccessResult | AdminDrinkWriteNotFoundResult;
+
+export interface AdminDrinksWriteService {
+  create(command: CreateAdminDrinkCommand): Promise<SaveDrinkResult>;
+  update(command: UpdateAdminDrinkCommand): Promise<UpdateAdminDrinkResult>;
+  delete(command: DeleteAdminDrinkCommand): Promise<DeleteAdminDrinkResult>;
+}
+
 export interface DrinksService {
   getPublishedDrinks(): Promise<DrinkView[]>;
   getAllDrinks(): Promise<AdminDrinkListItem[]>;

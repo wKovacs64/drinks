@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { eq } from "drizzle-orm";
 import { getDb } from "#/app/db/client.server";
-import { FieldDomainError } from "#/app/core/errors";
 import { drinks } from "#/app/db/schema";
 import { resetAndSeedDatabase } from "#/app/db/reset.server";
 import { drinkDraftSchema, SaveDrinkNoticeCodes } from "./drinks";
@@ -14,19 +13,18 @@ import {
 
 type TestDrinksServiceOverrides = {
   db?: ReturnType<typeof getDb>;
-  writeEffects?: Partial<NonNullable<Parameters<typeof createDrinksService>[0]["writeEffects"]>>;
+  writeEffects?: Partial<Parameters<typeof createAdminDrinksWriteService>[0]["writeEffects"]>;
 };
 
-function testDrinksService(overrides: TestDrinksServiceOverrides = {}) {
+function testAdminDrinksWriteService(overrides: TestDrinksServiceOverrides = {}) {
   const defaultWriteEffects = {
     uploadImage: vi.fn(),
     deleteImage: vi.fn(),
     purgeDrinkCache: vi.fn(),
   };
 
-  return createDrinksService({
+  return createAdminDrinksWriteService({
     db: overrides.db ?? getDb(),
-    ...overrides,
     writeEffects: {
       ...defaultWriteEffects,
       ...overrides.writeEffects,
@@ -47,7 +45,7 @@ async function setDrinkStatus(slug: string, status: "published" | "unpublished")
 describe("createDrinksService", () => {
   test("returns published drinks for read-only and default test services", async () => {
     const readOnlyService = createDrinksService({ db: getDb() });
-    const defaultService = testDrinksService();
+    const defaultService = createDrinksService({ db: getDb() });
 
     const fromReadOnly = await readOnlyService.getPublishedDrinks();
     const fromDefault = await defaultService.getPublishedDrinks();
@@ -69,7 +67,7 @@ describe("createDrinksService", () => {
   });
 
   test("loads a new-drink editor with form-shaped defaults", async () => {
-    const service = testDrinksService();
+    const service = createDrinksService({ db: getDb() });
 
     const editor = await service.getNewDrinkEditor();
 
@@ -89,7 +87,7 @@ describe("createDrinksService", () => {
   });
 
   test("returns a drink for viewer when a published drink is requested", async () => {
-    const service = testDrinksService();
+    const service = createDrinksService({ db: getDb() });
 
     const drinkForViewer = await service.getDrinkBySlug({
       slug: "test-margarita",
@@ -112,7 +110,7 @@ describe("createDrinksService", () => {
 
   test("hides an unpublished drink from non-admin viewers", async () => {
     await setDrinkStatus("test-margarita", "unpublished");
-    const service = testDrinksService();
+    const service = createDrinksService({ db: getDb() });
 
     const drinkForViewer = await service.getDrinkBySlug({
       slug: "test-margarita",
@@ -124,7 +122,7 @@ describe("createDrinksService", () => {
 
   test("returns an unpublished drink to admin viewers with private visibility", async () => {
     await setDrinkStatus("test-margarita", "unpublished");
-    const service = testDrinksService();
+    const service = createDrinksService({ db: getDb() });
 
     const drinkForViewer = await service.getDrinkBySlug({
       slug: "test-margarita",
@@ -141,7 +139,7 @@ describe("createDrinksService", () => {
   });
 
   test("returns published drinks for a case-insensitive tag", async () => {
-    const service = testDrinksService();
+    const service = createDrinksService({ db: getDb() });
 
     const taggedDrinks = await service.getDrinksByTag("Citrus");
 
@@ -150,7 +148,7 @@ describe("createDrinksService", () => {
 
   test("returns all published tags as a direct list", async () => {
     await setDrinkStatus("test-old-fashioned", "unpublished");
-    const service = testDrinksService();
+    const service = createDrinksService({ db: getDb() });
 
     const tags = await service.getAllTags();
 
@@ -158,7 +156,7 @@ describe("createDrinksService", () => {
   });
 
   test("returns published search results as a direct list", async () => {
-    const service = testDrinksService();
+    const service = createDrinksService({ db: getDb() });
 
     const searchResults = await service.searchPublishedDrinks({ query: "tequila" });
 
@@ -170,7 +168,7 @@ describe("createDrinksService", () => {
   });
 
   test("returns an empty search result list when query is blank", async () => {
-    const service = testDrinksService();
+    const service = createDrinksService({ db: getDb() });
 
     const emptySearchResults = await service.searchPublishedDrinks({ query: "" });
 
@@ -178,7 +176,7 @@ describe("createDrinksService", () => {
   });
 
   test("returns all drinks for admin list views as a direct list", async () => {
-    const service = testDrinksService();
+    const service = createDrinksService({ db: getDb() });
 
     const allDrinks = await service.getAllDrinks();
 
@@ -194,21 +192,23 @@ describe("createDrinksService", () => {
       rank: 10,
     });
   });
+});
 
+describe("createAdminDrinksWriteService", () => {
   test("creates a drink and exposes it through the editor boundary", async () => {
     const uploadImage = vi.fn().mockResolvedValue({
       url: "https://ik.imagekit.io/test/drinks/test-cocktail.jpg",
       fileId: "new-file-id",
     });
     const purgeDrinkCache = vi.fn().mockResolvedValue(undefined);
-    const service = testDrinksService({
+    const service = testAdminDrinksWriteService({
       writeEffects: {
         uploadImage,
         purgeDrinkCache,
       },
     });
 
-    const result = await service.createDrink({
+    const result = await service.create({
       draft: {
         title: "Test Cocktail",
         slug: "test-cocktail",
@@ -232,7 +232,7 @@ describe("createDrinksService", () => {
       tags: ["gin", "refreshing"],
     });
 
-    const editor = await service.getDrinkEditorBySlug("test-cocktail");
+    const editor = await createDrinksService({ db: getDb() }).getDrinkEditorBySlug("test-cocktail");
 
     expect(editor).toEqual({
       mode: "edit",
@@ -419,8 +419,8 @@ describe("createDrinksService", () => {
     expect(purgeDrinkCache).not.toHaveBeenCalled();
   });
 
-  test("throws a typed slug error when creating with a duplicate slug", async () => {
-    const service = testDrinksService({
+  test("returns typed slug error when creating with a duplicate slug", async () => {
+    const service = testAdminDrinksWriteService({
       writeEffects: {
         uploadImage: vi.fn().mockResolvedValue({
           url: "https://ik.imagekit.io/test/drinks/test-margarita.jpg",
@@ -430,7 +430,7 @@ describe("createDrinksService", () => {
     });
 
     await expect(
-      service.createDrink({
+      service.create({
         draft: {
           title: "Duplicate Margarita",
           slug: "test-margarita",
@@ -443,7 +443,7 @@ describe("createDrinksService", () => {
         },
         imageBuffer: Buffer.from("fake-image"),
       }),
-    ).rejects.toEqual(new FieldDomainError("slug", "Slug already exists"));
+    ).rejects.toMatchObject({ field: "slug", message: "Slug already exists" });
   });
 
   test("updates an existing drink without replacing its image", async () => {
@@ -451,7 +451,7 @@ describe("createDrinksService", () => {
     const deleteImage = vi.fn();
     const purgeDrinkCache = vi.fn().mockResolvedValue(undefined);
 
-    const service = testDrinksService({
+    const service = testAdminDrinksWriteService({
       writeEffects: {
         uploadImage,
         deleteImage,
@@ -459,7 +459,7 @@ describe("createDrinksService", () => {
       },
     });
 
-    const result = await service.updateDrink({
+    const result = await service.update({
       slug: "test-margarita",
       draft: {
         title: "Updated Margarita",
@@ -474,6 +474,7 @@ describe("createDrinksService", () => {
     });
 
     expect(result).toEqual({
+      kind: "success",
       drinkSlug: "test-margarita",
       notices: [],
     });
@@ -485,7 +486,9 @@ describe("createDrinksService", () => {
       tags: ["tequila", "citrus", "updated"],
     });
 
-    const editor = await service.getDrinkEditorBySlug("test-margarita");
+    const editor = await createDrinksService({ db: getDb() }).getDrinkEditorBySlug(
+      "test-margarita",
+    );
 
     expect(editor).toEqual({
       mode: "edit",
@@ -507,13 +510,13 @@ describe("createDrinksService", () => {
 
   test("invalidates both old and new detail pages when a drink slug changes", async () => {
     const purgeDrinkCache = vi.fn().mockResolvedValue(undefined);
-    const service = testDrinksService({
+    const service = testAdminDrinksWriteService({
       writeEffects: {
         purgeDrinkCache,
       },
     });
 
-    await service.updateDrink({
+    await service.update({
       slug: "test-margarita",
       draft: {
         title: "Renamed Margarita",
@@ -534,7 +537,7 @@ describe("createDrinksService", () => {
   });
 
   test("returns warning metadata when old image cleanup fails after a successful update", async () => {
-    const service = testDrinksService({
+    const service = testAdminDrinksWriteService({
       writeEffects: {
         uploadImage: vi.fn().mockResolvedValue({
           url: "https://ik.imagekit.io/test/drinks/test-margarita.jpg",
@@ -545,7 +548,7 @@ describe("createDrinksService", () => {
       },
     });
 
-    const result = await service.updateDrink({
+    const result = await service.update({
       slug: "test-margarita",
       draft: {
         title: "Test Margarita",
@@ -561,29 +564,32 @@ describe("createDrinksService", () => {
     });
 
     expect(result).toEqual({
+      kind: "success",
       drinkSlug: "test-margarita",
       notices: [{ code: SaveDrinkNoticeCodes.oldImageCleanupFailed, message: "cleanup failed" }],
     });
 
-    const editor = await service.getDrinkEditorBySlug("test-margarita");
+    const editor = await createDrinksService({ db: getDb() }).getDrinkEditorBySlug(
+      "test-margarita",
+    );
     expect(editor.initialValues.title).toBe("Test Margarita");
   });
 
-  test("deletes a drink through the service boundary", async () => {
+  test("deletes a drink through the admin write boundary", async () => {
     const deleteImage = vi.fn().mockResolvedValue(undefined);
     const purgeDrinkCache = vi.fn().mockResolvedValue(undefined);
-    const service = testDrinksService({
+    const service = testAdminDrinksWriteService({
       writeEffects: {
         deleteImage,
         purgeDrinkCache,
       },
     });
 
-    await service.deleteDrink({ slug: "test-margarita" });
+    await service.delete({ slug: "test-margarita" });
 
-    await expect(service.getDrinkEditorBySlug("test-margarita")).rejects.toThrowError(
-      DrinkEditorNotFoundError,
-    );
+    await expect(
+      createDrinksService({ db: getDb() }).getDrinkEditorBySlug("test-margarita"),
+    ).rejects.toThrowError(DrinkEditorNotFoundError);
     expect(deleteImage).toHaveBeenCalledWith("seed-fileId-1");
     expect(purgeDrinkCache).toHaveBeenCalledWith({
       slugs: ["test-margarita"],

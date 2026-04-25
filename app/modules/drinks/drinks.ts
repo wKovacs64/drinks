@@ -73,11 +73,6 @@ export type AdminDrinkListItem = {
   updatedAt: Date;
 };
 
-export const drinksServiceMutationKeys = ["createDrink", "updateDrink", "deleteDrink"] as const;
-
-export type DrinksServiceMutationKey = (typeof drinksServiceMutationKeys)[number];
-
-/** One drinks module service; mutations omitted when the factory is built without `writeEffects`. */
 export type CreateAdminDrinkCommand = {
   draft: DrinkDraft;
   imageBuffer: Buffer;
@@ -134,13 +129,4 @@ export interface DrinksService {
   searchPublishedDrinks(input: { query: string }): Promise<DrinkView[]>;
   getNewDrinkEditor(): Promise<DrinkEditor>;
   getDrinkEditorBySlug(slug: string): Promise<DrinkEditor>;
-  createDrink(input: { draft: DrinkDraft; imageBuffer: Buffer }): Promise<SaveDrinkResult>;
-  updateDrink(input: {
-    slug: string;
-    draft: DrinkDraft;
-    imageBuffer?: Buffer;
-  }): Promise<SaveDrinkResult>;
-  deleteDrink(input: { slug: string }): Promise<void>;
 }
-
-export type DrinksServiceWithoutMutations = Omit<DrinksService, DrinksServiceMutationKey>;

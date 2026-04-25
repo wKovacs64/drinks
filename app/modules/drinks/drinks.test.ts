@@ -208,17 +208,19 @@ describe("createAdminDrinksWriteService", () => {
       },
     });
 
+    const draft = drinkDraftSchema.parse({
+      title: "Test Cocktail",
+      slug: "test-cocktail",
+      ingredients: "gin\ntonic",
+      calories: "150",
+      tags: " Gin, refreshing, gin!, REFRESHING ",
+      notes: "",
+      rank: "0",
+      status: "published",
+    });
+
     const result = await service.create({
-      draft: {
-        title: "Test Cocktail",
-        slug: "test-cocktail",
-        ingredients: ["gin", "tonic"],
-        calories: 150,
-        tags: ["gin", "refreshing"],
-        notes: null,
-        rank: 0,
-        status: "published",
-      },
+      draft,
       imageBuffer: Buffer.from("fake-image"),
     });
 
@@ -459,18 +461,20 @@ describe("createAdminDrinksWriteService", () => {
       },
     });
 
+    const draft = drinkDraftSchema.parse({
+      title: "Updated Margarita",
+      slug: "test-margarita",
+      ingredients: "3 oz tequila\n1.5 oz lime juice",
+      calories: "250",
+      tags: "Tequila, updated, tequila!, UPDATED",
+      notes: "Updated notes",
+      rank: "5",
+      status: "published",
+    });
+
     const result = await service.update({
       slug: "test-margarita",
-      draft: {
-        title: "Updated Margarita",
-        slug: "test-margarita",
-        ingredients: ["3 oz tequila", "1.5 oz lime juice"],
-        calories: 250,
-        tags: ["tequila", "updated"],
-        notes: "Updated notes",
-        rank: 5,
-        status: "published",
-      },
+      draft,
     });
 
     expect(result).toEqual({

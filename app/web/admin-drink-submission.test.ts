@@ -1,23 +1,16 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, expectTypeOf, test } from "vitest";
 import {
   parseCreateDrinkSubmission,
   parseUpdateDrinkSubmission,
 } from "./admin-drink-submission.server";
 
-function buildDrinkFormRequest(
+function buildMultipartRequest(
   overrides: {
     imageFile?: File;
   } = {},
 ) {
   const formData = new FormData();
-  formData.set("title", "Parsed Cocktail");
-  formData.set("slug", "parsed-cocktail");
-  formData.set("ingredients", "gin\ntonic");
-  formData.set("calories", "150");
-  formData.set("tags", "gin, refreshing");
-  formData.set("notes", "Built in parser tests");
-  formData.set("rank", "0");
-  formData.set("status", "published");
+  formData.set("caption", "Multipart parser payload");
 
   if (overrides.imageFile) {
     formData.set("imageFile", overrides.imageFile);
@@ -31,7 +24,7 @@ function buildDrinkFormRequest(
 
 describe("drink submission parsing", () => {
   test("create submissions require an image", async () => {
-    const result = await parseCreateDrinkSubmission(buildDrinkFormRequest());
+    const result = await parseCreateDrinkSubmission(buildMultipartRequest());
 
     expect(result).toEqual({
       kind: "invalid",
@@ -44,55 +37,67 @@ describe("drink submission parsing", () => {
   });
 
   test("update submissions allow keeping the current image", async () => {
-    const result = await parseUpdateDrinkSubmission(buildDrinkFormRequest());
+    const result = await parseUpdateDrinkSubmission(buildMultipartRequest());
 
     expect(result.kind).toBe("ready");
     if (result.kind !== "ready") {
       return;
     }
     expect(result.imageUpload).toBeUndefined();
-    expect(result.draft.title).toBe("Parsed Cocktail");
+    expect(result.formData.get("caption")).toBe("Multipart parser payload");
   });
 
-  test("unsupported image types return an imageFile field error", async () => {
+  test.each([
+    ["create", parseCreateDrinkSubmission],
+    ["update", parseUpdateDrinkSubmission],
+  ])(
+    "%s submissions with unsupported image types return an imageFile field error",
+    async (_, parse) => {
+      const result = await parse(
+        buildMultipartRequest({
+          imageFile: new File(["not-an-image"], "bad.txt", { type: "text/plain" }),
+        }),
+      );
+
+      expect(result).toEqual({
+        kind: "invalid",
+        fieldErrors: {
+          imageFile: ["Image must be a JPEG, PNG, WebP, or GIF"],
+        },
+        formErrors: [],
+        status: 400,
+      });
+    },
+  );
+
+  test.each([
+    ["create", parseCreateDrinkSubmission],
+    ["update", parseUpdateDrinkSubmission],
+  ])(
+    "%s submissions with oversized image uploads return an imageFile field error",
+    async (_, parse) => {
+      const oversizedBytes = new Uint8Array(5 * 1024 * 1024 + 1);
+
+      const result = await parse(
+        buildMultipartRequest({
+          imageFile: new File([oversizedBytes], "large.png", { type: "image/png" }),
+        }),
+      );
+
+      expect(result).toEqual({
+        kind: "invalid",
+        fieldErrors: {
+          imageFile: ["Image must be under 5MB"],
+        },
+        formErrors: [],
+        status: 400,
+      });
+    },
+  );
+
+  test("valid create submissions return form data and image upload data", async () => {
     const result = await parseCreateDrinkSubmission(
-      buildDrinkFormRequest({
-        imageFile: new File(["not-an-image"], "bad.txt", { type: "text/plain" }),
-      }),
-    );
-
-    expect(result).toEqual({
-      kind: "invalid",
-      fieldErrors: {
-        imageFile: ["Image must be a JPEG, PNG, WebP, or GIF"],
-      },
-      formErrors: [],
-      status: 400,
-    });
-  });
-
-  test("oversized image uploads return an imageFile field error", async () => {
-    const oversizedBytes = new Uint8Array(5 * 1024 * 1024 + 1);
-
-    const result = await parseCreateDrinkSubmission(
-      buildDrinkFormRequest({
-        imageFile: new File([oversizedBytes], "large.png", { type: "image/png" }),
-      }),
-    );
-
-    expect(result).toEqual({
-      kind: "invalid",
-      fieldErrors: {
-        imageFile: ["Image must be under 5MB"],
-      },
-      formErrors: [],
-      status: 400,
-    });
-  });
-
-  test("valid submissions return normalized draft data and image upload data", async () => {
-    const result = await parseCreateDrinkSubmission(
-      buildDrinkFormRequest({
+      buildMultipartRequest({
         imageFile: new File(["fake-image"], "parsed-cocktail.png", { type: "image/png" }),
       }),
     );
@@ -101,16 +106,8 @@ describe("drink submission parsing", () => {
     if (result.kind !== "ready") {
       return;
     }
-    expect(result.draft).toMatchObject({
-      title: "Parsed Cocktail",
-      slug: "parsed-cocktail",
-      ingredients: ["gin", "tonic"],
-      calories: 150,
-      tags: ["gin", "refreshing"],
-      rank: 0,
-      status: "published",
-    });
-    expect(result.formData.get("title")).toBe("Parsed Cocktail");
+    expect(result.formData.get("caption")).toBe("Multipart parser payload");
+    expectTypeOf(result.imageUpload).toEqualTypeOf<{ buffer: Buffer; contentType: string }>();
     expect(result.imageUpload).toEqual({
       buffer: Buffer.from("fake-image"),
       contentType: "image/png",

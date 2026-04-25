@@ -33,10 +33,6 @@ export async function action({ request }: Route.ActionArgs) {
     );
   }
 
-  if (!submission.imageUpload) {
-    throw new Error("Create drink submission parser returned ready without an image upload");
-  }
-
   const imageUpload = submission.imageUpload;
   const adminDrinksWriteService = createAdminDrinksWriteService({
     db: getDb(),

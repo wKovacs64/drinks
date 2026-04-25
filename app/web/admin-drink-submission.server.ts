@@ -1,5 +1,4 @@
 import { FormDataParseError, parseFormData, type FileUpload } from "@remix-run/form-data-parser";
-import { drinkDraftSchema, type DrinkDraft } from "#/app/modules/drinks/drinks";
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
@@ -18,14 +17,22 @@ type DrinkSubmissionInvalidResult = {
 
 type DrinkSubmissionReadyResult = {
   kind: "ready";
-  draft: DrinkDraft;
   formData: FormData;
   imageUpload: DrinkImageUpload | undefined;
 };
 
-export type DrinkSubmissionResult = DrinkSubmissionInvalidResult | DrinkSubmissionReadyResult;
+type CreateDrinkSubmissionReadyResult = Omit<DrinkSubmissionReadyResult, "imageUpload"> & {
+  imageUpload: DrinkImageUpload;
+};
 
-export async function parseCreateDrinkSubmission(request: Request): Promise<DrinkSubmissionResult> {
+export type DrinkSubmissionResult = DrinkSubmissionInvalidResult | DrinkSubmissionReadyResult;
+export type CreateDrinkSubmissionResult =
+  | DrinkSubmissionInvalidResult
+  | CreateDrinkSubmissionReadyResult;
+
+export async function parseCreateDrinkSubmission(
+  request: Request,
+): Promise<CreateDrinkSubmissionResult> {
   const result = await parseDrinkSubmission(request);
   if (result.kind === "invalid") {
     return result;
@@ -35,7 +42,10 @@ export async function parseCreateDrinkSubmission(request: Request): Promise<Drin
     return imageFieldError("Image is required");
   }
 
-  return result;
+  return {
+    ...result,
+    imageUpload: result.imageUpload,
+  };
 }
 
 export async function parseUpdateDrinkSubmission(request: Request): Promise<DrinkSubmissionResult> {
@@ -48,20 +58,8 @@ async function parseDrinkSubmission(request: Request): Promise<DrinkSubmissionRe
     return parsedMultipart;
   }
 
-  const draftResult = drinkDraftSchema.safeParse(Object.fromEntries(parsedMultipart.formData));
-  if (!draftResult.success) {
-    const flattenedError = draftResult.error.flatten();
-    return {
-      kind: "invalid",
-      fieldErrors: flattenedError.fieldErrors,
-      formErrors: flattenedError.formErrors,
-      status: 400,
-    };
-  }
-
   return {
     kind: "ready",
-    draft: draftResult.data,
     formData: parsedMultipart.formData,
     imageUpload: parsedMultipart.imageUpload,
   };

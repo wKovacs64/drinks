@@ -41,7 +41,7 @@ _Craft Cocktail Gallery_
 
 ## Skill Flow
 
-- Preferred workflow: `grill-me -> ubiquitous-language -> write-a-prd -> prd-to-issues -> tdd -> improve-codebase-architecture`
+- Preferred workflow: `domain-model -> to-prd -> to-issues -> tdd`
 
 ## React Compiler
 

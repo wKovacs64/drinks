@@ -1,6 +1,5 @@
 import { createId } from "@paralleldrive/cuid2";
 import { desc, eq } from "drizzle-orm";
-import { FieldDomainError } from "#/app/core/errors";
 import type { getDb } from "#/app/db/client.server";
 import { drinks, type Drink } from "#/app/db/schema";
 import { markdownToHtml } from "./drinks-markdown.server";
@@ -298,7 +297,14 @@ async function createAdminDrink(
     throw new Error("Image buffer is required when creating a drink");
   }
 
-  await ensureSlugAvailable(db, draft.slug);
+  const slugAvailability = await checkSlugAvailability(db, draft.slug);
+  if (!slugAvailability.available) {
+    return {
+      kind: "fieldError" as const,
+      fieldErrors: { slug: ["Slug already exists"] },
+      formErrors: [],
+    };
+  }
 
   const uploadedImage = await writeEffects.uploadImage(imageBuffer, `${draft.slug}.jpg`);
 
@@ -315,21 +321,10 @@ async function createAdminDrink(
   });
 
   return {
+    kind: "success" as const,
     drinkSlug: createdDrink.slug,
     notices: [],
   };
-}
-
-async function ensureSlugAvailable(
-  db: ReturnType<typeof getDb>,
-  slug: string,
-  currentDrinkId?: string,
-): Promise<void> {
-  const slugAvailability = await checkSlugAvailability(db, slug, currentDrinkId);
-
-  if (!slugAvailability.available) {
-    throw new FieldDomainError("slug", "Slug already exists");
-  }
 }
 
 async function checkSlugAvailability(

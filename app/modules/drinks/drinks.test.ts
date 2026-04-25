@@ -326,6 +326,7 @@ describe("createAdminDrinksWriteService", () => {
     });
 
     expect(result).toEqual({
+      kind: "success",
       drinkSlug: "test-cocktail",
       notices: [],
     });
@@ -382,6 +383,7 @@ describe("createAdminDrinksWriteService", () => {
     });
 
     expect(result).toEqual({
+      kind: "success",
       drinkSlug: "admin-write-cocktail",
       notices: [],
     });
@@ -546,7 +548,11 @@ describe("createAdminDrinksWriteService", () => {
         },
         imageBuffer: Buffer.from("fake-image"),
       }),
-    ).rejects.toMatchObject({ field: "slug", message: "Slug already exists" });
+    ).resolves.toEqual({
+      kind: "fieldError",
+      fieldErrors: { slug: ["Slug already exists"] },
+      formErrors: [],
+    });
   });
 
   test("updates an existing drink without replacing its image", async () => {

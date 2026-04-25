@@ -127,9 +127,7 @@ effects at the service boundary.
 
 Preferred workflow for new work:
 
-1. `grill-me`
-2. `ubiquitous-language`
-3. `write-a-prd`
-4. `prd-to-issues`
-5. `tdd`
-6. `improve-codebase-architecture`
+1. `domain-model`
+2. `to-prd`
+3. `to-issues`
+4. `tdd`

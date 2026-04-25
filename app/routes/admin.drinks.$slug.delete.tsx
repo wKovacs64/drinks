@@ -1,9 +1,9 @@
-import { redirect, href } from "react-router";
-import { intent, routeAction } from "#/app/core/route-action.server";
+import { href, redirect } from "react-router";
 import { getDb } from "#/app/db/client.server";
 import { purgeDrinkCache } from "#/app/integrations/fastly.server";
 import { deleteImage, uploadImage } from "#/app/integrations/imagekit.server";
 import { createAdminDrinksWriteService } from "#/app/modules/drinks/drinks.server";
+import { deleteAdminDrinkActionAdapter } from "#/app/web/admin-drink-write-route-adapter.server";
 import type { Route } from "./+types/admin.drinks.$slug.delete";
 
 export async function loader() {
@@ -16,20 +16,9 @@ export async function action({ request, params }: Route.ActionArgs) {
     writeEffects: { uploadImage, deleteImage, purgeDrinkCache },
   });
 
-  return routeAction(
+  return deleteAdminDrinkActionAdapter({
     request,
-    intent({
-      operation: async () => {
-        const result = await adminDrinksWriteService.delete({ slug: params.slug });
-
-        if (result.kind === "notFound") {
-          throw new Response("Drink not found", { status: 404 });
-        }
-
-        return result;
-      },
-      redirectTo: href("/admin/drinks"),
-      toast: { successMessage: "Drink deleted!" },
-    }),
-  );
+    slug: params.slug,
+    adminDrinksWriteService,
+  });
 }

@@ -58,6 +58,27 @@ export async function createAdminDrinkActionAdapter(input: AdminDrinkWriteAction
   );
 }
 
+export async function deleteAdminDrinkActionAdapter(
+  input: AdminDrinkWriteActionAdapterInput & { slug: string },
+) {
+  return routeAction(
+    input.request,
+    intent({
+      operation: async () => {
+        const result = await input.adminDrinksWriteService.delete({ slug: input.slug });
+
+        if (result.kind === "notFound") {
+          throw new Response("Drink not found", { status: 404 });
+        }
+
+        return result;
+      },
+      redirectTo: href("/admin/drinks"),
+      toast: { successMessage: "Drink deleted!" },
+    }),
+  );
+}
+
 export async function updateAdminDrinkActionAdapter(
   input: AdminDrinkWriteActionAdapterInput & { slug: string },
 ) {

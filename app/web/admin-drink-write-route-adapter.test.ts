@@ -3,6 +3,7 @@ import { getToast } from "#/app/core/toast.server";
 import type { AdminDrinksWriteService } from "#/app/modules/drinks/drinks";
 import {
   createAdminDrinkActionAdapter,
+  deleteAdminDrinkActionAdapter,
   updateAdminDrinkActionAdapter,
 } from "./admin-drink-write-route-adapter.server";
 
@@ -35,6 +36,13 @@ function buildUpdateRequest(input: { slug?: string; imageFile?: File } = {}) {
   return new Request("http://test.local/admin/drinks/old-fashioned/edit", {
     method: "POST",
     body: buildDrinkFormData(input),
+  });
+}
+
+function buildDeleteRequest() {
+  return new Request("http://test.local/admin/drinks/old-fashioned/delete", {
+    method: "POST",
+    body: new FormData(),
   });
 }
 
@@ -134,6 +142,51 @@ describe("createAdminDrinkActionAdapter", () => {
       },
       init: { status: 400 },
     });
+  });
+});
+
+describe("deleteAdminDrinkActionAdapter", () => {
+  test("deletes through the admin write path and redirects with the existing success toast", async () => {
+    const adminDrinksWriteService = buildService({
+      delete: vi.fn().mockResolvedValue({ kind: "success" }),
+    });
+
+    let redirectResponse: Response | undefined;
+    try {
+      await deleteAdminDrinkActionAdapter({
+        request: buildDeleteRequest(),
+        slug: "old-fashioned",
+        adminDrinksWriteService,
+      });
+    } catch (error) {
+      if (!(error instanceof Response)) throw error;
+      redirectResponse = error;
+    }
+
+    expect(redirectResponse).toMatchObject({ status: 302 });
+    expect(redirectResponse?.headers.get("Location")).toBe("/admin/drinks");
+    expect(adminDrinksWriteService.delete).toHaveBeenCalledWith({ slug: "old-fashioned" });
+
+    const { toast } = await getToast(
+      new Request("http://test.local/admin", {
+        headers: { Cookie: redirectResponse?.headers.get("Set-Cookie") ?? "" },
+      }),
+    );
+    expect(toast).toEqual({ kind: "success", message: "Drink deleted!" });
+  });
+
+  test("translates typed missing delete targets into not-found responses", async () => {
+    const adminDrinksWriteService = buildService({
+      delete: vi.fn().mockResolvedValue({ kind: "notFound", slug: "missing-drink" }),
+    });
+
+    await expect(
+      deleteAdminDrinkActionAdapter({
+        request: buildDeleteRequest(),
+        slug: "missing-drink",
+        adminDrinksWriteService,
+      }),
+    ).rejects.toMatchObject({ status: 404 });
   });
 });
 

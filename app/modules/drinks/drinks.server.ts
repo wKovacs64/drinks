@@ -17,8 +17,6 @@ import {
   type DeleteAdminDrinkResult,
   type DrinkDraft,
   type DrinksService,
-  type DrinksServiceMutationKey,
-  type DrinksServiceWithoutMutations,
   type SaveDrinkNotice,
   type UpdateAdminDrinkCommand,
   type UpdateAdminDrinkResult,
@@ -44,19 +42,8 @@ export class DrinkEditorNotFoundError extends Error {
   }
 }
 
-export function createDrinksService(deps: { db: Db }): DrinksServiceWithoutMutations;
-export function createDrinksService(deps: {
-  db: Db;
-  writeEffects: DrinksWriteEffects;
-}): DrinksService;
-export function createDrinksService(
-  deps: { db: Db } | { db: Db; writeEffects: DrinksWriteEffects },
-): DrinksServiceWithoutMutations | DrinksService {
-  const read = buildDrinksServiceReadMethods({ db: deps.db });
-  if (!("writeEffects" in deps)) {
-    return read;
-  }
-  return { ...read, ...buildDrinksServiceMutationMethods(deps.db, deps.writeEffects) };
+export function createDrinksService(deps: { db: Db }): DrinksService {
+  return buildDrinksServiceReadMethods({ db: deps.db });
 }
 
 export function createAdminDrinksWriteService(deps: {
@@ -76,7 +63,7 @@ export function createAdminDrinksWriteService(deps: {
   };
 }
 
-function buildDrinksServiceReadMethods(deps: { db: Db }): DrinksServiceWithoutMutations {
+function buildDrinksServiceReadMethods(deps: { db: Db }): DrinksService {
   return {
     async getPublishedDrinks() {
       const publishedDrinks = await deps.db.query.drinks.findMany({
@@ -192,41 +179,6 @@ function buildDrinksServiceReadMethods(deps: { db: Db }): DrinksServiceWithoutMu
           status: drink.status,
         },
       };
-    },
-  };
-}
-
-function buildDrinksServiceMutationMethods(
-  db: Db,
-  writeEffects: DrinksWriteEffects,
-): Pick<DrinksService, DrinksServiceMutationKey> {
-  return {
-    async createDrink(command) {
-      return createAdminDrink(db, writeEffects, command);
-    },
-    async updateDrink(command) {
-      const result = await updateAdminDrink(db, writeEffects, command);
-
-      if (result.kind === "notFound") {
-        throw new Error(`Drink not found for slug "${result.slug}"`);
-      }
-
-      if (result.kind === "fieldError") {
-        const [field, messages] = Object.entries(result.fieldErrors)[0] ?? [];
-        throw new FieldDomainError(field ?? "slug", messages?.[0] ?? "Invalid drink");
-      }
-
-      return {
-        drinkSlug: result.drinkSlug,
-        notices: result.notices,
-      };
-    },
-    async deleteDrink({ slug }) {
-      const result = await deleteAdminDrink(db, writeEffects, { slug });
-
-      if (result.kind === "notFound") {
-        throw new Error(`Drink not found for slug "${result.slug}"`);
-      }
     },
   };
 }

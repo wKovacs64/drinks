@@ -32,13 +32,10 @@ Routes stay thin. They create a service per request and delegate business behavi
 Example shape:
 
 ```ts
-const drinksService = createDrinksService({
+const drinksService = createDrinksService({ db: getDb() });
+const adminDrinksWriteService = createAdminDrinksWriteService({
   db: getDb(),
-  writeEffects: {
-    uploadImage,
-    deleteImage,
-    purgeDrinkCache,
-  },
+  writeEffects: { uploadImage, deleteImage, purgeDrinkCache },
 });
 ```
 
@@ -72,9 +69,9 @@ Current `Drinks` seam examples:
 - `searchPublishedDrinks({ query })`
 - `getNewDrinkEditor()`
 - `getDrinkEditorBySlug(slug)`
-- `createDrink({ draft, imageBuffer })`
-- `updateDrink({ slug, draft, imageBuffer? })`
-- `deleteDrink({ slug })`
+- `createAdminDrinksWriteService(...).create({ draft, imageBuffer })`
+- `createAdminDrinksWriteService(...).update({ slug, draft, imageBuffer? })`
+- `createAdminDrinksWriteService(...).delete({ slug })`
 
 ## Identity Module
 
@@ -119,6 +116,7 @@ Preferred boundary tests:
 
 - `drinkDraftSchema`
 - `createDrinksService(...)`
+- `createAdminDrinksWriteService(...)`
 - `createIdentityService(...)`
 - `routeAction(...)`
 

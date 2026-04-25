@@ -51,7 +51,7 @@ export type Intent = IntentDef & { [INTENT_BRAND]: true };
  * @example
  * const createDrinkIntent = intent({
  *   schema: drinkDraftSchema,
- *   operation: (draft) => drinksService.createDrink({
+ *   operation: (draft) => adminDrinksWriteService.create({
  *     draft,
  *     imageBuffer,
  *   }),
@@ -61,7 +61,7 @@ export type Intent = IntentDef & { [INTENT_BRAND]: true };
  *
  * @example
  * const deleteDrinkIntent = intent({
- *   operation: () => drinksService.deleteDrink({ slug: params.slug }),
+ *   operation: () => adminDrinksWriteService.delete({ slug: params.slug }),
  *   redirectTo: href("/admin/drinks"),
  *   toast: { successMessage: "Drink deleted!" },
  * });
@@ -131,12 +131,12 @@ function isBrandedIntent(value: unknown): value is Intent {
  * return routeAction(request, {
  *   update: intent({
  *     schema: drinkDraftSchema,
- *     operation: (draft) => drinksService.updateDrink({ slug: params.slug, draft }),
+ *     operation: (draft) => adminDrinksWriteService.update({ slug: params.slug, draft }),
  *     redirectTo: href("/admin/drinks"),
  *     toast: { successMessage: "Drink updated!" },
  *   }),
  *   delete: intent({
- *     operation: () => drinksService.deleteDrink({ slug: params.slug }),
+ *     operation: () => adminDrinksWriteService.delete({ slug: params.slug }),
  *     redirectTo: href("/admin/drinks"),
  *     toast: { successMessage: "Drink deleted!" },
  *   }),

@@ -1,5 +1,12 @@
 import { getEnvVars } from "#/app/core/env.server";
-import { getSurrogateKeyForTag } from "#/app/core/utils";
+
+export function getSurrogateKeyForTagSlug(tagSlug: string) {
+  return tagSlug;
+}
+
+function getSurrogateKeyForCanonicalTag(tag: string) {
+  return tag.replaceAll(" ", "_");
+}
 
 async function purgeFastlyCache(surrogateKeys: string[]): Promise<void> {
   const { FASTLY_SERVICE_ID, FASTLY_PURGE_API_KEY } = getEnvVars();
@@ -34,7 +41,7 @@ export async function purgeDrinkCache(affectedPages: {
     "search",
     ...affectedPages.slugs,
     "tags",
-    ...affectedPages.tags.map(getSurrogateKeyForTag),
+    ...affectedPages.tags.map(getSurrogateKeyForCanonicalTag),
   ];
   await purgeFastlyCache(keys);
 }

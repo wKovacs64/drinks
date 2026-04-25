@@ -3,8 +3,9 @@ import { lowerCase } from "lodash-es";
 import { cacheHeader } from "pretty-cache-header";
 import { invariantResponse } from "@epic-web/invariant";
 import { defaultPageDescription, defaultPageTitle } from "#/app/core/config";
-import { getLoaderDataForHandle, getSurrogateKeyForTag } from "#/app/core/utils";
+import { getLoaderDataForHandle } from "#/app/core/utils";
 import { getEnvVars } from "#/app/core/env.server";
+import { getSurrogateKeyForTagSlug } from "#/app/integrations/fastly.server";
 import { getDb } from "#/app/db/client.server";
 import { createDrinksService } from "#/app/modules/drinks/drinks.server";
 import { DrinkList } from "#/app/ui/drinks/drink-list";
@@ -42,7 +43,7 @@ export async function loader({ params }: Route.LoaderArgs) {
     },
     {
       headers: {
-        "Surrogate-Key": `all tags ${getSurrogateKeyForTag(params.tag)}`,
+        "Surrogate-Key": `all tags ${getSurrogateKeyForTagSlug(taggedDrinks.tag.slug)}`,
         "Cache-Control": cacheHeader({
           public: true,
           maxAge: "30sec",

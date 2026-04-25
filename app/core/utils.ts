@@ -15,10 +15,6 @@ export function getLoaderDataForHandle<TLoaderData = unknown>(
   return match.loaderData as TLoaderData;
 }
 
-export function getSurrogateKeyForTag(tag: string) {
-  return tag.replaceAll(" ", "_");
-}
-
 // TODO: remove once requestIdleCallback is available in Safari
 // https://caniuse.com/requestidlecallback
 export function requestIdleCallbackShim(cb: () => void) {

@@ -1,8 +1,8 @@
 import { data, href } from "react-router";
 import { cacheHeader } from "pretty-cache-header";
 import { defaultPageDescription, defaultPageTitle } from "#/app/core/config";
-import { getSurrogateKeyForTag } from "#/app/core/utils";
 import { getEnvVars } from "#/app/core/env.server";
+import { getSurrogateKeyForTagSlug } from "#/app/integrations/fastly.server";
 import { getDb } from "#/app/db/client.server";
 import { createDrinksService } from "#/app/modules/drinks/drinks.server";
 import { TagLink } from "#/app/ui/tags/tag-link";
@@ -17,7 +17,7 @@ export async function loader() {
   const { SITE_IMAGE_URL, SITE_IMAGE_ALT } = getEnvVars();
   const drinksService = createDrinksService({ db: getDb() });
   const tags = await drinksService.getAllTags();
-  const everyTagSurrogateKey = tags.map((tag) => getSurrogateKeyForTag(tag.slug)).join(" ");
+  const everyTagSurrogateKey = tags.map((tag) => getSurrogateKeyForTagSlug(tag.slug)).join(" ");
 
   return data(
     {

@@ -8,6 +8,11 @@ export type DrinkStatus = (typeof drinkStatusValues)[number];
  * Used for published-only lists/search/tags and for slug detail — including
  * unpublished rows when {@link DrinkForViewer.visibility} is `"private"`.
  */
+export type DrinkTagView = {
+  displayName: string;
+  slug: string;
+};
+
 export type DrinkView = {
   title: string;
   slug: string;
@@ -15,7 +20,7 @@ export type DrinkView = {
   ingredients: string[];
   calories: number;
   notes: string | null;
-  tags: string[];
+  tags: DrinkTagView[];
 };
 
 export { drinkDraftSchema, drinkStatusValues };

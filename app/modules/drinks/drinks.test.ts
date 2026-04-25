@@ -58,7 +58,10 @@ describe("createDrinksService", () => {
       title: "Test Margarita",
       calories: 200,
       notes: "A classic test margarita",
-      tags: ["tequila", "citrus"],
+      tags: [
+        { displayName: "tequila", slug: "tequila" },
+        { displayName: "citrus", slug: "citrus" },
+      ],
     });
     expect(fromDefault[0]?.image).toEqual({
       url: expect.any(String),
@@ -99,7 +102,10 @@ describe("createDrinksService", () => {
       title: "Test Margarita",
       slug: "test-margarita",
       calories: 200,
-      tags: ["tequila", "citrus"],
+      tags: [
+        { displayName: "tequila", slug: "tequila" },
+        { displayName: "citrus", slug: "citrus" },
+      ],
     });
     expect(drinkForViewer?.drink.image).toEqual({
       url: expect.any(String),
@@ -144,6 +150,27 @@ describe("createDrinksService", () => {
     const taggedDrinks = await service.getDrinksByTag("Citrus");
 
     expect(taggedDrinks?.map((drink) => drink.slug)).toEqual(["test-margarita", "test-mojito"]);
+    expect(taggedDrinks?.[0]?.tags).toEqual([
+      { displayName: "tequila", slug: "tequila" },
+      { displayName: "citrus", slug: "citrus" },
+    ]);
+  });
+
+  test("returns published drinks for a tag slug", async () => {
+    const db = getDb();
+    await db
+      .update(drinks)
+      .set({ tags: ["tequila", "bright citrus"] })
+      .where(eq(drinks.slug, "test-margarita"));
+    const service = createDrinksService({ db });
+
+    const taggedDrinks = await service.getDrinksByTag("bright-citrus");
+
+    expect(taggedDrinks?.map((drink) => drink.slug)).toEqual(["test-margarita"]);
+    expect(taggedDrinks?.[0]?.tags).toEqual([
+      { displayName: "tequila", slug: "tequila" },
+      { displayName: "bright citrus", slug: "bright-citrus" },
+    ]);
   });
 
   test("returns all published tags as a direct list", async () => {
@@ -153,6 +180,25 @@ describe("createDrinksService", () => {
     const tags = await service.getAllTags();
 
     expect(tags).toEqual(["citrus", "mint", "rum", "tequila"]);
+  });
+
+  test("defensively canonicalizes stored tags when returning drink views", async () => {
+    const db = getDb();
+    await db
+      .update(drinks)
+      .set({ tags: ["Tequila!", "bright citrus", "bright-citrus", " "] })
+      .where(eq(drinks.slug, "test-margarita"));
+    const service = createDrinksService({ db });
+
+    const drinkForViewer = await service.getDrinkBySlug({
+      slug: "test-margarita",
+      viewerRole: "user",
+    });
+
+    expect(drinkForViewer?.drink.tags).toEqual([
+      { displayName: "tequila", slug: "tequila" },
+      { displayName: "bright citrus", slug: "bright-citrus" },
+    ]);
   });
 
   test("returns published search results as a direct list", async () => {
@@ -165,6 +211,10 @@ describe("createDrinksService", () => {
       url: expect.any(String),
       blurDataUrl: expect.any(String),
     });
+    expect(searchResults[0]?.tags).toEqual([
+      { displayName: "tequila", slug: "tequila" },
+      { displayName: "citrus", slug: "citrus" },
+    ]);
   });
 
   test("returns an empty search result list when query is blank", async () => {

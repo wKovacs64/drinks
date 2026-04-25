@@ -23,9 +23,18 @@ type DrinkSubmissionReadyResult = {
   imageUpload: DrinkImageUpload | undefined;
 };
 
-export type DrinkSubmissionResult = DrinkSubmissionInvalidResult | DrinkSubmissionReadyResult;
+type CreateDrinkSubmissionReadyResult = Omit<DrinkSubmissionReadyResult, "imageUpload"> & {
+  imageUpload: DrinkImageUpload;
+};
 
-export async function parseCreateDrinkSubmission(request: Request): Promise<DrinkSubmissionResult> {
+export type DrinkSubmissionResult = DrinkSubmissionInvalidResult | DrinkSubmissionReadyResult;
+export type CreateDrinkSubmissionResult =
+  | DrinkSubmissionInvalidResult
+  | CreateDrinkSubmissionReadyResult;
+
+export async function parseCreateDrinkSubmission(
+  request: Request,
+): Promise<CreateDrinkSubmissionResult> {
   const result = await parseDrinkSubmission(request);
   if (result.kind === "invalid") {
     return result;
@@ -35,7 +44,10 @@ export async function parseCreateDrinkSubmission(request: Request): Promise<Drin
     return imageFieldError("Image is required");
   }
 
-  return result;
+  return {
+    ...result,
+    imageUpload: result.imageUpload,
+  };
 }
 
 export async function parseUpdateDrinkSubmission(request: Request): Promise<DrinkSubmissionResult> {

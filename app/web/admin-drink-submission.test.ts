@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, expectTypeOf, test } from "vitest";
 import {
   parseCreateDrinkSubmission,
   parseUpdateDrinkSubmission,
@@ -111,6 +111,7 @@ describe("drink submission parsing", () => {
       status: "published",
     });
     expect(result.formData.get("title")).toBe("Parsed Cocktail");
+    expectTypeOf(result.imageUpload).toEqualTypeOf<{ buffer: Buffer; contentType: string }>();
     expect(result.imageUpload).toEqual({
       buffer: Buffer.from("fake-image"),
       contentType: "image/png",

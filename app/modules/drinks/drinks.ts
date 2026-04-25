@@ -125,11 +125,16 @@ export interface AdminDrinksWriteService {
   delete(command: DeleteAdminDrinkCommand): Promise<DeleteAdminDrinkResult>;
 }
 
+export type DrinksByTagSlug = {
+  tag: DrinkTagView;
+  drinks: DrinkView[];
+};
+
 export interface DrinksService {
   getPublishedDrinks(): Promise<DrinkView[]>;
   getAllDrinks(): Promise<AdminDrinkListItem[]>;
   getDrinkBySlug(input: { slug: string; viewerRole: ViewerRole }): Promise<DrinkForViewer | null>;
-  getDrinksByTag(tag: string): Promise<DrinkView[] | null>;
+  getDrinksByTagSlug(input: { tagSlug: string }): Promise<DrinksByTagSlug | null>;
   getAllTags(): Promise<DrinkTagView[]>;
   searchPublishedDrinks(input: { query: string }): Promise<DrinkView[]>;
   getNewDrinkEditor(): Promise<DrinkEditor>;

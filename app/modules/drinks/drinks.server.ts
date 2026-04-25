@@ -1,6 +1,5 @@
 import { createId } from "@paralleldrive/cuid2";
 import { desc, eq } from "drizzle-orm";
-import { lowerCase } from "lodash-es";
 import { FieldDomainError } from "#/app/core/errors";
 import type { getDb } from "#/app/db/client.server";
 import { drinks, type Drink } from "#/app/db/schema";
@@ -18,6 +17,7 @@ import {
   type DeleteAdminDrinkResult,
   type DrinkDraft,
   type DrinksService,
+  type DrinkTagView,
   type SaveDrinkNotice,
   type UpdateAdminDrinkCommand,
   type UpdateAdminDrinkResult,
@@ -125,15 +125,32 @@ function buildDrinksServiceReadMethods(deps: { db: Db }): DrinksService {
         },
       };
     },
-    async getDrinksByTag(tag) {
-      const normalizedTag = lowerCase(tag);
+    async getDrinksByTagSlug({ tagSlug }) {
       const publishedDrinks = await deps.db.query.drinks.findMany({
         where: eq(drinks.status, "published"),
         orderBy: [desc(drinks.rank), desc(drinks.createdAt)],
       });
-      const matchingDrinks = publishedDrinks.filter((drink) => drink.tags.includes(normalizedTag));
 
-      return matchingDrinks.length === 0 ? null : withPlaceholderImages(matchingDrinks);
+      let resolvedTag: DrinkTagView | null = null;
+      const matchingDrinks = publishedDrinks.filter((drink) => {
+        const matchingTag = toDrinkTagViews(drink.tags).find((tag) => tag.slug === tagSlug);
+
+        if (!matchingTag) {
+          return false;
+        }
+
+        resolvedTag ??= matchingTag;
+        return true;
+      });
+
+      if (!resolvedTag || matchingDrinks.length === 0) {
+        return null;
+      }
+
+      return {
+        tag: resolvedTag,
+        drinks: await withPlaceholderImages(matchingDrinks),
+      };
     },
     async searchPublishedDrinks({ query }) {
       if (!query) {

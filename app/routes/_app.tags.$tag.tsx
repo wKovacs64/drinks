@@ -1,5 +1,5 @@
 import { data } from "react-router";
-import { lowerCase, startCase } from "lodash-es";
+import { lowerCase } from "lodash-es";
 import { cacheHeader } from "pretty-cache-header";
 import { invariantResponse } from "@epic-web/invariant";
 import { defaultPageDescription, defaultPageTitle } from "#/app/core/config";
@@ -18,9 +18,9 @@ export function headers({ loaderHeaders }: Route.HeadersArgs) {
 export async function loader({ params }: Route.LoaderArgs) {
   const { SITE_IMAGE_URL, SITE_IMAGE_ALT } = getEnvVars();
   const drinksService = createDrinksService({ db: getDb() });
-  const drinks = await drinksService.getDrinksByTag(params.tag);
+  const taggedDrinks = await drinksService.getDrinksByTagSlug({ tagSlug: params.tag });
 
-  invariantResponse(drinks, "No drinks found", {
+  invariantResponse(taggedDrinks, "No drinks found", {
     status: 404,
     headers: {
       "Surrogate-Key": "all",
@@ -35,7 +35,8 @@ export async function loader({ params }: Route.LoaderArgs) {
 
   return data(
     {
-      drinks,
+      tag: taggedDrinks.tag,
+      drinks: taggedDrinks.drinks,
       socialImageUrl: SITE_IMAGE_URL,
       socialImageAlt: SITE_IMAGE_ALT,
     },
@@ -63,7 +64,7 @@ export const handle: AppRouteHandle = {
     return {
       title: loaderData ? (
         <div className="inline-flex gap-2">
-          <span>{lowerCase(matches.at(-1)?.params.tag)}</span>
+          <span>{loaderData.tag.displayName}</span>
           <span>( {loaderData.drinks.length} )</span>
         </div>
       ) : (
@@ -75,11 +76,11 @@ export const handle: AppRouteHandle = {
 
 export function meta({ loaderData, params }: Route.MetaArgs) {
   const { socialImageUrl, socialImageAlt } = loaderData ?? {};
-  const { tag } = params;
+  const displayName = loaderData?.tag.displayName ?? lowerCase(params.tag);
 
   return [
-    { title: `Drinks with ${startCase(tag)}` },
-    { name: "description", content: `All drinks containing ${lowerCase(tag)}` },
+    { title: `Drinks with ${displayName}` },
+    { name: "description", content: `All drinks containing ${displayName}` },
     { property: "og:title", content: defaultPageTitle },
     { property: "og:description", content: defaultPageDescription },
     { property: "og:image", content: socialImageUrl },

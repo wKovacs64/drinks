@@ -144,19 +144,23 @@ describe("createDrinksService", () => {
     expect(drinkForViewer?.drink.notes).toContain("<p>A classic test margarita</p>");
   });
 
-  test("returns published drinks for a case-insensitive tag", async () => {
+  test("returns the resolved tag and published drinks for a tag slug", async () => {
     const service = createDrinksService({ db: getDb() });
 
-    const taggedDrinks = await service.getDrinksByTag("Citrus");
+    const taggedDrinks = await service.getDrinksByTagSlug({ tagSlug: "citrus" });
 
-    expect(taggedDrinks?.map((drink) => drink.slug)).toEqual(["test-margarita", "test-mojito"]);
-    expect(taggedDrinks?.[0]?.tags).toEqual([
+    expect(taggedDrinks?.tag).toEqual({ displayName: "citrus", slug: "citrus" });
+    expect(taggedDrinks?.drinks.map((drink) => drink.slug)).toEqual([
+      "test-margarita",
+      "test-mojito",
+    ]);
+    expect(taggedDrinks?.drinks[0]?.tags).toEqual([
       { displayName: "tequila", slug: "tequila" },
       { displayName: "citrus", slug: "citrus" },
     ]);
   });
 
-  test("returns published drinks for a tag slug", async () => {
+  test("returns published drinks for a multi-word tag slug", async () => {
     const db = getDb();
     await db
       .update(drinks)
@@ -164,12 +168,34 @@ describe("createDrinksService", () => {
       .where(eq(drinks.slug, "test-margarita"));
     const service = createDrinksService({ db });
 
-    const taggedDrinks = await service.getDrinksByTag("bright-citrus");
+    const taggedDrinks = await service.getDrinksByTagSlug({ tagSlug: "bright-citrus" });
 
-    expect(taggedDrinks?.map((drink) => drink.slug)).toEqual(["test-margarita"]);
-    expect(taggedDrinks?.[0]?.tags).toEqual([
+    expect(taggedDrinks?.tag).toEqual({ displayName: "bright citrus", slug: "bright-citrus" });
+    expect(taggedDrinks?.drinks.map((drink) => drink.slug)).toEqual(["test-margarita"]);
+    expect(taggedDrinks?.drinks[0]?.tags).toEqual([
       { displayName: "tequila", slug: "tequila" },
       { displayName: "bright citrus", slug: "bright-citrus" },
+    ]);
+  });
+
+  test("resolves equivalent stored tags to one tag page", async () => {
+    const db = getDb();
+    await db
+      .update(drinks)
+      .set({ tags: ["Bright Citrus"] })
+      .where(eq(drinks.slug, "test-margarita"));
+    await db
+      .update(drinks)
+      .set({ tags: ["bright-citrus"] })
+      .where(eq(drinks.slug, "test-mojito"));
+    const service = createDrinksService({ db });
+
+    const taggedDrinks = await service.getDrinksByTagSlug({ tagSlug: "bright-citrus" });
+
+    expect(taggedDrinks?.tag).toEqual({ displayName: "bright citrus", slug: "bright-citrus" });
+    expect(taggedDrinks?.drinks.map((drink) => drink.slug)).toEqual([
+      "test-margarita",
+      "test-mojito",
     ]);
   });
 

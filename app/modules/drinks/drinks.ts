@@ -119,8 +119,10 @@ export type DeleteAdminDrinkSuccessResult = {
 
 export type DeleteAdminDrinkResult = DeleteAdminDrinkSuccessResult | AdminDrinkWriteNotFoundResult;
 
+export type CreateAdminDrinkResult = AdminDrinkWriteSuccessResult | AdminDrinkWriteFieldErrorResult;
+
 export interface AdminDrinksWriteService {
-  create(command: CreateAdminDrinkCommand): Promise<SaveDrinkResult>;
+  create(command: CreateAdminDrinkCommand): Promise<CreateAdminDrinkResult>;
   update(command: UpdateAdminDrinkCommand): Promise<UpdateAdminDrinkResult>;
   delete(command: DeleteAdminDrinkCommand): Promise<DeleteAdminDrinkResult>;
 }

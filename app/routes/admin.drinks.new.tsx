@@ -1,13 +1,11 @@
-import { data, href } from "react-router";
-import { intent, routeAction } from "#/app/core/route-action.server";
+import { href } from "react-router";
 import { getFormErrors } from "#/app/core/utils";
 import { getDb } from "#/app/db/client.server";
 import { purgeDrinkCache } from "#/app/integrations/fastly.server";
 import { deleteImage, uploadImage } from "#/app/integrations/imagekit.server";
-import { drinkDraftSchema } from "#/app/modules/drinks/drinks";
 import { createAdminDrinksWriteService } from "#/app/modules/drinks/drinks.server";
 import { DrinkForm } from "#/app/ui/admin/drink-form";
-import { parseCreateDrinkSubmission } from "#/app/web/admin-drink-submission.server";
+import { createAdminDrinkActionAdapter } from "#/app/web/admin-drink-write-route-adapter.server";
 import type { Route } from "./+types/admin.drinks.new";
 
 export default function NewDrinkPage({ actionData }: Route.ComponentProps) {
@@ -21,36 +19,10 @@ export default function NewDrinkPage({ actionData }: Route.ComponentProps) {
 }
 
 export async function action({ request }: Route.ActionArgs) {
-  const submission = await parseCreateDrinkSubmission(request);
-
-  if (submission.kind === "invalid") {
-    return data(
-      {
-        fieldErrors: submission.fieldErrors,
-        formErrors: submission.formErrors,
-      },
-      { status: submission.status },
-    );
-  }
-
-  const imageUpload = submission.imageUpload;
   const adminDrinksWriteService = createAdminDrinksWriteService({
     db: getDb(),
     writeEffects: { uploadImage, deleteImage, purgeDrinkCache },
   });
 
-  return routeAction(
-    request,
-    intent({
-      schema: drinkDraftSchema,
-      operation: async (draft) =>
-        adminDrinksWriteService.create({
-          draft,
-          imageBuffer: imageUpload.buffer,
-        }),
-      redirectTo: href("/admin/drinks"),
-      toast: { successMessage: "Drink created!" },
-    }),
-    { formData: submission.formData },
-  );
+  return createAdminDrinkActionAdapter({ request, adminDrinksWriteService });
 }

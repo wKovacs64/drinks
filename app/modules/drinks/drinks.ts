@@ -54,7 +54,7 @@ export type SaveDrinkNotice = {
   message: string;
 };
 
-export type SaveDrinkResult = {
+type SaveDrinkResult = {
   drinkSlug: string;
   notices: SaveDrinkNotice[];
 };

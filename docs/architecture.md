@@ -123,11 +123,10 @@ Preferred boundary tests:
 Use the real SQLite and Drizzle-backed test database where it is cheap. Stub expensive external
 effects at the service boundary.
 
-## Skill Flow
+## Development Workflow
 
-Preferred workflow for new work:
+Use `docs/development-workflow.md` as the source of truth for skill sequencing.
 
-1. `domain-model`
-2. `to-prd`
-3. `to-issues`
-4. `tdd`
+Architecture-affecting work should usually start with `domain-model` so module boundaries,
+capability names, and durable decisions are clarified before implementation. Use
+`improve-codebase-architecture` only as an occasional architecture review tool after larger changes.

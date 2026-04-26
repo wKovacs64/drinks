@@ -39,9 +39,11 @@ _Craft Cocktail Gallery_
 - Prefer `routeAction` for route action validation, intent dispatch, redirects, and toast handling
 - Module tests should target public schemas and service factories, not private helpers
 
-## Skill Flow
+## Development Workflow
 
-- Preferred workflow: `domain-model -> to-prd -> to-issues -> tdd`
+Before starting feature work, bug fixes, or refactors, consult `docs/development-workflow.md` for
+skill guidance. The workflow scales by task size — not every task needs every skill, but every task
+should start from the right step.
 
 ## React Compiler
 

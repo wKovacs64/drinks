@@ -1,8 +1,5 @@
 import { describe, expect, expectTypeOf, test } from "vitest";
-import {
-  parseCreateDrinkSubmission,
-  parseUpdateDrinkSubmission,
-} from "./admin-drink-submission.server";
+import { parseCreateDrinkSubmission, parseUpdateDrinkSubmission } from "./submission.server";
 
 function buildMultipartRequest(
   overrides: {

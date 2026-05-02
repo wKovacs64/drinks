@@ -85,27 +85,29 @@ Current `Drinks` seam examples:
 
 `identity.server.ts` is the single public server seam for those concerns.
 
-## Route Actions
+## Route Actions and Web Adapters
 
-Use `app/core/route-action.server.ts` to keep actions thin.
+Routes stay thin by constructing per-request services and delegating route-specific behavior to the
+smallest deep web adapter that owns that route seam.
 
-`routeAction` is responsible for:
+A route may call a module service directly when the route has no meaningful translation logic. When a
+route must coordinate submission parsing, schema validation, typed module outcomes, React Router
+responses, redirects, and toasts, put that behavior behind a web adapter instead of rebuilding it in
+the route.
 
-- intent dispatch
-- schema validation
-- domain error translation
-- redirects
-- toast handling
+The **Admin Drink Write Route Adapter** is the accepted deep web adapter for the **Admin Drink Write
+Path**. It owns multipart submission preparation, `drinkDraftSchema` validation, and the complete
+translation from typed Drinks module write outcomes into field/form error data, not-found responses,
+redirects, and toasts. Routes and generic helpers must not partially translate those outcomes.
 
-Routes may still do pre-validation work before calling `routeAction` when needed, such as multipart
-image parsing.
+## Expected Failures and Notices
 
-## Domain Errors
+Expected business-rule failures should cross Deep Module seams as typed outcomes or typed errors that
+remain transport-agnostic. Web adapters translate those expected failures into route/framework
+responses. Unexpected failures should still bubble.
 
-Expected business-rule failures should use typed domain errors. `routeAction` translates them into
-field or form errors. Unexpected failures should still bubble.
-
-Successful operations may also return warning metadata for non-fatal follow-up problems.
+Successful operations may also return warning metadata for non-fatal follow-up problems. The web
+adapter for the route seam owns how those warnings become toasts or response metadata.
 
 ## Testing Boundaries
 
@@ -118,7 +120,9 @@ Preferred boundary tests:
 - `createDrinksService(...)`
 - `createAdminDrinksWriteService(...)`
 - `createIdentityService(...)`
-- `routeAction(...)`
+- `createAdminDrinkActionAdapter(...)`
+- `updateAdminDrinkActionAdapter(...)`
+- `deleteAdminDrinkActionAdapter(...)`
 
 Use the real SQLite and Drizzle-backed test database where it is cheap. Stub expensive external
 effects at the service boundary.

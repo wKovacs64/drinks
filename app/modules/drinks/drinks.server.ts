@@ -1,7 +1,7 @@
 import { createId } from "@paralleldrive/cuid2";
 import { desc, eq } from "drizzle-orm";
 import type { getDb } from "#/app/db/client.server";
-import { drinks, type Drink } from "#/app/db/schema";
+import { drinks } from "#/app/db/schema";
 import { markdownToHtml } from "./drinks-markdown.server";
 import { withPlaceholderImages } from "./drinks-images.server";
 import { purgeSearchCache, searchDrinks } from "./drinks-search.server";
@@ -34,13 +34,6 @@ type DrinksWriteEffects = {
   deleteImage: (fileId: string) => Promise<void>;
   purgeDrinkCache: (affectedPages: AffectedDrinkPages) => Promise<void>;
 };
-
-export class DrinkEditorNotFoundError extends Error {
-  constructor(slug: Drink["slug"]) {
-    super(`Drink not found for slug "${slug}"`);
-    this.name = "DrinkEditorNotFoundError";
-  }
-}
 
 export function createDrinksService(deps: { db: Db }): DrinksService {
   return buildDrinksServiceReadMethods({ db: deps.db });
@@ -174,13 +167,13 @@ function buildDrinksServiceReadMethods(deps: { db: Db }): DrinksService {
         },
       };
     },
-    async getDrinkEditorBySlug(slug) {
+    async findDrinkEditorBySlug(slug) {
       const drink = await deps.db.query.drinks.findFirst({
         where: eq(drinks.slug, slug),
       });
 
       if (!drink) {
-        throw new DrinkEditorNotFoundError(slug);
+        return null;
       }
 
       return {

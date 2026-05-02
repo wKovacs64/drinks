@@ -7,7 +7,6 @@ import { drinkDraftSchema, SaveDrinkNoticeCodes } from "./drinks";
 import {
   createAdminDrinksWriteService,
   createDrinksService,
-  DrinkEditorNotFoundError,
   purgeSearchCache,
 } from "./drinks.server";
 
@@ -40,6 +39,16 @@ beforeEach(async () => {
 async function setDrinkStatus(slug: string, status: "published" | "unpublished"): Promise<void> {
   const db = getDb();
   await db.update(drinks).set({ status }).where(eq(drinks.slug, slug));
+}
+
+async function getExistingDrinkEditor(slug: string) {
+  const editor = await createDrinksService({ db: getDb() }).findDrinkEditorBySlug(slug);
+
+  if (!editor) {
+    throw new Error(`Expected drink editor for slug "${slug}"`);
+  }
+
+  return editor;
 }
 
 describe("createDrinksService", () => {
@@ -87,6 +96,14 @@ describe("createDrinksService", () => {
         status: "published",
       },
     });
+  });
+
+  test("returns null when an editor drink slug is missing", async () => {
+    const service = createDrinksService({ db: getDb() });
+
+    const editor = await service.findDrinkEditorBySlug("missing-drink");
+
+    expect(editor).toBeNull();
   });
 
   test("returns a drink for viewer when a published drink is requested", async () => {
@@ -336,7 +353,7 @@ describe("createAdminDrinksWriteService", () => {
       tags: ["gin", "refreshing"],
     });
 
-    const editor = await createDrinksService({ db: getDb() }).getDrinkEditorBySlug("test-cocktail");
+    const editor = await getExistingDrinkEditor("test-cocktail");
 
     expect(editor).toEqual({
       mode: "edit",
@@ -388,8 +405,7 @@ describe("createAdminDrinksWriteService", () => {
       notices: [],
     });
 
-    const readService = createDrinksService({ db: getDb() });
-    const editor = await readService.getDrinkEditorBySlug("admin-write-cocktail");
+    const editor = await getExistingDrinkEditor("admin-write-cocktail");
     expect(editor.initialValues.title).toBe("Admin Write Cocktail");
     expect(editor.imageUrl).toBe("https://ik.imagekit.io/test/drinks/admin-write-cocktail.jpg");
   });
@@ -429,9 +445,7 @@ describe("createAdminDrinksWriteService", () => {
       tags: ["tequila", "citrus", "lime"],
     });
 
-    const editor = await createDrinksService({ db: getDb() }).getDrinkEditorBySlug(
-      "admin-updated-margarita",
-    );
+    const editor = await getExistingDrinkEditor("admin-updated-margarita");
     expect(editor.initialValues.title).toBe("Admin Updated Margarita");
   });
 
@@ -501,8 +515,8 @@ describe("createAdminDrinksWriteService", () => {
       tags: ["tequila", "citrus"],
     });
     await expect(
-      createDrinksService({ db: getDb() }).getDrinkEditorBySlug("test-margarita"),
-    ).rejects.toThrowError(DrinkEditorNotFoundError);
+      createDrinksService({ db: getDb() }).findDrinkEditorBySlug("test-margarita"),
+    ).resolves.toBeNull();
   });
 
   test("returns a typed not-found outcome when admin delete cannot find a drink", async () => {
@@ -597,9 +611,7 @@ describe("createAdminDrinksWriteService", () => {
       tags: ["tequila", "citrus", "updated"],
     });
 
-    const editor = await createDrinksService({ db: getDb() }).getDrinkEditorBySlug(
-      "test-margarita",
-    );
+    const editor = await getExistingDrinkEditor("test-margarita");
 
     expect(editor).toEqual({
       mode: "edit",
@@ -680,9 +692,7 @@ describe("createAdminDrinksWriteService", () => {
       notices: [{ code: SaveDrinkNoticeCodes.oldImageCleanupFailed, message: "cleanup failed" }],
     });
 
-    const editor = await createDrinksService({ db: getDb() }).getDrinkEditorBySlug(
-      "test-margarita",
-    );
+    const editor = await getExistingDrinkEditor("test-margarita");
     expect(editor.initialValues.title).toBe("Test Margarita");
   });
 
@@ -699,8 +709,8 @@ describe("createAdminDrinksWriteService", () => {
     await service.delete({ slug: "test-margarita" });
 
     await expect(
-      createDrinksService({ db: getDb() }).getDrinkEditorBySlug("test-margarita"),
-    ).rejects.toThrowError(DrinkEditorNotFoundError);
+      createDrinksService({ db: getDb() }).findDrinkEditorBySlug("test-margarita"),
+    ).resolves.toBeNull();
     expect(deleteImage).toHaveBeenCalledWith("seed-fileId-1");
     expect(purgeDrinkCache).toHaveBeenCalledWith({
       slugs: ["test-margarita"],

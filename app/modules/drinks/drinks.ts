@@ -140,5 +140,5 @@ export interface DrinksService {
   getAllTags(): Promise<DrinkTagView[]>;
   searchPublishedDrinks(input: { query: string }): Promise<DrinkView[]>;
   getNewDrinkEditor(): Promise<DrinkEditor>;
-  getDrinkEditorBySlug(slug: string): Promise<DrinkEditor>;
+  findDrinkEditorBySlug(slug: string): Promise<DrinkEditor | null>;
 }

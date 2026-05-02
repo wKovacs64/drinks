@@ -67,8 +67,8 @@ The editorial operation that creates, updates, or deletes a **Drink**.
 _Avoid_: save flow, admin mutation layer
 
 **Admin Drink Write Route Adapter**:
-The web adapter that prepares route submissions for the **Admin Drink Write Path** and translates write outcomes into field errors, not-found responses, redirects, and toasts.
-_Avoid_: admin mutation handler, route plumbing
+The only web-side seam that prepares route submissions for the **Admin Drink Write Path** and translates write outcomes into field errors, not-found responses, redirects, and toasts.
+_Avoid_: admin mutation handler, route plumbing, generic route action helper
 
 ## Relationships
 
@@ -81,6 +81,7 @@ _Avoid_: admin mutation handler, route plumbing
 - Only an **Admin** may view an **Unpublished drink**
 - Only an **Admin** can use the **Admin Drink Write Path**
 - The **Admin Drink Write Route Adapter** adapts route submissions to the **Admin Drink Write Path** but does not own **Drink** write behavior
+- Routes delegate **Admin Drink Write Path** submissions to the **Admin Drink Write Route Adapter** and do not translate its typed write outcomes
 - A **Return-to URL** lets a **User** resume the page they attempted before authentication
 
 ## Example dialogue

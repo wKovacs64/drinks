@@ -1,6 +1,5 @@
 import type { useMatches } from "react-router";
 import { invariant } from "@epic-web/invariant";
-import type { ActionData } from "./route-action.server";
 
 /**
  * Gets loader data for an ancestor route from a route id and the `matches` array returned from the
@@ -25,7 +24,12 @@ export function requestIdleCallbackShim(cb: () => void) {
   return setTimeout(cb, 1);
 }
 
-export function getFormErrors(actionData: ActionData | undefined) {
+type FormErrorActionData = {
+  fieldErrors?: Record<string, string[] | undefined>;
+  formErrors?: string[];
+};
+
+export function getFormErrors(actionData: FormErrorActionData | undefined) {
   if (!actionData) {
     return undefined;
   }

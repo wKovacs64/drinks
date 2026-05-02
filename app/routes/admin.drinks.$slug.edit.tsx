@@ -9,7 +9,7 @@ import {
   DrinkEditorNotFoundError,
 } from "#/app/modules/drinks/drinks.server";
 import { DrinkForm } from "#/app/ui/admin/drink-form";
-import { updateAdminDrinkActionAdapter } from "#/app/web/admin-drink-write-route-adapter.server";
+import { updateAdminDrinkActionAdapter } from "#/app/web/admin-drink-write/route-adapter.server";
 import type { Route } from "./+types/admin.drinks.$slug.edit";
 
 export async function loader({ params }: Route.LoaderArgs) {

@@ -5,7 +5,7 @@ import { purgeDrinkCache } from "#/app/integrations/fastly.server";
 import { deleteImage, uploadImage } from "#/app/integrations/imagekit.server";
 import { createAdminDrinksWriteService } from "#/app/modules/drinks/drinks.server";
 import { DrinkForm } from "#/app/ui/admin/drink-form";
-import { createAdminDrinkActionAdapter } from "#/app/web/admin-drink-write-route-adapter.server";
+import { createAdminDrinkActionAdapter } from "#/app/web/admin-drink-write/route-adapter.server";
 import type { Route } from "./+types/admin.drinks.new";
 
 export default function NewDrinkPage({ actionData }: Route.ComponentProps) {

@@ -5,11 +5,11 @@ import {
   createAdminDrinkActionAdapter,
   deleteAdminDrinkActionAdapter,
   updateAdminDrinkActionAdapter,
-} from "./admin-drink-write-route-adapter.server";
+} from "./route-adapter.server";
 
-function buildDrinkFormData(input: { slug?: string; imageFile?: File } = {}) {
+function buildDrinkFormData(input: { slug?: string; title?: string; imageFile?: File } = {}) {
   const formData = new FormData();
-  formData.set("title", "Adapter Cocktail");
+  formData.set("title", input.title ?? "Adapter Cocktail");
   formData.set("slug", input.slug ?? "adapter-cocktail");
   formData.set("ingredients", "gin\ntonic");
   formData.set("calories", "150");
@@ -25,14 +25,14 @@ function buildDrinkFormData(input: { slug?: string; imageFile?: File } = {}) {
   return formData;
 }
 
-function buildCreateRequest(input: { slug?: string; imageFile?: File } = {}) {
+function buildCreateRequest(input: { slug?: string; title?: string; imageFile?: File } = {}) {
   return new Request("http://test.local/admin/drinks/new", {
     method: "POST",
     body: buildDrinkFormData(input),
   });
 }
 
-function buildUpdateRequest(input: { slug?: string; imageFile?: File } = {}) {
+function buildUpdateRequest(input: { slug?: string; title?: string; imageFile?: File } = {}) {
   return new Request("http://test.local/admin/drinks/old-fashioned/edit", {
     method: "POST",
     body: buildDrinkFormData(input),
@@ -53,10 +53,37 @@ function buildService(overrides: Partial<AdminDrinksWriteService> = {}): AdminDr
       drinkSlug: "adapter-cocktail",
       notices: [],
     }),
-    update: vi.fn(),
-    delete: vi.fn(),
+    update: vi.fn().mockResolvedValue({
+      kind: "success",
+      drinkSlug: "adapter-cocktail",
+      notices: [],
+    }),
+    delete: vi.fn().mockResolvedValue({ kind: "success" }),
     ...overrides,
   };
+}
+
+async function catchThrownResponse(fn: () => Promise<unknown>): Promise<Response> {
+  try {
+    await fn();
+    throw new Error("Expected a Response to be thrown");
+  } catch (error) {
+    if (error instanceof Response) {
+      return error;
+    }
+
+    throw error;
+  }
+}
+
+async function readToastFromResponse(response: Response) {
+  const { toast } = await getToast(
+    new Request("http://test.local/admin", {
+      headers: { Cookie: response.headers.get("Set-Cookie") ?? "" },
+    }),
+  );
+
+  return toast;
 }
 
 describe("createAdminDrinkActionAdapter", () => {
@@ -78,24 +105,43 @@ describe("createAdminDrinkActionAdapter", () => {
     expect(adminDrinksWriteService.create).not.toHaveBeenCalled();
   });
 
+  test("returns drink draft schema field errors before calling the admin write path", async () => {
+    const adminDrinksWriteService = buildService();
+
+    const response = await createAdminDrinkActionAdapter({
+      request: buildCreateRequest({
+        slug: "Invalid Slug",
+        imageFile: new File(["fake-image"], "drink.png", { type: "image/png" }),
+      }),
+      adminDrinksWriteService,
+    });
+
+    expect(response).toMatchObject({
+      data: {
+        fieldErrors: {
+          slug: ["Slug must be lowercase letters, numbers, and hyphens"],
+        },
+        formErrors: [],
+      },
+      init: { status: 400 },
+    });
+    expect(adminDrinksWriteService.create).not.toHaveBeenCalled();
+  });
+
   test("creates through the admin write path and redirects with the existing success toast", async () => {
     const adminDrinksWriteService = buildService();
 
-    let redirectResponse: Response | undefined;
-    try {
-      await createAdminDrinkActionAdapter({
+    const redirectResponse = await catchThrownResponse(() =>
+      createAdminDrinkActionAdapter({
         request: buildCreateRequest({
           imageFile: new File(["fake-image"], "drink.png", { type: "image/png" }),
         }),
         adminDrinksWriteService,
-      });
-    } catch (error) {
-      if (!(error instanceof Response)) throw error;
-      redirectResponse = error;
-    }
+      }),
+    );
 
     expect(redirectResponse).toMatchObject({ status: 302 });
-    expect(redirectResponse?.headers.get("Location")).toBe("/admin/drinks");
+    expect(redirectResponse.headers.get("Location")).toBe("/admin/drinks");
     expect(adminDrinksWriteService.create).toHaveBeenCalledWith({
       draft: {
         title: "Adapter Cocktail",
@@ -110,20 +156,21 @@ describe("createAdminDrinkActionAdapter", () => {
       imageBuffer: Buffer.from("fake-image"),
     });
 
-    const { toast } = await getToast(
-      new Request("http://test.local/admin", {
-        headers: { Cookie: redirectResponse?.headers.get("Set-Cookie") ?? "" },
-      }),
-    );
-    expect(toast).toEqual({ kind: "success", message: "Drink created!" });
+    await expect(readToastFromResponse(redirectResponse)).resolves.toEqual({
+      kind: "success",
+      message: "Drink created!",
+    });
   });
 
-  test("translates typed duplicate slug outcomes into slug field errors", async () => {
+  test("preserves all typed create field errors from the admin write path", async () => {
     const adminDrinksWriteService = buildService({
       create: vi.fn().mockResolvedValue({
         kind: "fieldError",
-        fieldErrors: { slug: ["Slug already exists"] },
-        formErrors: [],
+        fieldErrors: {
+          slug: ["Slug already exists"],
+          title: ["Title is invalid"],
+        },
+        formErrors: ["Drink could not be created"],
       }),
     });
 
@@ -137,8 +184,11 @@ describe("createAdminDrinkActionAdapter", () => {
 
     expect(response).toMatchObject({
       data: {
-        fieldErrors: { slug: ["Slug already exists"] },
-        formErrors: [],
+        fieldErrors: {
+          slug: ["Slug already exists"],
+          title: ["Title is invalid"],
+        },
+        formErrors: ["Drink could not be created"],
       },
       init: { status: 400 },
     });
@@ -151,28 +201,22 @@ describe("deleteAdminDrinkActionAdapter", () => {
       delete: vi.fn().mockResolvedValue({ kind: "success" }),
     });
 
-    let redirectResponse: Response | undefined;
-    try {
-      await deleteAdminDrinkActionAdapter({
+    const redirectResponse = await catchThrownResponse(() =>
+      deleteAdminDrinkActionAdapter({
         request: buildDeleteRequest(),
         slug: "old-fashioned",
         adminDrinksWriteService,
-      });
-    } catch (error) {
-      if (!(error instanceof Response)) throw error;
-      redirectResponse = error;
-    }
-
-    expect(redirectResponse).toMatchObject({ status: 302 });
-    expect(redirectResponse?.headers.get("Location")).toBe("/admin/drinks");
-    expect(adminDrinksWriteService.delete).toHaveBeenCalledWith({ slug: "old-fashioned" });
-
-    const { toast } = await getToast(
-      new Request("http://test.local/admin", {
-        headers: { Cookie: redirectResponse?.headers.get("Set-Cookie") ?? "" },
       }),
     );
-    expect(toast).toEqual({ kind: "success", message: "Drink deleted!" });
+
+    expect(redirectResponse).toMatchObject({ status: 302 });
+    expect(redirectResponse.headers.get("Location")).toBe("/admin/drinks");
+    expect(adminDrinksWriteService.delete).toHaveBeenCalledWith({ slug: "old-fashioned" });
+
+    await expect(readToastFromResponse(redirectResponse)).resolves.toEqual({
+      kind: "success",
+      message: "Drink deleted!",
+    });
   });
 
   test("translates typed missing delete targets into not-found responses", async () => {
@@ -180,17 +224,40 @@ describe("deleteAdminDrinkActionAdapter", () => {
       delete: vi.fn().mockResolvedValue({ kind: "notFound", slug: "missing-drink" }),
     });
 
-    await expect(
+    const response = await catchThrownResponse(() =>
       deleteAdminDrinkActionAdapter({
         request: buildDeleteRequest(),
         slug: "missing-drink",
         adminDrinksWriteService,
       }),
-    ).rejects.toMatchObject({ status: 404 });
+    );
+
+    expect(response.status).toBe(404);
   });
 });
 
 describe("updateAdminDrinkActionAdapter", () => {
+  test("returns drink draft schema field errors before calling the admin write path", async () => {
+    const adminDrinksWriteService = buildService();
+
+    const response = await updateAdminDrinkActionAdapter({
+      request: buildUpdateRequest({ slug: "Invalid Slug" }),
+      slug: "old-fashioned",
+      adminDrinksWriteService,
+    });
+
+    expect(response).toMatchObject({
+      data: {
+        fieldErrors: {
+          slug: ["Slug must be lowercase letters, numbers, and hyphens"],
+        },
+        formErrors: [],
+      },
+      init: { status: 400 },
+    });
+    expect(adminDrinksWriteService.update).not.toHaveBeenCalled();
+  });
+
   test("updates through the admin write path without an image buffer when keeping the current image", async () => {
     const adminDrinksWriteService = buildService({
       update: vi.fn().mockResolvedValue({
@@ -200,20 +267,16 @@ describe("updateAdminDrinkActionAdapter", () => {
       }),
     });
 
-    let redirectResponse: Response | undefined;
-    try {
-      await updateAdminDrinkActionAdapter({
+    const redirectResponse = await catchThrownResponse(() =>
+      updateAdminDrinkActionAdapter({
         request: buildUpdateRequest(),
         slug: "old-fashioned",
         adminDrinksWriteService,
-      });
-    } catch (error) {
-      if (!(error instanceof Response)) throw error;
-      redirectResponse = error;
-    }
+      }),
+    );
 
     expect(redirectResponse).toMatchObject({ status: 302 });
-    expect(redirectResponse?.headers.get("Location")).toBe("/admin/drinks");
+    expect(redirectResponse.headers.get("Location")).toBe("/admin/drinks");
     expect(adminDrinksWriteService.update).toHaveBeenCalledWith({
       slug: "old-fashioned",
       draft: {
@@ -229,20 +292,21 @@ describe("updateAdminDrinkActionAdapter", () => {
       imageBuffer: undefined,
     });
 
-    const { toast } = await getToast(
-      new Request("http://test.local/admin", {
-        headers: { Cookie: redirectResponse?.headers.get("Set-Cookie") ?? "" },
-      }),
-    );
-    expect(toast).toEqual({ kind: "success", message: "Drink updated!" });
+    await expect(readToastFromResponse(redirectResponse)).resolves.toEqual({
+      kind: "success",
+      message: "Drink updated!",
+    });
   });
 
-  test("translates typed duplicate slug update outcomes into slug field errors", async () => {
+  test("preserves all typed update field errors from the admin write path", async () => {
     const adminDrinksWriteService = buildService({
       update: vi.fn().mockResolvedValue({
         kind: "fieldError",
-        fieldErrors: { slug: ["Slug already exists"] },
-        formErrors: [],
+        fieldErrors: {
+          slug: ["Slug already exists"],
+          title: ["Title is invalid"],
+        },
+        formErrors: ["Drink could not be updated"],
       }),
     });
 
@@ -254,8 +318,11 @@ describe("updateAdminDrinkActionAdapter", () => {
 
     expect(response).toMatchObject({
       data: {
-        fieldErrors: { slug: ["Slug already exists"] },
-        formErrors: [],
+        fieldErrors: {
+          slug: ["Slug already exists"],
+          title: ["Title is invalid"],
+        },
+        formErrors: ["Drink could not be updated"],
       },
       init: { status: 400 },
     });
@@ -266,13 +333,15 @@ describe("updateAdminDrinkActionAdapter", () => {
       update: vi.fn().mockResolvedValue({ kind: "notFound", slug: "missing-drink" }),
     });
 
-    await expect(
+    const response = await catchThrownResponse(() =>
       updateAdminDrinkActionAdapter({
         request: buildUpdateRequest(),
         slug: "missing-drink",
         adminDrinksWriteService,
       }),
-    ).rejects.toMatchObject({ status: 404 });
+    );
+
+    expect(response.status).toBe(404);
   });
 
   test("translates old image cleanup notices into the existing warning toast", async () => {
@@ -289,30 +358,21 @@ describe("updateAdminDrinkActionAdapter", () => {
       }),
     });
 
-    let redirectResponse: Response | undefined;
-    try {
-      await updateAdminDrinkActionAdapter({
+    const redirectResponse = await catchThrownResponse(() =>
+      updateAdminDrinkActionAdapter({
         request: buildUpdateRequest({
           imageFile: new File(["replacement-image"], "drink.png", { type: "image/png" }),
         }),
         slug: "old-fashioned",
         adminDrinksWriteService,
-      });
-    } catch (error) {
-      if (!(error instanceof Response)) throw error;
-      redirectResponse = error;
-    }
+      }),
+    );
 
     expect(adminDrinksWriteService.update).toHaveBeenCalledWith(
       expect.objectContaining({ imageBuffer: Buffer.from("replacement-image") }),
     );
 
-    const { toast } = await getToast(
-      new Request("http://test.local/admin", {
-        headers: { Cookie: redirectResponse?.headers.get("Set-Cookie") ?? "" },
-      }),
-    );
-    expect(toast).toEqual({
+    await expect(readToastFromResponse(redirectResponse)).resolves.toEqual({
       kind: "warning",
       message: "Drink updated, but old image cleanup failed",
     });

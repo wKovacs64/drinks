@@ -146,7 +146,7 @@ importers:
         version: 1.2.2
       '@wkovacs64/eslint-config':
         specifier: 7.14.0
-        version: 7.14.0(@typescript-eslint/eslint-plugin@8.59.1(@typescript-eslint/parser@8.59.1(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3))(@typescript-eslint/utils@8.59.1(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3)(vitest@4.1.5(@types/node@25.6.0)(msw@2.13.6(@types/node@25.6.0)(typescript@5.9.3))(vite@8.0.10(@types/node@25.6.0)(esbuild@0.28.0)(jiti@2.6.1)(tsx@4.21.0)))
+        version: 7.14.0(@typescript-eslint/eslint-plugin@8.59.1(@typescript-eslint/parser@8.59.1(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3))(@typescript-eslint/utils@8.59.1(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3)(vitest@4.1.5(@types/node@25.6.0)(msw@2.14.2(@types/node@25.6.0)(typescript@5.9.3))(vite@8.0.10(@types/node@25.6.0)(esbuild@0.28.0)(jiti@2.6.1)(tsx@4.21.0)))
       babel-plugin-react-compiler:
         specifier: 1.0.0
         version: 1.0.0
@@ -163,8 +163,8 @@ importers:
         specifier: 9.39.4
         version: 9.39.4(jiti@2.6.1)
       msw:
-        specifier: 2.13.6
-        version: 2.13.6(@types/node@25.6.0)(typescript@5.9.3)
+        specifier: 2.14.2
+        version: 2.14.2(@types/node@25.6.0)(typescript@5.9.3)
       node-html-parser:
         specifier: 7.1.0
         version: 7.1.0
@@ -188,7 +188,7 @@ importers:
         version: 3.0.1(vite@8.0.10(@types/node@25.6.0)(esbuild@0.28.0)(jiti@2.6.1)(tsx@4.21.0))
       vitest:
         specifier: 4.1.5
-        version: 4.1.5(@types/node@25.6.0)(msw@2.13.6(@types/node@25.6.0)(typescript@5.9.3))(vite@8.0.10(@types/node@25.6.0)(esbuild@0.28.0)(jiti@2.6.1)(tsx@4.21.0))
+        version: 4.1.5(@types/node@25.6.0)(msw@2.14.2(@types/node@25.6.0)(typescript@5.9.3))(vite@8.0.10(@types/node@25.6.0)(esbuild@0.28.0)(jiti@2.6.1)(tsx@4.21.0))
 
 packages:
 
@@ -3487,8 +3487,8 @@ packages:
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
 
-  msw@2.13.6:
-    resolution: {integrity: sha512-GAJbQy8Ra/Ydjt0Hb2MGT2qhzd83J3+QZMHdH85uW7r/XkKc846+Ma2PLif5hGvTm5Yqa+wkcstpim0WeLZU9g==}
+  msw@2.14.2:
+    resolution: {integrity: sha512-D2bTe0tpuf9nw4DA39wFaqUD/hRPKj0DKpo2lAqu+A47Ifg4+h0hbfn6QxVOsiUY2uhgEN6TTpGSHDsc+ysYNg==}
     engines: {node: '>=18'}
     hasBin: true
     peerDependencies:
@@ -5863,7 +5863,7 @@ snapshots:
       '@rolldown/plugin-babel': 0.2.3(@babel/core@7.29.0)(@babel/runtime@7.29.2)(rolldown@1.0.0-rc.17)(vite@8.0.10(@types/node@25.6.0)(esbuild@0.28.0)(jiti@2.6.1)(tsx@4.21.0))
       babel-plugin-react-compiler: 1.0.0
 
-  '@vitest/eslint-plugin@1.6.16(@typescript-eslint/eslint-plugin@8.59.1(@typescript-eslint/parser@8.59.1(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3)(vitest@4.1.5(@types/node@25.6.0)(msw@2.13.6(@types/node@25.6.0)(typescript@5.9.3))(vite@8.0.10(@types/node@25.6.0)(esbuild@0.28.0)(jiti@2.6.1)(tsx@4.21.0)))':
+  '@vitest/eslint-plugin@1.6.16(@typescript-eslint/eslint-plugin@8.59.1(@typescript-eslint/parser@8.59.1(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3)(vitest@4.1.5(@types/node@25.6.0)(msw@2.14.2(@types/node@25.6.0)(typescript@5.9.3))(vite@8.0.10(@types/node@25.6.0)(esbuild@0.28.0)(jiti@2.6.1)(tsx@4.21.0)))':
     dependencies:
       '@typescript-eslint/scope-manager': 8.59.1
       '@typescript-eslint/utils': 8.59.1(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3)
@@ -5871,7 +5871,7 @@ snapshots:
     optionalDependencies:
       '@typescript-eslint/eslint-plugin': 8.59.1(@typescript-eslint/parser@8.59.1(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3)
       typescript: 5.9.3
-      vitest: 4.1.5(@types/node@25.6.0)(msw@2.13.6(@types/node@25.6.0)(typescript@5.9.3))(vite@8.0.10(@types/node@25.6.0)(esbuild@0.28.0)(jiti@2.6.1)(tsx@4.21.0))
+      vitest: 4.1.5(@types/node@25.6.0)(msw@2.14.2(@types/node@25.6.0)(typescript@5.9.3))(vite@8.0.10(@types/node@25.6.0)(esbuild@0.28.0)(jiti@2.6.1)(tsx@4.21.0))
     transitivePeerDependencies:
       - supports-color
 
@@ -5884,13 +5884,13 @@ snapshots:
       chai: 6.2.2
       tinyrainbow: 3.1.0
 
-  '@vitest/mocker@4.1.5(msw@2.13.6(@types/node@25.6.0)(typescript@5.9.3))(vite@8.0.10(@types/node@25.6.0)(esbuild@0.28.0)(jiti@2.6.1)(tsx@4.21.0))':
+  '@vitest/mocker@4.1.5(msw@2.14.2(@types/node@25.6.0)(typescript@5.9.3))(vite@8.0.10(@types/node@25.6.0)(esbuild@0.28.0)(jiti@2.6.1)(tsx@4.21.0))':
     dependencies:
       '@vitest/spy': 4.1.5
       estree-walker: 3.0.3
       magic-string: 0.30.21
     optionalDependencies:
-      msw: 2.13.6(@types/node@25.6.0)(typescript@5.9.3)
+      msw: 2.14.2(@types/node@25.6.0)(typescript@5.9.3)
       vite: 8.0.10(@types/node@25.6.0)(esbuild@0.28.0)(jiti@2.6.1)(tsx@4.21.0)
 
   '@vitest/pretty-format@4.1.5':
@@ -5923,10 +5923,10 @@ snapshots:
       esbuild: 0.27.7
       typescript: 5.9.3
 
-  '@wkovacs64/eslint-config@7.14.0(@typescript-eslint/eslint-plugin@8.59.1(@typescript-eslint/parser@8.59.1(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3))(@typescript-eslint/utils@8.59.1(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3)(vitest@4.1.5(@types/node@25.6.0)(msw@2.13.6(@types/node@25.6.0)(typescript@5.9.3))(vite@8.0.10(@types/node@25.6.0)(esbuild@0.28.0)(jiti@2.6.1)(tsx@4.21.0)))':
+  '@wkovacs64/eslint-config@7.14.0(@typescript-eslint/eslint-plugin@8.59.1(@typescript-eslint/parser@8.59.1(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3))(@typescript-eslint/utils@8.59.1(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3)(vitest@4.1.5(@types/node@25.6.0)(msw@2.14.2(@types/node@25.6.0)(typescript@5.9.3))(vite@8.0.10(@types/node@25.6.0)(esbuild@0.28.0)(jiti@2.6.1)(tsx@4.21.0)))':
     dependencies:
       '@eslint/js': 9.39.4
-      '@vitest/eslint-plugin': 1.6.16(@typescript-eslint/eslint-plugin@8.59.1(@typescript-eslint/parser@8.59.1(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3)(vitest@4.1.5(@types/node@25.6.0)(msw@2.13.6(@types/node@25.6.0)(typescript@5.9.3))(vite@8.0.10(@types/node@25.6.0)(esbuild@0.28.0)(jiti@2.6.1)(tsx@4.21.0)))
+      '@vitest/eslint-plugin': 1.6.16(@typescript-eslint/eslint-plugin@8.59.1(@typescript-eslint/parser@8.59.1(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3)(vitest@4.1.5(@types/node@25.6.0)(msw@2.14.2(@types/node@25.6.0)(typescript@5.9.3))(vite@8.0.10(@types/node@25.6.0)(esbuild@0.28.0)(jiti@2.6.1)(tsx@4.21.0)))
       eslint-plugin-astro: 1.7.0(eslint@9.39.4(jiti@2.6.1))
       eslint-plugin-import-x: 4.16.2(@typescript-eslint/utils@8.59.1(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.4(jiti@2.6.1))
       eslint-plugin-jest-dom: 5.5.0(eslint@9.39.4(jiti@2.6.1))
@@ -7498,7 +7498,7 @@ snapshots:
 
   ms@2.1.3: {}
 
-  msw@2.13.6(@types/node@25.6.0)(typescript@5.9.3):
+  msw@2.14.2(@types/node@25.6.0)(typescript@5.9.3):
     dependencies:
       '@inquirer/confirm': 6.0.12(@types/node@25.6.0)
       '@mswjs/interceptors': 0.41.6
@@ -8484,10 +8484,10 @@ snapshots:
       jiti: 2.6.1
       tsx: 4.21.0
 
-  vitest@4.1.5(@types/node@25.6.0)(msw@2.13.6(@types/node@25.6.0)(typescript@5.9.3))(vite@8.0.10(@types/node@25.6.0)(esbuild@0.28.0)(jiti@2.6.1)(tsx@4.21.0)):
+  vitest@4.1.5(@types/node@25.6.0)(msw@2.14.2(@types/node@25.6.0)(typescript@5.9.3))(vite@8.0.10(@types/node@25.6.0)(esbuild@0.28.0)(jiti@2.6.1)(tsx@4.21.0)):
     dependencies:
       '@vitest/expect': 4.1.5
-      '@vitest/mocker': 4.1.5(msw@2.13.6(@types/node@25.6.0)(typescript@5.9.3))(vite@8.0.10(@types/node@25.6.0)(esbuild@0.28.0)(jiti@2.6.1)(tsx@4.21.0))
+      '@vitest/mocker': 4.1.5(msw@2.14.2(@types/node@25.6.0)(typescript@5.9.3))(vite@8.0.10(@types/node@25.6.0)(esbuild@0.28.0)(jiti@2.6.1)(tsx@4.21.0))
       '@vitest/pretty-format': 4.1.5
       '@vitest/runner': 4.1.5
       '@vitest/snapshot': 4.1.5

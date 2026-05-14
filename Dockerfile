@@ -40,6 +40,7 @@ COPY --from=build /app/public /app/public
 COPY --from=build /app/drizzle /app/drizzle
 COPY --from=build /app/drizzle.config.ts /app/drizzle.config.ts
 COPY --from=build /app/package.json /app/package.json
+COPY --from=build /app/pnpm-workspace.yaml /app/pnpm-workspace.yaml
 COPY --from=build /app/start.sh /app/start.sh
 
 # run the app as the node (non-root) user

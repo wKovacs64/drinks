@@ -1,4 +1,10 @@
 packages:
   - "."
 
+allowBuilds:
+  better-sqlite3: true
+  esbuild: false
+  msw: false
+  unrs-resolver: false
+
 minimumReleaseAge: 10080

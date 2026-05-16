@@ -22,7 +22,7 @@
   ],
   "packageRules": [
     {
-      "matchDatasources": ["npm"],
+      "matchDatasources": ["npm", "github-tags", "github-releases"],
       "minimumReleaseAge": "7 days",
       "internalChecksFilter": "strict"
     },

@@ -32,6 +32,9 @@ RUN pnpm run build
 # Finally, build the runtime image with minimal footprint
 FROM base AS runtime
 
+# Disable verifyDepsBeforeRun as the lockfile is immutable and dependencies are pre-verified
+ENV PNPM_CONFIG_VERIFY_DEPS_BEFORE_RUN="false"
+
 ENV PORT="8080"
 
 COPY --from=prod-deps /app/node_modules /app/node_modules

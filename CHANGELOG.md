@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.2.1](https://github.com/wKovacs64/drinks/compare/v4.2.0...v4.2.1) (2026-05-16)
+
+
+### Bug Fixes
+
+* disable pnpm's verifyDepsBeforeRun in Docker runtime layer ([#343](https://github.com/wKovacs64/drinks/issues/343)) ([fcb0c86](https://github.com/wKovacs64/drinks/commit/fcb0c86115893be8b103225f7a4ce32537f768ff))
+
 ## [4.2.0](https://github.com/wKovacs64/drinks/compare/v4.1.0...v4.2.0) (2026-03-31)
 
 

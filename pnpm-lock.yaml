@@ -33,8 +33,8 @@ importers:
         specifier: 7.15.1
         version: 7.15.1(react-router@7.15.1(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(typescript@5.9.3)
       '@remix-run/form-data-parser':
-        specifier: 0.17.1
-        version: 0.17.1
+        specifier: 0.17.2
+        version: 0.17.2
       '@sindresorhus/slugify':
         specifier: 3.0.0
         version: 3.0.0
@@ -1375,14 +1375,14 @@ packages:
     peerDependencies:
       react-router: 7.15.1
 
-  '@remix-run/form-data-parser@0.17.1':
-    resolution: {integrity: sha512-jWtWqcpgu8d9ghwHX5a3YuH7gllGoNFFHfRuo3Ap+iuGJ61zzZK15ZvIqSxKNIqPhj5UgAoILN77kqd/wdufCg==}
+  '@remix-run/form-data-parser@0.17.2':
+    resolution: {integrity: sha512-6V9XffMkADkCHa/zLZQI2NVx1jDPiGtuiJ5cv9tmYzDn4KXjEJfqwHo6Fj8l95MThfoz5BTkkk2DOW2HEnuYkA==}
 
-  '@remix-run/headers@0.20.0':
-    resolution: {integrity: sha512-t5akxTE1y4s8mfGsemna+BooFPN17UcZ/utVTk/rgl3HhznzmSYjIXBAMQ4j9Hv6A9Ys9DKTH3yxetVEV9oPpw==}
+  '@remix-run/headers@0.21.0':
+    resolution: {integrity: sha512-jlVE0GGxTaLqZ8cfB/sBDQYkKHXJxhWlLY836A7kjnHmy2oHET8J3/4+7+JgTqFBEBvK+ZiiqJKZElj+/zp5Cg==}
 
-  '@remix-run/multipart-parser@0.16.1':
-    resolution: {integrity: sha512-oYmYPCm7DmSo1L3onWc71390j1/vwGaK0ktjpDV2KDyfW/hazdDaujHWHeTNTJahf9sJndUyBTdyoxoWnzbwFg==}
+  '@remix-run/multipart-parser@0.16.2':
+    resolution: {integrity: sha512-3B36kyAa/bKGzciNWFQM8MBQT291059Q6vjkqgmDPgENFfaejORIVKYpUHJGLHtTI62xrnLXxgL89kXE/nVzSQ==}
 
   '@remix-run/node-fetch-server@0.13.1':
     resolution: {integrity: sha512-dOL+A/C84EA47gO/ps52KGrVSiYy96512rwtbXmJfWKYFm1FbrbjA3jao1hcIfao+jwVNEaZ1kTMwFjiino+HQ==}
@@ -5417,15 +5417,15 @@ snapshots:
       - supports-color
       - typescript
 
-  '@remix-run/form-data-parser@0.17.1':
+  '@remix-run/form-data-parser@0.17.2':
     dependencies:
-      '@remix-run/multipart-parser': 0.16.1
+      '@remix-run/multipart-parser': 0.16.2
 
-  '@remix-run/headers@0.20.0': {}
+  '@remix-run/headers@0.21.0': {}
 
-  '@remix-run/multipart-parser@0.16.1':
+  '@remix-run/multipart-parser@0.16.2':
     dependencies:
-      '@remix-run/headers': 0.20.0
+      '@remix-run/headers': 0.21.0
 
   '@remix-run/node-fetch-server@0.13.1': {}
 

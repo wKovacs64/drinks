@@ -104,7 +104,7 @@
     "npm-run-all2": "9.0.0",
     "oxfmt": "0.51.0",
     "tailwindcss": "4.3.0",
-    "typescript": "5.9.3",
+    "typescript": "6.0.3",
     "vite": "8.0.14",
     "vite-plugin-icons-spritesheet": "3.0.1",
     "vitest": "4.1.7"

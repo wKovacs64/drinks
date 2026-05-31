@@ -8,7 +8,7 @@ ENV NODE_ENV="production"
 WORKDIR /app
 
 # install pnpm
-RUN npm install -g pnpm@11.2.2
+RUN npm install -g pnpm@11.3.0
 
 # Install all node_modules, including dev dependencies
 FROM base AS dev-deps

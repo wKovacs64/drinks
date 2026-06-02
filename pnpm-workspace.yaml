@@ -7,4 +7,4 @@ allowBuilds:
   msw: false
   unrs-resolver: false
 
-minimumReleaseAge: 10080
+minimumReleaseAge: 4320

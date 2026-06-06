@@ -50,7 +50,7 @@
     "@epic-web/invariant": "1.0.0",
     "@epic-web/remember": "1.1.0",
     "@fontsource/source-sans-3": "5.2.9",
-    "@imagekit/nodejs": "7.6.3",
+    "@imagekit/nodejs": "7.7.0",
     "@paralleldrive/cuid2": "3.3.0",
     "@react-router/node": "7.16.0",
     "@react-router/serve": "7.16.0",

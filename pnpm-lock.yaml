@@ -60,8 +60,8 @@ importers:
         specifier: 5.0.1
         version: 5.0.1
       isbot:
-        specifier: 5.1.41
-        version: 5.1.41
+        specifier: 5.1.42
+        version: 5.1.42
       lodash-es:
         specifier: 4.18.1
         version: 4.18.1
@@ -3237,6 +3237,10 @@ packages:
 
   isbot@5.1.41:
     resolution: {integrity: sha512-9WFV/Vhh0FEj6CQ7MoHweEL9/vLKPjeoD2I2htbAjX7kbW7VJs3OCpWOVyd+JraNTWVU6/DRx2MZy2KaUNXHcg==}
+    engines: {node: '>=18'}
+
+  isbot@5.1.42:
+    resolution: {integrity: sha512-/SXsVh7KpPRISrD4ffrGSxnTLlUBzEQUfWIusaJPrpJ93FW1P0YEZri5vAUkFsA0m2HRUhQRQadk2wJ+EeKowQ==}
     engines: {node: '>=18'}
 
   isexe@2.0.0:
@@ -7313,6 +7317,8 @@ snapshots:
   isarray@2.0.5: {}
 
   isbot@5.1.41: {}
+
+  isbot@5.1.42: {}
 
   isexe@2.0.0: {}
 

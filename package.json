@@ -97,7 +97,7 @@
     "babel-plugin-react-compiler": "1.0.0",
     "del-cli": "7.0.0",
     "dotenv-cli": "11.0.0",
-    "esbuild": "0.28.0",
+    "esbuild": "0.28.1",
     "eslint": "9.39.4",
     "msw": "2.14.6",
     "node-html-parser": "7.1.0",

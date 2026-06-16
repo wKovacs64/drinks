@@ -101,7 +101,7 @@
     "eslint": "9.39.4",
     "msw": "2.14.6",
     "node-html-parser": "7.1.0",
-    "npm-run-all2": "9.0.1",
+    "npm-run-all2": "9.0.2",
     "oxfmt": "0.54.0",
     "tailwindcss": "4.3.0",
     "typescript": "6.0.3",

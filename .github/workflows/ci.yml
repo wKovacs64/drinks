@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: ⬇️ Checkout repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: 📦 Install pnpm
         uses: pnpm/action-setup@v6
@@ -42,7 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: ⬇️ Checkout repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: 📦 Install pnpm
         uses: pnpm/action-setup@v6
@@ -64,7 +64,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: ⬇️ Checkout repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: 📦 Install pnpm
         uses: pnpm/action-setup@v6
@@ -87,7 +87,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: ⬇️ Checkout repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: 📦 Install pnpm
         uses: pnpm/action-setup@v6
@@ -136,7 +136,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: ⬇️ Checkout repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: 📦 Install pnpm
         uses: pnpm/action-setup@v6
@@ -177,7 +177,7 @@ jobs:
     if: github.ref == 'refs/heads/main' && needs.release.outputs.release_created != 'true'
     steps:
       - name: ⬇️ Checkout repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: 👀 Read app name
         uses: SebRollen/toml-action@v1.2.0
@@ -200,7 +200,7 @@ jobs:
     if: ${{ needs.release.outputs.release_created == 'true' }}
     steps:
       - name: ⬇️ Checkout repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: 👀 Read app name
         uses: SebRollen/toml-action@v1.2.0

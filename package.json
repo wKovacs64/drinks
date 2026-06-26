@@ -82,7 +82,7 @@
     "zod": "4.4.3"
   },
   "devDependencies": {
-    "@playwright/test": "1.61.0",
+    "@playwright/test": "1.61.1",
     "@react-router/dev": "7.18.0",
     "@react-router/fs-routes": "7.18.0",
     "@rolldown/plugin-babel": "0.2.3",

@@ -33,8 +33,8 @@ importers:
         specifier: 8.1.0
         version: 8.1.0(react-router@8.1.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(typescript@6.0.3)
       '@remix-run/form-data-parser':
-        specifier: 0.17.3
-        version: 0.17.3
+        specifier: 0.17.4
+        version: 0.17.4
       '@sindresorhus/slugify':
         specifier: 3.0.0
         version: 3.0.0
@@ -1375,8 +1375,8 @@ packages:
     peerDependencies:
       react-router: 8.1.0
 
-  '@remix-run/form-data-parser@0.17.3':
-    resolution: {integrity: sha512-K23ImS2P+Gl4ZEK00dEa2GAuhQJkxocvMsnF5SafcRh4aoKINUcdiCQraBDP+929c3VxnP3nUj5UYzBtGuGIIw==}
+  '@remix-run/form-data-parser@0.17.4':
+    resolution: {integrity: sha512-mqWVpD2OaJTFEW2i+M49/iWoUp2Cai6WD606/iynZ+NIlzVdkty3bbGb8g7vTjXeV/sQRmPbg3SJypgvQitvJg==}
 
   '@remix-run/headers@0.21.1':
     resolution: {integrity: sha512-DRhRveigepAQDUIi0MrOFhpcl3/KTv/fkpIhulv7Asv1pUwM8RpY2ENjdI8lfii6Z3MEsWtYhGt6If8bi6bYpQ==}
@@ -5229,7 +5229,7 @@ snapshots:
       - supports-color
       - typescript
 
-  '@remix-run/form-data-parser@0.17.3':
+  '@remix-run/form-data-parser@0.17.4':
     dependencies:
       '@remix-run/multipart-parser': 0.16.3
 

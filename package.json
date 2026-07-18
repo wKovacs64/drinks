@@ -63,7 +63,7 @@
     "drizzle-kit": "0.31.10",
     "drizzle-orm": "0.45.2",
     "is-ip": "5.0.1",
-    "isbot": "5.2.0",
+    "isbot": "5.2.1",
     "lodash-es": "4.18.1",
     "marked": "18.0.6",
     "minisearch": "7.2.0",

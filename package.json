@@ -93,7 +93,7 @@
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "6.0.3",
     "@wkovacs64/add-icon": "1.2.2",
-    "@wkovacs64/eslint-config": "7.14.1",
+    "@wkovacs64/eslint-config": "8.0.1",
     "babel-plugin-react-compiler": "1.0.0",
     "del-cli": "7.0.0",
     "dotenv-cli": "11.0.0",

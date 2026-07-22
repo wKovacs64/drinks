@@ -18,8 +18,8 @@ importers:
         specifier: 1.1.0
         version: 1.1.0
       '@fontsource/source-sans-3':
-        specifier: 5.2.9
-        version: 5.2.9
+        specifier: 5.3.0
+        version: 5.3.0
       '@imagekit/nodejs':
         specifier: 7.10.0
         version: 7.10.0
@@ -1030,8 +1030,8 @@ packages:
     resolution: {integrity: sha512-43/qtrDUokr7LJqoF2c3+RInu/t4zfrpYdoSDfYyhg52rwLV6TnOvdG4fXm7IkSB3wErkcmJS9iEhjVtOSEjjA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@fontsource/source-sans-3@5.2.9':
-    resolution: {integrity: sha512-u3ymIq4rfmCCyB9MEw/sFR5lPVJ1yTNXmIMbUz+9kVCFIHvNtfzXOEBuvkg3Tk0zhmioPeJ28ZK5smZ7TurezQ==}
+  '@fontsource/source-sans-3@5.3.0':
+    resolution: {integrity: sha512-VrWixSgF93kOVSEkwjs9ImnAbxrBew4PgcnaJYEitG9TyJSwxjFUNJIgzB1XFP/acyAWcTDg7+sWe7JI8LTB9w==}
 
   '@hono/node-server@1.19.14':
     resolution: {integrity: sha512-GwtvgtXxnWsucXvbQXkRgqksiH2Qed37H9xHZocE5sA3N8O8O8/8FA3uclQXxXVzc9XBZuEOMK7+r02FmSpHtw==}
@@ -4974,7 +4974,7 @@ snapshots:
       '@eslint/core': 0.17.0
       levn: 0.4.1
 
-  '@fontsource/source-sans-3@5.2.9': {}
+  '@fontsource/source-sans-3@5.3.0': {}
 
   '@hono/node-server@1.19.14(hono@4.12.31)':
     dependencies:

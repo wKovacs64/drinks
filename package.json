@@ -49,7 +49,7 @@
     "@coji/remix-auth-google": "4.2.0",
     "@epic-web/invariant": "1.0.0",
     "@epic-web/remember": "1.1.0",
-    "@fontsource/source-sans-3": "5.2.9",
+    "@fontsource/source-sans-3": "5.3.0",
     "@imagekit/nodejs": "7.10.0",
     "@paralleldrive/cuid2": "3.3.0",
     "@react-router/node": "8.2.0",

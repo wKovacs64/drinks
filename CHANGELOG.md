@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.2.2](https://github.com/wKovacs64/drinks/compare/v4.2.1...v4.2.2) (2026-07-25)
+
+
+### Bug Fixes
+
+* restore Fly deployment with better-sqlite3 v13 ([4282fe0](https://github.com/wKovacs64/drinks/commit/4282fe0388a69fc0e73a823b90c6c914ceec0bf1))
+
 ## [4.2.1](https://github.com/wKovacs64/drinks/compare/v4.2.0...v4.2.1) (2026-05-16)
 
 

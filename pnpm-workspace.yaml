@@ -8,8 +8,3 @@ allowBuilds:
   unrs-resolver: false
 
 minimumReleaseAge: 4320
-minimumReleaseAgeExclude:
-  # Renovate security update: esbuild@0.28.1
-  - esbuild@0.28.1
-  # Renovate security update: react-router@8.3.0
-  - react-router@8.3.0

@@ -10,16 +10,18 @@ import {
   purgeSearchCache,
 } from "./drinks.server";
 
+type DrinksWriteEffects = Parameters<typeof createAdminDrinksWriteService>[0]["writeEffects"];
+
 type TestDrinksServiceOverrides = {
   db?: ReturnType<typeof getDb>;
-  writeEffects?: Partial<Parameters<typeof createAdminDrinksWriteService>[0]["writeEffects"]>;
+  writeEffects?: Partial<DrinksWriteEffects>;
 };
 
 function testAdminDrinksWriteService(overrides: TestDrinksServiceOverrides = {}) {
   const defaultWriteEffects = {
-    uploadImage: vi.fn(),
-    deleteImage: vi.fn(),
-    purgeDrinkCache: vi.fn(),
+    uploadImage: vi.fn<DrinksWriteEffects["uploadImage"]>(),
+    deleteImage: vi.fn<DrinksWriteEffects["deleteImage"]>(),
+    purgeDrinkCache: vi.fn<DrinksWriteEffects["purgeDrinkCache"]>(),
   };
 
   return createAdminDrinksWriteService({
@@ -314,11 +316,13 @@ describe("createDrinksService", () => {
 
 describe("createAdminDrinksWriteService", () => {
   test("creates a drink and exposes it through the editor boundary", async () => {
-    const uploadImage = vi.fn().mockResolvedValue({
+    const uploadImage = vi.fn<DrinksWriteEffects["uploadImage"]>().mockResolvedValue({
       url: "https://ik.imagekit.io/test/drinks/test-cocktail.jpg",
       fileId: "new-file-id",
     });
-    const purgeDrinkCache = vi.fn().mockResolvedValue(undefined);
+    const purgeDrinkCache = vi
+      .fn<DrinksWriteEffects["purgeDrinkCache"]>()
+      .mockResolvedValue(undefined);
     const service = testAdminDrinksWriteService({
       writeEffects: {
         uploadImage,
@@ -376,12 +380,14 @@ describe("createAdminDrinksWriteService", () => {
     const adminWriteService = createAdminDrinksWriteService({
       db: getDb(),
       writeEffects: {
-        uploadImage: vi.fn().mockResolvedValue({
+        uploadImage: vi.fn<DrinksWriteEffects["uploadImage"]>().mockResolvedValue({
           url: "https://ik.imagekit.io/test/drinks/admin-write-cocktail.jpg",
           fileId: "admin-write-file-id",
         }),
-        deleteImage: vi.fn().mockResolvedValue(undefined),
-        purgeDrinkCache: vi.fn().mockResolvedValue(undefined),
+        deleteImage: vi.fn<DrinksWriteEffects["deleteImage"]>().mockResolvedValue(undefined),
+        purgeDrinkCache: vi
+          .fn<DrinksWriteEffects["purgeDrinkCache"]>()
+          .mockResolvedValue(undefined),
       },
     });
 
@@ -411,12 +417,14 @@ describe("createAdminDrinksWriteService", () => {
   });
 
   test("updates through the transport-agnostic admin write boundary", async () => {
-    const purgeDrinkCache = vi.fn().mockResolvedValue(undefined);
+    const purgeDrinkCache = vi
+      .fn<DrinksWriteEffects["purgeDrinkCache"]>()
+      .mockResolvedValue(undefined);
     const adminWriteService = createAdminDrinksWriteService({
       db: getDb(),
       writeEffects: {
-        uploadImage: vi.fn(),
-        deleteImage: vi.fn(),
+        uploadImage: vi.fn<DrinksWriteEffects["uploadImage"]>(),
+        deleteImage: vi.fn<DrinksWriteEffects["deleteImage"]>(),
         purgeDrinkCache,
       },
     });
@@ -453,9 +461,9 @@ describe("createAdminDrinksWriteService", () => {
     const adminWriteService = createAdminDrinksWriteService({
       db: getDb(),
       writeEffects: {
-        uploadImage: vi.fn(),
-        deleteImage: vi.fn(),
-        purgeDrinkCache: vi.fn(),
+        uploadImage: vi.fn<DrinksWriteEffects["uploadImage"]>(),
+        deleteImage: vi.fn<DrinksWriteEffects["deleteImage"]>(),
+        purgeDrinkCache: vi.fn<DrinksWriteEffects["purgeDrinkCache"]>(),
       },
     });
 
@@ -495,12 +503,14 @@ describe("createAdminDrinksWriteService", () => {
   });
 
   test("deletes through the transport-agnostic admin write boundary", async () => {
-    const deleteImage = vi.fn().mockResolvedValue(undefined);
-    const purgeDrinkCache = vi.fn().mockResolvedValue(undefined);
+    const deleteImage = vi.fn<DrinksWriteEffects["deleteImage"]>().mockResolvedValue(undefined);
+    const purgeDrinkCache = vi
+      .fn<DrinksWriteEffects["purgeDrinkCache"]>()
+      .mockResolvedValue(undefined);
     const adminWriteService = createAdminDrinksWriteService({
       db: getDb(),
       writeEffects: {
-        uploadImage: vi.fn(),
+        uploadImage: vi.fn<DrinksWriteEffects["uploadImage"]>(),
         deleteImage,
         purgeDrinkCache,
       },
@@ -520,12 +530,14 @@ describe("createAdminDrinksWriteService", () => {
   });
 
   test("returns a typed not-found outcome when admin delete cannot find a drink", async () => {
-    const deleteImage = vi.fn().mockResolvedValue(undefined);
-    const purgeDrinkCache = vi.fn().mockResolvedValue(undefined);
+    const deleteImage = vi.fn<DrinksWriteEffects["deleteImage"]>().mockResolvedValue(undefined);
+    const purgeDrinkCache = vi
+      .fn<DrinksWriteEffects["purgeDrinkCache"]>()
+      .mockResolvedValue(undefined);
     const adminWriteService = createAdminDrinksWriteService({
       db: getDb(),
       writeEffects: {
-        uploadImage: vi.fn(),
+        uploadImage: vi.fn<DrinksWriteEffects["uploadImage"]>(),
         deleteImage,
         purgeDrinkCache,
       },
@@ -541,7 +553,7 @@ describe("createAdminDrinksWriteService", () => {
   test("returns typed slug error when creating with a duplicate slug", async () => {
     const service = testAdminDrinksWriteService({
       writeEffects: {
-        uploadImage: vi.fn().mockResolvedValue({
+        uploadImage: vi.fn<DrinksWriteEffects["uploadImage"]>().mockResolvedValue({
           url: "https://ik.imagekit.io/test/drinks/test-margarita.jpg",
           fileId: "new-file-id",
         }),
@@ -570,9 +582,11 @@ describe("createAdminDrinksWriteService", () => {
   });
 
   test("updates an existing drink without replacing its image", async () => {
-    const uploadImage = vi.fn();
-    const deleteImage = vi.fn();
-    const purgeDrinkCache = vi.fn().mockResolvedValue(undefined);
+    const uploadImage = vi.fn<DrinksWriteEffects["uploadImage"]>();
+    const deleteImage = vi.fn<DrinksWriteEffects["deleteImage"]>();
+    const purgeDrinkCache = vi
+      .fn<DrinksWriteEffects["purgeDrinkCache"]>()
+      .mockResolvedValue(undefined);
 
     const service = testAdminDrinksWriteService({
       writeEffects: {
@@ -632,7 +646,9 @@ describe("createAdminDrinksWriteService", () => {
   });
 
   test("invalidates both old and new detail pages when a drink slug changes", async () => {
-    const purgeDrinkCache = vi.fn().mockResolvedValue(undefined);
+    const purgeDrinkCache = vi
+      .fn<DrinksWriteEffects["purgeDrinkCache"]>()
+      .mockResolvedValue(undefined);
     const service = testAdminDrinksWriteService({
       writeEffects: {
         purgeDrinkCache,
@@ -662,12 +678,16 @@ describe("createAdminDrinksWriteService", () => {
   test("returns warning metadata when old image cleanup fails after a successful update", async () => {
     const service = testAdminDrinksWriteService({
       writeEffects: {
-        uploadImage: vi.fn().mockResolvedValue({
+        uploadImage: vi.fn<DrinksWriteEffects["uploadImage"]>().mockResolvedValue({
           url: "https://ik.imagekit.io/test/drinks/test-margarita.jpg",
           fileId: "replacement-file-id",
         }),
-        deleteImage: vi.fn().mockRejectedValue(new Error("cleanup failed")),
-        purgeDrinkCache: vi.fn().mockResolvedValue(undefined),
+        deleteImage: vi
+          .fn<DrinksWriteEffects["deleteImage"]>()
+          .mockRejectedValue(new Error("cleanup failed")),
+        purgeDrinkCache: vi
+          .fn<DrinksWriteEffects["purgeDrinkCache"]>()
+          .mockResolvedValue(undefined),
       },
     });
 
@@ -697,8 +717,10 @@ describe("createAdminDrinksWriteService", () => {
   });
 
   test("deletes a drink through the admin write boundary", async () => {
-    const deleteImage = vi.fn().mockResolvedValue(undefined);
-    const purgeDrinkCache = vi.fn().mockResolvedValue(undefined);
+    const deleteImage = vi.fn<DrinksWriteEffects["deleteImage"]>().mockResolvedValue(undefined);
+    const purgeDrinkCache = vi
+      .fn<DrinksWriteEffects["purgeDrinkCache"]>()
+      .mockResolvedValue(undefined);
     const service = testAdminDrinksWriteService({
       writeEffects: {
         deleteImage,

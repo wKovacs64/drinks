@@ -48,17 +48,17 @@ function buildDeleteRequest() {
 
 function buildService(overrides: Partial<AdminDrinksWriteService> = {}): AdminDrinksWriteService {
   return {
-    create: vi.fn().mockResolvedValue({
+    create: vi.fn<AdminDrinksWriteService["create"]>().mockResolvedValue({
       kind: "success",
       drinkSlug: "adapter-cocktail",
       notices: [],
     }),
-    update: vi.fn().mockResolvedValue({
+    update: vi.fn<AdminDrinksWriteService["update"]>().mockResolvedValue({
       kind: "success",
       drinkSlug: "adapter-cocktail",
       notices: [],
     }),
-    delete: vi.fn().mockResolvedValue({ kind: "success" }),
+    delete: vi.fn<AdminDrinksWriteService["delete"]>().mockResolvedValue({ kind: "success" }),
     ...overrides,
   };
 }
@@ -164,7 +164,7 @@ describe("createAdminDrinkActionAdapter", () => {
 
   test("preserves all typed create field errors from the admin write path", async () => {
     const adminDrinksWriteService = buildService({
-      create: vi.fn().mockResolvedValue({
+      create: vi.fn<AdminDrinksWriteService["create"]>().mockResolvedValue({
         kind: "fieldError",
         fieldErrors: {
           slug: ["Slug already exists"],
@@ -198,7 +198,7 @@ describe("createAdminDrinkActionAdapter", () => {
 describe("deleteAdminDrinkActionAdapter", () => {
   test("deletes through the admin write path and redirects with the existing success toast", async () => {
     const adminDrinksWriteService = buildService({
-      delete: vi.fn().mockResolvedValue({ kind: "success" }),
+      delete: vi.fn<AdminDrinksWriteService["delete"]>().mockResolvedValue({ kind: "success" }),
     });
 
     const redirectResponse = await catchThrownResponse(() =>
@@ -221,7 +221,9 @@ describe("deleteAdminDrinkActionAdapter", () => {
 
   test("translates typed missing delete targets into not-found responses", async () => {
     const adminDrinksWriteService = buildService({
-      delete: vi.fn().mockResolvedValue({ kind: "notFound", slug: "missing-drink" }),
+      delete: vi
+        .fn<AdminDrinksWriteService["delete"]>()
+        .mockResolvedValue({ kind: "notFound", slug: "missing-drink" }),
     });
 
     const response = await catchThrownResponse(() =>
@@ -260,7 +262,7 @@ describe("updateAdminDrinkActionAdapter", () => {
 
   test("updates through the admin write path without an image buffer when keeping the current image", async () => {
     const adminDrinksWriteService = buildService({
-      update: vi.fn().mockResolvedValue({
+      update: vi.fn<AdminDrinksWriteService["update"]>().mockResolvedValue({
         kind: "success",
         drinkSlug: "adapter-cocktail",
         notices: [],
@@ -300,7 +302,7 @@ describe("updateAdminDrinkActionAdapter", () => {
 
   test("preserves all typed update field errors from the admin write path", async () => {
     const adminDrinksWriteService = buildService({
-      update: vi.fn().mockResolvedValue({
+      update: vi.fn<AdminDrinksWriteService["update"]>().mockResolvedValue({
         kind: "fieldError",
         fieldErrors: {
           slug: ["Slug already exists"],
@@ -330,7 +332,9 @@ describe("updateAdminDrinkActionAdapter", () => {
 
   test("translates typed missing update targets into not-found responses", async () => {
     const adminDrinksWriteService = buildService({
-      update: vi.fn().mockResolvedValue({ kind: "notFound", slug: "missing-drink" }),
+      update: vi
+        .fn<AdminDrinksWriteService["update"]>()
+        .mockResolvedValue({ kind: "notFound", slug: "missing-drink" }),
     });
 
     const response = await catchThrownResponse(() =>
@@ -346,7 +350,7 @@ describe("updateAdminDrinkActionAdapter", () => {
 
   test("translates old image cleanup notices into the existing warning toast", async () => {
     const adminDrinksWriteService = buildService({
-      update: vi.fn().mockResolvedValue({
+      update: vi.fn<AdminDrinksWriteService["update"]>().mockResolvedValue({
         kind: "success",
         drinkSlug: "adapter-cocktail",
         notices: [

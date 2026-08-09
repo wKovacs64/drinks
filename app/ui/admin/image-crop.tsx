@@ -30,7 +30,9 @@ export function ImageCrop({
   const onSelectFile = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
       const reader = new FileReader();
-      reader.addEventListener("load", () => setImgSrc(reader.result?.toString() || ""));
+      reader.addEventListener("load", () => {
+        setImgSrc(typeof reader.result === "string" ? reader.result : "");
+      });
       reader.readAsDataURL(event.target.files[0]);
     }
   };

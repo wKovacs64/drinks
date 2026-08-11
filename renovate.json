@@ -27,6 +27,11 @@
       "internalChecksFilter": "strict"
     },
     {
+      "matchPackageNames": ["oxlint"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
       "matchPackageNames": ["typescript"],
       "matchUpdateTypes": ["minor"],
       "automerge": false

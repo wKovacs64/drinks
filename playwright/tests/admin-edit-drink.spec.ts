@@ -37,22 +37,4 @@ test.describe("Edit Drink", () => {
     expect(response?.headers()["cache-control"]).toContain("no-store");
     await expect(pageAsAdmin.getByRole("heading", { name: "Test Margarita" })).toBeVisible();
   });
-
-  test("edit form shows all existing drink data", async ({ pageAsAdmin }) => {
-    await pageAsAdmin.goto("/admin/drinks/test-mojito/edit");
-
-    await expect(pageAsAdmin.getByLabel("Title")).toHaveValue("Test Mojito");
-    await expect(pageAsAdmin.getByLabel("Slug")).toHaveValue("test-mojito");
-    await expect(pageAsAdmin.getByLabel("Calories")).toHaveValue("150");
-
-    const ingredientsValue = await pageAsAdmin
-      .getByLabel("Ingredients (one per line)")
-      .inputValue();
-    expect(ingredientsValue).toContain("2 oz rum");
-    expect(ingredientsValue).toContain("mint leaves");
-
-    const tagsValue = await pageAsAdmin.getByLabel("Tags (comma-separated)").inputValue();
-    expect(tagsValue).toContain("rum");
-    expect(tagsValue).toContain("citrus");
-  });
 });

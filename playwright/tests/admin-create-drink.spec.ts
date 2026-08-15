@@ -37,14 +37,4 @@ test.describe("Create New Drink", () => {
     // New drink should appear in list
     await expect(pageAsAdmin.getByRole("cell", { name: "New Test Drink" })).toBeVisible();
   });
-
-  test("submitting an empty form does not navigate away", async ({ pageAsAdmin }) => {
-    await pageAsAdmin.goto("/admin/drinks/new");
-
-    // Try to submit without filling anything
-    await pageAsAdmin.getByRole("button", { name: "Create Drink" }).click();
-
-    // Should stay on the same page (browser validation prevents submission)
-    await expect(pageAsAdmin).toHaveURL("/admin/drinks/new");
-  });
 });

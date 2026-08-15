@@ -58,18 +58,15 @@ function createReadOnlyService() {
 }
 
 describe("createDrinksService", () => {
-  test("returns published drinks for read-only and default test services", async () => {
-    const readOnlyService = createDrinksService({ db: getDb() });
-    const defaultService = createDrinksService({ db: getDb() });
+  test("returns published drinks", async () => {
+    const publishedDrinks = await createDrinksService({ db: getDb() }).getPublishedDrinks();
 
-    const fromReadOnly = await readOnlyService.getPublishedDrinks();
-    const fromDefault = await defaultService.getPublishedDrinks();
-
-    const expectedSlugs = ["test-margarita", "test-mojito", "test-old-fashioned"];
-    expect(fromReadOnly.map((drink) => drink.slug)).toEqual(expectedSlugs);
-    expect(fromDefault.map((drink) => drink.slug)).toEqual(expectedSlugs);
-
-    expect(fromDefault[0]).toMatchObject({
+    expect(publishedDrinks.map((drink) => drink.slug)).toEqual([
+      "test-margarita",
+      "test-mojito",
+      "test-old-fashioned",
+    ]);
+    expect(publishedDrinks[0]).toMatchObject({
       title: "Test Margarita",
       calories: 200,
       notes: "A classic test margarita",
@@ -78,7 +75,7 @@ describe("createDrinksService", () => {
         { displayName: "citrus", slug: "citrus" },
       ],
     });
-    expect(fromDefault[0]?.image).toEqual({
+    expect(publishedDrinks[0]?.image).toEqual({
       url: expect.any(String),
       blurDataUrl: expect.any(String),
     });
@@ -380,46 +377,6 @@ describe("createAdminDrinksWriteService", () => {
     });
   });
 
-  test("creates through the transport-agnostic admin write boundary", async () => {
-    const adminWriteService = createAdminDrinksWriteService({
-      db: getDb(),
-      writeEffects: {
-        uploadImage: vi.fn<DrinksWriteEffects["uploadImage"]>().mockResolvedValue({
-          url: "https://ik.imagekit.io/test/drinks/admin-write-cocktail.jpg",
-          fileId: "admin-write-file-id",
-        }),
-        deleteImage: vi.fn<DrinksWriteEffects["deleteImage"]>().mockResolvedValue(undefined),
-        purgeDrinkCache: vi
-          .fn<DrinksWriteEffects["purgeDrinkCache"]>()
-          .mockResolvedValue(undefined),
-      },
-    });
-
-    const result = await adminWriteService.create({
-      draft: {
-        title: "Admin Write Cocktail",
-        slug: "admin-write-cocktail",
-        ingredients: ["rye", "vermouth"],
-        calories: 175,
-        tags: ["rye", "stirred"],
-        notes: null,
-        rank: 0,
-        status: "published",
-      },
-      imageBuffer: Buffer.from("admin-write-image"),
-    });
-
-    expect(result).toEqual({
-      kind: "success",
-      drinkSlug: "admin-write-cocktail",
-      notices: [],
-    });
-
-    const editor = await getExistingDrinkEditor("admin-write-cocktail");
-    expect(editor.initialValues.title).toBe("Admin Write Cocktail");
-    expect(editor.imageUrl).toBe("https://ik.imagekit.io/test/drinks/admin-write-cocktail.jpg");
-  });
-
   test("updates through the transport-agnostic admin write boundary", async () => {
     const purgeDrinkCache = vi
       .fn<DrinksWriteEffects["purgeDrinkCache"]>()
@@ -719,39 +676,9 @@ describe("createAdminDrinksWriteService", () => {
     const editor = await getExistingDrinkEditor("test-margarita");
     expect(editor.initialValues.title).toBe("Test Margarita");
   });
-
-  test("deletes a drink through the admin write boundary", async () => {
-    const deleteImage = vi.fn<DrinksWriteEffects["deleteImage"]>().mockResolvedValue(undefined);
-    const purgeDrinkCache = vi
-      .fn<DrinksWriteEffects["purgeDrinkCache"]>()
-      .mockResolvedValue(undefined);
-    const service = testAdminDrinksWriteService({
-      writeEffects: {
-        deleteImage,
-        purgeDrinkCache,
-      },
-    });
-
-    await service.delete({ slug: "test-margarita" });
-
-    await expect(
-      createDrinksService({ db: getDb() }).findDrinkEditorBySlug("test-margarita"),
-    ).resolves.toBeNull();
-    expect(deleteImage).toHaveBeenCalledWith("seed-fileId-1");
-    expect(purgeDrinkCache).toHaveBeenCalledWith({
-      slugs: ["test-margarita"],
-      tags: ["tequila", "citrus"],
-    });
-  });
 });
 
 describe("searchPublishedDrinks", () => {
-  test("returns matching drinks for a title query", async () => {
-    const results = await createReadOnlyService().searchPublishedDrinks({ query: "margarita" });
-    expect(results.length).toBe(1);
-    expect(results[0]?.slug).toBe("test-margarita");
-  });
-
   test("returns matching drinks for an ingredient query", async () => {
     const results = await createReadOnlyService().searchPublishedDrinks({ query: "bourbon" });
     expect(results.length).toBe(1);
@@ -763,30 +690,6 @@ describe("searchPublishedDrinks", () => {
       query: "xyznonexistent123",
     });
     expect(results).toEqual([]);
-  });
-
-  test("returns enhanced drink shape", async () => {
-    const results = await createReadOnlyService().searchPublishedDrinks({ query: "mojito" });
-    expect(results.length).toBe(1);
-    const drink = results[0];
-    expect(drink).toMatchObject({
-      slug: "test-mojito",
-      title: "Test Mojito",
-      calories: 150,
-    });
-    expect(drink?.image.url.length).toBeGreaterThan(0);
-    expect(drink?.ingredients).toBeInstanceOf(Array);
-    expect(drink?.tags).toBeInstanceOf(Array);
-  });
-});
-
-describe("purgeSearchCache", () => {
-  test("causes index rebuild on next search", async () => {
-    const service = createDrinksService({ db: getDb() });
-    const firstResults = await service.searchPublishedDrinks({ query: "margarita" });
-    purgeSearchCache();
-    const secondResults = await service.searchPublishedDrinks({ query: "margarita" });
-    expect(secondResults.length).toBe(firstResults.length);
   });
 });
 

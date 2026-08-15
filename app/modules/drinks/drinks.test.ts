@@ -53,6 +53,10 @@ async function getExistingDrinkEditor(slug: string) {
   return editor;
 }
 
+function createReadOnlyService() {
+  return createDrinksService({ db: getDb() });
+}
+
 describe("createDrinksService", () => {
   test("returns published drinks for read-only and default test services", async () => {
     const readOnlyService = createDrinksService({ db: getDb() });
@@ -742,29 +746,27 @@ describe("createAdminDrinksWriteService", () => {
 });
 
 describe("searchPublishedDrinks", () => {
-  function readOnlyService() {
-    return createDrinksService({ db: getDb() });
-  }
-
   test("returns matching drinks for a title query", async () => {
-    const results = await readOnlyService().searchPublishedDrinks({ query: "margarita" });
+    const results = await createReadOnlyService().searchPublishedDrinks({ query: "margarita" });
     expect(results.length).toBe(1);
     expect(results[0]?.slug).toBe("test-margarita");
   });
 
   test("returns matching drinks for an ingredient query", async () => {
-    const results = await readOnlyService().searchPublishedDrinks({ query: "bourbon" });
+    const results = await createReadOnlyService().searchPublishedDrinks({ query: "bourbon" });
     expect(results.length).toBe(1);
     expect(results[0]?.slug).toBe("test-old-fashioned");
   });
 
   test("returns empty array for non-matching query", async () => {
-    const results = await readOnlyService().searchPublishedDrinks({ query: "xyznonexistent123" });
+    const results = await createReadOnlyService().searchPublishedDrinks({
+      query: "xyznonexistent123",
+    });
     expect(results).toEqual([]);
   });
 
   test("returns enhanced drink shape", async () => {
-    const results = await readOnlyService().searchPublishedDrinks({ query: "mojito" });
+    const results = await createReadOnlyService().searchPublishedDrinks({ query: "mojito" });
     expect(results.length).toBe(1);
     const drink = results[0];
     expect(drink).toMatchObject({

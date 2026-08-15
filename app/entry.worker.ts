@@ -56,4 +56,4 @@ function getCacheNameAndVersion(cacheName: string) {
   return { cacheActualName, version };
 }
 
-export {};
+export { clearUpOldCaches };

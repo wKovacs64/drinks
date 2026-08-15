@@ -75,7 +75,7 @@ export const handle: AppRouteHandle = {
   },
 };
 
-export function meta({ loaderData, params }: Route.MetaArgs) {
+export function meta({ loaderData, params }: Pick<Route.MetaArgs, "loaderData" | "params">) {
   const { socialImageUrl, socialImageAlt } = loaderData ?? {};
   const displayName = loaderData?.tag.displayName ?? lowerCase(params.tag);
 

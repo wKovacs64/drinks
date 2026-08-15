@@ -1,6 +1,8 @@
+import { RouterContextProvider } from "react-router";
 import { beforeEach, describe, expect, test } from "vitest";
 import { resetAndSeedDatabase } from "#/app/db/reset.server";
 import { loader } from "./_app.search";
+import type { Route } from "./+types/_app.search";
 
 beforeEach(async () => {
   await resetAndSeedDatabase();
@@ -8,14 +10,10 @@ beforeEach(async () => {
 
 describe("search route", () => {
   test("returns published search results with public cache headers", async () => {
-    const response = await loader({
-      request: new Request("https://example.com/search?q=tequila"),
-    } as never);
+    const response = await loader(createLoaderArgs("https://example.com/search?q=tequila"));
 
     const headers = getHeaders(response);
-    const payload = getPayload(response) as {
-      drinks: { slug: string }[];
-    };
+    const payload = getPayload(response);
 
     expect(payload.drinks.map((drink) => drink.slug)).toEqual(["test-margarita"]);
     expect(headers.get("Surrogate-Key")).toBe("search all");
@@ -24,14 +22,10 @@ describe("search route", () => {
   });
 
   test("returns an empty result set when q is missing", async () => {
-    const response = await loader({
-      request: new Request("https://example.com/search"),
-    } as never);
+    const response = await loader(createLoaderArgs("https://example.com/search"));
 
     const headers = getHeaders(response);
-    const payload = getPayload(response) as {
-      drinks: { slug: string }[];
-    };
+    const payload = getPayload(response);
 
     expect(payload.drinks).toEqual([]);
     expect(headers.get("Surrogate-Key")).toBe("all");
@@ -39,19 +33,29 @@ describe("search route", () => {
   });
 });
 
-function getHeaders(response: unknown) {
+function createLoaderArgs(url: string): Route.LoaderArgs {
+  const request = new Request(url);
+  return {
+    request,
+    url: new URL(url),
+    params: {},
+    pattern: "/search",
+    context: new RouterContextProvider(),
+  };
+}
+
+function getHeaders(response: Response | { init?: ResponseInit | null }) {
   if (response instanceof Response) {
     return response.headers;
   }
 
-  const init = (response as { init?: ResponseInit }).init;
-  return new Headers(init?.headers);
+  return new Headers(response.init?.headers);
 }
 
-function getPayload(response: unknown) {
+function getPayload<T>(response: Response | { data: T }) {
   if (response instanceof Response) {
     throw new Error("Expected react-router data payload, got Response");
   }
 
-  return (response as { data: unknown }).data;
+  return response.data;
 }

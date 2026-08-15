@@ -11,7 +11,5 @@ export function markdownToHtml(markdownString: string) {
 
   // TODO: sanitize resulting HTML
 
-  // Type assertion here because marked types aren't great and it "could" be a
-  // Promise (it's not).
-  return marked(markdownString, { renderer }) as string;
+  return marked(markdownString, { renderer, async: false });
 }

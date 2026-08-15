@@ -105,7 +105,7 @@
     "oxlint": "1.77.0",
     "oxlint-tsgolint": "7.0.2001",
     "tailwindcss": "4.3.3",
-    "typescript": "6.0.3",
+    "typescript": "7.0.2",
     "vite": "8.2.1",
     "vite-plugin-icons-spritesheet": "3.1.0",
     "vitest": "4.1.10"

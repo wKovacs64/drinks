@@ -1,23 +1,29 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { eq } from "drizzle-orm";
-import type { RouterContextProvider } from "react-router";
+import { RouterContextProvider } from "react-router";
 import { getDb } from "#/app/db/client.server";
 import { drinks } from "#/app/db/schema";
 import { resetAndSeedDatabase } from "#/app/db/reset.server";
 import { TEST_ADMIN_USER } from "#/playwright/seed-data";
 import { commitSession, getSession, optionalUser } from "#/app/modules/identity/identity.server";
 import { loader } from "./_app.$slug";
+import type { Route } from "./+types/_app.$slug";
 
 beforeEach(async () => {
   await resetAndSeedDatabase();
 });
 
-function createMockContext(): RouterContextProvider {
-  const map = new Map<unknown, unknown>();
+function createLoaderArgs(
+  request: Request,
+  context: RouterContextProvider = new RouterContextProvider(),
+): Route.LoaderArgs {
   return {
-    get: (key: unknown) => map.get(key),
-    set: (key: unknown, value: unknown) => map.set(key, value),
-  } as unknown as RouterContextProvider;
+    request,
+    url: new URL(request.url),
+    params: { slug: "test-margarita" },
+    pattern: "/:slug",
+    context,
+  };
 }
 
 async function createAdminCookie() {
@@ -34,11 +40,10 @@ async function createAdminCookie() {
 
 describe("drink detail route", () => {
   test("returns a published drink page with public cache headers", async () => {
-    const response = await loader({
-      request: new Request("http://localhost/test-margarita"),
-      params: { slug: "test-margarita" },
-      context: createMockContext(),
-    } as never);
+    const loaderArgs = createLoaderArgs(new Request("http://localhost/test-margarita"));
+    await optionalUser(loaderArgs, async () => new Response());
+
+    const response = await loader(loaderArgs);
     const headers = getHeaders(response);
 
     expect(headers.get("Surrogate-Key")).toBe("all test-margarita");
@@ -53,18 +58,15 @@ describe("drink detail route", () => {
       .where(eq(drinks.slug, "test-margarita"));
 
     const cookie = await createAdminCookie();
-    const context = createMockContext();
+    const context = new RouterContextProvider();
     const request = new Request("http://localhost/test-margarita", {
       headers: { Cookie: cookie },
     });
 
-    await optionalUser({ request, context } as never, async () => new Response());
+    const loaderArgs = createLoaderArgs(request, context);
+    await optionalUser(loaderArgs, async () => new Response());
 
-    const response = await loader({
-      request,
-      params: { slug: "test-margarita" },
-      context,
-    } as never);
+    const response = await loader(loaderArgs);
     const headers = getHeaders(response);
 
     expect(headers.get("Cache-Control")).toContain("private");
@@ -72,11 +74,10 @@ describe("drink detail route", () => {
   });
 });
 
-function getHeaders(response: unknown) {
+function getHeaders(response: Response | { init?: ResponseInit | null }) {
   if (response instanceof Response) {
     return response.headers;
   }
 
-  const init = (response as { init?: ResponseInit }).init;
-  return new Headers(init?.headers);
+  return new Headers(response.init?.headers);
 }

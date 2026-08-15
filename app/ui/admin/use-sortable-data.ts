@@ -49,7 +49,7 @@ export function useSortableData<T extends Record<string, unknown>>(items: T[]) {
   const processed =
     sort === null
       ? filtered
-      : [...filtered].sort((itemA: T, itemB: T) => {
+      : filtered.toSorted((itemA: T, itemB: T) => {
           const valueA = itemA[sort.key];
           const valueB = itemB[sort.key];
 

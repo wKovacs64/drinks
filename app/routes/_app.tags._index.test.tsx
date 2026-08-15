@@ -13,9 +13,7 @@ describe("tags index route", () => {
     const response = await loader();
 
     const headers = getHeaders(response);
-    const payload = getPayload(response) as {
-      tags: { displayName: string; slug: string }[];
-    };
+    const payload = getPayload(response);
 
     expect(payload.tags).toEqual([
       { displayName: "bourbon", slug: "bourbon" },
@@ -49,19 +47,18 @@ describe("tags index route", () => {
   });
 });
 
-function getHeaders(response: unknown) {
+function getHeaders(response: Response | { init?: ResponseInit | null }) {
   if (response instanceof Response) {
     return response.headers;
   }
 
-  const init = (response as { init?: ResponseInit }).init;
-  return new Headers(init?.headers);
+  return new Headers(response.init?.headers);
 }
 
-function getPayload(response: unknown) {
+function getPayload<T>(response: Response | { data: T }) {
   if (response instanceof Response) {
     throw new Error("Expected react-router data payload, got Response");
   }
 
-  return (response as { data: unknown }).data;
+  return response.data;
 }

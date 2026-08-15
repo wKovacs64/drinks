@@ -87,7 +87,7 @@ function buildDrinksServiceReadMethods(deps: { db: Db }): DrinksService {
         where: eq(drinks.status, "published"),
         columns: { tags: true },
       });
-      return toDrinkTagViews(publishedTags.flatMap((drink) => drink.tags)).sort((left, right) =>
+      return toDrinkTagViews(publishedTags.flatMap((drink) => drink.tags)).toSorted((left, right) =>
         left.displayName.localeCompare(right.displayName),
       );
     },

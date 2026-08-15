@@ -27,7 +27,7 @@
       "internalChecksFilter": "strict"
     },
     {
-      "matchPackageNames": ["eslint"],
+      "matchPackageNames": ["oxlint"],
       "matchUpdateTypes": ["major"],
       "enabled": false
     },

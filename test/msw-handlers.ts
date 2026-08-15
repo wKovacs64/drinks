@@ -13,7 +13,8 @@ export const handlers = [
   http.post("https://upload.imagekit.io/api/v1/files/upload", async ({ request }) => {
     uploadCounter++;
     const formData = await request.formData();
-    const fileName = String(formData.get("fileName") ?? `upload-${uploadCounter}`);
+    const fileNameValue = formData.get("fileName");
+    const fileName = typeof fileNameValue === "string" ? fileNameValue : `upload-${uploadCounter}`;
 
     return HttpResponse.json({
       fileId: `test-fileId-${uploadCounter}`,

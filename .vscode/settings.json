@@ -27,6 +27,5 @@
   "[yaml]": {
     "editor.defaultFormatter": "oxc.oxc-vscode"
   },
-  "eslint.useFlatConfig": true,
   "cSpell.words": ["Fastly", "iconsSpritesheet"]
 }

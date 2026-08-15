@@ -31,7 +31,6 @@ export default function handleRequest(
     // Abort the rendering stream after the `streamTimeout` so it has time to flush down the
     // rejected boundaries
     let timeoutId: ReturnType<typeof setTimeout> | undefined = setTimeout(
-      // eslint-disable-next-line @typescript-eslint/no-use-before-define
       () => abort(),
       streamTimeout + 1000,
     );

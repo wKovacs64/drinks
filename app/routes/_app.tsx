@@ -26,9 +26,7 @@ export const handle: AppRouteHandle = {
 };
 
 export function headers({ errorHeaders }: Route.HeadersArgs) {
-  return {
-    ...(errorHeaders ? Object.fromEntries(errorHeaders) : {}),
-  };
+  return errorHeaders ? Object.fromEntries(errorHeaders) : {};
 }
 
 export default function AppLayout() {

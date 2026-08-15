@@ -32,8 +32,8 @@ The full sequence, in order:
   Capture durable conclusions in `CONTEXT.md`, `docs/architecture.md`, or an ADR when appropriate.
 - Use `to-prd` for work that needs an explicit requirements checkpoint before implementation.
 - Use `to-issues` when the PRD should become independently grabbable implementation slices.
-- Use `tdd` for implementation and bug fixes. Prefer module tests against public schemas and service
-  factories, plus route/component tests where framework behavior matters.
+- Use `tdd` for implementation and bug fixes. Follow `docs/testing.md` when choosing the test
+  boundary and tool.
 - Use `improve-codebase-architecture` occasionally after major development sessions or when the
   codebase feels harder to navigate. Do not run it after every small change.
 
@@ -46,4 +46,5 @@ If any step uncovers unresolved domain or architecture questions, stop moving fo
 
 - `CONTEXT.md` — project language and domain notes
 - `docs/architecture.md` — module boundaries, route conventions, and auth seams
+- `docs/testing.md` — test boundaries, tools, and conventions
 - `docs/adr/` — durable architecture decisions

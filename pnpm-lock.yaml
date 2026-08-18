@@ -21,8 +21,8 @@ importers:
         specifier: 5.3.0
         version: 5.3.0
       '@imagekit/nodejs':
-        specifier: 7.10.0
-        version: 7.10.0
+        specifier: 7.11.0
+        version: 7.11.0
       '@paralleldrive/cuid2':
         specifier: 3.3.0
         version: 3.3.0
@@ -977,8 +977,8 @@ packages:
       wrangler:
         optional: true
 
-  '@imagekit/nodejs@7.10.0':
-    resolution: {integrity: sha512-9dM/bxK5LCx1lB6jHpGuRJpeh+uM2hlsHQfW8h3SC0ycvIof1ePDWeXcEakxpQ5WZs0iTaLpRjWUkDW2weT3Eg==}
+  '@imagekit/nodejs@7.11.0':
+    resolution: {integrity: sha512-dTZKPWSeCQN/CrGwhcENB10EvTt/9iijTqBR6qQHns1DHt46v7SVdf6wB2eRhuh3XPgzKmF8DRFnvUF/MLGGLA==}
 
   '@inquirer/ansi@2.0.7':
     resolution: {integrity: sha512-3eTuUO1vH2cZm2ZKHeQxnOqlTi9EfZDGgIe3BL3I4u+rJHocr9Fz86M4fjYABPvFnQG/gGK551HqDiIcETwU6Q==}
@@ -4055,7 +4055,7 @@ snapshots:
       hono: 4.13.2
       minimatch: 9.0.9
 
-  '@imagekit/nodejs@7.10.0':
+  '@imagekit/nodejs@7.11.0':
     dependencies:
       standardwebhooks: 1.0.0
 

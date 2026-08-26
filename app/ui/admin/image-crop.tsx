@@ -1,4 +1,5 @@
 import { type Ref, useState, useRef, useImperativeHandle } from "react";
+// oxlint-disable-next-line import/no-named-as-default -- This is react-image-crop's documented API.
 import ReactCrop, { type Crop, centerCrop, makeAspectCrop } from "react-image-crop";
 import { Image } from "@unpic/react";
 import "react-image-crop/dist/ReactCrop.css";

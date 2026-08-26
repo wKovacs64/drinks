@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.2.3](https://github.com/wKovacs64/drinks/compare/v4.2.2...v4.2.3) (2026-08-26)
+
+
+### Bug Fixes
+
+* restore production form submissions ([0b65a32](https://github.com/wKovacs64/drinks/commit/0b65a32a2f746897545431655fdd8fe0f17cc093))
+
 ## [4.2.2](https://github.com/wKovacs64/drinks/compare/v4.2.1...v4.2.2) (2026-07-27)
 
 

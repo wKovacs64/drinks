@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.2.5](https://github.com/wKovacs64/drinks/compare/v4.2.4...v4.2.5) (2026-08-26)
+
+
+### Bug Fixes
+
+* allow production action origin ([#377](https://github.com/wKovacs64/drinks/issues/377)) ([3545154](https://github.com/wKovacs64/drinks/commit/354515490e4a7b279a8dd9380fc0017826430411))
+
 ## [4.2.4](https://github.com/wKovacs64/drinks/compare/v4.2.3...v4.2.4) (2026-08-26)
 
 

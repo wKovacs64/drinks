@@ -145,8 +145,8 @@ importers:
         specifier: 1.2.2
         version: 1.2.2
       '@wkovacs64/oxlint-config':
-        specifier: 0.1.0
-        version: 0.1.0(oxlint-tsgolint@7.0.2001)(oxlint@1.79.0(oxlint-tsgolint@7.0.2001))
+        specifier: 0.2.0
+        version: 0.2.0(oxlint-tsgolint@7.0.2001)(oxlint@1.79.0(oxlint-tsgolint@7.0.2001))
       babel-plugin-react-compiler:
         specifier: 1.0.0
         version: 1.0.0
@@ -1897,8 +1897,8 @@ packages:
     engines: {node: '>=20.19.0'}
     hasBin: true
 
-  '@wkovacs64/oxlint-config@0.1.0':
-    resolution: {integrity: sha512-Ji6jbwZ/2QMA/K6mOvtLEWeyR+8EsJdSVIZI7F/s22gBWQYH/esKaOPzTGk8swcGx2LDdbfgmxnQjyu2T4FWIQ==}
+  '@wkovacs64/oxlint-config@0.2.0':
+    resolution: {integrity: sha512-dBraznos45K6H1gs2fvX5xzjKOdGrQCJe1y9xJzLkjV+kyJEF70EIoSlSXBjGEPlhE88ofmgmUylLe/7W9kl5Q==}
     engines: {node: '>=24'}
     peerDependencies:
       oxlint: '>=1.70.0 <2'
@@ -4679,7 +4679,7 @@ snapshots:
       esbuild: 0.27.7
       typescript: 5.9.3
 
-  '@wkovacs64/oxlint-config@0.1.0(oxlint-tsgolint@7.0.2001)(oxlint@1.79.0(oxlint-tsgolint@7.0.2001))':
+  '@wkovacs64/oxlint-config@0.2.0(oxlint-tsgolint@7.0.2001)(oxlint@1.79.0(oxlint-tsgolint@7.0.2001))':
     dependencies:
       oxlint: 1.79.0(oxlint-tsgolint@7.0.2001)
       oxlint-tsgolint: 7.0.2001

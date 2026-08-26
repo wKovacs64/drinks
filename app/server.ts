@@ -6,6 +6,32 @@ import { createHonoServer } from "react-router-hono-server/node";
 // and there's no way to disable it, so we use a custom server here instead.
 
 export default await createHonoServer({
+  configure(app) {
+    app.use("*", async (context, next) => {
+      const request = context.req.raw;
+
+      if (["POST", "PUT", "PATCH", "DELETE"].includes(request.method)) {
+        const originHeader = request.headers.get("Origin");
+        const requestUrl = new URL(request.url);
+        const originUrl =
+          originHeader && originHeader !== "null" && URL.canParse(originHeader)
+            ? new URL(originHeader)
+            : null;
+
+        if (originUrl && originUrl.host !== requestUrl.host) {
+          console.warn("[action-origin-mismatch]", {
+            requestUrl: `${requestUrl.origin}${requestUrl.pathname}`,
+            origin: originUrl.origin,
+            host: request.headers.get("Host"),
+            forwardedHost: request.headers.get("X-Forwarded-Host"),
+            flyForwardedHost: request.headers.get("Fly-Forwarded-Host"),
+          });
+        }
+      }
+
+      await next();
+    });
+  },
   // We're doing our own logging via React Router middleware
   defaultLogger: false,
 });

@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.2.4](https://github.com/wKovacs64/drinks/compare/v4.2.3...v4.2.4) (2026-08-26)
+
+
+### Bug Fixes
+
+* log action origin mismatches ([#375](https://github.com/wKovacs64/drinks/issues/375)) ([633cbaa](https://github.com/wKovacs64/drinks/commit/633cbaad8d67db554deadec7c44d675cb55f2aed))
+
 ## [4.2.3](https://github.com/wKovacs64/drinks/compare/v4.2.2...v4.2.3) (2026-08-26)
 
 

@@ -90,8 +90,8 @@ importers:
         specifier: 8.3.0
         version: 8.3.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       react-router-hono-server:
-        specifier: 4.1.1
-        version: 4.1.1(@react-router/dev@8.3.0(@react-router/serve@8.3.0(react-router@8.3.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(typescript@7.0.2))(react-router@8.3.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(typescript@7.0.2)(vite@8.2.2(@types/node@26.4.0)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)))(hono@4.13.5)(react-dom@19.2.8(react@19.2.8))(react-router@8.3.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react@19.2.8)(vite@8.2.2(@types/node@26.4.0)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12))
+        specifier: 4.1.2
+        version: 4.1.2(@react-router/dev@8.3.0(@react-router/serve@8.3.0(react-router@8.3.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(typescript@7.0.2))(react-router@8.3.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(typescript@7.0.2)(vite@8.2.2(@types/node@26.4.0)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)))(hono@4.13.5)(react-dom@19.2.8(react@19.2.8))(react-router@8.3.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react@19.2.8)(vite@8.2.2(@types/node@26.4.0)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12))
       remix-auth:
         specifier: 4.2.0
         version: 4.2.0
@@ -3035,8 +3035,8 @@ packages:
     resolution: {integrity: sha512-QgT5//D3jfjJb6Gsjxv0Slpj23ip+HtOpnNgnb2S5zU3CB26G/IDPGoy4RJB42wzFE46DRsstbW6tKHoKbhAxw==}
     engines: {node: '>=0.10.0'}
 
-  react-router-hono-server@4.1.1:
-    resolution: {integrity: sha512-mKGWElfWZuIwkJf1cyFkUT6Tvdu/6aFRmGu0FeTE49aSQRC31A1bX0vvkefDzcjX3bQiZx2juGRHONqJOHq4SA==}
+  react-router-hono-server@4.1.2:
+    resolution: {integrity: sha512-5MI6bOgS6bDrj/eEI7xDpHbS6+oAVSon6Vt/Jrn7lEQKdD/M72zxkHvXRgvCvdroISgGB/UwBZJ2uvPL9T9edw==}
     engines: {bun: '>=1.4.0', deno: '>=2.0.0', node: '>=24.19.0'}
     hasBin: true
     peerDependencies:
@@ -5729,7 +5729,7 @@ snapshots:
 
   react-refresh@0.18.0: {}
 
-  react-router-hono-server@4.1.1(@react-router/dev@8.3.0(@react-router/serve@8.3.0(react-router@8.3.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(typescript@7.0.2))(react-router@8.3.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(typescript@7.0.2)(vite@8.2.2(@types/node@26.4.0)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)))(hono@4.13.5)(react-dom@19.2.8(react@19.2.8))(react-router@8.3.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react@19.2.8)(vite@8.2.2(@types/node@26.4.0)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)):
+  react-router-hono-server@4.1.2(@react-router/dev@8.3.0(@react-router/serve@8.3.0(react-router@8.3.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(typescript@7.0.2))(react-router@8.3.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(typescript@7.0.2)(vite@8.2.2(@types/node@26.4.0)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)))(hono@4.13.5)(react-dom@19.2.8(react@19.2.8))(react-router@8.3.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react@19.2.8)(vite@8.2.2(@types/node@26.4.0)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)):
     dependencies:
       '@drizzle-team/brocli': 0.12.0
       '@hono/node-server': 2.1.1(hono@4.13.5)

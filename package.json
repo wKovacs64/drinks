@@ -55,7 +55,7 @@
     "@paralleldrive/cuid2": "3.3.0",
     "@react-router/node": "8.4.0",
     "@react-router/serve": "8.4.0",
-    "@remix-run/form-data-parser": "0.17.5",
+    "@remix-run/form-data-parser": "0.17.6",
     "@sindresorhus/slugify": "3.0.1",
     "@unpic/react": "1.0.2",
     "better-sqlite3": "13.0.3",

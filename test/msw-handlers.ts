@@ -34,7 +34,7 @@ export const handlers = [
     return new HttpResponse(null, { status: 204 });
   }),
 
-  // ImageKit CDN (for blur placeholder generation via unpic)
+  // ImageKit CDN (for blur placeholder generation)
   http.get("https://ik.imagekit.io/*", () => {
     return new HttpResponse(TINY_WEBP, {
       headers: { "Content-Type": "image/webp" },
@@ -46,8 +46,7 @@ export const handlers = [
     return HttpResponse.json({ status: "ok" });
   }),
 
-  // ImageKit SDK probes fetch FormData support via `fetch('data:,')`.
-  // MSW's `data:*` does not match `data:,` (unhandled shows as "GET null,").
-  http.get("data:,", () => passthrough()),
-  http.get("data:*", () => passthrough()),
+  // ImageKit probes fetch FormData support with a data URL. String matchers parse its colon
+  // as a route parameter; inspect the original URL after a regex match instead.
+  http.get(/.*/, ({ request }) => (request.url.startsWith("data:") ? passthrough() : undefined)),
 ];

@@ -4,10 +4,10 @@ _Craft Cocktail Gallery_
 
 ## Technologies Used
 
-- [React Router](https://reactrouter.com/) (full stack web framework)
-- [React](https://reactjs.org/) (UI library)
-- [SQLite](https://www.sqlite.org/) + [Drizzle](https://orm.drizzle.team/) (database)
+- [Remix v3](https://remix.run/) (full stack framework, native components, ORM, schema validation, auth, and sessions)
+- [SQLite](https://www.sqlite.org/) (Node native driver)
 - [ImageKit](https://imagekit.io/) (image storage/CDN)
+- [Unpic](https://unpic.pics/) (framework-independent responsive images)
 - [MiniSearch](https://github.com/lucaong/minisearch) (search)
 - [Fly](https://fly.io/) (hosting)
 - [Tailwind CSS](https://tailwindcss.com/) (styles)
@@ -24,7 +24,7 @@ _Craft Cocktail Gallery_
 ## Code Style
 
 - Native subpath imports (`#` maps to project root)
-- React Router `./+types` imports should always be last in the import list
+- Explicit `.ts`/`.tsx` extensions in native subpath and relative imports
 - Strict types
   - Avoid type assertions when possible, prefer actual type identification/runtime checks to narrow
 - Prioritize correctness > readability > brevity (optimize for reading, not writing)
@@ -36,7 +36,7 @@ _Craft Cocktail Gallery_
 - Server-side business behavior should converge on deep modules under `app/modules/<module>/`
 - Import only from a module's public entrypoints: `<module>.ts` or `<module>.server.ts`
 - Routes should stay thin: create service, call service, return framework response
-- Prefer `routeAction` for route action validation, intent dispatch, redirects, and toast handling
+- Web adapters own submission validation, typed outcome translation, redirects, and session flash toasts
 - Module tests should target public schemas and service factories, not private helpers
 
 ## Development Workflow
@@ -45,10 +45,11 @@ Before starting feature work, bug fixes, or refactors, consult `docs/development
 skill guidance. The workflow scales by task size — not every task needs every skill, but every task
 should start from the right step.
 
-## React Compiler
+## Remix Components
 
-- This project uses the React Compiler, so manual memoization with React.memo, useCallback, or
-  useMemo should not normally be necessary.
+- Render with `remix/component` Handles and hydrate interactive boundaries with `clientEntry`.
+- Use `mix={on(...)}` and `mix={ref(...)}` for DOM interactions.
+- Keep server-only imports outside hydrated component dependency graphs.
 
 ## Git Commits
 

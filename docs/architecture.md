@@ -1,5 +1,72 @@
 # Architecture
 
+## Runtime
+
+`server.ts` adapts `app/router.ts` to Node HTTP through `remix/node-fetch-server`.
+`remix/node-tsx` handles TypeScript/JSX at runtime. `app/routes.ts` defines typed Remix route patterns,
+and `app/actions/controller.tsx` maps them to thin service calls and server-rendered pages. Interactive
+components under `app/ui/public/` hydrate with Remix `clientEntry`; there is no React runtime.
+
+Persistence uses `remix/data-table` with `remix/data-table/sqlite` and migrations under
+`app/db/migrations/`. SQLite stores JSON arrays as text and timestamps as Unix seconds.
+Request sessions and Google OpenID Connect use Remix's native session and auth APIs. The signed
+cookie stores a user ID; authentication middleware resolves the current user and role from SQLite.
+
+## Request and development boundaries
+
+Native `cop()` checks browser request provenance using `Sec-Fetch-Site`, with an `Origin` fallback,
+before routing mutations. Admin submissions use
+explicit native form-data schemas, followed by the transport-independent domain draft schema.
+Multipart parsing permits one 5 MiB image, at most 16 parts, 8 KiB headers per part, and a
+5.25 MiB total body. The web adapter translates parser limits into existing field-error responses.
+Enhanced form submissions pass the Remix event cancellation signal to fetch and discard aborted
+results. Request, render, asset, and browser runtime failures use their native reporting hooks.
+Request logging includes the pathname but excludes OAuth query strings.
+
+Production leaves response compression to Fastly and Fly Proxy. Native compression is enabled in
+development/test, excluding event streams. Do not enable production origin compression without
+reconsidering that serving-layer policy.
+
+The native asset server and asset CLI share `remix.json`. Production JavaScript and generated
+Tailwind CSS use content fingerprints and immutable caching. Development combines native Node
+and component HMR with a stable Fetch proxy and the Tailwind watcher. The browser HMR stream is
+forwarded on the application origin, so LAN previews work with the existing CSP.
+
+## Persistence
+
+`app/db/schema.ts` defines native Remix tables, with physical SQLite column names and defaults.
+Its read/write functions translate JSON text and Unix seconds into the domain's arrays and Dates,
+and translate snake_case database names into camelCase application names. These are explicit
+persistence boundary conversions.
+
+SQL migrations are the source of truth for DDL. Remix does not generate schema diffs from these
+table definitions. `0001_initial/up.sql` is an irreversible baseline: it creates tables/indexes
+on a fresh database or adopts an existing, fully migrated catalog through `IF NOT EXISTS`.
+It does not upgrade arbitrary older schemas. Remix records applied migrations in
+`data_table_migrations` and verifies their checksums.
+
+`remix.json` configures the native `remix db` CLI. `scripts/migrate.ts` uses the programmatic runner
+for server startup and test setup. `server.ts` explicitly awaits migrations before listening for
+requests; a migration failure prevents startup. Both runners load the same migration directory and
+use the default journal.
+
+ImageKit uploads/deletions use its official Node SDK behind the integration boundary.
+`NODE_ENV=development` stores uploads locally and suppresses remote deletion and Fastly purges.
+`DEPLOYMENT_ENV` identifies the hosting target; it does not select these integration behaviors.
+
+## Responsive Images
+
+Native Remix components in `app/ui/public/image.tsx` adapt `@unpic/core/base` output to Remix DOM
+props. The shared transformer in `app/core/images.ts` imports only `unpic/providers/imagekit`;
+neither integration uses React or loads the automatic provider registry. The same provider builds
+blur-placeholder and social-image URLs.
+
+Page components supply the existing layout-specific `sizes` and breakpoints. Unpic owns candidate
+generation, aspect-ratio styles, loading/decoding defaults, and format-specific source attributes.
+`DrinkSummary` keeps the AVIF, WebP, then original-image order in its native `<picture>` markup.
+Local uploads and data URLs pass through unchanged, without fabricated format/resolution variants.
+Provided breakpoint arrays are copied because Unpic sorts them in place.
+
 ## Deep Modules
 
 Server-side business behavior lives in a small number of deep domain modules under `app/modules/`.
@@ -11,7 +78,7 @@ Each module exposes exactly two public entrypoints:
 
 Everything else in the module directory is private implementation detail.
 
-Current target modules:
+Modules:
 
 - `Drinks`
 - `Identity`
@@ -20,8 +87,8 @@ Current target modules:
 
 Consumers should import only from:
 
-- `#/app/modules/<module>/<module>`
-- `#/app/modules/<module>/<module>.server`
+- `#/app/modules/<module>/<module>.ts`
+- `#/app/modules/<module>/<module>.server.ts`
 
 Do not import module internals from routes, tests, or other modules.
 
@@ -64,11 +131,11 @@ Current `Drinks` seam examples:
 - `getPublishedDrinks()`
 - `getAllDrinks()`
 - `getDrinkBySlug({ slug, viewerRole })`
-- `getDrinksByTag(tag)`
+- `getDrinksByTagSlug({ tagSlug })`
 - `getAllTags()`
 - `searchPublishedDrinks({ query })`
 - `getNewDrinkEditor()`
-- `getDrinkEditorBySlug(slug)`
+- `findDrinkEditorBySlug(slug)`
 - `createAdminDrinksWriteService(...).create({ draft, imageBuffer })`
 - `createAdminDrinksWriteService(...).update({ slug, draft, imageBuffer? })`
 - `createAdminDrinksWriteService(...).delete({ slug })`
@@ -85,13 +152,17 @@ Current `Drinks` seam examples:
 
 `identity.server.ts` is the single public server seam for those concerns.
 
+`app/router.ts` owns the admin route gate: unauthenticated requests redirect to login and
+authenticated users without the admin role redirect to `/unauthorized`. Google sign-in requires
+a verified email matching an existing user; it updates profile fields without creating accounts.
+
 ## Route Actions and Web Adapters
 
 Routes stay thin by constructing per-request services and delegating route-specific behavior to the
 smallest deep web adapter that owns that route seam.
 
 A route may call a module service directly when the route has no meaningful translation logic. When a
-route must coordinate submission parsing, schema validation, typed module outcomes, React Router
+route must coordinate submission parsing, schema validation, typed module outcomes, Remix v3
 responses, redirects, and toasts, put that behavior behind a web adapter instead of rebuilding it in
 the route.
 
@@ -120,17 +191,13 @@ Preferred boundary tests:
 - `createDrinksService(...)`
 - `createAdminDrinksWriteService(...)`
 - `createIdentityService(...)`
-- `createAdminDrinkActionAdapter(...)`
-- `updateAdminDrinkActionAdapter(...)`
-- `deleteAdminDrinkActionAdapter(...)`
 
-Use the real SQLite and Drizzle-backed test database where it is cheap. Stub expensive external
+Use the real SQLite and Remix data-table-backed test database where it is cheap. Stub expensive external
 effects at the service boundary.
+
+Browser tests exercise the web adapters through the real router. See `docs/testing.md` for runner,
+database isolation, and external integration mock setup.
 
 ## Development Workflow
 
-Use `docs/development-workflow.md` as the source of truth for skill sequencing.
-
-Architecture-affecting work should usually start with `domain-model` so module boundaries,
-capability names, and durable decisions are clarified before implementation. Use
-`improve-codebase-architecture` only as an occasional architecture review tool after larger changes.
+Use `docs/development-workflow.md` for task sequencing and optional skill guidance.

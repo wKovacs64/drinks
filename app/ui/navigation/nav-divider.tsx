@@ -1,7 +1,9 @@
 export function NavDivider() {
-  return (
-    <span className="mx-4" aria-hidden>
-      ⇒
-    </span>
-  );
+  return () => {
+    return (
+      <span className="mx-4" aria-hidden>
+        ⇒
+      </span>
+    );
+  };
 }

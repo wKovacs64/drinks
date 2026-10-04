@@ -1,4 +1,15 @@
-import { FormDataParseError, parseFormData, type FileUpload } from "@remix-run/form-data-parser";
+import {
+  FormDataParseError,
+  MaxFilesExceededError,
+  parseFormData,
+  type FileUpload,
+} from "remix/form-data-parser";
+import {
+  MaxFileSizeExceededError,
+  MaxHeaderSizeExceededError,
+  MaxPartsExceededError,
+  MaxTotalSizeExceededError,
+} from "remix/multipart-parser";
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
@@ -86,11 +97,30 @@ async function parseMultipartDrinkForm(
 
   let formData: FormData;
   try {
-    formData = await parseFormData(request, { maxFileSize: MAX_IMAGE_SIZE }, uploadHandler);
+    formData = await parseFormData(
+      request,
+      {
+        maxFiles: 1,
+        maxParts: 16,
+        maxFileSize: MAX_IMAGE_SIZE,
+        maxTotalSize: MAX_IMAGE_SIZE + 256 * 1024,
+        maxHeaderSize: 8 * 1024,
+      },
+      uploadHandler,
+    );
   } catch (error) {
-    if (isMaxFileSizeExceededError(error)) {
+    const parseError = error instanceof FormDataParseError && error.cause ? error.cause : error;
+    if (parseError instanceof MaxFileSizeExceededError) {
       return imageFieldError("Image must be under 5MB");
     }
+    if (parseError instanceof MaxFilesExceededError)
+      return imageFieldError("Upload only one image");
+    if (parseError instanceof MaxTotalSizeExceededError)
+      return imageFieldError("Form submission is too large");
+    if (parseError instanceof MaxPartsExceededError)
+      return imageFieldError("Form submission contains too many fields");
+    if (parseError instanceof MaxHeaderSizeExceededError)
+      return imageFieldError("Image upload metadata is too large");
 
     if (error instanceof FormDataParseError) {
       return imageFieldError("Failed to process image upload");
@@ -103,18 +133,6 @@ async function parseMultipartDrinkForm(
   }
 
   return { kind: "ready", formData, imageUpload };
-}
-
-function isMaxFileSizeExceededError(error: unknown) {
-  if (error instanceof Error && error.name === "MaxFileSizeExceededError") {
-    return true;
-  }
-
-  return (
-    error instanceof FormDataParseError &&
-    error.cause instanceof Error &&
-    error.cause.name === "MaxFileSizeExceededError"
-  );
 }
 
 function imageFieldError(message: string): DrinkSubmissionInvalidResult {

@@ -1,6 +1,26 @@
-import type { RouteConfig } from "@react-router/dev/routes";
-import { flatRoutes } from "@react-router/fs-routes";
-
-export default flatRoutes({
-  ignoredRouteFiles: ["**/*.test.ts", "**/*.test.tsx"],
-}) satisfies RouteConfig;
+import { get, post, route } from "remix/routes";
+export const routes = route({
+  assets: get("/assets/*path"),
+  home: get("/"),
+  search: get("/search"),
+  tags: get("/tags"),
+  tag: get("/tags/:tag"),
+  login: get("/login"),
+  callback: get("/auth/google/callback"),
+  logout: post("/logout"),
+  loginFailed: get("/login-failed"),
+  unauthorized: get("/unauthorized"),
+  admin: get("/admin"),
+  adminDrinks: get("/admin/drinks"),
+  newDrink: get("/admin/drinks/new"),
+  createDrink: post("/admin/drinks/new"),
+  editDrink: get("/admin/drinks/:slug/edit"),
+  updateDrink: post("/admin/drinks/:slug/edit"),
+  deleteDrink: post("/admin/drinks/:slug/delete"),
+  deleteRedirect: get("/admin/drinks/:slug/delete"),
+  healthcheck: get("/_/healthcheck"),
+  robots: get("/robots.txt"),
+  manifest: get("/manifest.webmanifest"),
+  drink: get("/:slug"),
+  notFound: get("/*path"),
+});

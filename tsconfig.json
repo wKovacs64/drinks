@@ -1,17 +1,23 @@
 {
-  "include": ["**/*.ts", "**/*.tsx", ".react-router/types/**/*"],
+  "include": [
+    "app/**/*.ts",
+    "app/**/*.tsx",
+    "scripts/**/*.ts",
+    "server.ts",
+    "test/**/*.ts",
+    "*.config.ts"
+  ],
   "compilerOptions": {
-    "lib": ["DOM", "DOM.Iterable", "ES2023"],
-    "types": ["@react-router/node", "vite/client"],
-    "rootDirs": [".", "./.react-router/types"],
+    "lib": ["DOM", "DOM.Iterable", "ES2024"],
+    "types": ["node"],
     "isolatedModules": true,
     "esModuleInterop": true,
     "jsx": "react-jsx",
-    "module": "Preserve",
-    "resolveJsonModule": true,
-    "target": "ES2022",
+    "jsxImportSource": "remix/component",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "target": "ESNext",
     "strict": true,
-    "allowJs": true,
     "forceConsistentCasingInFileNames": true,
     "paths": {
       "#/*": ["./*"]

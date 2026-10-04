@@ -1,11 +1,11 @@
-import { createId } from "@paralleldrive/cuid2";
-import { desc, eq } from "drizzle-orm";
-import type { getDb } from "#/app/db/client.server";
-import { drinks } from "#/app/db/schema";
-import { markdownToHtml } from "./drinks-markdown.server";
-import { withPlaceholderImages } from "./drinks-images.server";
-import { purgeSearchCache, searchDrinks } from "./drinks-search.server";
-import { toDrinkTagViews } from "./drinks-tags.server";
+import { randomUUID } from "node:crypto";
+
+import type { getDb } from "#/app/db/client.server.ts";
+import { drinks, readDrink, writeDrink } from "#/app/db/schema.ts";
+import { markdownToHtml } from "./drinks-markdown.server.ts";
+import { withPlaceholderImages } from "./drinks-images.server.ts";
+import { purgeSearchCache, searchDrinks } from "./drinks-search.server.ts";
+import { toDrinkTagViews } from "./drinks-tags.server.ts";
 
 export { purgeSearchCache };
 import {
@@ -20,7 +20,7 @@ import {
   type SaveDrinkNotice,
   type UpdateAdminDrinkCommand,
   type UpdateAdminDrinkResult,
-} from "./drinks";
+} from "./drinks.ts";
 
 type Db = ReturnType<typeof getDb>;
 
@@ -59,42 +59,39 @@ export function createAdminDrinksWriteService(deps: {
 function buildDrinksServiceReadMethods(deps: { db: Db }): DrinksService {
   return {
     async getPublishedDrinks() {
-      const publishedDrinks = await deps.db.query.drinks.findMany({
-        where: eq(drinks.status, "published"),
-        orderBy: [desc(drinks.rank), desc(drinks.createdAt)],
-      });
+      const publishedDrinks = (
+        await deps.db.findMany(drinks, {
+          where: { status: "published" },
+          orderBy: [
+            ["rank", "desc"],
+            ["created_at", "desc"],
+          ],
+        })
+      ).map(readDrink);
 
       return withPlaceholderImages(publishedDrinks);
     },
     async getAllDrinks() {
-      return deps.db.query.drinks.findMany({
-        columns: {
-          id: true,
-          title: true,
-          slug: true,
-          imageUrl: true,
-          calories: true,
-          rank: true,
-          status: true,
-          createdAt: true,
-          updatedAt: true,
-        },
-        orderBy: [desc(drinks.rank), desc(drinks.createdAt)],
-      });
+      return (
+        await deps.db.findMany(drinks, {
+          orderBy: [
+            ["rank", "desc"],
+            ["created_at", "desc"],
+          ],
+        })
+      ).map(readDrink);
     },
     async getAllTags() {
-      const publishedTags = await deps.db.query.drinks.findMany({
-        where: eq(drinks.status, "published"),
-        columns: { tags: true },
-      });
+      const publishedTags = (
+        await deps.db.findMany(drinks, { where: { status: "published" } })
+      ).map(readDrink);
       return toDrinkTagViews(publishedTags.flatMap((drink) => drink.tags)).toSorted((left, right) =>
         left.displayName.localeCompare(right.displayName),
       );
     },
     async getDrinkBySlug({ slug, viewerRole }) {
-      const drink = await deps.db.query.drinks.findFirst({
-        where: eq(drinks.slug, slug),
-      });
+      const drinkRow = await deps.db.findOne(drinks, { where: { slug } });
+      const drink = drinkRow ? readDrink(drinkRow) : null;
 
       if (!drink) {
         return null;
@@ -118,10 +115,15 @@ function buildDrinksServiceReadMethods(deps: { db: Db }): DrinksService {
       };
     },
     async getDrinksByTagSlug({ tagSlug }) {
-      const publishedDrinks = await deps.db.query.drinks.findMany({
-        where: eq(drinks.status, "published"),
-        orderBy: [desc(drinks.rank), desc(drinks.createdAt)],
-      });
+      const publishedDrinks = (
+        await deps.db.findMany(drinks, {
+          where: { status: "published" },
+          orderBy: [
+            ["rank", "desc"],
+            ["created_at", "desc"],
+          ],
+        })
+      ).map(readDrink);
 
       let resolvedTag: DrinkTagView | null = null;
       const matchingDrinks = publishedDrinks.filter((drink) => {
@@ -168,9 +170,8 @@ function buildDrinksServiceReadMethods(deps: { db: Db }): DrinksService {
       };
     },
     async findDrinkEditorBySlug(slug) {
-      const drink = await deps.db.query.drinks.findFirst({
-        where: eq(drinks.slug, slug),
-      });
+      const drinkRow = await deps.db.findOne(drinks, { where: { slug } });
+      const drink = drinkRow ? readDrink(drinkRow) : null;
 
       if (!drink) {
         return null;
@@ -200,9 +201,8 @@ async function deleteAdminDrink(
   writeEffects: Pick<DrinksWriteEffects, "deleteImage" | "purgeDrinkCache">,
   { slug }: DeleteAdminDrinkCommand,
 ): Promise<DeleteAdminDrinkResult> {
-  const existingDrink = await db.query.drinks.findFirst({
-    where: eq(drinks.slug, slug),
-  });
+  const existingRow = await db.findOne(drinks, { where: { slug } });
+  const existingDrink = existingRow ? readDrink(existingRow) : null;
 
   if (!existingDrink) {
     return { kind: "notFound", slug };
@@ -210,7 +210,7 @@ async function deleteAdminDrink(
 
   await writeEffects.deleteImage(existingDrink.imageFileId);
 
-  await db.delete(drinks).where(eq(drinks.id, existingDrink.id));
+  await db.delete(drinks, existingDrink.id);
 
   purgeSearchCache();
   await writeEffects.purgeDrinkCache({
@@ -226,9 +226,8 @@ async function updateAdminDrink(
   writeEffects: DrinksWriteEffects,
   { slug, draft, imageBuffer }: UpdateAdminDrinkCommand,
 ): Promise<UpdateAdminDrinkResult> {
-  const existingDrink = await db.query.drinks.findFirst({
-    where: eq(drinks.slug, slug),
-  });
+  const existingRow = await db.findOne(drinks, { where: { slug } });
+  const existingDrink = existingRow ? readDrink(existingRow) : null;
 
   if (!existingDrink) {
     return { kind: "notFound", slug };
@@ -325,9 +324,8 @@ async function checkSlugAvailability(
   slug: string,
   currentDrinkId?: string,
 ): Promise<{ available: true } | { available: false }> {
-  const existingDrink = await db.query.drinks.findFirst({
-    where: eq(drinks.slug, slug),
-  });
+  const existingRow = await db.findOne(drinks, { where: { slug } });
+  const existingDrink = existingRow ? readDrink(existingRow) : null;
 
   return !existingDrink || existingDrink.id === currentDrinkId
     ? { available: true }
@@ -338,13 +336,9 @@ async function insertDrinkRow(
   db: ReturnType<typeof getDb>,
   draft: DrinkDraft & { imageUrl: string; imageFileId: string },
 ) {
-  const [createdDrink] = await db
-    .insert(drinks)
-    .values({
-      id: createId(),
-      ...draft,
-    })
-    .returning();
+  const createdDrink = readDrink(
+    await db.create(drinks, writeDrink({ id: randomUUID(), ...draft }), { returnRow: true }),
+  );
 
   return createdDrink;
 }
@@ -354,14 +348,19 @@ async function updateDrinkRow(
   drinkId: string,
   draft: DrinkDraft & { imageUrl: string; imageFileId: string },
 ) {
-  const [updatedDrink] = await db
-    .update(drinks)
-    .set({
-      ...draft,
-      updatedAt: new Date(),
-    })
-    .where(eq(drinks.id, drinkId))
-    .returning();
+  const existingRow = await db.find(drinks, drinkId);
+  if (!existingRow) throw new Error("Drink not found");
+  const updatedDrink = readDrink(
+    await db.update(
+      drinks,
+      drinkId,
+      writeDrink({
+        ...readDrink(existingRow),
+        ...draft,
+        updatedAt: new Date(),
+      }),
+    ),
+  );
 
   return updatedDrink;
 }

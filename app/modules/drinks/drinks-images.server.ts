@@ -1,30 +1,16 @@
-import { transformUrl } from "unpic";
-import type { Drink } from "#/app/db/schema";
-import type { DrinkView } from "./drinks";
-import { toDrinkTagViews } from "./drinks-tags.server";
+import { imageUrl } from "#/app/core/images.ts";
+import type { Drink } from "#/app/db/schema.ts";
+import type { DrinkView } from "./drinks.ts";
+import { toDrinkTagViews } from "./drinks-tags.server.ts";
 
 // Transparent 1x1 pixel GIF as fallback when blur placeholder generation fails
 const FALLBACK_BLUR_DATA_URL =
   "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 
-/**
- * Generate a blur placeholder data URL for an image.
- * Uses unpic to transform the URL for supported CDN providers (ImageKit, Contentful, etc.).
- * Falls back to a transparent pixel for unrecognized URLs (e.g., placeholder.com in tests).
- */
-async function generateBlurDataUrl(imageUrl: string): Promise<string> {
-  // unpic transforms URLs for recognized CDN providers
-  const blurredImageUrl = transformUrl({
-    url: imageUrl,
-    width: 10,
-    quality: 90,
-    format: "webp",
-  });
-
-  // If unpic doesn't recognize the URL (returns undefined), use fallback
-  if (!blurredImageUrl) {
-    return FALLBACK_BLUR_DATA_URL;
-  }
+/** Generate an ImageKit blur placeholder, falling back for other image sources. */
+async function generateBlurDataUrl(imageUrlSource: string): Promise<string> {
+  const blurredImageUrl = imageUrl(imageUrlSource, 10, "webp", undefined, 90);
+  if (blurredImageUrl === imageUrlSource) return FALLBACK_BLUR_DATA_URL;
 
   try {
     const blurredImageResponse = await fetch(blurredImageUrl);

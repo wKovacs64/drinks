@@ -1,6 +1,8 @@
-import { data, href } from "react-router";
-import { z } from "zod";
-import { redirectWithToast, type ToastMessage } from "#/app/core/toast.server";
+import { redirect } from "remix/response/redirect";
+import type { Session } from "remix/session";
+import { parseSafe, string } from "remix/data-schema";
+import { field, object } from "remix/data-schema/form-data";
+import type { ToastMessage } from "#/app/core/toast.ts";
 import {
   drinkDraftSchema,
   SaveDrinkNoticeCodes,
@@ -11,11 +13,12 @@ import {
   type DrinkDraft,
   type SaveDrinkNotice,
   type UpdateAdminDrinkResult,
-} from "#/app/modules/drinks/drinks";
-import { parseCreateDrinkSubmission, parseUpdateDrinkSubmission } from "./submission.server";
+} from "#/app/modules/drinks/drinks.ts";
+import { parseCreateDrinkSubmission, parseUpdateDrinkSubmission } from "./submission.server.ts";
 
 type AdminDrinkWriteActionAdapterInput = {
   request: Request;
+  session: Session;
   adminDrinksWriteService: AdminDrinksWriteService;
 };
 
@@ -27,6 +30,17 @@ type AdminDrinkWriteActionData = {
 type DrinkDraftParseResult =
   | { kind: "ready"; draft: DrinkDraft }
   | ({ kind: "invalid"; status: 400 } & AdminDrinkWriteActionData);
+
+const drinkFormSchema = object({
+  title: field(string()),
+  slug: field(string()),
+  ingredients: field(string()),
+  calories: field(string()),
+  tags: field(string()),
+  notes: field(string()),
+  rank: field(string()),
+  status: field(string()),
+});
 
 export async function createAdminDrinkActionAdapter(input: AdminDrinkWriteActionAdapterInput) {
   const submission = await parseCreateDrinkSubmission(input.request);
@@ -45,7 +59,7 @@ export async function createAdminDrinkActionAdapter(input: AdminDrinkWriteAction
     imageBuffer: submission.imageUpload.buffer,
   });
 
-  return translateCreateResult(result);
+  return translateCreateResult(result, input.session);
 }
 
 export async function deleteAdminDrinkActionAdapter(
@@ -53,7 +67,7 @@ export async function deleteAdminDrinkActionAdapter(
 ) {
   const result = await input.adminDrinksWriteService.delete({ slug: input.slug });
 
-  return translateDeleteResult(result);
+  return translateDeleteResult(result, input.session);
 }
 
 export async function updateAdminDrinkActionAdapter(
@@ -76,13 +90,16 @@ export async function updateAdminDrinkActionAdapter(
     imageBuffer: submission.imageUpload?.buffer,
   });
 
-  return translateUpdateResult(result);
+  return translateUpdateResult(result, input.session);
 }
 
-function translateCreateResult(result: CreateAdminDrinkResult) {
+function translateCreateResult(result: CreateAdminDrinkResult, session: Session) {
   switch (result.kind) {
     case "success":
-      return redirectToAdminDrinksWithToast({ kind: "success", message: "Drink created!" });
+      return redirectToAdminDrinksWithToast(session, {
+        kind: "success",
+        message: "Drink created!",
+      });
 
     case "fieldError":
       return invalidActionData(result);
@@ -92,29 +109,32 @@ function translateCreateResult(result: CreateAdminDrinkResult) {
   }
 }
 
-function translateUpdateResult(result: UpdateAdminDrinkResult) {
+function translateUpdateResult(result: UpdateAdminDrinkResult, session: Session) {
   switch (result.kind) {
     case "success":
-      return redirectToAdminDrinksWithToast(resolveUpdateToast(result));
+      return redirectToAdminDrinksWithToast(session, resolveUpdateToast(result));
 
     case "fieldError":
       return invalidActionData(result);
 
     case "notFound":
-      return throwDrinkNotFound();
+      return drinkNotFoundResponse();
 
     default:
       return assertNever(result);
   }
 }
 
-function translateDeleteResult(result: DeleteAdminDrinkResult) {
+function translateDeleteResult(result: DeleteAdminDrinkResult, session: Session) {
   switch (result.kind) {
     case "success":
-      return redirectToAdminDrinksWithToast({ kind: "success", message: "Drink deleted!" });
+      return redirectToAdminDrinksWithToast(session, {
+        kind: "success",
+        message: "Drink deleted!",
+      });
 
     case "notFound":
-      return throwDrinkNotFound();
+      return drinkNotFoundResponse();
 
     default:
       return assertNever(result);
@@ -122,25 +142,31 @@ function translateDeleteResult(result: DeleteAdminDrinkResult) {
 }
 
 function parseDrinkDraft(formData: FormData): DrinkDraftParseResult {
-  const rawValues = Object.fromEntries(formData);
-  const result = drinkDraftSchema.safeParse(rawValues);
+  const formResult = parseSafe(drinkFormSchema, formData);
+  const result = formResult.success ? parseSafe(drinkDraftSchema, formResult.value) : formResult;
 
   if (result.success) {
-    return { kind: "ready", draft: result.data };
+    return { kind: "ready", draft: result.value };
   }
 
-  const flattenedError = z.flattenError(result.error);
+  const fieldErrors: Record<string, string[]> = {};
+  const formErrors: string[] = [];
+  for (const issue of result.issues) {
+    const fieldName = issue.path?.[0];
+    if (typeof fieldName === "string") (fieldErrors[fieldName] ??= []).push(issue.message);
+    else formErrors.push(issue.message);
+  }
 
   return {
     kind: "invalid",
-    fieldErrors: flattenedError.fieldErrors,
-    formErrors: flattenedError.formErrors,
+    fieldErrors: fieldErrors,
+    formErrors: formErrors,
     status: 400,
   };
 }
 
 function invalidActionData(result: AdminDrinkWriteActionData & { status?: number }) {
-  return data(
+  return Response.json(
     {
       fieldErrors: result.fieldErrors,
       formErrors: result.formErrors,
@@ -149,12 +175,13 @@ function invalidActionData(result: AdminDrinkWriteActionData & { status?: number
   );
 }
 
-async function redirectToAdminDrinksWithToast(toast: ToastMessage): Promise<never> {
-  throw await redirectWithToast(href("/admin/drinks"), toast);
+function redirectToAdminDrinksWithToast(session: Session, toast: ToastMessage): Response {
+  session.flash("toast", toast);
+  return redirect("/admin/drinks", { status: 303 });
 }
 
-function throwDrinkNotFound(): never {
-  throw new Response("Drink not found", { status: 404 });
+function drinkNotFoundResponse(): Response {
+  return new Response("Drink not found", { status: 404 });
 }
 
 function resolveUpdateToast(result: AdminDrinkWriteSuccessResult): ToastMessage {

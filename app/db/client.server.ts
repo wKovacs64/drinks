@@ -1,19 +1,13 @@
-import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
-import { getEnvVars } from "#/app/core/env.server";
-import * as schema from "./schema";
-
-let sqlite: Database.Database | null = null;
-
-function getDatabase() {
-  if (!sqlite) {
-    const { DATABASE_URL } = getEnvVars();
-    sqlite = new Database(DATABASE_URL);
-    sqlite.pragma("journal_mode = WAL");
-  }
-  return sqlite;
-}
-
+import { mkdirSync } from "node:fs";
+import { dirname } from "node:path";
+import { createSqliteDatabase } from "remix/data-table/sqlite";
+import { getEnvVars } from "#/app/core/env.server.ts";
+let database: ReturnType<typeof createSqliteDatabase> | undefined;
 export function getDb() {
-  return drizzle(getDatabase(), { schema });
+  if (!database) {
+    const { DATABASE_URL } = getEnvVars();
+    if (DATABASE_URL !== ":memory:") mkdirSync(dirname(DATABASE_URL), { recursive: true });
+    database = createSqliteDatabase({ filename: DATABASE_URL, foreignKeys: true });
+  }
+  return database;
 }

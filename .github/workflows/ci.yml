@@ -82,7 +82,7 @@ jobs:
         run: pnpm run typecheck
 
   test:
-    name: 🩺 Vitest
+    name: 🩺 Remix tests
     runs-on: ubuntu-latest
     steps:
       - name: ⬇️ Checkout repo
@@ -100,61 +100,11 @@ jobs:
       - name: 📥 Install deps
         run: pnpm install
 
-      - name: 🗃️ Setup test database
-        run: mkdir -p data
+      - name: 📥 Install Chromium
+        run: pnpm exec playwright install chromium --only-shell --with-deps
 
-      - name: 🩺 Vitest
+      - name: 🩺 Remix tests
         run: pnpm test
-
-  playwright:
-    name: 🎭 Playwright
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - name: ⬇️ Checkout repo
-        uses: actions/checkout@v7
-
-      - name: 📦 Install pnpm
-        uses: pnpm/action-setup@v6
-
-      - name: ⎔ Setup node
-        uses: actions/setup-node@v7
-        with:
-          cache: pnpm
-          node-version-file: ".nvmrc"
-
-      - name: 📥 Install deps
-        run: pnpm install
-
-      - name: 🔢 Get Playwright version
-        run: echo "PLAYWRIGHT_VERSION=$(pnpm exec playwright --version | tr ' ' '-')" >> $GITHUB_ENV
-
-      - name: 📦 Cache Playwright binaries
-        id: playwright-cache
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
-
-      - name: 📥 Install Playwright Browsers
-        run: pnpm exec playwright install --with-deps
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-
-      - name: 🗃️ Setup test database
-        run: |
-          mkdir -p data
-          pnpm exec dotenv -e .env.test -- pnpm db:migrate
-
-      - name: 🎭 Playwright tests
-        run: pnpm test:e2e
-
-      - name: 📊 Upload report
-        uses: actions/upload-artifact@v7
-        if: always()
-        with:
-          name: playwright-report
-          path: playwright/report/
-          retention-days: 30
 
   build:
     name: 👷‍♂️ Build
@@ -181,7 +131,7 @@ jobs:
   release:
     name: 🆕 Release
     runs-on: ubuntu-latest
-    needs: [format, lint, typecheck, test, playwright, build]
+    needs: [format, lint, typecheck, test, build]
     if: ${{ github.ref == 'refs/heads/main' }}
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}

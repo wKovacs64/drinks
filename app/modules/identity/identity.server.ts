@@ -1,19 +1,16 @@
-import type { getDb } from "#/app/db/client.server";
-import type { User } from "#/app/db/schema";
-import type { IdentityService, SessionUser } from "./identity";
-import { getIdentityUser } from "./identity-persistence.server";
+import type { getDb } from "#/app/db/client.server.ts";
+import type { User } from "#/app/db/schema.ts";
+import type { IdentityService, SessionUser } from "./identity.ts";
+import { getIdentityUser } from "./identity-persistence.server.ts";
 
-export { initiateLogin, authenticate, logout } from "./identity-auth-flows.server";
-export { getUserFromContext, getOptionalUserFromContext } from "./identity-context.server";
-export { requireUser, optionalUser, requireRole } from "./identity-middleware.server";
+export { initiateLogin, authenticate, logout } from "./identity-auth-flows.server.ts";
 export {
-  commitSession,
-  destroySession,
-  getSession,
+  getIdentitySessionMiddleware,
   getRawSessionCookieValue,
   sessionCookie,
-} from "./identity-session.server";
-export { createReturnToUrl, safeRedirectTo } from "./identity-navigation.server";
+} from "./identity-session.server.ts";
+export { getIdentityAuthMiddleware } from "./identity-middleware.server.ts";
+export { createReturnToUrl, safeRedirectTo } from "./identity-navigation.server.ts";
 
 type CreateIdentityServiceDeps = {
   db: ReturnType<typeof getDb>;

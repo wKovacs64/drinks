@@ -1,14 +1,16 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
-import { eq } from "drizzle-orm";
-import { getDb } from "#/app/db/client.server";
-import { drinks } from "#/app/db/schema";
-import { resetAndSeedDatabase } from "#/app/db/reset.server";
-import { drinkDraftSchema, SaveDrinkNoticeCodes } from "./drinks";
+import "#/test/setup.ts";
+import { beforeEach, describe, mock, test } from "remix/test";
+import { expect } from "remix/assert";
+import { parse, parseSafe } from "remix/data-schema";
+import { getDb } from "#/app/db/client.server.ts";
+import { drinks } from "#/app/db/schema.ts";
+import { resetAndSeedDatabase } from "#/test/database.ts";
+import { drinkDraftSchema, SaveDrinkNoticeCodes } from "./drinks.ts";
 import {
   createAdminDrinksWriteService,
   createDrinksService,
   purgeSearchCache,
-} from "./drinks.server";
+} from "./drinks.server.ts";
 
 type DrinksWriteEffects = Parameters<typeof createAdminDrinksWriteService>[0]["writeEffects"];
 
@@ -19,9 +21,9 @@ type TestDrinksServiceOverrides = {
 
 function testAdminDrinksWriteService(overrides: TestDrinksServiceOverrides = {}) {
   const defaultWriteEffects = {
-    uploadImage: vi.fn<DrinksWriteEffects["uploadImage"]>(),
-    deleteImage: vi.fn<DrinksWriteEffects["deleteImage"]>(),
-    purgeDrinkCache: vi.fn<DrinksWriteEffects["purgeDrinkCache"]>(),
+    uploadImage: mock.fn<DrinksWriteEffects["uploadImage"]>(),
+    deleteImage: mock.fn<DrinksWriteEffects["deleteImage"]>(),
+    purgeDrinkCache: mock.fn<DrinksWriteEffects["purgeDrinkCache"]>(),
   };
 
   return createAdminDrinksWriteService({
@@ -40,7 +42,7 @@ beforeEach(async () => {
 
 async function setDrinkStatus(slug: string, status: "published" | "unpublished"): Promise<void> {
   const db = getDb();
-  await db.update(drinks).set({ status }).where(eq(drinks.slug, slug));
+  await db.updateMany(drinks, { status }, { where: { slug } });
 }
 
 async function getExistingDrinkEditor(slug: string) {
@@ -75,10 +77,8 @@ describe("createDrinksService", () => {
         { displayName: "citrus", slug: "citrus" },
       ],
     });
-    expect(publishedDrinks[0]?.image).toEqual({
-      url: expect.any(String),
-      blurDataUrl: expect.any(String),
-    });
+    expect(typeof publishedDrinks[0]?.image?.url).toBe("string");
+    expect(typeof publishedDrinks[0]?.image?.blurDataUrl).toBe("string");
   });
 
   test("loads a new-drink editor with form-shaped defaults", async () => {
@@ -127,10 +127,8 @@ describe("createDrinksService", () => {
         { displayName: "citrus", slug: "citrus" },
       ],
     });
-    expect(drinkForViewer?.drink.image).toEqual({
-      url: expect.any(String),
-      blurDataUrl: expect.any(String),
-    });
+    expect(typeof drinkForViewer?.drink.image?.url).toBe("string");
+    expect(typeof drinkForViewer?.drink.image?.blurDataUrl).toBe("string");
     expect(drinkForViewer?.drink.notes).toContain("<p>A classic test margarita</p>");
   });
 
@@ -157,10 +155,8 @@ describe("createDrinksService", () => {
 
     expect(drinkForViewer?.visibility).toBe("private");
     expect(drinkForViewer?.drink.slug).toBe("test-margarita");
-    expect(drinkForViewer?.drink.image).toEqual({
-      url: expect.any(String),
-      blurDataUrl: expect.any(String),
-    });
+    expect(typeof drinkForViewer?.drink.image?.url).toBe("string");
+    expect(typeof drinkForViewer?.drink.image?.blurDataUrl).toBe("string");
     expect(drinkForViewer?.drink.notes).toContain("<p>A classic test margarita</p>");
   });
 
@@ -182,10 +178,11 @@ describe("createDrinksService", () => {
 
   test("returns published drinks for a multi-word tag slug", async () => {
     const db = getDb();
-    await db
-      .update(drinks)
-      .set({ tags: ["tequila", "bright citrus"] })
-      .where(eq(drinks.slug, "test-margarita"));
+    await db.updateMany(
+      drinks,
+      { tags: JSON.stringify(["tequila", "bright citrus"]) },
+      { where: { slug: "test-margarita" } },
+    );
     const service = createDrinksService({ db });
 
     const taggedDrinks = await service.getDrinksByTagSlug({ tagSlug: "bright-citrus" });
@@ -200,14 +197,16 @@ describe("createDrinksService", () => {
 
   test("resolves equivalent stored tags to one tag page", async () => {
     const db = getDb();
-    await db
-      .update(drinks)
-      .set({ tags: ["Bright Citrus"] })
-      .where(eq(drinks.slug, "test-margarita"));
-    await db
-      .update(drinks)
-      .set({ tags: ["bright-citrus"] })
-      .where(eq(drinks.slug, "test-mojito"));
+    await db.updateMany(
+      drinks,
+      { tags: JSON.stringify(["Bright Citrus"]) },
+      { where: { slug: "test-margarita" } },
+    );
+    await db.updateMany(
+      drinks,
+      { tags: JSON.stringify(["bright-citrus"]) },
+      { where: { slug: "test-mojito" } },
+    );
     const service = createDrinksService({ db });
 
     const taggedDrinks = await service.getDrinksByTagSlug({ tagSlug: "bright-citrus" });
@@ -235,10 +234,11 @@ describe("createDrinksService", () => {
 
   test("defensively canonicalizes and de-duplicates all published tags", async () => {
     const db = getDb();
-    await db
-      .update(drinks)
-      .set({ tags: ["Tequila!", "bright citrus", "bright-citrus", " "] })
-      .where(eq(drinks.slug, "test-margarita"));
+    await db.updateMany(
+      drinks,
+      { tags: JSON.stringify(["Tequila!", "bright citrus", "bright-citrus", " "]) },
+      { where: { slug: "test-margarita" } },
+    );
     await setDrinkStatus("test-old-fashioned", "unpublished");
     const service = createDrinksService({ db });
 
@@ -255,10 +255,11 @@ describe("createDrinksService", () => {
 
   test("defensively canonicalizes stored tags when returning drink views", async () => {
     const db = getDb();
-    await db
-      .update(drinks)
-      .set({ tags: ["Tequila!", "bright citrus", "bright-citrus", " "] })
-      .where(eq(drinks.slug, "test-margarita"));
+    await db.updateMany(
+      drinks,
+      { tags: JSON.stringify(["Tequila!", "bright citrus", "bright-citrus", " "]) },
+      { where: { slug: "test-margarita" } },
+    );
     const service = createDrinksService({ db });
 
     const drinkForViewer = await service.getDrinkBySlug({
@@ -278,10 +279,8 @@ describe("createDrinksService", () => {
     const searchResults = await service.searchPublishedDrinks({ query: "tequila" });
 
     expect(searchResults.map((drink) => drink.slug)).toEqual(["test-margarita"]);
-    expect(searchResults[0]?.image).toEqual({
-      url: expect.any(String),
-      blurDataUrl: expect.any(String),
-    });
+    expect(typeof searchResults[0]?.image?.url).toBe("string");
+    expect(typeof searchResults[0]?.image?.blurDataUrl).toBe("string");
     expect(searchResults[0]?.tags).toEqual([
       { displayName: "tequila", slug: "tequila" },
       { displayName: "citrus", slug: "citrus" },
@@ -317,13 +316,11 @@ describe("createDrinksService", () => {
 
 describe("createAdminDrinksWriteService", () => {
   test("creates a drink and exposes it through the editor boundary", async () => {
-    const uploadImage = vi.fn<DrinksWriteEffects["uploadImage"]>().mockResolvedValue({
+    const uploadImage = mock.fn<DrinksWriteEffects["uploadImage"]>(async () => ({
       url: "https://ik.imagekit.io/test/drinks/test-cocktail.jpg",
       fileId: "new-file-id",
-    });
-    const purgeDrinkCache = vi
-      .fn<DrinksWriteEffects["purgeDrinkCache"]>()
-      .mockResolvedValue(undefined);
+    }));
+    const purgeDrinkCache = mock.fn<DrinksWriteEffects["purgeDrinkCache"]>(async () => undefined);
     const service = testAdminDrinksWriteService({
       writeEffects: {
         uploadImage,
@@ -331,7 +328,7 @@ describe("createAdminDrinksWriteService", () => {
       },
     });
 
-    const draft = drinkDraftSchema.parse({
+    const draft = parse(drinkDraftSchema, {
       title: "Test Cocktail",
       slug: "test-cocktail",
       ingredients: "gin\ntonic",
@@ -378,14 +375,12 @@ describe("createAdminDrinksWriteService", () => {
   });
 
   test("updates through the transport-agnostic admin write boundary", async () => {
-    const purgeDrinkCache = vi
-      .fn<DrinksWriteEffects["purgeDrinkCache"]>()
-      .mockResolvedValue(undefined);
+    const purgeDrinkCache = mock.fn<DrinksWriteEffects["purgeDrinkCache"]>(async () => undefined);
     const adminWriteService = createAdminDrinksWriteService({
       db: getDb(),
       writeEffects: {
-        uploadImage: vi.fn<DrinksWriteEffects["uploadImage"]>(),
-        deleteImage: vi.fn<DrinksWriteEffects["deleteImage"]>(),
+        uploadImage: mock.fn<DrinksWriteEffects["uploadImage"]>(),
+        deleteImage: mock.fn<DrinksWriteEffects["deleteImage"]>(),
         purgeDrinkCache,
       },
     });
@@ -422,9 +417,9 @@ describe("createAdminDrinksWriteService", () => {
     const adminWriteService = createAdminDrinksWriteService({
       db: getDb(),
       writeEffects: {
-        uploadImage: vi.fn<DrinksWriteEffects["uploadImage"]>(),
-        deleteImage: vi.fn<DrinksWriteEffects["deleteImage"]>(),
-        purgeDrinkCache: vi.fn<DrinksWriteEffects["purgeDrinkCache"]>(),
+        uploadImage: mock.fn<DrinksWriteEffects["uploadImage"]>(),
+        deleteImage: mock.fn<DrinksWriteEffects["deleteImage"]>(),
+        purgeDrinkCache: mock.fn<DrinksWriteEffects["purgeDrinkCache"]>(),
       },
     });
 
@@ -464,14 +459,12 @@ describe("createAdminDrinksWriteService", () => {
   });
 
   test("deletes through the transport-agnostic admin write boundary", async () => {
-    const deleteImage = vi.fn<DrinksWriteEffects["deleteImage"]>().mockResolvedValue(undefined);
-    const purgeDrinkCache = vi
-      .fn<DrinksWriteEffects["purgeDrinkCache"]>()
-      .mockResolvedValue(undefined);
+    const deleteImage = mock.fn<DrinksWriteEffects["deleteImage"]>(async () => undefined);
+    const purgeDrinkCache = mock.fn<DrinksWriteEffects["purgeDrinkCache"]>(async () => undefined);
     const adminWriteService = createAdminDrinksWriteService({
       db: getDb(),
       writeEffects: {
-        uploadImage: vi.fn<DrinksWriteEffects["uploadImage"]>(),
+        uploadImage: mock.fn<DrinksWriteEffects["uploadImage"]>(),
         deleteImage,
         purgeDrinkCache,
       },
@@ -491,14 +484,12 @@ describe("createAdminDrinksWriteService", () => {
   });
 
   test("returns a typed not-found outcome when admin delete cannot find a drink", async () => {
-    const deleteImage = vi.fn<DrinksWriteEffects["deleteImage"]>().mockResolvedValue(undefined);
-    const purgeDrinkCache = vi
-      .fn<DrinksWriteEffects["purgeDrinkCache"]>()
-      .mockResolvedValue(undefined);
+    const deleteImage = mock.fn<DrinksWriteEffects["deleteImage"]>(async () => undefined);
+    const purgeDrinkCache = mock.fn<DrinksWriteEffects["purgeDrinkCache"]>(async () => undefined);
     const adminWriteService = createAdminDrinksWriteService({
       db: getDb(),
       writeEffects: {
-        uploadImage: vi.fn<DrinksWriteEffects["uploadImage"]>(),
+        uploadImage: mock.fn<DrinksWriteEffects["uploadImage"]>(),
         deleteImage,
         purgeDrinkCache,
       },
@@ -514,10 +505,10 @@ describe("createAdminDrinksWriteService", () => {
   test("returns typed slug error when creating with a duplicate slug", async () => {
     const service = testAdminDrinksWriteService({
       writeEffects: {
-        uploadImage: vi.fn<DrinksWriteEffects["uploadImage"]>().mockResolvedValue({
+        uploadImage: mock.fn<DrinksWriteEffects["uploadImage"]>(async () => ({
           url: "https://ik.imagekit.io/test/drinks/test-margarita.jpg",
           fileId: "new-file-id",
-        }),
+        })),
       },
     });
 
@@ -543,11 +534,9 @@ describe("createAdminDrinksWriteService", () => {
   });
 
   test("updates an existing drink without replacing its image", async () => {
-    const uploadImage = vi.fn<DrinksWriteEffects["uploadImage"]>();
-    const deleteImage = vi.fn<DrinksWriteEffects["deleteImage"]>();
-    const purgeDrinkCache = vi
-      .fn<DrinksWriteEffects["purgeDrinkCache"]>()
-      .mockResolvedValue(undefined);
+    const uploadImage = mock.fn<DrinksWriteEffects["uploadImage"]>();
+    const deleteImage = mock.fn<DrinksWriteEffects["deleteImage"]>();
+    const purgeDrinkCache = mock.fn<DrinksWriteEffects["purgeDrinkCache"]>(async () => undefined);
 
     const service = testAdminDrinksWriteService({
       writeEffects: {
@@ -557,7 +546,7 @@ describe("createAdminDrinksWriteService", () => {
       },
     });
 
-    const draft = drinkDraftSchema.parse({
+    const draft = parse(drinkDraftSchema, {
       title: "Updated Margarita",
       slug: "test-margarita",
       ingredients: "3 oz tequila\n1.5 oz lime juice",
@@ -607,9 +596,7 @@ describe("createAdminDrinksWriteService", () => {
   });
 
   test("invalidates both old and new detail pages when a drink slug changes", async () => {
-    const purgeDrinkCache = vi
-      .fn<DrinksWriteEffects["purgeDrinkCache"]>()
-      .mockResolvedValue(undefined);
+    const purgeDrinkCache = mock.fn<DrinksWriteEffects["purgeDrinkCache"]>(async () => undefined);
     const service = testAdminDrinksWriteService({
       writeEffects: {
         purgeDrinkCache,
@@ -639,16 +626,14 @@ describe("createAdminDrinksWriteService", () => {
   test("returns warning metadata when old image cleanup fails after a successful update", async () => {
     const service = testAdminDrinksWriteService({
       writeEffects: {
-        uploadImage: vi.fn<DrinksWriteEffects["uploadImage"]>().mockResolvedValue({
+        uploadImage: mock.fn<DrinksWriteEffects["uploadImage"]>(async () => ({
           url: "https://ik.imagekit.io/test/drinks/test-margarita.jpg",
           fileId: "replacement-file-id",
+        })),
+        deleteImage: mock.fn<DrinksWriteEffects["deleteImage"]>(async () => {
+          throw new Error("cleanup failed");
         }),
-        deleteImage: vi
-          .fn<DrinksWriteEffects["deleteImage"]>()
-          .mockRejectedValue(new Error("cleanup failed")),
-        purgeDrinkCache: vi
-          .fn<DrinksWriteEffects["purgeDrinkCache"]>()
-          .mockResolvedValue(undefined),
+        purgeDrinkCache: mock.fn<DrinksWriteEffects["purgeDrinkCache"]>(async () => undefined),
       },
     });
 
@@ -695,7 +680,7 @@ describe("searchPublishedDrinks", () => {
 
 describe("drinkDraftSchema", () => {
   test("accepts valid input", () => {
-    const result = drinkDraftSchema.safeParse({
+    const result = parseSafe(drinkDraftSchema, {
       title: "Margarita",
       slug: "margarita",
       ingredients: "tequila\nlime juice\ntriple sec",
@@ -710,7 +695,7 @@ describe("drinkDraftSchema", () => {
   });
 
   test("rejects invalid slug", () => {
-    const result = drinkDraftSchema.safeParse({
+    const result = parseSafe(drinkDraftSchema, {
       title: "Test",
       slug: "INVALID SLUG!!!",
       ingredients: "a",
@@ -725,7 +710,7 @@ describe("drinkDraftSchema", () => {
   });
 
   test("rejects missing title", () => {
-    const result = drinkDraftSchema.safeParse({
+    const result = parseSafe(drinkDraftSchema, {
       title: "",
       slug: "test",
       ingredients: "a",
@@ -740,7 +725,7 @@ describe("drinkDraftSchema", () => {
   });
 
   test("parses newline-separated ingredients", () => {
-    const result = drinkDraftSchema.safeParse({
+    const result = parseSafe(drinkDraftSchema, {
       title: "Test",
       slug: "test",
       ingredients: "gin\ntonic\nlime",
@@ -755,11 +740,11 @@ describe("drinkDraftSchema", () => {
     if (!result.success) {
       return;
     }
-    expect(result.data.ingredients).toEqual(["gin", "tonic", "lime"]);
+    expect(result.value.ingredients).toEqual(["gin", "tonic", "lime"]);
   });
 
   test("parses comma-separated tags", () => {
-    const result = drinkDraftSchema.safeParse({
+    const result = parseSafe(drinkDraftSchema, {
       title: "Test",
       slug: "test",
       ingredients: "a",
@@ -774,6 +759,6 @@ describe("drinkDraftSchema", () => {
     if (!result.success) {
       return;
     }
-    expect(result.data.tags).toEqual(["gin", "refreshing", "summer"]);
+    expect(result.value.tags).toEqual(["gin", "refreshing", "summer"]);
   });
 });

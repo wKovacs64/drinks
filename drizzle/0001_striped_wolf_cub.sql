@@ -1,1 +1,0 @@
-CREATE INDEX `drinks_updated_at_idx` ON `drinks` (`updated_at`);

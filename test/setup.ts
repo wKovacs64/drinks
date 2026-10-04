@@ -1,10 +1,9 @@
-import { afterAll, afterEach, beforeAll } from "vitest";
-import { migrate } from "drizzle-orm/better-sqlite3/migrator";
-import { getDb } from "#/app/db/client.server";
-import { server } from "./server";
+import { afterAll, afterEach, beforeAll } from "remix/test";
+import { migrateDatabase } from "#/scripts/migrate.ts";
+import { server } from "./server.ts";
 
 // Ensure schema exists (test DB may be empty)
-migrate(getDb(), { migrationsFolder: "./drizzle" });
+await migrateDatabase();
 
 beforeAll(() => {
   server.listen({ onUnhandledRequest: "error" });

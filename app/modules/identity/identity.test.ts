@@ -1,5 +1,6 @@
-import { describe, expect, test } from "vitest";
-import { safeRedirectTo } from "./identity.server";
+import { describe, test } from "remix/test";
+import { expect } from "remix/assert";
+import { safeRedirectTo } from "./identity.server.ts";
 
 describe("safeRedirectTo", () => {
   test("returns the path for a valid relative URL", () => {

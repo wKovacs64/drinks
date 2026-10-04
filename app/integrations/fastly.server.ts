@@ -1,4 +1,4 @@
-import { getEnvVars } from "#/app/core/env.server";
+import { getEnvVars } from "#/app/core/env.server.ts";
 
 export function getSurrogateKeyForTagSlug(tagSlug: string) {
   return tagSlug;
@@ -9,7 +9,8 @@ function getSurrogateKeyForCanonicalTag(tag: string) {
 }
 
 async function purgeFastlyCache(surrogateKeys: string[]): Promise<void> {
-  const { FASTLY_SERVICE_ID, FASTLY_PURGE_API_KEY } = getEnvVars();
+  const { FASTLY_SERVICE_ID, FASTLY_PURGE_API_KEY, NODE_ENV } = getEnvVars();
+  if (NODE_ENV === "development") return;
   if (!FASTLY_SERVICE_ID || !FASTLY_PURGE_API_KEY) {
     console.log("Fastly not configured, skipping cache purge");
     return;

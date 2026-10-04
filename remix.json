@@ -1,0 +1,36 @@
+{
+  "$schema": "./node_modules/remix/schema/remix.json",
+  "assets": {
+    "rootDir": ".",
+    "basePath": "/assets",
+    "mounts": {
+      "app": "app",
+      "npm": "node_modules",
+      "public": "public"
+    },
+    "allowFiles": ["app/ui/**", "app/core/images.ts", "app/core/strings.ts", "public/app.css"],
+    "allowPackages": ["remix", "@sindresorhus/slugify", "@unpic/core", "unpic"],
+    "denyFiles": ["**/*.test.*", "**/*.server.*"]
+  },
+  "test": {
+    "files": ["app/modules/**/*.test.ts", "test/e2e/**/*.test.e2e.ts"],
+    "type": ["server", "e2e"],
+    "concurrency": 1,
+    "pool": "forks",
+    "playwright": {
+      "configFile": "./test/browser.config.ts"
+    }
+  },
+  "db": {
+    "adapter": {
+      "type": "sqlite",
+      "filename": {
+        "env": "DATABASE_URL"
+      },
+      "foreignKeys": true
+    },
+    "migrations": {
+      "directory": "./app/db/migrations"
+    }
+  }
+}

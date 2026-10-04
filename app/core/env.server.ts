@@ -1,50 +1,26 @@
-import { z } from "zod";
-
-// Note: if you add or update any environment variables, you'll probably need to purge the CDN
-// cache, otherwise the changes won't take effect until the cache expires.
-
-const envSchema = z.object({
-  COMMIT_SHA: z.string().min(1).default("unknown"),
-  DEPLOYMENT_ENV: z.string().min(1).default("preview"),
-  SITE_IMAGE_URL: z.string().min(1),
-  SITE_IMAGE_ALT: z.string().min(1),
-
-  // Database
-  DATABASE_URL: z.string().default("./data/drinks.db"),
-
-  // ImageKit
-  IMAGEKIT_PUBLIC_KEY: z.string().min(1),
-  IMAGEKIT_PRIVATE_KEY: z.string().min(1),
-  IMAGEKIT_URL_ENDPOINT: z.string().min(1),
-
-  // Google OAuth
-  GOOGLE_CLIENT_ID: z.string().min(1),
-  GOOGLE_CLIENT_SECRET: z.string().min(1),
-  GOOGLE_REDIRECT_URI: z.string().min(1),
-
-  // Session
-  SESSION_SECRET: z.string().min(1),
-
-  // Node environment
-  NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
-
-  // CDN
-  FASTLY_SERVICE_ID: z.string().optional(),
-  FASTLY_PURGE_API_KEY: z.string().optional(),
+import { defaulted, enum_, object, optional, parseSafe, string } from "remix/data-schema";
+const requiredString = () => string().refine((value) => value.length > 0, "Required");
+const envSchema = object({
+  COMMIT_SHA: defaulted(requiredString(), "unknown"),
+  DEPLOYMENT_ENV: defaulted(requiredString(), "preview"),
+  SITE_IMAGE_URL: requiredString(),
+  SITE_IMAGE_ALT: requiredString(),
+  DATABASE_URL: defaulted(string(), "./data/drinks.db"),
+  IMAGEKIT_PUBLIC_KEY: requiredString(),
+  IMAGEKIT_PRIVATE_KEY: requiredString(),
+  IMAGEKIT_URL_ENDPOINT: requiredString(),
+  GOOGLE_CLIENT_ID: requiredString(),
+  GOOGLE_CLIENT_SECRET: requiredString(),
+  GOOGLE_REDIRECT_URI: requiredString(),
+  SESSION_SECRET: requiredString(),
+  NODE_ENV: defaulted(enum_(["development", "production", "test"]), "development"),
+  FASTLY_SERVICE_ID: optional(string()),
+  FASTLY_PURGE_API_KEY: optional(string()),
 });
-
 export function getEnvVars() {
-  try {
-    return envSchema.parse(process.env);
-  } catch (parseError) {
-    if (parseError instanceof z.ZodError) {
-      const offendingEnvVars = Object.keys(z.flattenError(parseError).fieldErrors).join(", ");
-      const envVarError = new Error(
-        `Missing or invalid environment variables: ${offendingEnvVars}`,
-      );
-      envVarError.stack = undefined;
-      throw envVarError;
-    }
-    throw parseError;
-  }
+  const result = parseSafe(envSchema, process.env);
+  if (result.success) return result.value;
+  throw new Error(
+    `Missing or invalid environment variables: ${result.issues.map((issue) => issue.path?.filter((segment): segment is string | number => typeof segment === "string" || typeof segment === "number").join(".")).join(", ")}`,
+  );
 }

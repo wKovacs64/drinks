@@ -38,11 +38,13 @@ ENV PNPM_CONFIG_VERIFY_DEPS_BEFORE_RUN="false"
 ENV PORT="8080"
 
 COPY --from=prod-deps /app/node_modules /app/node_modules
-COPY --from=build /app/build /app/build
+COPY --from=build /app/app /app/app
+COPY --from=build /app/scripts /app/scripts
+COPY --from=build /app/server.ts /app/server.ts
+COPY --from=build /app/tsconfig.json /app/tsconfig.json
 COPY --from=build /app/public /app/public
-COPY --from=build /app/drizzle /app/drizzle
-COPY --from=build /app/drizzle.config.ts /app/drizzle.config.ts
 COPY --from=build /app/package.json /app/package.json
+COPY --from=build /app/remix.json /app/remix.json
 COPY --from=build /app/pnpm-workspace.yaml /app/pnpm-workspace.yaml
 COPY --from=build /app/start.sh /app/start.sh
 

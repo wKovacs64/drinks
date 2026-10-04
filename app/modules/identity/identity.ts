@@ -1,4 +1,4 @@
-import type { User } from "#/app/db/schema";
+import type { User } from "#/app/db/schema.ts";
 
 export type SessionUser = {
   id: User["id"];
@@ -7,8 +7,6 @@ export type SessionUser = {
   avatarUrl: User["avatarUrl"];
   role: User["role"];
 };
-
-export type AuthenticatedUser = SessionUser;
 
 export interface IdentityService {
   getSessionUser(input: { userId: User["id"] }): Promise<SessionUser | null>;

@@ -3,4 +3,7 @@
 .DS_Store
 .env
 /.cache
-/build
+
+/data
+/public/uploads
+/.playwright-mcp

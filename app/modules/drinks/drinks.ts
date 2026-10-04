@@ -1,5 +1,5 @@
-import { z } from "zod";
-import { drinkDraftSchema, drinkStatusValues } from "./drinks-schemas";
+import type { InferOutput } from "remix/data-schema";
+import { drinkDraftSchema, drinkStatusValues } from "./drinks-schemas.ts";
 
 export type DrinkStatus = (typeof drinkStatusValues)[number];
 
@@ -25,7 +25,7 @@ export type DrinkView = {
 
 export { drinkDraftSchema, drinkStatusValues };
 
-export type DrinkDraft = z.infer<typeof drinkDraftSchema>;
+export type DrinkDraft = InferOutput<typeof drinkDraftSchema>;
 
 export type DrinkEditor = {
   mode: "create" | "edit";

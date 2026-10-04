@@ -6,7 +6,7 @@ skills are agent tooling, not project dependencies.
 ## Skill Sequence
 
 1. Clarify behavior and domain terms. Use `domain-modeling` when terminology or relationships need
-   work; keep applicable definitions in `CONTEXT.md` and decisions in `docs/adr/`.
+   work; keep applicable definitions in `GLOSSARY.md` and decisions in `docs/adr/`.
 2. Define ownership and public seams before changing module boundaries. Use `codebase-design` for
    interface design and deepening; update `docs/architecture.md` when the contract changes.
 3. For substantial work needing a tracked spec or implementation slices, use the conventions in
@@ -34,7 +34,7 @@ work while clarification is pending.
 
 ## Related Docs
 
-- `CONTEXT.md` — project language and domain notes
+- `GLOSSARY.md` — project language and domain notes
 - `docs/architecture.md` — module boundaries, route conventions, and auth seams
 - `docs/testing.md` — test boundaries, tools, and conventions
 - `docs/adr/` — durable architecture decisions

@@ -1,46 +1,36 @@
 # Development Workflow
 
-This project uses a skill-driven workflow that scales by task size. Not every task needs every
-skill, but every task should begin at the right point in the sequence so requirements, design, and
-implementation stay aligned.
+Scale the workflow to the task. Use relevant skills when they are available in the current session;
+skills are agent tooling, not project dependencies.
 
 ## Skill Sequence
 
-The full sequence, in order:
-
-| Step | Skill                           | Purpose                                                        |
-| ---- | ------------------------------- | -------------------------------------------------------------- |
-| 1    | `domain-model`                  | Clarify the domain, name concepts, and resolve design choices  |
-| 2    | `to-prd`                        | Convert the agreed direction into a requirements/design issue  |
-| 3    | `to-issues`                     | Split the PRD into independently shippable vertical slices     |
-| 4    | `tdd`                           | Implement each slice with a red-green-refactor loop            |
-| 5    | `improve-codebase-architecture` | Find deepening/refactoring opportunities after meaningful work |
+1. Clarify behavior and domain terms. Use `domain-modeling` when terminology or relationships need
+   work; keep applicable definitions in `CONTEXT.md` and decisions in `docs/adr/`.
+2. Define ownership and public seams before changing module boundaries. Use `codebase-design` for
+   interface design and deepening; update `docs/architecture.md` when the contract changes.
+3. For substantial work needing a tracked spec or implementation slices, use the conventions in
+   `docs/agents/issue-tracker.md` to capture the agreed scope.
+4. Implement features and bug fixes with `tdd`, using the boundaries in `docs/testing.md`.
+5. Complete the checks appropriate to the change. `pnpm validate` runs formatting, lint, types,
+   and tests; `pnpm build` prepares assets and checks types. Documentation-only changes
+   need formatting and verification of their references and claims.
 
 ## When to Use What
 
-| Task type                                      | Recommended skills                               |
-| ---------------------------------------------- | ------------------------------------------------ |
-| New feature, new module, or ambiguous behavior | `domain-model` → `to-prd` → `to-issues` → `tdd`  |
-| Complex bug fix or behavior change             | `domain-model` → `tdd`                           |
-| Small, well-understood bug fix                 | `tdd`                                            |
-| Documentation-only clarification               | Usually no skill; use the relevant docs directly |
-| Architecture review after a larger change      | `improve-codebase-architecture`                  |
-
-## Skill Guidance
-
-- Use `domain-model` when the language, boundaries, user goals, or data relationships are unclear.
-  Capture durable conclusions in `CONTEXT.md`, `docs/architecture.md`, or an ADR when appropriate.
-- Use `to-prd` for work that needs an explicit requirements checkpoint before implementation.
-- Use `to-issues` when the PRD should become independently grabbable implementation slices.
-- Use `tdd` for implementation and bug fixes. Follow `docs/testing.md` when choosing the test
-  boundary and tool.
-- Use `improve-codebase-architecture` occasionally after major development sessions or when the
-  codebase feels harder to navigate. Do not run it after every small change.
+| Task type                          | Recommended skills                                    |
+| ---------------------------------- | ----------------------------------------------------- |
+| New domain behavior or terminology | `domain-modeling`, then `tdd` for implementation      |
+| Module interface changes           | `codebase-design`, then `tdd` for implementation      |
+| Small, well-understood bug fix     | `tdd`                                                 |
+| Difficult bug or regression        | `diagnosing-bugs`, then `tdd`                         |
+| Documentation-only clarification   | Consult the relevant docs and implementation directly |
+| Requested review of changes        | `code-review`                                         |
 
 ## Bailout Rule
 
-If any step uncovers unresolved domain or architecture questions, stop moving forward and return to
-`domain-model` before continuing.
+Resolve domain or ownership uncertainty before implementing dependent changes. Continue independent
+work while clarification is pending.
 
 ## Related Docs
 

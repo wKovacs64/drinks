@@ -2,9 +2,10 @@ packages:
   - "."
 
 allowBuilds:
-  better-sqlite3: false
   esbuild: false
   msw: false
-  unrs-resolver: false
+  "@parcel/watcher": true
 
 minimumReleaseAge: 1440
+minimumReleaseAgeExclude:
+  - "@wkovacs64/oxlint-config@0.3.0"

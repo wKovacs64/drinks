@@ -1,40 +1,59 @@
-import { redirect, href } from "react-router";
-import { getClientIPAddress } from "remix-utils/get-client-ip-address";
-import type { AuthenticatedUser } from "./identity";
-import { getAuthenticator } from "./identity-authenticator.server";
-import { safeRedirectTo } from "./identity-navigation.server";
-import { commitSession, destroySession, getSession } from "./identity-session.server";
-
-export async function initiateLogin(request: Request): Promise<Response> {
-  await getAuthenticator().authenticate("google", request);
-  const session = await getSession(request.headers.get("Cookie"));
-  return redirect(safeRedirectTo(session.get("returnTo")));
+import {
+  completeAuth,
+  finishExternalAuth,
+  startExternalAuth,
+  createGoogleAuthProvider,
+} from "remix/auth";
+import type { ContextEntries, RequestContext } from "remix/router";
+import { redirect } from "remix/response/redirect";
+import { Session } from "remix/session";
+import { getEnvVars } from "#/app/core/env.server.ts";
+import { getDb } from "#/app/db/client.server.ts";
+import { updateIdentityUserOnLogin } from "./identity-persistence.server.ts";
+import { safeRedirectTo } from "./identity-navigation.server.ts";
+let provider: ReturnType<typeof createGoogleAuthProvider> | undefined;
+function getProvider() {
+  const env = getEnvVars();
+  provider ??= createGoogleAuthProvider({
+    clientId: env.GOOGLE_CLIENT_ID,
+    clientSecret: env.GOOGLE_CLIENT_SECRET,
+    redirectUri: new URL(env.GOOGLE_REDIRECT_URI),
+    scopes: ["openid", "email", "profile"],
+  });
+  return provider;
 }
-
-export async function authenticate(request: Request): Promise<Response> {
-  let authenticatedUser: AuthenticatedUser | undefined;
-
+export async function initiateLogin(
+  context: RequestContext<Record<string, string>, ContextEntries>,
+): Promise<Response> {
+  const savedReturnTo = context.get(Session)?.get("returnTo");
+  return startExternalAuth(getProvider(), context, {
+    returnTo: safeRedirectTo(typeof savedReturnTo === "string" ? savedReturnTo : undefined),
+  });
+}
+export async function authenticate(
+  context: RequestContext<Record<string, string>, ContextEntries>,
+): Promise<Response> {
   try {
-    authenticatedUser = await getAuthenticator().authenticate("google", request);
+    const { result, returnTo } = await finishExternalAuth(getProvider(), context);
+    if (!result.profile.email || !result.profile.email_verified) return redirect("/login-failed");
+    const user = await updateIdentityUserOnLogin(getDb(), {
+      email: result.profile.email,
+      name: result.profile.name ?? null,
+      avatarUrl: result.profile.picture ?? null,
+    });
+    if (!user) return redirect("/login-failed");
+    const session = completeAuth(context);
+    session.set("userId", user.id);
+    return redirect(safeRedirectTo(returnTo));
   } catch (error) {
-    console.error(error);
-    console.error(`[auth|callback-error] Client IP address: ${getClientIPAddress(request)}`);
-    console.error(`[auth|callback-error] User-Agent: ${request.headers.get("User-Agent")}`);
-    return redirect(href("/login-failed"));
+    console.error(
+      "Google authentication failed",
+      error instanceof Error ? error.message : "Unknown error",
+    );
+    return redirect("/login-failed");
   }
-
-  const session = await getSession(request.headers.get("Cookie"));
-  session.set("user", authenticatedUser);
-
-  return redirect(safeRedirectTo(session.get("returnTo")), {
-    headers: { "Set-Cookie": await commitSession(session) },
-  });
 }
-
-export async function logout(request: Request): Promise<Response> {
-  const session = await getSession(request.headers.get("Cookie"));
-
-  return redirect(href("/"), {
-    headers: { "Set-Cookie": await destroySession(session) },
-  });
+export function logout(context: RequestContext<Record<string, string>, ContextEntries>): Response {
+  context.get(Session)?.destroy();
+  return redirect("/");
 }

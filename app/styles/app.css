@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./image-crop.css";
 
 @theme {
   --color-maroon: #6d372a;
@@ -62,4 +63,97 @@
 
 .drinks-focusable {
   @apply ease-default transition-shadow focus-visible:ring-3 focus-visible:ring-blue-500/50 focus-visible:outline-hidden;
+}
+
+@font-face {
+  font-family: "Source Sans 3";
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url("/fonts/source-sans-3-latin-300-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Source Sans 3";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/source-sans-3-latin-400-normal.woff2") format("woff2");
+}
+.bg-app-image {
+  background-image: url("/images/background-768.jpg");
+}
+@media (min-width: 1024px) {
+  .bg-app-image {
+    background-image: url("/images/background-2078.jpg");
+  }
+}
+.drink-toast {
+  position: fixed;
+  z-index: 999999;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 4px 12px #0000001a;
+  touch-action: none;
+  transition:
+    transform 400ms,
+    opacity 400ms;
+  transform: translateY(0);
+  opacity: 1;
+}
+.drink-toast span {
+  line-height: 1.5;
+}
+.drink-toast-icon {
+  display: flex;
+  align-items: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  margin-left: -3px;
+  margin-right: 4px;
+}
+.drink-toast-icon svg {
+  flex-shrink: 0;
+  margin-left: -1px;
+}
+.drink-toast[data-removed="true"] {
+  transform: translateY(100%);
+  opacity: 0;
+}
+@starting-style {
+  .drink-toast {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+.toast-success {
+  background: hsl(143, 85%, 96%);
+  border-color: hsl(145, 92%, 87%);
+  color: hsl(140, 100%, 27%);
+}
+.toast-warning {
+  background: hsl(49, 100%, 97%);
+  border-color: hsl(49, 91%, 84%);
+  color: hsl(31, 92%, 45%);
+}
+.toast-error {
+  background: hsl(359, 100%, 97%);
+  border-color: hsl(359, 100%, 94%);
+  color: hsl(360, 100%, 45%);
+}
+@media (max-width: 600px) {
+  .drink-toast {
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+  }
 }

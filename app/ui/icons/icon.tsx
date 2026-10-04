@@ -1,20 +1,20 @@
-import iconsSpriteUrl from "./icons-sprite.svg";
-// @ts-ignore generated
-import type { IconName } from "./types";
-
-export { iconsSpriteUrl, type IconName };
-
-export function Icon({
-  name,
-  size = "1em",
-  ...props
-}: React.SVGProps<SVGSVGElement> & {
-  name: IconName;
-  size?: React.SVGAttributes<SVGSVGElement>["width"];
-}) {
-  return (
-    <svg width={size} height={size} {...props}>
-      <use href={`${iconsSpriteUrl}#${name}`} />
-    </svg>
-  );
+import type { Handle, Props } from "remix/component";
+const iconsSpriteUrl = "/icons-sprite.svg";
+export type IconName =
+  | "github"
+  | "broken_glass"
+  | "mdi-shield-lock-outline"
+  | "mdi-login"
+  | "ic-baseline-search"
+  | "ic-baseline-chevron-right"
+  | "ic-baseline-arrow-upward";
+export function Icon(handle: Handle<Props<"svg"> & { name: IconName; size?: number | string }>) {
+  return () => {
+    const { name, size = "1em", ...props } = handle.props;
+    return (
+      <svg width={size} height={size} {...props}>
+        <use href={`${iconsSpriteUrl}#${name}`} />
+      </svg>
+    );
+  };
 }

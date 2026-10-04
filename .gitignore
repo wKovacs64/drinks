@@ -239,27 +239,23 @@ $RECYCLE.BIN/
 # Manual exclusions
 !**/.gitkeep
 
-# React Router
-/.cache
-/.react-router
-/build
-.env
-
-# Generated SVG icons sprite and correpsonding types
-/app/ui/icons/icons-sprite.svg
-/app/ui/icons/types.ts
-
 # Service worker in development mode
 public/sw.js
 
 # Playwright
 /.playwright
 /.playwright-cli
-playwright/report
-playwright/results
 
 # Claude Code
 /.claude
 
 # Local dev database
 /data
+
+# Remix generated assets and local uploads
+/public/app.css
+/public/fonts/
+/public/images/
+/public/icons-sprite.svg
+/public/uploads/
+/.playwright-mcp/

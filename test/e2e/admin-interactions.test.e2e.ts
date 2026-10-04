@@ -8,11 +8,20 @@ test("admin filter searches tags and Escape restores the list", async (testConte
   await pageAsAdmin.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
   const filter = pageAsAdmin.getByRole("textbox", { name: "Filter drinks" });
   await filter.fill("citrus");
+  await pageAsAdmin.waitForFunction(() => document.querySelectorAll("tbody tr").length === 2);
   expect(await pageAsAdmin.locator("tbody tr").count()).toBe(2);
   expect(
     await pageAsAdmin.getByRole("cell", { name: "Test Old Fashioned", exact: true }).count(),
   ).toBe(0);
   await filter.press("Escape");
+  await pageAsAdmin.waitForFunction(() => {
+    const filterInput = document.querySelector('input[aria-label="Filter drinks"]');
+    return (
+      filterInput instanceof HTMLInputElement &&
+      filterInput.value === "" &&
+      document.querySelectorAll("tbody tr").length === 3
+    );
+  });
   expect(await filter.inputValue()).toBe("");
   expect(await pageAsAdmin.locator("tbody tr").count()).toBe(3);
 });
@@ -23,14 +32,26 @@ test("sorting cycles ascending, descending, and the original order", async (test
   await pageAsAdmin.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
   const titles = pageAsAdmin.locator("tbody tr td:first-child");
   const initialOrder = await titles.allTextContents();
+  const waitForTitleOrder = (expectedTitles: string[]) =>
+    pageAsAdmin.waitForFunction((expectedOrder) => {
+      const actualTitles = Array.from(
+        document.querySelectorAll("tbody tr td:first-child"),
+        (cell) => cell.textContent,
+      );
+      return (
+        actualTitles.length === expectedOrder.length &&
+        actualTitles.every((title, index) => title === expectedOrder[index])
+      );
+    }, expectedTitles);
   const sort = pageAsAdmin.getByRole("button", { name: "Calories" });
   await sort.click();
-  await titles.first().waitFor();
+  await waitForTitleOrder(["Test Mojito", "Test Old Fashioned", "Test Margarita"]);
   expect(await titles.first().innerText()).toContain("Test Mojito");
   await sort.click();
-  await titles.first().waitFor();
+  await waitForTitleOrder(["Test Margarita", "Test Old Fashioned", "Test Mojito"]);
   expect(await titles.first().innerText()).toContain("Test Margarita");
   await sort.click();
+  await waitForTitleOrder(initialOrder);
   expect(await titles.allTextContents()).toEqual(initialOrder);
 });
 
@@ -39,6 +60,10 @@ test("automatic slug stops changing after a manual edit", async (testContext) =>
   await pageAsAdmin.goto("/admin/drinks/new");
   await pageAsAdmin.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
   await pageAsAdmin.getByLabel("Title", { exact: true }).fill("Café & Whiskey Sour");
+  await pageAsAdmin.waitForFunction(() => {
+    const slugInput = document.querySelector('input[name="slug"]');
+    return slugInput instanceof HTMLInputElement && slugInput.value === "cafe-and-whiskey-sour";
+  });
   expect(await pageAsAdmin.getByLabel("Slug", { exact: true }).inputValue()).toBe(
     "cafe-and-whiskey-sour",
   );
@@ -46,6 +71,10 @@ test("automatic slug stops changing after a manual edit", async (testContext) =>
   await pageAsAdmin.getByLabel("Title", { exact: true }).fill("Another Name");
   expect(await pageAsAdmin.getByLabel("Slug", { exact: true }).inputValue()).toBe("my-sour");
   await pageAsAdmin.getByRole("button", { name: "Unpublished", exact: true }).click();
+  await pageAsAdmin.waitForFunction(() => {
+    const statusInput = document.querySelector('input[name="status"]');
+    return statusInput instanceof HTMLInputElement && statusInput.value === "unpublished";
+  });
   expect(await pageAsAdmin.locator('input[name="status"]').inputValue()).toBe("unpublished");
 });
 
@@ -56,7 +85,7 @@ test("duplicate slug preserves edits and displays validation", async (testContex
   await pageAsAdmin.getByLabel("Title", { exact: true }).fill("Edited Margarita");
   await pageAsAdmin.getByLabel("Slug", { exact: true }).fill("test-mojito");
   await pageAsAdmin.getByRole("button", { name: "Update Drink" }).click();
-  await pageAsAdmin.getByRole("alert").waitFor();
+  await pageAsAdmin.getByRole("alert").filter({ hasText: "Slug already exists" }).waitFor();
   expect(await pageAsAdmin.getByRole("alert").innerText()).toContain("Slug already exists");
   expect(await pageAsAdmin.getByLabel("Title", { exact: true }).inputValue()).toBe(
     "Edited Margarita",
@@ -122,6 +151,13 @@ test("image crop supports drawing and keyboard movement and uploads a square JPE
   await pageAsAdmin.mouse.down();
   await pageAsAdmin.mouse.move(bounds.x + 70, bounds.y + 70, { steps: 4 });
   await pageAsAdmin.mouse.up();
+  await pageAsAdmin.waitForFunction(() => {
+    const selectionElement = document.querySelector(".ReactCrop__crop-selection");
+    return (
+      selectionElement !== null &&
+      getComputedStyle(selectionElement).getPropertyValue("width") === "68px"
+    );
+  });
   expect(
     await selection.evaluate(
       (element, propertyName) => getComputedStyle(element).getPropertyValue(propertyName),
@@ -130,6 +166,13 @@ test("image crop supports drawing and keyboard movement and uploads a square JPE
   ).toBe("68px");
   await selection.focus();
   await selection.press("ArrowRight");
+  await pageAsAdmin.waitForFunction(() => {
+    const selectionElement = document.querySelector(".ReactCrop__crop-selection");
+    return (
+      selectionElement !== null &&
+      getComputedStyle(selectionElement).getPropertyValue("left") === "3px"
+    );
+  });
   expect(
     await selection.evaluate(
       (element, propertyName) => getComputedStyle(element).getPropertyValue(propertyName),
@@ -138,6 +181,13 @@ test("image crop supports drawing and keyboard movement and uploads a square JPE
   ).toBe("3px");
   await pageAsAdmin.locator(".ReactCrop__drag-handle.ord-se").focus();
   await pageAsAdmin.locator(".ReactCrop__drag-handle.ord-se").press("ArrowRight");
+  await pageAsAdmin.waitForFunction(() => {
+    const selectionElement = document.querySelector(".ReactCrop__crop-selection");
+    return (
+      selectionElement !== null &&
+      getComputedStyle(selectionElement).getPropertyValue("width") === "69px"
+    );
+  });
   expect(
     await selection.evaluate(
       (element, propertyName) => getComputedStyle(element).getPropertyValue(propertyName),
@@ -172,7 +222,7 @@ test("image crop supports drawing and keyboard movement and uploads a square JPE
   expect(capturedImage.width).toBeGreaterThan(0);
   expect(capturedImage.width).toBe(capturedImage.height);
   await pageAsAdmin.waitForURL("/admin/drinks");
-  await pageAsAdmin.getByRole("status").waitFor();
+  await pageAsAdmin.getByRole("status").filter({ hasText: "Drink updated!" }).waitFor();
   expect(await pageAsAdmin.getByRole("status").innerText()).toContain("Drink updated!");
 });
 
@@ -182,6 +232,7 @@ test("deletion preserves the active filter and later deletions show a fresh noti
   await pageAsAdmin.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
   const filter = pageAsAdmin.getByRole("textbox", { name: "Filter drinks" });
   await filter.fill("Test M");
+  await pageAsAdmin.waitForFunction(() => document.querySelectorAll("tbody tr").length === 2);
   expect(await pageAsAdmin.locator("tbody tr").count()).toBe(2);
   pageAsAdmin.on("dialog", (dialog) => dialog.accept());
   await pageAsAdmin
@@ -189,10 +240,11 @@ test("deletion preserves the active filter and later deletions show a fresh noti
     .filter({ has: pageAsAdmin.getByRole("cell", { name: "Test Mojito", exact: true }) })
     .getByRole("button", { name: "Delete" })
     .click();
-  expect(await filter.inputValue()).toBe("Test M");
   await pageAsAdmin
     .getByRole("cell", { name: "Test Mojito", exact: true })
     .waitFor({ state: "hidden" });
+  await pageAsAdmin.waitForFunction(() => document.querySelectorAll("tbody tr").length === 1);
+  expect(await filter.inputValue()).toBe("Test M");
   expect(await pageAsAdmin.locator("tbody tr").count()).toBe(1);
   await pageAsAdmin.getByRole("status").waitFor();
   await pageAsAdmin.getByRole("status").waitFor({ state: "hidden", timeout: 6000 });
@@ -205,8 +257,9 @@ test("deletion preserves the active filter and later deletions show a fresh noti
   await pageAsAdmin
     .getByRole("cell", { name: "Test Margarita", exact: true })
     .waitFor({ state: "hidden" });
+  await pageAsAdmin.waitForFunction(() => document.querySelectorAll("tbody tr").length === 0);
   expect(await pageAsAdmin.locator("tbody tr").count()).toBe(0);
-  await pageAsAdmin.getByRole("status").waitFor();
+  await pageAsAdmin.getByRole("status").filter({ hasText: "Drink deleted!" }).waitFor();
   expect(await pageAsAdmin.getByRole("status").innerText()).toContain("Drink deleted!");
   await pageAsAdmin.getByRole("status").waitFor();
 });

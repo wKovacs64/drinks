@@ -2,6 +2,8 @@ import "#/test/setup.ts";
 import { beforeEach, describe, mock, test } from "remix/test";
 import { expect } from "remix/assert";
 import { parse, parseSafe } from "remix/data-schema";
+import { http, HttpResponse } from "msw";
+import { server as requestMocks } from "#/test/server.ts";
 import { getDb } from "#/app/db/client.server.ts";
 import { drinks } from "#/app/db/schema.ts";
 import { resetAndSeedDatabase } from "#/test/database.ts";
@@ -60,6 +62,84 @@ function createReadOnlyService() {
 }
 
 describe("createDrinksService", () => {
+  test("reuses successful image placeholders across concurrent and repeated reads", async () => {
+    let imageRequests = 0;
+    requestMocks.use(
+      http.get("https://ik.imagekit.io/performance/reused-placeholder.jpg", () => {
+        imageRequests++;
+        return new HttpResponse(new Uint8Array([1, 2, 3]), {
+          headers: { "Content-Type": "image/webp" },
+        });
+      }),
+    );
+    await getDb().updateMany(
+      drinks,
+      { image_url: "https://ik.imagekit.io/performance/reused-placeholder.jpg?updatedAt=1" },
+      { where: { slug: "test-margarita" } },
+    );
+    const service = createReadOnlyService();
+    const [first, concurrent] = await Promise.all([
+      service.getDrinkBySlug({ slug: "test-margarita", viewerRole: "user" }),
+      service.getDrinkBySlug({ slug: "test-margarita", viewerRole: "user" }),
+    ]);
+    const repeated = await service.getDrinkBySlug({ slug: "test-margarita", viewerRole: "user" });
+    expect(first?.drink.image.blurDataUrl).toBe("data:image/webp;base64,AQID");
+    expect(concurrent?.drink.image.blurDataUrl).toBe(first?.drink.image.blurDataUrl);
+    expect(repeated?.drink.image.blurDataUrl).toBe(first?.drink.image.blurDataUrl);
+    expect(imageRequests).toBe(1);
+  });
+
+  test("loads a fresh placeholder when an image URL changes", async () => {
+    requestMocks.use(
+      http.get(
+        "https://ik.imagekit.io/performance/versioned-placeholder.jpg",
+        ({ request }) =>
+          new HttpResponse(
+            new Uint8Array([new URL(request.url).searchParams.get("updatedAt") === "1" ? 1 : 2]),
+            { headers: { "Content-Type": "image/webp" } },
+          ),
+      ),
+    );
+    const service = createReadOnlyService();
+    for (const [version, expectedPlaceholder] of [
+      ["1", "AQ=="],
+      ["2", "Ag=="],
+    ]) {
+      await getDb().updateMany(
+        drinks,
+        {
+          image_url: `https://ik.imagekit.io/performance/versioned-placeholder.jpg?updatedAt=${version}`,
+        },
+        { where: { slug: "test-margarita" } },
+      );
+      const result = await service.getDrinkBySlug({ slug: "test-margarita", viewerRole: "user" });
+      expect(result?.drink.image.blurDataUrl).toBe(`data:image/webp;base64,${expectedPlaceholder}`);
+    }
+  });
+
+  test("retries a failed placeholder request on the next read", async () => {
+    let imageRequests = 0;
+    requestMocks.use(
+      http.get("https://ik.imagekit.io/performance/retried-placeholder.jpg", () => {
+        imageRequests++;
+        return imageRequests === 1
+          ? new HttpResponse(null, { status: 503 })
+          : new HttpResponse(new Uint8Array([1]), { headers: { "Content-Type": "image/webp" } });
+      }),
+    );
+    await getDb().updateMany(
+      drinks,
+      { image_url: "https://ik.imagekit.io/performance/retried-placeholder.jpg" },
+      { where: { slug: "test-margarita" } },
+    );
+    const service = createReadOnlyService();
+    const failed = await service.getDrinkBySlug({ slug: "test-margarita", viewerRole: "user" });
+    expect(failed?.drink.image.blurDataUrl).toMatch(/^data:image\/gif;/);
+    const retried = await service.getDrinkBySlug({ slug: "test-margarita", viewerRole: "user" });
+    expect(retried?.drink.image.blurDataUrl).toBe("data:image/webp;base64,AQ==");
+    expect(imageRequests).toBe(2);
+  });
+
   test("returns published drinks", async () => {
     const publishedDrinks = await createDrinksService({ db: getDb() }).getPublishedDrinks();
 

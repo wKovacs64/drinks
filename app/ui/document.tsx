@@ -1,7 +1,15 @@
 import type { Handle, RemixNode } from "remix/component";
 import { ImportMap } from "remix/component/server";
-import { hmrClientHref, scriptEntry, stylesheetHref } from "#/app/assets.ts";
+import {
+  cropStylesheetHref,
+  hmrClientHref,
+  lightFontHref,
+  preloadAfterPaintHref,
+  scriptEntry,
+  stylesheetHref,
+} from "#/app/assets.ts";
 import { getEnvVars } from "#/app/core/env.server.ts";
+import { ImagePreload, type ImagePreloadProps } from "./drinks/image-preload.tsx";
 export function Document(
   handle: Handle<{
     children: RemixNode;
@@ -11,6 +19,10 @@ export function Document(
     socialImageAlt?: string;
     socialTitle?: string;
     socialDescription?: string;
+    preloadImages?: ImagePreloadProps[];
+    cropStyles?: boolean;
+    modulePreloads?: readonly string[];
+    deferModulePreloads?: boolean;
   }>,
 ) {
   return () => {
@@ -23,6 +35,10 @@ export function Document(
       socialImageAlt = env.SITE_IMAGE_ALT,
       socialTitle = "drinks.fyi",
       socialDescription = "Craft Cocktail Gallery",
+      preloadImages,
+      cropStyles = false,
+      modulePreloads = scriptEntry.preloads,
+      deferModulePreloads = true,
     } = handle.props;
     return (
       <html lang="en" className="m-0 min-h-screen p-0 leading-tight" data-commit={env.COMMIT_SHA}>
@@ -52,14 +68,40 @@ export function Document(
           <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png" />
           <link rel="manifest" href="/manifest.webmanifest" />
           <link rel="stylesheet" href={stylesheetHref} />
-          <ImportMap value={scriptEntry.importMap} />
-          {scriptEntry.preloads.map((href) => (
-            <link key={href} rel="modulepreload" href={href} />
+          {preloadImages?.some((image) => image.layout === "gallery") && (
+            <link
+              rel="preload"
+              as="font"
+              type="font/woff2"
+              href={lightFontHref}
+              crossOrigin="anonymous"
+            />
+          )}
+          {cropStyles && <link rel="stylesheet" href={cropStylesheetHref} />}
+          {preloadImages?.map((image) => (
+            <ImagePreload key={image.src} {...image} />
           ))}
-          <script type="module" src={scriptEntry.href}></script>
+          <ImportMap value={scriptEntry.importMap} />
+          {!deferModulePreloads &&
+            modulePreloads.map((href) => (
+              <link key={href} rel="modulepreload" href={href} fetchPriority="low" />
+            ))}
           {hmrClientHref && <script type="module" src={hmrClientHref}></script>}
         </head>
-        <body className="relative flex min-h-screen flex-col font-sans font-light">{children}</body>
+        <body className="relative flex min-h-screen flex-col font-sans font-light">
+          {children}
+          {deferModulePreloads && modulePreloads.length > 0 && (
+            <>
+              <template id="client-module-preloads">
+                {modulePreloads.map((href) => (
+                  <link key={href} rel="modulepreload" href={href} fetchPriority="low" />
+                ))}
+              </template>
+              <script type="module" src={preloadAfterPaintHref}></script>
+            </>
+          )}
+          <script type="module" src={scriptEntry.href}></script>
+        </body>
       </html>
     );
   };

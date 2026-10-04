@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "./image-crop.css";
 
 @theme {
   --color-maroon: #6d372a;
@@ -65,26 +64,30 @@
   @apply ease-default transition-shadow focus-visible:ring-3 focus-visible:ring-blue-500/50 focus-visible:outline-hidden;
 }
 
+.search-status[data-search-pending="true"] + .search-results {
+  display: none;
+}
+
 @font-face {
   font-family: "Source Sans 3";
   font-style: normal;
   font-weight: 300;
   font-display: swap;
-  src: url("/fonts/source-sans-3-latin-300-normal.woff2") format("woff2");
+  src: url("./fonts/source-sans-3-latin-300-normal.woff2") format("woff2");
 }
 @font-face {
   font-family: "Source Sans 3";
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url("/fonts/source-sans-3-latin-400-normal.woff2") format("woff2");
+  src: url("./fonts/source-sans-3-latin-400-normal.woff2") format("woff2");
 }
 .bg-app-image {
-  background-image: url("/images/background-768.jpg");
+  background-image: url("./images/background-768.jpg");
 }
 @media (min-width: 1024px) {
   .bg-app-image {
-    background-image: url("/images/background-2078.jpg");
+    background-image: url("./images/background-2078.jpg");
   }
 }
 .drink-toast {

@@ -8,7 +8,15 @@
       "npm": "node_modules",
       "public": "public"
     },
-    "allowFiles": ["app/ui/**", "app/core/images.ts", "app/core/strings.ts", "public/app.css"],
+    "allowFiles": [
+      "app/ui/**",
+      "app/core/images.ts",
+      "app/core/strings.ts",
+      "public/app.css",
+      "public/image-crop.css",
+      "public/fonts/**",
+      "public/images/**"
+    ],
     "allowPackages": ["remix", "@sindresorhus/slugify", "@unpic/core", "unpic"],
     "denyFiles": ["**/*.test.*", "**/*.server.*"]
   },

@@ -14,10 +14,10 @@ import {
   createReturnToUrl,
 } from "#/app/modules/identity/identity.server.ts";
 import controller from "./actions/controller.tsx";
-import { assets } from "./assets.ts";
+import { renderAssets } from "./assets.ts";
 import { routes } from "./routes.ts";
 const renderMiddleware = render({
-  assets,
+  assets: renderAssets,
   onError: (error) => console.error("Remix rendering failed", error),
 });
 const sessionMiddleware = getIdentitySessionMiddleware();

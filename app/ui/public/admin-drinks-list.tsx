@@ -1,12 +1,16 @@
-import { clientEntry, on, type Handle } from "remix/component";
+import { clientEntry, on, type Handle, type RemixNode } from "remix/component";
 import { classes } from "#/app/core/strings.ts";
 import { Link } from "#/app/ui/navigation/link.tsx";
-import { createHref as href } from "remix/route-pattern/href";
-import { Image } from "#/app/ui/public/image.tsx";
 import type { AdminDrinkListItem } from "#/app/modules/drinks/drinks.ts";
 type Drink = Omit<AdminDrinkListItem, "createdAt" | "updatedAt"> & {
   createdAt: string;
   updatedAt: string;
+  presentation: {
+    thumbnail: RemixNode;
+    detailHref: string;
+    editHref: string;
+    deleteAction: string;
+  };
 };
 
 type SortableColumn = "title" | "slug" | "calories" | "rank" | "status" | "createdAt" | "updatedAt";
@@ -44,14 +48,16 @@ function matchesFilter(value: unknown, filter: string): boolean {
   return false;
 }
 
+const timestampFormatter = new Intl.DateTimeFormat("en-US", {
+  year: "numeric",
+  month: "short",
+  day: "numeric",
+  hour: "numeric",
+  minute: "2-digit",
+});
+
 function formatTimestamp(timestamp: string) {
-  return new Intl.DateTimeFormat("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(new Date(timestamp));
+  return timestampFormatter.format(new Date(timestamp));
 }
 
 function DrinkRow(handle: Handle<{ drink: Drink }>) {
@@ -62,15 +68,9 @@ function DrinkRow(handle: Handle<{ drink: Drink }>) {
       <tr className="border-b border-zinc-800/50 hover:bg-zinc-800/30">
         <td className="py-3 pr-4 whitespace-nowrap">
           <div className="flex items-center gap-3">
-            <Image
-              src={drink.imageUrl}
-              width={32}
-              height={32}
-              alt=""
-              className="rounded object-cover"
-            />
+            {drink.presentation.thumbnail}
             <Link
-              to={href("/:slug", { slug: drink.slug })}
+              to={drink.presentation.detailHref}
               className="font-medium text-zinc-300 hover:text-amber-500"
             >
               {drink.title}
@@ -99,15 +99,12 @@ function DrinkRow(handle: Handle<{ drink: Drink }>) {
           {formatTimestamp(drink.updatedAt)}
         </td>
         <td className="py-3 text-right whitespace-nowrap">
-          <Link
-            to={href("/admin/drinks/:slug/edit", { slug: drink.slug })}
-            className="text-zinc-400 hover:text-amber-500"
-          >
+          <Link to={drink.presentation.editHref} className="text-zinc-400 hover:text-amber-500">
             Edit
           </Link>
           <form
             method="post"
-            action={href("/admin/drinks/:slug/delete", { slug: drink.slug })}
+            action={drink.presentation.deleteAction}
             className="ml-4 inline"
             mix={on("submit", (event) => {
               if (!confirm("Are you sure you want to delete this drink?")) {
@@ -171,7 +168,7 @@ export const AdminDrinksList = clientEntry(
               <span className="text-zinc-500">{drinks.length}</span>
             </div>
             <Link
-              to={href("/admin/drinks/new")}
+              to="/admin/drinks/new"
               className="rounded bg-amber-600 px-4 py-2 font-medium text-zinc-950 hover:bg-amber-500"
             >
               Add Drink

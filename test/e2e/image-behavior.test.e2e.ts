@@ -37,6 +37,9 @@ test("hosted images preserve format fallbacks and responsive selection at twice 
   await pageAsAdmin.getByAltText("Crop preview").waitFor();
   await pageAsAdmin.getByRole("button", { name: "Update Drink" }).click();
   await pageAsAdmin.waitForURL("/admin/drinks");
+  // Start a fresh document so the readiness marker covers the table, rather than the old editor.
+  await pageAsAdmin.goto("/admin/drinks");
+  await pageAsAdmin.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
 
   const thumbnail = pageAsAdmin
     .locator("tbody tr")
@@ -45,6 +48,15 @@ test("hosted images preserve format fallbacks and responsive selection at twice 
   expect(await thumbnail.getAttribute("decoding")).toBe("async");
   expect(await thumbnail.getAttribute("loading")).toBe("lazy");
   expect(await thumbnail.getAttribute("srcset")).toMatch(/32w,[\s\S]*64w$/);
+  const thumbnailCandidates = await thumbnail.getAttribute("srcset");
+  const filter = pageAsAdmin.getByRole("textbox", { name: "Filter drinks" });
+  await filter.fill("no matching cocktail");
+  await pageAsAdmin.waitForFunction(() => document.querySelectorAll("tbody tr").length === 0);
+  expect(await pageAsAdmin.locator("tbody tr").count()).toBe(0);
+  await filter.press("Escape");
+  await thumbnail.waitFor();
+  await pageAsAdmin.getByRole("button", { name: "Title", exact: false }).click();
+  expect(await thumbnail.getAttribute("srcset")).toBe(thumbnailCandidates);
   expect(
     await thumbnail.evaluate(
       (element, propertyName) => getComputedStyle(element).getPropertyValue(propertyName),
@@ -61,6 +73,12 @@ test("hosted images preserve format fallbacks and responsive selection at twice 
   expect(await sources.nth(1).getAttribute("type")).toBe("image/webp");
   expect(await image.getAttribute("loading")).toBe("eager");
   expect(await image.getAttribute("fetchpriority")).toBe("high");
+  const preload = pageAsAdmin.locator('head link[rel="preload"][as="image"]');
+  expect(await preload.count()).toBe(1);
+  expect(await preload.getAttribute("imagesrcset")).toBe(
+    await sources.nth(0).getAttribute("srcset"),
+  );
+  expect(await preload.getAttribute("imagesizes")).toBe(await image.getAttribute("sizes"));
   expect(await image.getAttribute("sizes")).toBe(
     "(min-width: 1280px) 400px, ((min-width: 1024px) and (max-width: 1279px)) 480px, ((min-width: 640px) and (max-width: 1023px)) 420px, 100vw",
   );

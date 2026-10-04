@@ -1,8 +1,9 @@
 import { createController } from "remix/router";
+import { createHref as href } from "remix/route-pattern/href";
 import { redirect } from "remix/response/redirect";
 import { parseSafe, object, string, enum_ } from "remix/data-schema";
 import { rawSql } from "remix/data-table";
-import { assets, fetchHmrEvents } from "#/app/assets.ts";
+import { assets, fetchHmrEvents, getClientEntryPreloads } from "#/app/assets.ts";
 import { routes } from "#/app/routes.ts";
 import { getDb } from "#/app/db/client.server.ts";
 import {
@@ -23,17 +24,29 @@ import { Document } from "#/app/ui/document.tsx";
 import { Gallery } from "#/app/ui/gallery.tsx";
 import { DrinkList } from "#/app/ui/drinks/drink-list.tsx";
 import { DrinkSummary } from "#/app/ui/drinks/drink-summary.tsx";
+import { detailImageSizes, drinkImageBreakpoints } from "#/app/ui/drinks/image-layout.ts";
+import { getGalleryImagePreloads } from "#/app/ui/drinks/image-preload.tsx";
 import { DrinkDetails } from "#/app/ui/drinks/drink-details.tsx";
 import { Glass } from "#/app/ui/drinks/glass.tsx";
 import { Tag } from "#/app/ui/tags/tag.tsx";
 import { TagLink } from "#/app/ui/tags/tag-link.tsx";
 import { SearchForm } from "#/app/ui/public/search-form.tsx";
-import { SearchResults } from "#/app/ui/public/search-results.tsx";
+import { SearchResults } from "#/app/ui/search/search-results.tsx";
 import { NotFound } from "#/app/ui/core/not-found.tsx";
 import { Icon } from "#/app/ui/icons/icon.tsx";
 import { AdminLayout } from "#/app/ui/admin-layout.tsx";
 import { AdminDrinksList } from "#/app/ui/public/admin-drinks-list.tsx";
 import { DrinkForm } from "#/app/ui/public/drink-form.tsx";
+import { Image } from "#/app/ui/public/image.tsx";
+
+// Compile known interactive graphs before accepting production requests, rather than on first use.
+if (process.env.NODE_ENV === "production") {
+  await Promise.all([
+    getClientEntryPreloads(AdminDrinksList),
+    getClientEntryPreloads(DrinkForm),
+    getClientEntryPreloads(SearchForm),
+  ]);
+}
 
 const publicHeaders = {
   "Cache-Control":
@@ -70,10 +83,11 @@ export default createController(routes, {
       return (await assets.fetch(context.request)) ?? new Response("Not Found", { status: 404 });
     },
     async home(context) {
+      const drinks = await drinksService().getPublishedDrinks();
       return context.render(
-        <Document>
+        <Document preloadImages={getGalleryImagePreloads(drinks)}>
           <Gallery breadcrumbs={[{ title: "All Drinks" }]}>
-            <DrinkList drinks={await drinksService().getPublishedDrinks()} />
+            <DrinkList drinks={drinks} />
           </Gallery>
         </Document>,
         { headers: { ...publicHeaders, "Surrogate-Key": "all index" } },
@@ -86,6 +100,7 @@ export default createController(routes, {
         <Document
           title="Search Drinks"
           description="Search all drinks by ingredient or description"
+          preloadImages={getGalleryImagePreloads(drinks)}
         >
           <Gallery
             breadcrumbs={[
@@ -148,6 +163,7 @@ export default createController(routes, {
         <Document
           title={`Drinks with ${taggedDrinks.tag.displayName}`}
           description={`All drinks containing ${taggedDrinks.tag.displayName}`}
+          preloadImages={getGalleryImagePreloads(taggedDrinks.drinks)}
         >
           <Gallery
             breadcrumbs={[
@@ -190,14 +206,15 @@ export default createController(routes, {
           socialDescription={drink.ingredients.join(", ")}
           socialImage={imageUrl(drink.image.url, 1200, "jpg", 630, 50)}
           socialImageAlt={`${drink.title} in a glass`}
+          preloadImages={[{ src: drink.image.url, layout: "detail" }]}
         >
           <Gallery breadcrumbs={[{ title: "All Drinks", href: "/" }, { title: drink.title }]}>
             <Glass>
               <DrinkSummary
                 className="lg:flex-row"
                 drink={drink}
-                breakpoints={[320, 400, 420, 480, 640, 800, 840, 960, 1280]}
-                sizes="(min-width: 1280px) 640px, ((min-width: 1024px) and (max-width: 1279px)) 480px, ((min-width: 640px) and (max-width: 1023px)) 420px, 100vw"
+                breakpoints={drinkImageBreakpoints}
+                sizes={detailImageSizes}
                 stacked
                 priority
               />
@@ -263,19 +280,42 @@ export default createController(routes, {
         ...drink,
         createdAt: drink.createdAt.toISOString(),
         updatedAt: drink.updatedAt.toISOString(),
+        presentation: {
+          thumbnail: (
+            <Image
+              src={drink.imageUrl}
+              width={32}
+              height={32}
+              alt=""
+              className="rounded object-cover"
+            />
+          ),
+          detailHref: href("/:slug", { slug: drink.slug }),
+          editHref: href("/admin/drinks/:slug/edit", { slug: drink.slug }),
+          deleteAction: href("/admin/drinks/:slug/delete", { slug: drink.slug }),
+        },
       }));
       return context.render(
-        <Document title="All Drinks | drinks.fyi">
+        <Document
+          title="All Drinks | drinks.fyi"
+          modulePreloads={await getClientEntryPreloads(AdminDrinksList)}
+          deferModulePreloads={false}
+        >
           <AdminLayout user={context.auth.identity} toast={readToast(context.session.get("toast"))}>
             <AdminDrinksList drinks={drinks} />
           </AdminLayout>
         </Document>,
       );
     },
-    newDrink(context) {
+    async newDrink(context) {
       if (!context.auth.ok) return redirect("/login");
       return context.render(
-        <Document title="New Drink | drinks.fyi">
+        <Document
+          title="New Drink | drinks.fyi"
+          cropStyles
+          modulePreloads={await getClientEntryPreloads(DrinkForm)}
+          deferModulePreloads={false}
+        >
           <AdminLayout user={context.auth.identity}>
             <div>
               <h1 className="mb-6 text-2xl font-medium text-zinc-200">Add New Drink</h1>
@@ -296,7 +336,12 @@ export default createController(routes, {
           { status: 404 },
         );
       return context.render(
-        <Document title={`Edit ${editor.initialValues.title} | drinks.fyi`}>
+        <Document
+          title={`Edit ${editor.initialValues.title} | drinks.fyi`}
+          cropStyles
+          modulePreloads={await getClientEntryPreloads(DrinkForm)}
+          deferModulePreloads={false}
+        >
           <AdminLayout user={context.auth.identity}>
             <div>
               <h1 className="mb-6 text-2xl font-medium text-zinc-200">Edit Drink</h1>

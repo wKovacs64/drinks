@@ -4,6 +4,7 @@ import { createHref as href } from "remix/route-pattern/href";
 import type { DrinkView } from "#/app/modules/drinks/drinks.ts";
 import { Glass } from "./glass.tsx";
 import { DrinkSummary } from "./drink-summary.tsx";
+import { drinkImageBreakpoints, galleryImageSizes } from "./image-layout.ts";
 
 export function DrinkList(handle: Handle<{ drinks: DrinkView[] }>) {
   return () => {
@@ -21,15 +22,9 @@ export function DrinkList(handle: Handle<{ drinks: DrinkView[] }>) {
             <Glass className="h-full transition group-hover:border-orange-800 group-hover:shadow-lg group-hover:shadow-orange-800 group-focus:border-orange-800 group-focus:shadow-lg group-focus:shadow-orange-800 lg:group-hover:-translate-y-2 lg:group-focus:-translate-y-2">
               <DrinkSummary
                 drink={drink}
-                // 800 and up are for high density displays (doubling the base image sizes)
-                breakpoints={[320, 400, 420, 480, 640, 800, 840, 960, 1280]}
-                sizes={[
-                  "(min-width: 1280px) 400px", // 3 images per row
-                  "((min-width: 1024px) and (max-width: 1279px)) 480px", // 2 images per row
-                  "((min-width: 640px) and (max-width: 1023px)) 420px", // 1 image per row
-                  "100vw", // 1 image per row, no padding
-                ].join(", ")}
-                priority={index < 6}
+                breakpoints={drinkImageBreakpoints}
+                sizes={galleryImageSizes}
+                priority={index === 0}
               />
             </Glass>
           </Link>

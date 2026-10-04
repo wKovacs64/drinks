@@ -2,6 +2,7 @@ import { cpSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "nod
 mkdirSync("public/images", { recursive: true });
 mkdirSync("public/fonts", { recursive: true });
 cpSync("app/assets/images", "public/images", { recursive: true });
+cpSync("app/styles/image-crop.css", "public/image-crop.css");
 for (const weight of [300, 400]) {
   const filename = `source-sans-3-latin-${weight}-normal.woff2`;
   cpSync(`node_modules/@fontsource/source-sans-3/files/${filename}`, `public/fonts/${filename}`);

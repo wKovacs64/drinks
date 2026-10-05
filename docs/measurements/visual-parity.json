@@ -1,0 +1,1000 @@
+{
+  "baseline": "e848dad7ebf70129c1d8c37c7a04c88c61cc2257",
+  "candidate": "PR 386 with the visual parity corrections in this change",
+  "environment": {
+    "mode": "production",
+    "browser": "Chromium via Playwright 1.63.0",
+    "deviceScaleFactor": 1,
+    "timezone": "America/Boise",
+    "fixtures": "Three published Drinks and one unpublished Drink; identical data-URI photos and fixed timestamps; 600×400 JPEG for crop preview"
+  },
+  "viewports": {
+    "desktop": [1280, 800],
+    "tablet": [768, 1024],
+    "mobile": [390, 844],
+    "small-mobile": [360, 800],
+    "sm": [640, 800],
+    "lg": [1024, 800],
+    "wide": [1440, 900]
+  },
+  "summary": {
+    "comparisons": 162,
+    "exactMatches": 145,
+    "maximumChangedPixels": 3,
+    "maximumChannelDifference": 2
+  },
+  "samples": [
+    {
+      "viewport": "desktop",
+      "state": "home",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "desktop",
+      "state": "drink",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "desktop",
+      "state": "drink-no-notes",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "desktop",
+      "state": "tags",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "desktop",
+      "state": "tag",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "desktop",
+      "state": "search-empty",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "desktop",
+      "state": "search-results",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "desktop",
+      "state": "search-none",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "desktop",
+      "state": "search-multiple",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "desktop",
+      "state": "missing-drink",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "desktop",
+      "state": "missing-tag",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "desktop",
+      "state": "catch-all",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "desktop",
+      "state": "login-failed",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "desktop",
+      "state": "unauthorized",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "desktop",
+      "state": "admin",
+      "changedPixels": 3,
+      "maximumChannelDifference": 1
+    },
+    {
+      "viewport": "desktop",
+      "state": "new",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "desktop",
+      "state": "edit",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "desktop",
+      "state": "missing-edit",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "desktop",
+      "state": "draft",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "tablet",
+      "state": "home",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "tablet",
+      "state": "drink",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "tablet",
+      "state": "drink-no-notes",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "tablet",
+      "state": "tags",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "tablet",
+      "state": "tag",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "tablet",
+      "state": "search-empty",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "tablet",
+      "state": "search-results",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "tablet",
+      "state": "search-none",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "tablet",
+      "state": "search-multiple",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "tablet",
+      "state": "missing-drink",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "tablet",
+      "state": "missing-tag",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "tablet",
+      "state": "catch-all",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "tablet",
+      "state": "login-failed",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "tablet",
+      "state": "unauthorized",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "tablet",
+      "state": "admin",
+      "changedPixels": 3,
+      "maximumChannelDifference": 1
+    },
+    {
+      "viewport": "tablet",
+      "state": "new",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "tablet",
+      "state": "edit",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "tablet",
+      "state": "missing-edit",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "tablet",
+      "state": "draft",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "mobile",
+      "state": "home",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "mobile",
+      "state": "drink",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "mobile",
+      "state": "drink-no-notes",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "mobile",
+      "state": "tags",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "mobile",
+      "state": "tag",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "mobile",
+      "state": "search-empty",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "mobile",
+      "state": "search-results",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "mobile",
+      "state": "search-none",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "mobile",
+      "state": "search-multiple",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "mobile",
+      "state": "missing-drink",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "mobile",
+      "state": "missing-tag",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "mobile",
+      "state": "catch-all",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "mobile",
+      "state": "login-failed",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "mobile",
+      "state": "unauthorized",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "mobile",
+      "state": "admin",
+      "changedPixels": 3,
+      "maximumChannelDifference": 1
+    },
+    {
+      "viewport": "mobile",
+      "state": "new",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "mobile",
+      "state": "edit",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "mobile",
+      "state": "missing-edit",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "mobile",
+      "state": "draft",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "small-mobile",
+      "state": "home",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "small-mobile",
+      "state": "drink",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "small-mobile",
+      "state": "drink-no-notes",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "small-mobile",
+      "state": "tags",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "small-mobile",
+      "state": "tag",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "small-mobile",
+      "state": "search-empty",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "small-mobile",
+      "state": "search-results",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "small-mobile",
+      "state": "search-none",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "small-mobile",
+      "state": "search-multiple",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "small-mobile",
+      "state": "missing-drink",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "small-mobile",
+      "state": "missing-tag",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "small-mobile",
+      "state": "catch-all",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "small-mobile",
+      "state": "login-failed",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "small-mobile",
+      "state": "unauthorized",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "small-mobile",
+      "state": "admin",
+      "changedPixels": 3,
+      "maximumChannelDifference": 1
+    },
+    {
+      "viewport": "small-mobile",
+      "state": "new",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "small-mobile",
+      "state": "edit",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "small-mobile",
+      "state": "missing-edit",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "small-mobile",
+      "state": "draft",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "sm",
+      "state": "home",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "sm",
+      "state": "drink",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "sm",
+      "state": "drink-no-notes",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "sm",
+      "state": "tags",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "sm",
+      "state": "tag",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "sm",
+      "state": "search-empty",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "sm",
+      "state": "search-results",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "sm",
+      "state": "search-none",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "sm",
+      "state": "search-multiple",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "sm",
+      "state": "missing-drink",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "sm",
+      "state": "missing-tag",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "sm",
+      "state": "catch-all",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "sm",
+      "state": "login-failed",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "sm",
+      "state": "unauthorized",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "sm",
+      "state": "admin",
+      "changedPixels": 3,
+      "maximumChannelDifference": 1
+    },
+    {
+      "viewport": "sm",
+      "state": "new",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "sm",
+      "state": "edit",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "sm",
+      "state": "missing-edit",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "sm",
+      "state": "draft",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "lg",
+      "state": "home",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "lg",
+      "state": "drink",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "lg",
+      "state": "drink-no-notes",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "lg",
+      "state": "tags",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "lg",
+      "state": "tag",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "lg",
+      "state": "search-empty",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "lg",
+      "state": "search-results",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "lg",
+      "state": "search-none",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "lg",
+      "state": "search-multiple",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "lg",
+      "state": "missing-drink",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "lg",
+      "state": "missing-tag",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "lg",
+      "state": "catch-all",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "lg",
+      "state": "login-failed",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "lg",
+      "state": "unauthorized",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "lg",
+      "state": "admin",
+      "changedPixels": 3,
+      "maximumChannelDifference": 1
+    },
+    {
+      "viewport": "lg",
+      "state": "new",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "lg",
+      "state": "edit",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "lg",
+      "state": "missing-edit",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "lg",
+      "state": "draft",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "wide",
+      "state": "home",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "wide",
+      "state": "drink",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "wide",
+      "state": "drink-no-notes",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "wide",
+      "state": "tags",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "wide",
+      "state": "tag",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "wide",
+      "state": "search-empty",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "wide",
+      "state": "search-results",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "wide",
+      "state": "search-none",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "wide",
+      "state": "search-multiple",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "wide",
+      "state": "missing-drink",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "wide",
+      "state": "missing-tag",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "wide",
+      "state": "catch-all",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "wide",
+      "state": "login-failed",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "wide",
+      "state": "unauthorized",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "wide",
+      "state": "admin",
+      "changedPixels": 3,
+      "maximumChannelDifference": 1
+    },
+    {
+      "viewport": "wide",
+      "state": "new",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "wide",
+      "state": "edit",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "wide",
+      "state": "missing-edit",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "wide",
+      "state": "draft",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "desktop",
+      "state": "crop",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "desktop",
+      "state": "admin-filter",
+      "changedPixels": 2,
+      "maximumChannelDifference": 2
+    },
+    {
+      "viewport": "desktop",
+      "state": "admin-sort",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "desktop",
+      "state": "search-pending",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "desktop",
+      "state": "toast-success",
+      "changedPixels": 3,
+      "maximumChannelDifference": 1
+    },
+    {
+      "viewport": "desktop",
+      "state": "toast-warning",
+      "changedPixels": 3,
+      "maximumChannelDifference": 1
+    },
+    {
+      "viewport": "desktop",
+      "state": "toast-error",
+      "changedPixels": 3,
+      "maximumChannelDifference": 1
+    },
+    {
+      "viewport": "desktop",
+      "state": "edit-validation",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "desktop",
+      "state": "edit-saving",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "desktop",
+      "state": "image-required",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "mobile",
+      "state": "crop",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "mobile",
+      "state": "admin-filter",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "mobile",
+      "state": "admin-sort",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "mobile",
+      "state": "search-pending",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "mobile",
+      "state": "toast-success",
+      "changedPixels": 3,
+      "maximumChannelDifference": 1
+    },
+    {
+      "viewport": "mobile",
+      "state": "toast-warning",
+      "changedPixels": 3,
+      "maximumChannelDifference": 1
+    },
+    {
+      "viewport": "mobile",
+      "state": "toast-error",
+      "changedPixels": 3,
+      "maximumChannelDifference": 1
+    },
+    {
+      "viewport": "mobile",
+      "state": "edit-validation",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "mobile",
+      "state": "edit-saving",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "mobile",
+      "state": "image-required",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "desktop",
+      "state": "public-error",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "desktop",
+      "state": "admin-error",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "tablet",
+      "state": "public-error",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "tablet",
+      "state": "admin-error",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "mobile",
+      "state": "public-error",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "mobile",
+      "state": "admin-error",
+      "changedPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "viewport": "width-600",
+      "state": "toast-breakpoint",
+      "changedPixels": 3,
+      "maximumChannelDifference": 1
+    },
+    {
+      "viewport": "width-620",
+      "state": "toast-breakpoint",
+      "changedPixels": 3,
+      "maximumChannelDifference": 1
+    },
+    {
+      "viewport": "width-640",
+      "state": "toast-breakpoint",
+      "changedPixels": 3,
+      "maximumChannelDifference": 1
+    }
+  ]
+}

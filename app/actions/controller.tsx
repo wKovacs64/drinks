@@ -33,6 +33,7 @@ import { TagLink } from "#/app/ui/tags/tag-link.tsx";
 import { SearchForm } from "#/app/ui/public/search-form.tsx";
 import { searchPageRouteAdapter } from "#/app/web/search-page/route-adapter.server.tsx";
 import { NotFound } from "#/app/ui/core/not-found.tsx";
+import { ResponseErrorDocument } from "#/app/ui/core/response-error-document.tsx";
 import { Icon } from "#/app/ui/icons/icon.tsx";
 import { AdminLayout } from "#/app/ui/admin-layout.tsx";
 import { AdminDrinksList } from "#/app/ui/public/admin-drinks-list.tsx";
@@ -299,13 +300,7 @@ export default createController(routes, {
     async editDrink(context) {
       if (!context.auth.ok) return redirect("/login");
       const editor = await drinksService().findDrinkEditorBySlug(context.params.slug);
-      if (!editor)
-        return context.render(
-          <Document title="Not Found">
-            <NotFound />
-          </Document>,
-          { status: 404 },
-        );
+      if (!editor) return context.render(<ResponseErrorDocument status={404} />, { status: 404 });
       return context.render(
         <Document
           title={`Edit ${editor.initialValues.title} | drinks.fyi`}
@@ -399,7 +394,9 @@ export default createController(routes, {
     notFound(context) {
       return context.render(
         <Document title="Not Found" description="There's nothing of interest here.">
-          <NotFound />
+          <Gallery breadcrumbs={[{ title: "All Drinks", href: "/" }]}>
+            <NotFound />
+          </Gallery>
         </Document>,
         { status: 404, headers: notFoundHeaders },
       );

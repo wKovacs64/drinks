@@ -20,6 +20,19 @@ const app = run({
 });
 app.addEventListener("error", (event) => {
   console.error("Remix browser runtime failed", event.error);
+  // Native frame loads reject 5xx HTML. Navigate the document to show the route's error page.
+  if (
+    event.error instanceof Error &&
+    /^Failed to resolve frame: 5\d{2}\b/.test(event.error.message)
+  ) {
+    const destination = app.frames.top.src;
+    const searchFrame = app.frames.get("search-results");
+    window.location.assign(
+      new URL(destination, window.location.href).pathname === "/search" && searchFrame
+        ? searchFrame.src
+        : destination,
+    );
+  }
 });
 await app.ready();
 document.documentElement.dataset.remixReady = "true";

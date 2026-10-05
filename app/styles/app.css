@@ -95,6 +95,7 @@
   z-index: 999999;
   bottom: 24px;
   right: 24px;
+  width: 356px;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -155,8 +156,14 @@
 }
 @media (max-width: 600px) {
   .drink-toast {
+    width: auto;
     left: 16px;
     right: 16px;
     bottom: 16px;
+  }
+}
+@media (min-width: 640px) {
+  .drink-toast {
+    width: auto;
   }
 }

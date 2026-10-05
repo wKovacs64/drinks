@@ -232,6 +232,18 @@ preserves crop state across validation and transport failures without relying on
 
 ## Expected Failures and Notices
 
+`app/web/error-pages/` owns the presentation of route failures. Unexpected public-page failures
+render the original exception screen; admin/auth failures retain the original root application-error
+fallback. Production responses suppress exception details, and failed responses are not cached.
+Resource routes and canceled requests retain their existing failure handling. Renderer and asset
+errors continue to use their native reporting hooks.
+An unsuccessful search Frame update reloads its current document so its exception screen replaces
+the entire gallery, matching the original error boundary.
+
+Missing admin Drinks render the original root 404 document for ordinary requests. Enhanced editor
+requests retain their typed JSON not-found response. Unmatched public paths render the gallery chrome
+around the not-found message; missing Drink and Tag reads retain their fullscreen not-found page.
+
 Expected business-rule failures should cross Deep Module seams as typed outcomes or typed errors that
 remain transport-agnostic. Web adapters translate those expected failures into route/framework
 responses. Unexpected failures before persistence should still bubble.

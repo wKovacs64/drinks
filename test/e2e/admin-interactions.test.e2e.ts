@@ -144,6 +144,8 @@ test("deleting a missing drink returns 404", async (testContext) => {
   const pageAsAdmin = await createBrowserPage(testContext, { admin: true });
   const response = await pageAsAdmin.request.post("/admin/drinks/missing/delete");
   expect(response.status()).toBe(404);
+  expect(response.headers()["content-type"]).toContain("text/html");
+  expect(await response.text()).toContain("Unhandled Thrown Response!");
 });
 
 test("leaving the editor cancels its pending submission", async (testContext) => {

@@ -142,4 +142,25 @@ test("hosted images preserve format fallbacks and responsive selection at twice 
         .some((value) => value.startsWith("f-")),
     await image.elementHandle(),
   );
+
+  const invalidPreloadWarnings: string[] = [];
+  pageAsAdmin.on("console", (message) => {
+    if (/link rel=preload.*invalid.*href/.test(message.text()))
+      invalidPreloadWarnings.push(message.text());
+  });
+  await drinkLink.click();
+  await pageAsAdmin.waitForURL("/test-margarita");
+  await pageAsAdmin.getByText("A classic test margarita").waitFor();
+  expect(await pageAsAdmin.locator('head link[rel="preload"][as="font"]').count()).toBe(0);
+  expect(await preload.getAttribute("imagesizes")).toBe(
+    await pageAsAdmin
+      .getByRole("img", { name: "Test Margarita", exact: true })
+      .getAttribute("sizes"),
+  );
+  await pageAsAdmin.goBack();
+  await pageAsAdmin.waitForURL("/");
+  await drinkLink.waitFor();
+  expect(await pageAsAdmin.locator('head link[rel="preload"][as="font"]').count()).toBe(1);
+  expect(await preload.getAttribute("imagesizes")).toBe(await image.getAttribute("sizes"));
+  expect(invalidPreloadWarnings).toEqual([]);
 });

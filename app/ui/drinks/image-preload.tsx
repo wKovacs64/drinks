@@ -35,6 +35,7 @@ export function ImagePreload(handle: Handle<ImagePreloadProps>) {
       <link
         rel="preload"
         as="image"
+        data-rmx-key={`preload:image:${src}:${media ?? ""}`}
         type="image/avif"
         media={media}
         {...responsiveAttributes}

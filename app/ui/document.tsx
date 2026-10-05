@@ -67,7 +67,14 @@ export function Document(
           <link rel="icon" type="image/png" sizes="32x32" href="/images/icon-32x32.png" />
           <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png" />
           <link rel="manifest" href="/manifest.webmanifest" />
-          <link rel="stylesheet" href={stylesheetHref} />
+          {/* Moving a loaded stylesheet makes the browser unload/revalidate it. Keep it
+              in place across frame navigation; a new fingerprint gets a new identity. */}
+          <link
+            rel="stylesheet"
+            href={stylesheetHref}
+            data-rmx-key={stylesheetHref}
+            data-rmx-preserve-dom
+          />
           {preloadImages?.some((image) => image.layout === "gallery") && (
             <link
               rel="preload"
@@ -75,9 +82,17 @@ export function Document(
               type="font/woff2"
               href={lightFontHref}
               crossOrigin="anonymous"
+              data-rmx-key={`preload:font:${lightFontHref}`}
             />
           )}
-          {cropStyles && <link rel="stylesheet" href={cropStylesheetHref} />}
+          {cropStyles && (
+            <link
+              rel="stylesheet"
+              href={cropStylesheetHref}
+              data-rmx-key={cropStylesheetHref}
+              data-rmx-preserve-dom
+            />
+          )}
           {preloadImages?.map((image) => (
             <ImagePreload key={image.src} {...image} />
           ))}

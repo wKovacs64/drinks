@@ -101,7 +101,7 @@ The admin drinks list uses ordinary form submissions and native redirects. Remix
 returned document while matching client entries retain their filter and sort state. There is no
 named admin Frame or separate table-deletion response contract.
 
-See `docs/frames-performance.md` for the baseline comparison and reproducible measurement harness.
+See [Testing](testing.md#search-frame-measurements) for the search measurement harness.
 
 ## Public Entry Points
 

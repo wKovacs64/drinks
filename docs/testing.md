@@ -52,3 +52,22 @@ pnpm test:watch
 The test command loads `.env.test` and prepares the same generated styles and public assets as the
 application. CI installs Chromium with `--with-deps` and runs this same command. No fixed port or
 persistent test database is required.
+
+## Search Frame measurements
+
+[The search measurement harness](../scripts/measure-frames.test.e2e.ts) records response sizes and
+browser readiness timings for initial search loads and Frame updates. It uses 40 deterministic
+Drinks in an in-memory SQLite database, with local and constrained CPU/network profiles. The harness
+runs separately from ordinary test discovery and requires production mode and an explicit output
+path outside the repository:
+
+```sh
+pnpm build:styles
+NODE_ENV=production DATABASE_URL=:memory: FRAME_MEASUREMENT_OUTPUT=/tmp/drinks-search-measurements.json \
+  node --env-file=.env.test node_modules/remix/dist/cli-entry.js \
+  test scripts/measure-frames.test.e2e.ts --quiet
+```
+
+The harness simulates gzip compression and warms the asset graph and search index. Its readiness
+timings are browser paint proxies; they do not establish production latency, streaming behavior,
+ImageKit delivery performance, or LCP.

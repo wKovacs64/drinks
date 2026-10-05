@@ -14,15 +14,10 @@ construction and toast behavior belong in the adapter.
 
 ## Context
 
-Earlier iterations kept routes thin with a generic `routeAction` helper. That helper handled schema
-validation, thrown domain errors, redirects, and toasts. The admin drink write adapter translated only
-some Drink-specific outcomes before handing control to `routeAction` for the final web response.
-After deepening this route seam, the helper had no remaining production callers and was removed.
-
-That split repeatedly made the seam shallow. Understanding one **Admin Drink Write Path** outcome
-required knowing the Drinks outcome union, adapter branch behavior, thrown domain-error behavior,
-React Router thrown responses, and toast callback resolution. It also collapsed typed field-error maps
-to the first field/message when bridging through a thrown field error.
+Splitting web translation between a Drink-specific adapter and a generic action helper makes one
+**Admin Drink Write Path** outcome depend on multiple response interpreters. Keeping submission
+validation, typed outcome translation, redirects, and toasts in the same adapter gives callers a
+single web seam and preserves complete field-error maps without converting them to thrown errors.
 
 ## Decision
 
@@ -46,7 +41,7 @@ to this deeper web adapter.
 - Browser tests under `test/e2e/` exercise Drink-specific web behavior; module tests exercise
   the transport-agnostic write service. See `docs/testing.md` for the current testing boundaries.
 - Generic route action helpers should not partially translate **Admin Drink Write Path** outcomes.
-- The previous `routeAction` helper should not be restored for this path unless this ADR is revisited.
+- This path should not introduce a generic action helper unless this ADR is revisited.
 - If another route family later needs the same kind of typed-outcome-to-web-response interpreter, add
   it at that route seam first. Extract a generic helper only after more than one production seam proves
   the abstraction.

@@ -145,6 +145,9 @@ decoration stay module-private.
 - search invalidation and drink-cache purge orchestration
 
 Routes should ask the module for capability-shaped reads instead of shaping raw persistence rows.
+`getAllDrinks()` projects the admin summary fields; recipe details belong to the editor and
+gallery read models. Admin filtering searches summary strings and excludes numeric values
+and timestamps, including timestamps serialized for hydration.
 
 Current `Drinks` seam examples:
 

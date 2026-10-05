@@ -44,8 +44,13 @@ Affected states were recaptured after fixes. The numerical results are in
 [the raw comparison summary](measurements/visual-parity.json): 145 of 162 captures have identical
 pixels. The remaining differences are at most three rounded input-border pixels differing
 by at most two levels on an 8-bit color channel; element geometry and visible content match.
-This is visual parity with a documented antialiasing tolerance, not a claim that every screenshot
-is mathematically identical.
+These are measured residual differences, not an antialiasing tolerance implemented in the rewrite.
+A follow-up investigation reproduced the three-pixel difference at the upper-left corner of the
+admin filter input. Its computed styles, ancestor styles, and geometry match between implementations.
+The complete screenshots match with JavaScript disabled, with the surrounding content hidden, and
+after resizing the hydrated pages from 1280px to 1281px and back to force a repaint. The evidence
+identifies an initial Chromium painting artifact; the browser's internal rounding cause remains
+unconfirmed. The original captures are not all mathematically identical.
 
 ## Standards
 
@@ -76,5 +81,5 @@ Drinks, public and admin failures, failed search updates, and failed Drink navig
 missing-delete test now also verifies the HTML error response. Formatting, lint, types, all 115
 tests, the production build, and `git diff --check` pass.
 
-Standards findings: 0. Spec findings: 6 corrected; no remaining visual discrepancy beyond the
-recorded border antialiasing tolerance within the captured states.
+Standards findings: 0. Spec findings: 6 corrected; the recorded input-border differences disappear
+after a full repaint. No other visual discrepancy was found within the captured states.

@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { enum_, parse } from "remix/data-schema";
 
 import type { getDb } from "#/app/db/client.server.ts";
 import { drinks, readDrink, writeDrink } from "#/app/db/schema.ts";
@@ -9,6 +10,7 @@ import { toDrinkTagViews } from "./drinks-tags.server.ts";
 
 export { purgeSearchCache };
 import {
+  drinkStatusValues,
   DrinkWriteNoticeCodes,
   type AdminDrinksWriteService,
   type CreateAdminDrinkCommand,
@@ -72,14 +74,34 @@ function buildDrinksServiceReadMethods(deps: { db: Db }): DrinksService {
       return withPlaceholderImages(publishedDrinks);
     },
     async getAllDrinks() {
-      return (
-        await deps.db.findMany(drinks, {
-          orderBy: [
-            ["rank", "desc"],
-            ["created_at", "desc"],
-          ],
-        })
-      ).map(readDrink);
+      const adminDrinks = await deps.db
+        .query(drinks)
+        .select(
+          "id",
+          "title",
+          "slug",
+          "image_url",
+          "calories",
+          "rank",
+          "status",
+          "created_at",
+          "updated_at",
+        )
+        .orderBy("rank", "desc")
+        .orderBy("created_at", "desc")
+        .all();
+
+      return adminDrinks.map((drink) => ({
+        id: drink.id,
+        title: drink.title,
+        slug: drink.slug,
+        imageUrl: drink.image_url,
+        calories: drink.calories,
+        rank: drink.rank,
+        status: parse(enum_(drinkStatusValues), drink.status),
+        createdAt: new Date(drink.created_at * 1000),
+        updatedAt: new Date(drink.updated_at * 1000),
+      }));
     },
     async getAllTags() {
       const publishedTags = (

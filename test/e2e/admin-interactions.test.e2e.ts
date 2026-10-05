@@ -1,6 +1,8 @@
 import { test } from "remix/test";
 import { expect } from "remix/assert";
 import { createBrowserPage } from "#/test/e2e.ts";
+import { getDb } from "#/app/db/client.server.ts";
+import { drinks } from "#/app/db/schema.ts";
 
 test("deletion follows the native redirect and retains sorting and filtering", async (testContext) => {
   const page = await createBrowserPage(testContext, { admin: true });
@@ -41,17 +43,23 @@ test("deletion follows the native redirect and retains sorting and filtering", a
   ]);
 });
 
-test("admin filter searches tags and Escape restores the list", async (testContext) => {
+test("admin filter excludes recipe fields and Escape restores the list", async (testContext) => {
   const pageAsAdmin = await createBrowserPage(testContext, { admin: true });
   await pageAsAdmin.goto("/admin/drinks");
   await pageAsAdmin.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
   const filter = pageAsAdmin.getByRole("textbox", { name: "Filter drinks" });
   await filter.fill("citrus");
-  await pageAsAdmin.waitForFunction(() => document.querySelectorAll("tbody tr").length === 2);
-  expect(await pageAsAdmin.locator("tbody tr").count()).toBe(2);
-  expect(
-    await pageAsAdmin.getByRole("cell", { name: "Test Old Fashioned", exact: true }).count(),
-  ).toBe(0);
+  await pageAsAdmin.waitForFunction(
+    () => document.querySelectorAll("tbody tr").length === 0,
+    undefined,
+    { timeout: 2000 },
+  );
+  expect(await pageAsAdmin.locator("tbody tr").count()).toBe(0);
+  await filter.fill("MARGARITA");
+  await pageAsAdmin.waitForFunction(() => document.querySelectorAll("tbody tr").length === 1);
+  expect(await pageAsAdmin.locator("tbody tr td:first-child").allTextContents()).toEqual([
+    "Test Margarita",
+  ]);
   await filter.press("Escape");
   await pageAsAdmin.waitForFunction(() => {
     const filterInput = document.querySelector('input[aria-label="Filter drinks"]');
@@ -63,6 +71,18 @@ test("admin filter searches tags and Escape restores the list", async (testConte
   });
   expect(await filter.inputValue()).toBe("");
   expect(await pageAsAdmin.locator("tbody tr").count()).toBe(3);
+});
+
+test("admin filter ignores serialized timestamps", async (testContext) => {
+  const page = await createBrowserPage(testContext, { admin: true });
+  await getDb().updateMany(drinks, { created_at: 1735776000 }, { where: { slug: "test-mojito" } });
+  await page.goto("/admin/drinks");
+  await page.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
+  await page.getByRole("textbox", { name: "Filter drinks" }).fill("2025-01-02");
+  await page.waitForFunction(() => document.querySelectorAll("tbody tr").length === 0, undefined, {
+    timeout: 2000,
+  });
+  expect(await page.locator("tbody tr").count()).toBe(0);
 });
 
 test("sorting cycles ascending, descending, and the original order", async (testContext) => {

@@ -42,12 +42,6 @@ function SortArrow(
   };
 }
 
-function matchesFilter(value: unknown, filter: string): boolean {
-  if (typeof value === "string") return value.toLowerCase().includes(filter);
-  if (Array.isArray(value)) return value.some((element) => matchesFilter(element, filter));
-  return false;
-}
-
 const timestampFormatter = new Intl.DateTimeFormat("en-US", {
   year: "numeric",
   month: "short",
@@ -142,8 +136,11 @@ export const AdminDrinksList = clientEntry(
     }
     return () => {
       const { drinks } = handle.props;
+      const filterLower = filter.toLowerCase();
       const filtered = drinks.filter((drink) =>
-        Object.values(drink).some((value) => matchesFilter(value, filter.toLowerCase())),
+        [drink.id, drink.title, drink.slug, drink.imageUrl, drink.status].some((value) =>
+          value.toLowerCase().includes(filterLower),
+        ),
       );
       const currentSort = sort;
       const processed = currentSort

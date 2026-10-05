@@ -140,6 +140,21 @@ Current `Drinks` seam examples:
 - `createAdminDrinksWriteService(...).update({ slug, draft, imageBuffer? })`
 - `createAdminDrinksWriteService(...).delete({ slug })`
 
+A successful SQLite write is the completion point for create, update, and delete. The module
+invalidates local search immediately after persistence, then attempts image retirement when needed
+and the targeted public-page cache purge. Those follow-up failures return success with
+`DrinkWriteNotice` metadata (`oldImageCleanupFailed`, `cacheRefreshFailed`); multiple failures retain
+all notices. The saved slug remains available after a rename even when purge fails.
+
+Update and delete retire the previously referenced image only after persistence succeeds. If an
+insert or replacement update fails, the module attempts to remove the new upload and rethrows the
+original persistence error. A compensation failure is logged without replacing that error. These
+remote effects do not run inside a database transaction, and notices do not schedule retries.
+
+The Fastly integration rejects both HTTP non-2xx and network failures so the module can apply this
+completion policy consistently. Development and missing Fastly configuration retain their intentional
+skip behavior. Purges include the old/new slugs and tags for an update.
+
 ## Identity Module
 
 `Identity` owns:
@@ -199,10 +214,12 @@ preserves crop state across validation and transport failures without relying on
 
 Expected business-rule failures should cross Deep Module seams as typed outcomes or typed errors that
 remain transport-agnostic. Web adapters translate those expected failures into route/framework
-responses. Unexpected failures should still bubble.
+responses. Unexpected failures before persistence should still bubble.
 
 Successful operations may also return warning metadata for non-fatal follow-up problems. The web
-adapter for the route seam owns how those warnings become toasts or response metadata.
+adapter for the route seam owns how those warnings become toasts or response metadata. The Admin
+Drink Write Route Adapter translates every write notice for all three commands, combining notices
+into a warning that states the completed operation without exposing integration error details.
 
 ## Testing Boundaries
 

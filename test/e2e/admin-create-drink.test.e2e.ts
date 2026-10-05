@@ -1,10 +1,18 @@
 import { test, describe } from "remix/test";
 import { expect } from "remix/assert";
 import { createBrowserPage } from "#/test/e2e.ts";
+import { http, HttpResponse } from "msw";
+import { server as requestMocks } from "#/test/server.ts";
 
 describe("Create New Drink", () => {
-  test("can create a new drink", async (testContext) => {
+  test("can create a new drink with a warning after HTTP purge failure", async (testContext) => {
     const pageAsAdmin = await createBrowserPage(testContext, { admin: true });
+    requestMocks.use(
+      http.post(
+        "https://api.fastly.com/service/:serviceId/purge",
+        () => new HttpResponse("private cache integration details", { status: 503 }),
+      ),
+    );
     await pageAsAdmin.goto("/admin/drinks/new");
     await pageAsAdmin.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
 
@@ -40,6 +48,10 @@ describe("Create New Drink", () => {
 
     // New drink should appear in list
     await pageAsAdmin.getByRole("cell", { name: "New Test Drink" }).waitFor();
+    const notification = pageAsAdmin.getByRole("status");
+    await notification.filter({ hasText: "Drink created, but cache refresh failed" }).waitFor();
+    expect(await notification.getAttribute("class")).toContain("toast-warning");
+    expect(await notification.innerText()).toBe("Drink created, but cache refresh failed");
   });
 });
 

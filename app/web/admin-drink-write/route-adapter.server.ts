@@ -5,13 +5,12 @@ import { field, object } from "remix/data-schema/form-data";
 import type { ToastMessage } from "#/app/core/toast.ts";
 import {
   drinkDraftSchema,
-  SaveDrinkNoticeCodes,
-  type AdminDrinkWriteSuccessResult,
+  DrinkWriteNoticeCodes,
   type AdminDrinksWriteService,
   type CreateAdminDrinkResult,
   type DeleteAdminDrinkResult,
   type DrinkDraft,
-  type SaveDrinkNotice,
+  type DrinkWriteNotice,
   type UpdateAdminDrinkResult,
 } from "#/app/modules/drinks/drinks.ts";
 import { parseCreateDrinkSubmission, parseUpdateDrinkSubmission } from "./submission.server.ts";
@@ -97,10 +96,7 @@ export async function updateAdminDrinkActionAdapter(
 function translateCreateResult(result: CreateAdminDrinkResult, session: Session) {
   switch (result.kind) {
     case "success":
-      return redirectToAdminDrinksWithToast(session, {
-        kind: "success",
-        message: "Drink created!",
-      });
+      return redirectToAdminDrinksWithToast(session, resolveWriteToast("created", result.notices));
 
     case "fieldError":
       return invalidActionData(result);
@@ -113,7 +109,7 @@ function translateCreateResult(result: CreateAdminDrinkResult, session: Session)
 function translateUpdateResult(result: UpdateAdminDrinkResult, session: Session, request: Request) {
   switch (result.kind) {
     case "success":
-      return redirectToAdminDrinksWithToast(session, resolveUpdateToast(result));
+      return redirectToAdminDrinksWithToast(session, resolveWriteToast("updated", result.notices));
 
     case "fieldError":
       return invalidActionData(result);
@@ -129,10 +125,7 @@ function translateUpdateResult(result: UpdateAdminDrinkResult, session: Session,
 function translateDeleteResult(result: DeleteAdminDrinkResult, session: Session) {
   switch (result.kind) {
     case "success":
-      return redirectToAdminDrinksWithToast(session, {
-        kind: "success",
-        message: "Drink deleted!",
-      });
+      return redirectToAdminDrinksWithToast(session, resolveWriteToast("deleted", result.notices));
 
     case "notFound":
       return drinkNotFoundResponse();
@@ -187,16 +180,25 @@ function drinkNotFoundResponse(request?: Request): Response {
   return Response.json(data, { status: 404 });
 }
 
-function resolveUpdateToast(result: AdminDrinkWriteSuccessResult): ToastMessage {
-  const noticeToast = result.notices.map(resolveSaveDrinkNoticeToast).find(Boolean);
+function resolveWriteToast(
+  operation: "created" | "updated" | "deleted",
+  notices: DrinkWriteNotice[],
+): ToastMessage {
+  if (notices.length === 0) return { kind: "success", message: `Drink ${operation}!` };
 
-  return noticeToast ?? { kind: "success", message: "Drink updated!" };
+  return {
+    kind: "warning",
+    message: `Drink ${operation}, but ${notices.map(resolveWriteNoticeMessage).join(" and ")}`,
+  };
 }
 
-function resolveSaveDrinkNoticeToast(notice: SaveDrinkNotice): ToastMessage | undefined {
+function resolveWriteNoticeMessage(notice: DrinkWriteNotice): string {
   switch (notice.code) {
-    case SaveDrinkNoticeCodes.oldImageCleanupFailed:
-      return { kind: "warning", message: "Drink updated, but old image cleanup failed" };
+    case DrinkWriteNoticeCodes.oldImageCleanupFailed:
+      return "old image cleanup failed";
+
+    case DrinkWriteNoticeCodes.cacheRefreshFailed:
+      return "cache refresh failed";
 
     default:
       return assertNever(notice.code);

@@ -9,7 +9,7 @@ import { toDrinkTagViews } from "./drinks-tags.server.ts";
 
 export { purgeSearchCache };
 import {
-  SaveDrinkNoticeCodes,
+  DrinkWriteNoticeCodes,
   type AdminDrinksWriteService,
   type CreateAdminDrinkCommand,
   type DeleteAdminDrinkCommand,
@@ -17,7 +17,7 @@ import {
   type DrinkDraft,
   type DrinksService,
   type DrinkTagView,
-  type SaveDrinkNotice,
+  type DrinkWriteNotice,
   type UpdateAdminDrinkCommand,
   type UpdateAdminDrinkResult,
 } from "./drinks.ts";
@@ -208,17 +208,18 @@ async function deleteAdminDrink(
     return { kind: "notFound", slug };
   }
 
-  await writeEffects.deleteImage(existingDrink.imageFileId);
-
   await db.delete(drinks, existingDrink.id);
 
   purgeSearchCache();
-  await writeEffects.purgeDrinkCache({
-    slugs: [existingDrink.slug],
-    tags: existingDrink.tags,
-  });
+  const notices = await retireDrinkImage(writeEffects, existingDrink.imageFileId);
+  notices.push(
+    ...(await refreshDrinkCache(writeEffects, {
+      slugs: [existingDrink.slug],
+      tags: existingDrink.tags,
+    })),
+  );
 
-  return { kind: "success" };
+  return { kind: "success", notices };
 }
 
 async function updateAdminDrink(
@@ -242,36 +243,28 @@ async function updateAdminDrink(
     };
   }
 
-  let imageUrl = existingDrink.imageUrl;
-  let imageFileId = existingDrink.imageFileId;
-  const notices: SaveDrinkNotice[] = [];
-
-  if (imageBuffer) {
-    const uploadedImage = await writeEffects.uploadImage(imageBuffer, `${draft.slug}.jpg`);
-    imageUrl = uploadedImage.url;
-    imageFileId = uploadedImage.fileId;
-
-    try {
-      await writeEffects.deleteImage(existingDrink.imageFileId);
-    } catch (error) {
-      notices.push({
-        code: SaveDrinkNoticeCodes.oldImageCleanupFailed,
-        message: error instanceof Error ? error.message : "Unknown image cleanup failure",
-      });
-    }
-  }
-
+  const uploadedImage = imageBuffer
+    ? await writeEffects.uploadImage(imageBuffer, `${draft.slug}.jpg`)
+    : undefined;
   const updatedDrink = await updateDrinkRow(db, existingDrink.id, {
     ...draft,
-    imageUrl,
-    imageFileId,
+    imageUrl: uploadedImage?.url ?? existingDrink.imageUrl,
+    imageFileId: uploadedImage?.fileId ?? existingDrink.imageFileId,
+  }).catch(async (error: unknown) => {
+    if (uploadedImage) await compensateUploadedImage(writeEffects, uploadedImage.fileId);
+    throw error;
   });
 
   purgeSearchCache();
-  await writeEffects.purgeDrinkCache({
-    slugs: [...new Set([existingDrink.slug, updatedDrink.slug])],
-    tags: [...new Set([...existingDrink.tags, ...updatedDrink.tags])],
-  });
+  const notices = uploadedImage
+    ? await retireDrinkImage(writeEffects, existingDrink.imageFileId)
+    : [];
+  notices.push(
+    ...(await refreshDrinkCache(writeEffects, {
+      slugs: [...new Set([existingDrink.slug, updatedDrink.slug])],
+      tags: [...new Set([...existingDrink.tags, ...updatedDrink.tags])],
+    })),
+  );
 
   return {
     kind: "success",
@@ -282,7 +275,7 @@ async function updateAdminDrink(
 
 async function createAdminDrink(
   db: Db,
-  writeEffects: Pick<DrinksWriteEffects, "uploadImage" | "purgeDrinkCache">,
+  writeEffects: DrinksWriteEffects,
   { draft, imageBuffer }: CreateAdminDrinkCommand,
 ) {
   if (!imageBuffer) {
@@ -304,10 +297,13 @@ async function createAdminDrink(
     ...draft,
     imageUrl: uploadedImage.url,
     imageFileId: uploadedImage.fileId,
+  }).catch(async (error: unknown) => {
+    await compensateUploadedImage(writeEffects, uploadedImage.fileId);
+    throw error;
   });
 
   purgeSearchCache();
-  await writeEffects.purgeDrinkCache({
+  const notices = await refreshDrinkCache(writeEffects, {
     slugs: [createdDrink.slug],
     tags: createdDrink.tags,
   });
@@ -315,8 +311,53 @@ async function createAdminDrink(
   return {
     kind: "success" as const,
     drinkSlug: createdDrink.slug,
-    notices: [],
+    notices,
   };
+}
+
+async function compensateUploadedImage(
+  writeEffects: Pick<DrinksWriteEffects, "deleteImage">,
+  fileId: string,
+): Promise<void> {
+  try {
+    await writeEffects.deleteImage(fileId);
+  } catch (error) {
+    console.error("Failed to clean up uploaded image after persistence failure:", error);
+  }
+}
+
+async function retireDrinkImage(
+  writeEffects: Pick<DrinksWriteEffects, "deleteImage">,
+  fileId: string,
+): Promise<DrinkWriteNotice[]> {
+  try {
+    await writeEffects.deleteImage(fileId);
+    return [];
+  } catch (error) {
+    return [
+      {
+        code: DrinkWriteNoticeCodes.oldImageCleanupFailed,
+        message: error instanceof Error ? error.message : "Unknown image cleanup failure",
+      },
+    ];
+  }
+}
+
+async function refreshDrinkCache(
+  writeEffects: Pick<DrinksWriteEffects, "purgeDrinkCache">,
+  affectedPages: AffectedDrinkPages,
+): Promise<DrinkWriteNotice[]> {
+  try {
+    await writeEffects.purgeDrinkCache(affectedPages);
+    return [];
+  } catch (error) {
+    return [
+      {
+        code: DrinkWriteNoticeCodes.cacheRefreshFailed,
+        message: error instanceof Error ? error.message : "Unknown cache refresh failure",
+      },
+    ];
+  }
 }
 
 async function checkSlugAvailability(

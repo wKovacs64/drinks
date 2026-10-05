@@ -52,5 +52,5 @@ to this deeper web adapter.
   the abstraction.
 - New **Admin Drink Write Path** outcome kinds should force an exhaustive update in the adapter before
   typecheck passes.
-- New save notice codes should force an explicit toast/response decision in the adapter before
+- New write notice codes should force an explicit toast/response decision in the adapter before
   typecheck passes.

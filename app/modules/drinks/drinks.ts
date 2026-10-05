@@ -43,20 +43,22 @@ export type DrinkEditor = {
   };
 };
 
-export const SaveDrinkNoticeCodes = {
+export const DrinkWriteNoticeCodes = {
   oldImageCleanupFailed: "oldImageCleanupFailed",
+  cacheRefreshFailed: "cacheRefreshFailed",
 } as const;
 
-export type SaveDrinkNoticeCode = (typeof SaveDrinkNoticeCodes)[keyof typeof SaveDrinkNoticeCodes];
+export type DrinkWriteNoticeCode =
+  (typeof DrinkWriteNoticeCodes)[keyof typeof DrinkWriteNoticeCodes];
 
-export type SaveDrinkNotice = {
-  code: SaveDrinkNoticeCode;
+export type DrinkWriteNotice = {
+  code: DrinkWriteNoticeCode;
   message: string;
 };
 
 type SaveDrinkResult = {
   drinkSlug: string;
-  notices: SaveDrinkNotice[];
+  notices: DrinkWriteNotice[];
 };
 
 export type ViewerRole = "user" | "admin";
@@ -115,6 +117,7 @@ export type UpdateAdminDrinkResult =
 
 export type DeleteAdminDrinkSuccessResult = {
   kind: "success";
+  notices: DrinkWriteNotice[];
 };
 
 export type DeleteAdminDrinkResult = DeleteAdminDrinkSuccessResult | AdminDrinkWriteNotFoundResult;

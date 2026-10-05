@@ -102,3 +102,34 @@ test("editing a drink purges the existing public route cache keys", async (testC
   const hiddenDrink = await page.request.get("/renamed-margarita");
   expect(hiddenDrink.status()).toBe(404);
 });
+
+for (const failure of ["HTTP", "network"]) {
+  test(`a committed rename navigates with a warning after ${failure} purge failure`, async (testContext) => {
+    const page = await createBrowserPage(testContext, { admin: true });
+    requestMocks.use(
+      http.post("https://api.fastly.com/service/:serviceId/purge", () =>
+        failure === "HTTP"
+          ? new HttpResponse("private cache integration details", { status: 503 })
+          : HttpResponse.error(),
+      ),
+    );
+    await page.goto("/admin/drinks/test-margarita/edit");
+    await page.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
+    await page.getByLabel("Title", { exact: true }).fill("Committed Margarita");
+    await page.getByLabel("Slug", { exact: true }).fill("committed-margarita");
+    const submission = page.waitForResponse(
+      (response) =>
+        response.request().method() === "POST" && response.url().endsWith("/test-margarita/edit"),
+    );
+    await page.getByRole("button", { name: "Update Drink" }).click();
+    expect((await submission).status()).toBe(200);
+    await page.waitForURL("/admin/drinks");
+    await page.getByRole("cell", { name: "Committed Margarita", exact: true }).waitFor();
+    const notification = page.getByRole("status");
+    await notification.filter({ hasText: "Drink updated, but cache refresh failed" }).waitFor();
+    expect(await notification.getAttribute("class")).toContain("toast-warning");
+    expect(await notification.innerText()).toBe("Drink updated, but cache refresh failed");
+    expect((await page.request.get("/committed-margarita")).status()).toBe(200);
+    expect((await page.request.get("/test-margarita")).status()).toBe(404);
+  });
+}

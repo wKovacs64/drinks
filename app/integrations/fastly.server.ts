@@ -25,7 +25,7 @@ async function purgeFastlyCache(surrogateKeys: string[]): Promise<void> {
   });
 
   if (!response.ok) {
-    console.error("Failed to purge Fastly cache:", await response.text());
+    throw new Error(`Fastly cache purge failed (HTTP ${response.status})`);
   }
 }
 

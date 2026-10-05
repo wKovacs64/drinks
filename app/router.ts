@@ -16,6 +16,7 @@ import {
 import controller from "./actions/controller.tsx";
 import { renderAssets } from "./assets.ts";
 import { routes } from "./routes.ts";
+import { adminDrinkEditorRedirects } from "#/app/web/admin-drink-write/editor-redirects.server.ts";
 const renderMiddleware = render({
   assets: renderAssets,
   onError: (error) => console.error("Remix rendering failed", error),
@@ -88,6 +89,7 @@ export const router = createRouter<AppContext>({
     sessionMiddleware,
     authMiddleware,
     responseHeaders,
+    adminDrinkEditorRedirects,
     protectAdmin,
   ],
 });

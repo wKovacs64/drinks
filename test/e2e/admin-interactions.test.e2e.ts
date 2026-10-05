@@ -59,6 +59,13 @@ test("automatic slug stops changing after a manual edit", async (testContext) =>
   const pageAsAdmin = await createBrowserPage(testContext, { admin: true });
   await pageAsAdmin.goto("/admin/drinks/new");
   await pageAsAdmin.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
+  expect(await pageAsAdmin.getByLabel("Title", { exact: true }).inputValue()).toBe("");
+  expect(await pageAsAdmin.getByLabel("Calories", { exact: true }).inputValue()).toBe("");
+  expect(await pageAsAdmin.getByLabel("Rank", { exact: true }).inputValue()).toBe("0");
+  expect(await pageAsAdmin.locator('input[name="status"]').inputValue()).toBe("published");
+  expect(await pageAsAdmin.getByRole("button", { name: "Create Drink", exact: true }).count()).toBe(
+    1,
+  );
   await pageAsAdmin.getByLabel("Title", { exact: true }).fill("Café & Whiskey Sour");
   await pageAsAdmin.waitForFunction(() => {
     const slugInput = document.querySelector('input[name="slug"]');

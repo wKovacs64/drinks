@@ -15,6 +15,7 @@ import {
   type UpdateAdminDrinkResult,
 } from "#/app/modules/drinks/drinks.ts";
 import { parseCreateDrinkSubmission, parseUpdateDrinkSubmission } from "./submission.server.ts";
+import { EDITOR_RESPONSE_MEDIA_TYPE, type DrinkEditorResponse } from "./editor-response.ts";
 
 type AdminDrinkWriteActionAdapterInput = {
   request: Request;
@@ -90,7 +91,7 @@ export async function updateAdminDrinkActionAdapter(
     imageBuffer: submission.imageUpload?.buffer,
   });
 
-  return translateUpdateResult(result, input.session);
+  return translateUpdateResult(result, input.session, input.request);
 }
 
 function translateCreateResult(result: CreateAdminDrinkResult, session: Session) {
@@ -109,7 +110,7 @@ function translateCreateResult(result: CreateAdminDrinkResult, session: Session)
   }
 }
 
-function translateUpdateResult(result: UpdateAdminDrinkResult, session: Session) {
+function translateUpdateResult(result: UpdateAdminDrinkResult, session: Session, request: Request) {
   switch (result.kind) {
     case "success":
       return redirectToAdminDrinksWithToast(session, resolveUpdateToast(result));
@@ -118,7 +119,7 @@ function translateUpdateResult(result: UpdateAdminDrinkResult, session: Session)
       return invalidActionData(result);
 
     case "notFound":
-      return drinkNotFoundResponse();
+      return drinkNotFoundResponse(request);
 
     default:
       return assertNever(result);
@@ -166,13 +167,12 @@ function parseDrinkDraft(formData: FormData): DrinkDraftParseResult {
 }
 
 function invalidActionData(result: AdminDrinkWriteActionData & { status?: number }) {
-  return Response.json(
-    {
-      fieldErrors: result.fieldErrors,
-      formErrors: result.formErrors,
-    },
-    { status: result.status ?? 400 },
-  );
+  const data: DrinkEditorResponse = {
+    kind: "invalid",
+    fieldErrors: result.fieldErrors,
+    formErrors: result.formErrors,
+  };
+  return Response.json(data, { status: result.status ?? 400 });
 }
 
 function redirectToAdminDrinksWithToast(session: Session, toast: ToastMessage): Response {
@@ -180,8 +180,11 @@ function redirectToAdminDrinksWithToast(session: Session, toast: ToastMessage): 
   return redirect("/admin/drinks", { status: 303 });
 }
 
-function drinkNotFoundResponse(): Response {
-  return new Response("Drink not found", { status: 404 });
+function drinkNotFoundResponse(request?: Request): Response {
+  if (request?.headers.get("Accept") !== EDITOR_RESPONSE_MEDIA_TYPE)
+    return new Response("Drink not found", { status: 404 });
+  const data: DrinkEditorResponse = { kind: "notFound", message: "Drink not found" };
+  return Response.json(data, { status: 404 });
 }
 
 function resolveUpdateToast(result: AdminDrinkWriteSuccessResult): ToastMessage {

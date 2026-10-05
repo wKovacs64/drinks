@@ -309,6 +309,7 @@ export default createController(routes, {
     },
     async newDrink(context) {
       if (!context.auth.ok) return redirect("/login");
+      const editor = await drinksService().getNewDrinkEditor();
       return context.render(
         <Document
           title="New Drink | drinks.fyi"
@@ -319,7 +320,7 @@ export default createController(routes, {
           <AdminLayout user={context.auth.identity}>
             <div>
               <h1 className="mb-6 text-2xl font-medium text-zinc-200">Add New Drink</h1>
-              <DrinkForm action="/admin/drinks/new" />
+              <DrinkForm editor={editor} action="/admin/drinks/new" />
             </div>
           </AdminLayout>
         </Document>,

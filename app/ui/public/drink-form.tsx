@@ -1,5 +1,10 @@
 import { clientEntry, navigate, on, type Handle } from "remix/component";
 import { classes } from "#/app/core/strings.ts";
+import { parseSafe } from "remix/data-schema";
+import {
+  drinkEditorResponseSchema,
+  EDITOR_RESPONSE_MEDIA_TYPE,
+} from "#/app/web/admin-drink-write/editor-response.ts";
 import slugify from "@sindresorhus/slugify";
 import type { DrinkEditor } from "#/app/modules/drinks/drinks.ts";
 import { ImageCrop } from "./image-crop.tsx";
@@ -14,14 +19,14 @@ const STATUS_OPTIONS: {
 
 export const DrinkForm = clientEntry(
   import.meta.url,
-  function DrinkForm(handle: Handle<{ editor?: DrinkEditor; action: string; errors?: string[] }>) {
+  function DrinkForm(handle: Handle<{ editor: DrinkEditor; action: string; errors?: string[] }>) {
     const { editor, action } = handle.props;
     let isSubmitting = false;
     let getCroppedImage: (() => Promise<Blob | null>) | undefined;
     let isSlugManuallyEdited = false;
-    let slugValue = editor?.initialValues.slug ?? "";
+    let slugValue = editor.initialValues.slug;
     let imageRequired = false;
-    let statusValue = editor?.initialValues.status ?? "published";
+    let statusValue = editor.initialValues.status;
     let errors = handle.props.errors;
     function setSlugValue(value: string) {
       slugValue = value;
@@ -41,45 +46,50 @@ export const DrinkForm = clientEntry(
       event.preventDefault();
       if (isSubmitting) return;
       const form = event.currentTarget;
-      const croppedBlob = await getCroppedImage?.();
-      if (signal.aborted) return;
-      if (!croppedBlob && !editor?.imageUrl) {
-        imageRequired = true;
-        void handle.update();
-        return;
-      }
       imageRequired = false;
       isSubmitting = true;
       void handle.update();
-      const formData = new FormData(form);
-      if (croppedBlob) formData.set("imageFile", croppedBlob, "cropped.jpg");
       try {
+        const croppedBlob = await getCroppedImage?.();
+        if (signal.aborted) return;
+        if (!croppedBlob && !editor.imageUrl) {
+          imageRequired = true;
+          return;
+        }
+        const formData = new FormData(form);
+        if (croppedBlob) formData.set("imageFile", croppedBlob, "cropped.jpg");
         const response = await fetch(action, {
           method: "POST",
           body: formData,
-          redirect: "manual",
+          headers: { Accept: EDITOR_RESPONSE_MEDIA_TYPE },
+          redirect: "error",
           signal,
         });
         if (signal.aborted) return;
-        if (response.type === "opaqueredirect") {
-          await navigate("/admin/drinks");
-          return;
-        }
         const data: unknown = await response.json();
         if (signal.aborted) return;
-        if (
-          typeof data === "object" &&
-          data &&
-          "fieldErrors" in data &&
-          typeof data.fieldErrors === "object" &&
-          data.fieldErrors
-        ) {
-          errors = Object.values(data.fieldErrors).flatMap((messages) =>
-            Array.isArray(messages)
-              ? messages.filter((message): message is string => typeof message === "string")
-              : [],
-          );
-        } else errors = ["Unable to save drink"];
+        const parsedResponse = parseSafe(drinkEditorResponseSchema, data);
+        if (!parsedResponse.success) throw new Error("Unexpected Drink editor response");
+        const result = parsedResponse.value;
+        switch (result.kind) {
+          case "navigate":
+            if (result.document) window.location.assign(result.location);
+            else await navigate(result.location);
+            return;
+          case "invalid":
+            errors = [
+              ...result.formErrors,
+              ...Object.values(result.fieldErrors).flatMap((messages) => messages ?? []),
+            ];
+            break;
+          case "notFound":
+            errors = [result.message];
+            break;
+          default: {
+            const unexpectedResponse: never = result;
+            throw new Error(`Unexpected Drink editor response: ${String(unexpectedResponse)}`);
+          }
+        }
       } catch {
         if (!signal.aborted) errors = ["Unable to save drink. Please try again."];
       } finally {
@@ -103,8 +113,8 @@ export const DrinkForm = clientEntry(
             >
               <p className="font-medium">Please fix the following errors:</p>
               <ul className="mt-1 list-inside list-disc">
-                {errors.map((error) => (
-                  <li key={error}>{error}</li>
+                {errors.map((error, index) => (
+                  <li key={index}>{error}</li>
                 ))}
               </ul>
             </div>
@@ -121,10 +131,10 @@ export const DrinkForm = clientEntry(
               type="text"
               name="title"
               id="title"
-              defaultValue={editor?.initialValues.title}
+              defaultValue={editor.initialValues.title}
               required
               mix={on<HTMLInputElement, "input">("input", (event) => {
-                if (!editor && !isSlugManuallyEdited) {
+                if (editor.mode === "create" && !isSlugManuallyEdited) {
                   setSlugValue(slugify(event.currentTarget.value));
                 }
               })}
@@ -159,7 +169,7 @@ export const DrinkForm = clientEntry(
             </span>
             <div className="mt-2">
               <ImageCrop
-                existingImageUrl={editor?.imageUrl}
+                existingImageUrl={editor.imageUrl}
                 onCropReady={(getImage) => {
                   getCroppedImage = getImage;
                 }}
@@ -179,7 +189,7 @@ export const DrinkForm = clientEntry(
               name="ingredients"
               id="ingredients"
               rows={5}
-              defaultValue={editor?.initialValues.ingredients}
+              defaultValue={editor.initialValues.ingredients}
               required
               className="mt-2 block w-full rounded-sm border border-zinc-700 bg-zinc-800 px-3 py-2 text-zinc-200 placeholder-zinc-600 focus:border-amber-600 focus:ring-1 focus:ring-amber-600 focus:outline-none"
             />
@@ -196,7 +206,7 @@ export const DrinkForm = clientEntry(
               type="number"
               name="calories"
               id="calories"
-              defaultValue={editor?.initialValues.calories}
+              defaultValue={editor.initialValues.calories}
               min={0}
               required
               className="mt-2 block w-full rounded-sm border border-zinc-700 bg-zinc-800 px-3 py-2 text-zinc-200 placeholder-zinc-600 focus:border-amber-600 focus:ring-1 focus:ring-amber-600 focus:outline-none"
@@ -214,7 +224,7 @@ export const DrinkForm = clientEntry(
               type="text"
               name="tags"
               id="tags"
-              defaultValue={editor?.initialValues.tags}
+              defaultValue={editor.initialValues.tags}
               required
               className="mt-2 block w-full rounded-sm border border-zinc-700 bg-zinc-800 px-3 py-2 text-zinc-200 placeholder-zinc-600 focus:border-amber-600 focus:ring-1 focus:ring-amber-600 focus:outline-none"
             />
@@ -231,7 +241,7 @@ export const DrinkForm = clientEntry(
               name="notes"
               id="notes"
               rows={12}
-              defaultValue={editor?.initialValues.notes ?? ""}
+              defaultValue={editor.initialValues.notes}
               className="mt-2 block w-full rounded-sm border border-zinc-700 bg-zinc-800 px-3 py-2 text-zinc-200 placeholder-zinc-600 focus:border-amber-600 focus:ring-1 focus:ring-amber-600 focus:outline-none"
             />
           </div>
@@ -247,7 +257,7 @@ export const DrinkForm = clientEntry(
               type="number"
               name="rank"
               id="rank"
-              defaultValue={editor?.initialValues.rank ?? 0}
+              defaultValue={editor.initialValues.rank}
               className="mt-2 block w-full rounded-sm border border-zinc-700 bg-zinc-800 px-3 py-2 text-zinc-200 placeholder-zinc-600 focus:border-amber-600 focus:ring-1 focus:ring-amber-600 focus:outline-none"
             />
           </div>
@@ -283,7 +293,11 @@ export const DrinkForm = clientEntry(
               disabled={isSubmitting}
               className="rounded bg-amber-600 px-4 py-2 font-medium text-zinc-950 hover:bg-amber-500 disabled:opacity-50"
             >
-              {isSubmitting ? "Saving..." : editor ? "Update Drink" : "Create Drink"}
+              {isSubmitting
+                ? "Saving..."
+                : editor.mode === "edit"
+                  ? "Update Drink"
+                  : "Create Drink"}
             </button>
           </div>
         </form>

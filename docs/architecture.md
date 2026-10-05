@@ -176,6 +176,25 @@ Path**. It owns multipart submission preparation, `drinkDraftSchema` validation,
 translation from typed Drinks module write outcomes into field/form error data, not-found responses,
 redirects, and toasts. Routes and generic helpers must not partially translate those outcomes.
 
+Both new and edit pages consume the Drinks module's prepared `DrinkEditor`. The form uses its
+explicit mode for create/edit behavior, including automatic slugs only in create mode until a manual
+slug edit.
+
+The enhanced editor keeps its text, selected image, and crop in the mounted form while submitting
+the asynchronously prepared JPEG. `app/web/admin-drink-write/editor-response.ts` defines its
+validated response contract: complete field/form errors, a missing target, or a navigation destination.
+Validation and missing-target responses retain their `400` and `404` statuses. The adapter translates
+Drink write outcomes; the browser presents those translated outcomes without reconstructing domain
+policy.
+
+The editor sends `Accept: application/vnd.drinks.editor+json` on create/edit POST requests.
+`adminDrinkEditorRedirects` wraps the admin gate and write adapter to turn their actual redirects into
+navigation data for just those enhanced requests. Manual fetch redirects hide `Location` from browser
+code, and following them could fetch external OAuth as HTML. Navigation data therefore uses `200`;
+the editor performs document navigation to `/login` so native OAuth redirects and session handling
+run normally. Unmarked requests and other routes keep native redirects. This targeted JSON flow
+preserves crop state across validation and transport failures without relying on HTML reconciliation.
+
 ## Expected Failures and Notices
 
 Expected business-rule failures should cross Deep Module seams as typed outcomes or typed errors that

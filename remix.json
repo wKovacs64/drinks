@@ -11,6 +11,7 @@
     "allowFiles": [
       "app/ui/**",
       "app/core/images.ts",
+      "app/web/admin-drink-write/editor-response.ts",
       "app/core/strings.ts",
       "public/app.css",
       "public/image-crop.css",

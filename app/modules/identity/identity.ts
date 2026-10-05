@@ -9,5 +9,11 @@ export type SessionUser = {
 };
 
 export interface IdentityService {
+  admitUser(input: {
+    email: string | undefined;
+    emailVerified: boolean | undefined;
+    name: string | undefined;
+    avatarUrl: string | undefined;
+  }): Promise<SessionUser | null>;
   getSessionUser(input: { userId: User["id"] }): Promise<SessionUser | null>;
 }

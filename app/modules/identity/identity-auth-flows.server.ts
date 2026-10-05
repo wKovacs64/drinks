@@ -9,7 +9,7 @@ import { redirect } from "remix/response/redirect";
 import { Session } from "remix/session";
 import { getEnvVars } from "#/app/core/env.server.ts";
 import { getDb } from "#/app/db/client.server.ts";
-import { updateIdentityUserOnLogin } from "./identity-persistence.server.ts";
+import { createIdentityService } from "./identity-service.server.ts";
 import { safeRedirectTo } from "./identity-navigation.server.ts";
 let provider: ReturnType<typeof createGoogleAuthProvider> | undefined;
 function getProvider() {
@@ -35,11 +35,12 @@ export async function authenticate(
 ): Promise<Response> {
   try {
     const { result, returnTo } = await finishExternalAuth(getProvider(), context);
-    if (!result.profile.email || !result.profile.email_verified) return redirect("/login-failed");
-    const user = await updateIdentityUserOnLogin(getDb(), {
+    const identityService = createIdentityService({ db: getDb() });
+    const user = await identityService.admitUser({
       email: result.profile.email,
-      name: result.profile.name ?? null,
-      avatarUrl: result.profile.picture ?? null,
+      emailVerified: result.profile.email_verified,
+      name: result.profile.name,
+      avatarUrl: result.profile.picture,
     });
     if (!user) return redirect("/login-failed");
     const session = completeAuth(context);

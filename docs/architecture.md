@@ -144,17 +144,22 @@ Current `Drinks` seam examples:
 
 `Identity` owns:
 
-- login and callback flows
-- logout
-- session helpers
-- auth middleware
-- request user context helpers
+- verified-email admission for existing Users, with profile refresh and no User creation
+- current User resolution from SQLite, including the current role and missing/deleted Users
+- login and callback flows, logout, session helpers, and auth middleware as web adapters
 
-`identity.server.ts` is the single public server seam for those concerns.
+`identity.server.ts` is the single public server seam for those concerns. Its
+`createIdentityService({ db })` factory exposes `admitUser(...)` and `getSessionUser({ userId })`,
+both returning a `SessionUser` or `null`. Rejected admission makes no persistence changes;
+successful admission refreshes name and avatar while preserving ID, email, and role. Current User
+resolution reads SQLite on each lookup so role changes and deletion apply to the next request.
+
+The OAuth callback and session-auth middleware use the same private factory implementation.
+The adapters own OAuth completion, session rotation and invalidation, redirects, Return-to URL
+sanitization, and authentication-error handling; the service owns admission and User resolution.
 
 `app/router.ts` owns the admin route gate: unauthenticated requests redirect to login and
-authenticated users without the admin role redirect to `/unauthorized`. Google sign-in requires
-a verified email matching an existing user; it updates profile fields without creating accounts.
+authenticated users without the admin role redirect to `/unauthorized`.
 
 ## Route Actions and Web Adapters
 

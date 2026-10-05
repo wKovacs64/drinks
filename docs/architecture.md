@@ -227,7 +227,7 @@ The editor sends `Accept: application/vnd.drinks.editor+json` on create/edit POS
 navigation data for just those enhanced requests. Manual fetch redirects hide `Location` from browser
 code, and following them could fetch external OAuth as HTML. Navigation data therefore uses `200`;
 the editor performs document navigation to `/login` so native OAuth redirects and session handling
-run normally. Unmarked requests keep native redirects. This targeted JSON flow
+run normally. Unmarked requests and other routes keep native redirects. This targeted JSON flow
 preserves crop state across validation and transport failures without relying on HTML reconciliation.
 
 ## Expected Failures and Notices

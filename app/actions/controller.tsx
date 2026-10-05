@@ -31,7 +31,7 @@ import { Glass } from "#/app/ui/drinks/glass.tsx";
 import { Tag } from "#/app/ui/tags/tag.tsx";
 import { TagLink } from "#/app/ui/tags/tag-link.tsx";
 import { SearchForm } from "#/app/ui/public/search-form.tsx";
-import { SearchResults } from "#/app/ui/search/search-results.tsx";
+import { searchPageRouteAdapter } from "#/app/web/search-page/route-adapter.server.tsx";
 import { NotFound } from "#/app/ui/core/not-found.tsx";
 import { Icon } from "#/app/ui/icons/icon.tsx";
 import { AdminLayout } from "#/app/ui/admin-layout.tsx";
@@ -93,38 +93,8 @@ export default createController(routes, {
         { headers: { ...publicHeaders, "Surrogate-Key": "all index" } },
       );
     },
-    async search(context) {
-      const query = new URL(context.request.url).searchParams.get("q") ?? "";
-      const drinks = await drinksService().searchPublishedDrinks({ query });
-      return context.render(
-        <Document
-          title="Search Drinks"
-          description="Search all drinks by ingredient or description"
-          preloadImages={getGalleryImagePreloads(drinks)}
-        >
-          <Gallery
-            breadcrumbs={[
-              { title: "All Drinks", href: "/" },
-              { title: "Search", href: query ? "/search" : undefined },
-              ...(query
-                ? [
-                    {
-                      title: (
-                        <span>
-                          &quot;<span>{query}</span>&quot;
-                        </span>
-                      ),
-                    },
-                  ]
-                : []),
-            ]}
-          >
-            <SearchForm initialSearchTerm={query} />
-            <SearchResults query={query} drinks={drinks} />
-          </Gallery>
-        </Document>,
-        { headers: { ...publicHeaders, "Surrogate-Key": query ? "search all" : "all" } },
-      );
+    search(context) {
+      return searchPageRouteAdapter({ context, drinksService: drinksService() });
     },
     async tags(context) {
       const tags = await drinksService().getAllTags();

@@ -5,6 +5,21 @@ import { http, HttpResponse } from "msw";
 import { server as requestMocks } from "#/test/server.ts";
 
 describe("Delete Drink", () => {
+  test("a document load consumes its deletion notification once", async (testContext) => {
+    const page = await createBrowserPage(testContext, { admin: true });
+    const deletion = await page.request.post("/admin/drinks/test-mojito/delete", {
+      maxRedirects: 0,
+    });
+    expect(deletion.status()).toBe(303);
+    expect(deletion.headers().location).toBe("/admin/drinks");
+    await page.goto("/admin/drinks");
+    await page.getByRole("status").filter({ hasText: "Drink deleted!" }).waitFor();
+    expect(await page.getByRole("cell", { name: "Test Mojito", exact: true }).count()).toBe(0);
+    await page.reload();
+    await page.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
+    expect(await page.getByRole("status").count()).toBe(0);
+  });
+
   test("can delete a drink with warnings after image cleanup and network purge failures", async (testContext) => {
     const pageAsAdmin = await createBrowserPage(testContext, { admin: true });
     requestMocks.use(

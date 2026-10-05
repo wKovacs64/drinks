@@ -2,6 +2,45 @@ import { test } from "remix/test";
 import { expect } from "remix/assert";
 import { createBrowserPage } from "#/test/e2e.ts";
 
+test("deletion follows the native redirect and retains sorting and filtering", async (testContext) => {
+  const page = await createBrowserPage(testContext, { admin: true });
+  await page.goto("/admin/drinks");
+  await page.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
+  await page.getByRole("textbox", { name: "Filter drinks" }).fill("Test");
+  await page.getByRole("button", { name: "Calories", exact: true }).click();
+  await page.waitForFunction(() =>
+    document.querySelector("tbody tr")?.textContent?.includes("Test Mojito"),
+  );
+  page.on("dialog", (dialog) => dialog.accept());
+  const deletionResponsePromise = page.waitForResponse(
+    (response) =>
+      new URL(response.url()).pathname === "/admin/drinks/test-old-fashioned/delete" &&
+      response.request().method() === "POST",
+  );
+  const listResponsePromise = page.waitForResponse(
+    (response) =>
+      new URL(response.url()).pathname === "/admin/drinks" &&
+      response.request().method() === "GET" &&
+      response.request().headers()["x-remix-target"] !== "admin-drinks",
+  );
+  await page
+    .getByRole("row")
+    .filter({ hasText: "Test Old Fashioned" })
+    .getByRole("button", { name: "Delete" })
+    .click();
+  const deletionResponse = await deletionResponsePromise;
+  expect(deletionResponse.status()).toBe(303);
+  expect(deletionResponse.headers().location).toBe("/admin/drinks");
+  const listResponse = await listResponsePromise;
+  expect(listResponse.status()).toBe(200);
+  await page.getByRole("status").filter({ hasText: "Drink deleted!" }).waitFor();
+  expect(await page.getByRole("textbox", { name: "Filter drinks" }).inputValue()).toBe("Test");
+  expect(await page.locator("tbody tr td:first-child").allTextContents()).toEqual([
+    "Test Mojito",
+    "Test Margarita",
+  ]);
+});
+
 test("admin filter searches tags and Escape restores the list", async (testContext) => {
   const pageAsAdmin = await createBrowserPage(testContext, { admin: true });
   await pageAsAdmin.goto("/admin/drinks");

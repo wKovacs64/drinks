@@ -83,6 +83,26 @@ Modules:
 - `Drinks`
 - `Identity`
 
+## Frames
+
+The search page has one named, blocking Remix `Frame`. Its initial document response includes
+server-rendered content; there is no deferred loading placeholder. The same public URL serves the
+document and its fragment, selected by `X-Remix-Target`.
+
+`app/web/search-page/route-adapter.server.tsx` owns the search document/fragment responses and cache
+headers. The `search-results` Frame contains the query-dependent breadcrumbs, search form, and
+results so they stay consistent through submissions and browser history. Forms target that Frame;
+the gallery header, footer, and document head stay outside it. Both response variants set
+`Vary: X-Remix-Target` and retain the existing Fastly surrogate keys. Initial documents retain their
+responsive photo preloads. Their blocking Frame makes an internal GET, so initial search reads run
+once for those preloads and again for the region; cached search and placeholder work is reused.
+
+The admin drinks list uses ordinary form submissions and native redirects. Remix reconciles the
+returned document while matching client entries retain their filter and sort state. There is no
+named admin Frame or separate table-deletion response contract.
+
+See `docs/frames-performance.md` for the baseline comparison and reproducible measurement harness.
+
 ## Public Entry Points
 
 Consumers should import only from:
@@ -207,7 +227,7 @@ The editor sends `Accept: application/vnd.drinks.editor+json` on create/edit POS
 navigation data for just those enhanced requests. Manual fetch redirects hide `Location` from browser
 code, and following them could fetch external OAuth as HTML. Navigation data therefore uses `200`;
 the editor performs document navigation to `/login` so native OAuth redirects and session handling
-run normally. Unmarked requests and other routes keep native redirects. This targeted JSON flow
+run normally. Unmarked requests keep native redirects. This targeted JSON flow
 preserves crop state across validation and transport failures without relying on HTML reconciliation.
 
 ## Expected Failures and Notices

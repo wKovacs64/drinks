@@ -45,7 +45,7 @@ describe("Delete Drink", () => {
     const notification = pageAsAdmin.getByRole("status");
     const expectedMessage = "Drink deleted, but old image cleanup failed and cache refresh failed";
     await notification.filter({ hasText: expectedMessage }).waitFor();
-    expect(await notification.getAttribute("class")).toContain("toast-warning");
+    expect(await notification.getAttribute("data-kind")).toBe("warning");
     expect(await notification.innerText()).toBe(expectedMessage);
     expect((await pageAsAdmin.request.get("/test-old-fashioned")).status()).toBe(404);
   });

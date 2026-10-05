@@ -45,7 +45,6 @@ function getScriptEntry(sourceId: string) {
 }
 export const scriptEntry = await getScriptEntry("app/ui/public/entry.ts");
 export const stylesheetHref = await assets.getHref("public/app.css");
-export const cropStylesheetHref = await assets.getHref("public/image-crop.css");
 export const lightFontHref = await assets.getHref(
   "public/fonts/source-sans-3-latin-300-normal.woff2",
 );

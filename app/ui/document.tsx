@@ -1,7 +1,6 @@
 import type { Handle, RemixNode } from "remix/component";
 import { ImportMap } from "remix/component/server";
 import {
-  cropStylesheetHref,
   hmrClientHref,
   lightFontHref,
   preloadAfterPaintHref,
@@ -20,7 +19,6 @@ export function Document(
     socialTitle?: string;
     socialDescription?: string;
     preloadImages?: ImagePreloadProps[];
-    cropStyles?: boolean;
     modulePreloads?: readonly string[];
     deferModulePreloads?: boolean;
   }>,
@@ -36,7 +34,6 @@ export function Document(
       socialTitle = "drinks.fyi",
       socialDescription = "Craft Cocktail Gallery",
       preloadImages,
-      cropStyles = false,
       modulePreloads = scriptEntry.preloads,
       deferModulePreloads = true,
     } = handle.props;
@@ -83,14 +80,6 @@ export function Document(
               href={lightFontHref}
               crossOrigin="anonymous"
               data-rmx-key={`preload:font:${lightFontHref}`}
-            />
-          )}
-          {cropStyles && (
-            <link
-              rel="stylesheet"
-              href={cropStylesheetHref}
-              data-rmx-key={cropStylesheetHref}
-              data-rmx-preserve-dom
             />
           )}
           {preloadImages?.map((image) => (

@@ -6,6 +6,9 @@
 `remix/node-tsx` handles TypeScript/JSX at runtime. `app/routes.ts` defines typed Remix route patterns,
 and `app/actions/controller.tsx` maps them to thin service calls and server-rendered pages. Interactive
 components under `app/ui/public/` hydrate with Remix `clientEntry`; there is no React runtime.
+Use Tailwind utilities for component presentation and Remix's `css` mixin when utilities do not
+fit. Toast presence uses `@remix-run/ui/animation`; the crop border's custom keyframes live in
+its component. Global CSS is reserved for fonts, theme tokens, and shared base/utility rules.
 
 Persistence uses `remix/data-table` with `remix/data-table/sqlite` and migrations under
 `app/db/migrations/`. SQLite stores JSON arrays as text and timestamps as Unix seconds.

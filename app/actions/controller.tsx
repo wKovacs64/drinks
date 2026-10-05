@@ -284,7 +284,6 @@ export default createController(routes, {
       return context.render(
         <Document
           title="New Drink | drinks.fyi"
-          cropStyles
           modulePreloads={await getClientEntryPreloads(DrinkForm)}
           deferModulePreloads={false}
         >
@@ -304,7 +303,6 @@ export default createController(routes, {
       return context.render(
         <Document
           title={`Edit ${editor.initialValues.title} | drinks.fyi`}
-          cropStyles
           modulePreloads={await getClientEntryPreloads(DrinkForm)}
           deferModulePreloads={false}
         >

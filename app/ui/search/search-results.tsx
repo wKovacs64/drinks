@@ -11,7 +11,7 @@ export function SearchResults(handle: Handle<{ query: string; drinks: DrinkView[
     return (
       <div>
         <SearchStatus />
-        <div className="search-results">
+        <div className="peer-data-[search-pending=true]:hidden">
           {!query ? (
             <NoSearchTerm />
           ) : drinks.length === 0 ? (

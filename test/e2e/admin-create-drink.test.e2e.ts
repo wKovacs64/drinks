@@ -50,7 +50,7 @@ describe("Create New Drink", () => {
     await pageAsAdmin.getByRole("cell", { name: "New Test Drink" }).waitFor();
     const notification = pageAsAdmin.getByRole("status");
     await notification.filter({ hasText: "Drink created, but cache refresh failed" }).waitFor();
-    expect(await notification.getAttribute("class")).toContain("toast-warning");
+    expect(await notification.getAttribute("data-kind")).toBe("warning");
     expect(await notification.innerText()).toBe("Drink created, but cache refresh failed");
   });
 });
@@ -68,10 +68,20 @@ test("create retries preserve text, selected image, and crop after validation an
   await page.getByLabel("Rank").fill("7");
   await page.getByRole("button", { name: "Unpublished", exact: true }).click();
   await page.locator('input[type="file"]').setInputFiles("app/assets/images/background-768.jpg");
-  const selection = page.locator(".ReactCrop__crop-selection");
+  const selection = page.getByRole("group", {
+    name: "Use the arrow keys to move the crop selection area",
+  });
   await selection.waitFor();
-  await page.locator(".ReactCrop__drag-handle.ord-se").focus();
-  await page.locator(".ReactCrop__drag-handle.ord-se").press("Shift+ArrowLeft");
+  await page
+    .getByRole("button", {
+      name: "Use the arrow keys to move the south east drag handle to change the crop selection area",
+    })
+    .focus();
+  await page
+    .getByRole("button", {
+      name: "Use the arrow keys to move the south east drag handle to change the crop selection area",
+    })
+    .press("Shift+ArrowLeft");
   await page.getByLabel("Notes (markdown)").focus();
   const cropStyle = await selection.getAttribute("style");
   const previewSource = await page.getByAltText("Crop preview").getAttribute("src");

@@ -27,7 +27,7 @@ export const SearchStatus = clientEntry(import.meta.url, function SearchStatus(h
   return () => {
     return (
       <div
-        className="search-status"
+        className="peer"
         data-search-pending={pendingQuery !== undefined || leaving ? "true" : undefined}
       >
         {!leaving &&

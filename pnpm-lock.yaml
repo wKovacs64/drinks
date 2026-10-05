@@ -172,6 +172,9 @@ importers:
       '@imagekit/nodejs':
         specifier: 7.12.1
         version: 7.12.1
+      '@remix-run/ui':
+        specifier: 0.12.1
+        version: 0.12.1
       '@sindresorhus/slugify':
         specifier: 3.0.1
         version: 3.0.1
@@ -1497,6 +1500,9 @@ packages:
     peerDependenciesMeta:
       playwright:
         optional: true
+
+  '@remix-run/ui@0.12.1':
+    resolution: {integrity: sha512-eB1qhDODNXPFQFb7Zomn8c+DlIlPwz+c6Uk70nqnEUjNxCF8GM0tcG+USG/XjaaBfdvFhvvd2GWzoINnTekxRA==}
 
   '@sindresorhus/slugify@3.0.1':
     resolution: {integrity: sha512-N1oPvN6sytRKZCskv0L+vSyvnUYi9JplPXZ90lT6EBsijjHrUdoXttb0Lna6pw1TWMe8vlajQnLDtU9KYHqtDg==}
@@ -3221,6 +3227,10 @@ snapshots:
     transitivePeerDependencies:
       - '@emnapi/core'
       - '@emnapi/runtime'
+
+  '@remix-run/ui@0.12.1':
+    dependencies:
+      '@remix-run/component': 1.0.0
 
   '@sindresorhus/slugify@3.0.1':
     dependencies:

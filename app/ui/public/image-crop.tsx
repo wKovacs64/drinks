@@ -1,5 +1,26 @@
-import { on, ref, type Handle } from "remix/component";
+import { css, on, ref, type Handle } from "remix/component";
 import { Image } from "./image.tsx";
+
+// Preserve the crop border from react-image-crop (MIT); see THIRD_PARTY_NOTICES.md.
+const cropBorderStyles = css({
+  backgroundImage:
+    "linear-gradient(90deg, #fff 50%, #444 50%), linear-gradient(90deg, #fff 50%, #444 50%), linear-gradient(#fff 50%, #444 50%), linear-gradient(#fff 50%, #444 50%)",
+  backgroundPosition: "0 0, 0 100%, 0 0, 100% 0",
+  backgroundRepeat: "repeat-x, repeat-x, repeat-y, repeat-y",
+  backgroundSize: "10px 1px, 10px 1px, 1px 10px, 1px 10px",
+  animation: "1s linear infinite drinks-crop-border",
+  "@keyframes drinks-crop-border": {
+    from: { backgroundPosition: "0 0, 0 100%, 0 0, 100% 0" },
+    to: { backgroundPosition: "20px 0, -20px 100%, 0 -20px, 100% 20px" },
+  },
+});
+
+const cropHandlePositions = {
+  nw: "top-0 left-0 -translate-x-1/2 -translate-y-1/2 cursor-nw-resize",
+  ne: "top-0 right-0 translate-x-1/2 -translate-y-1/2 cursor-ne-resize",
+  se: "bottom-0 right-0 translate-x-1/2 translate-y-1/2 cursor-se-resize",
+  sw: "bottom-0 left-0 -translate-x-1/2 translate-y-1/2 cursor-sw-resize",
+};
 
 type Crop = { x: number; y: number; size: number };
 export function ImageCrop(
@@ -227,15 +248,16 @@ export function ImageCrop(
         <div className="space-y-3">
           {filePicker}
           <div>
-            <div className="ReactCrop ReactCrop--fixed-aspect max-h-96">
+            <div className="relative inline-block max-h-96 max-w-full cursor-crosshair">
               <div
-                className="ReactCrop__child-wrapper"
+                className="max-h-[inherit] overflow-hidden"
                 mix={on("pointerdown", (event) => {
                   if (event instanceof PointerEvent) beginDraw(event);
                 })}
               >
                 <img
                   alt="Crop preview"
+                  className="block max-h-[inherit] max-w-full touch-none"
                   src={imageSource}
                   draggable={false}
                   mix={[
@@ -276,7 +298,12 @@ export function ImageCrop(
                 />
               </div>
               {crop && imageElement ? (
-                <svg className="ReactCrop__crop-mask" width="100%" height="100%" aria-hidden>
+                <svg
+                  className="pointer-events-none absolute inset-0 size-[calc(100%+0.5px)]"
+                  width="100%"
+                  height="100%"
+                  aria-hidden
+                >
                   <defs>
                     <mask id={cropMaskId}>
                       <rect width="100%" height="100%" fill="white" />
@@ -300,7 +327,7 @@ export function ImageCrop(
               ) : null}
               {crop && imageElement ? (
                 <div
-                  className="ReactCrop__crop-selection"
+                  className="absolute top-0 left-0 cursor-move touch-none text-white focus:outline-2 focus:-outline-offset-1 focus:outline-[#08f] focus:outline-solid"
                   // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- The crop group handles arrow keys to move the selection.
                   tabIndex={0}
                   role="group"
@@ -312,6 +339,7 @@ export function ImageCrop(
                     height: `${crop.size}px`,
                   }}
                   mix={[
+                    cropBorderStyles,
                     on("pointerdown", (event) => {
                       if (event instanceof PointerEvent) beginDrag(event);
                     }),
@@ -355,11 +383,11 @@ export function ImageCrop(
                     }),
                   ]}
                 >
-                  <div className="ReactCrop__drag-elements">
-                    {["nw", "n", "ne", "e", "se", "s", "sw", "w"].map((direction) => (
+                  <div>
+                    {Object.entries(cropHandlePositions).map(([direction, positionClasses]) => (
                       <div
                         key={direction}
-                        className={`ReactCrop__drag-handle ord-${direction}`}
+                        className={`absolute size-3 border border-[#ffffffb3] bg-[#0003] focus:bg-[#08f] [@media(pointer:coarse)]:size-6 ${positionClasses}`}
                         tabIndex={0}
                         role="button"
                         aria-label={`Use the arrow keys to move the ${direction.includes("n") ? "north" : "south"} ${direction.includes("w") ? "west" : "east"} drag handle to change the crop selection area`}

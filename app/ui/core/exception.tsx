@@ -2,7 +2,7 @@ import type { Handle } from "remix/component";
 
 export function Exception(handle: Handle<{ message: string }>) {
   return () => (
-    <div className="bg-app-image flex flex-1 flex-col items-center gap-8 bg-neutral-800 bg-cover bg-fixed bg-center bg-no-repeat px-4 pt-8 text-gray-100 md:gap-16 md:pt-24">
+    <div className="flex flex-1 flex-col items-center gap-8 bg-neutral-800 bg-[url('./images/background-768.jpg')] bg-cover bg-fixed bg-center bg-no-repeat px-4 pt-8 text-gray-100 md:gap-16 md:pt-24 lg:bg-[url('./images/background-2078.jpg')]">
       <h1 className="flex gap-4 text-4xl font-normal">
         <span role="img" aria-hidden>
           💥

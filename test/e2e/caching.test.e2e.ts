@@ -127,7 +127,7 @@ for (const failure of ["HTTP", "network"]) {
     await page.getByRole("cell", { name: "Committed Margarita", exact: true }).waitFor();
     const notification = page.getByRole("status");
     await notification.filter({ hasText: "Drink updated, but cache refresh failed" }).waitFor();
-    expect(await notification.getAttribute("class")).toContain("toast-warning");
+    expect(await notification.getAttribute("data-kind")).toBe("warning");
     expect(await notification.innerText()).toBe("Drink updated, but cache refresh failed");
     expect((await page.request.get("/committed-margarita")).status()).toBe(200);
     expect((await page.request.get("/test-margarita")).status()).toBe(404);

@@ -14,11 +14,10 @@
       "app/web/admin-drink-write/editor-response.ts",
       "app/core/strings.ts",
       "public/app.css",
-      "public/image-crop.css",
       "public/fonts/**",
       "public/images/**"
     ],
-    "allowPackages": ["remix", "@sindresorhus/slugify", "@unpic/core", "unpic"],
+    "allowPackages": ["remix", "@remix-run/ui", "@sindresorhus/slugify", "@unpic/core", "unpic"],
     "denyFiles": ["**/*.test.*", "**/*.server.*"]
   },
   "test": {

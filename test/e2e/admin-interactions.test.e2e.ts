@@ -211,7 +211,9 @@ test("image crop supports drawing and keyboard movement and uploads a square JPE
     .setInputFiles("app/assets/images/background-768.jpg");
   const preview = pageAsAdmin.getByAltText("Crop preview");
   await preview.waitFor();
-  const selection = pageAsAdmin.locator(".ReactCrop__crop-selection");
+  const selection = pageAsAdmin.getByRole("group", {
+    name: "Use the arrow keys to move the crop selection area",
+  });
   await selection.waitFor();
   const bounds = await preview.boundingBox();
   if (!bounds) throw new Error("Crop image has no bounds");
@@ -220,7 +222,9 @@ test("image crop supports drawing and keyboard movement and uploads a square JPE
   await pageAsAdmin.mouse.move(bounds.x + 70, bounds.y + 70, { steps: 4 });
   await pageAsAdmin.mouse.up();
   await pageAsAdmin.waitForFunction(() => {
-    const selectionElement = document.querySelector(".ReactCrop__crop-selection");
+    const selectionElement = document.querySelector(
+      '[role="group"][aria-label="Use the arrow keys to move the crop selection area"]',
+    );
     return (
       selectionElement !== null &&
       getComputedStyle(selectionElement).getPropertyValue("width") === "68px"
@@ -235,7 +239,9 @@ test("image crop supports drawing and keyboard movement and uploads a square JPE
   await selection.focus();
   await selection.press("ArrowRight");
   await pageAsAdmin.waitForFunction(() => {
-    const selectionElement = document.querySelector(".ReactCrop__crop-selection");
+    const selectionElement = document.querySelector(
+      '[role="group"][aria-label="Use the arrow keys to move the crop selection area"]',
+    );
     return (
       selectionElement !== null &&
       getComputedStyle(selectionElement).getPropertyValue("left") === "3px"
@@ -247,10 +253,20 @@ test("image crop supports drawing and keyboard movement and uploads a square JPE
       "left",
     ),
   ).toBe("3px");
-  await pageAsAdmin.locator(".ReactCrop__drag-handle.ord-se").focus();
-  await pageAsAdmin.locator(".ReactCrop__drag-handle.ord-se").press("ArrowRight");
+  await pageAsAdmin
+    .getByRole("button", {
+      name: "Use the arrow keys to move the south east drag handle to change the crop selection area",
+    })
+    .focus();
+  await pageAsAdmin
+    .getByRole("button", {
+      name: "Use the arrow keys to move the south east drag handle to change the crop selection area",
+    })
+    .press("ArrowRight");
   await pageAsAdmin.waitForFunction(() => {
-    const selectionElement = document.querySelector(".ReactCrop__crop-selection");
+    const selectionElement = document.querySelector(
+      '[role="group"][aria-label="Use the arrow keys to move the crop selection area"]',
+    );
     return (
       selectionElement !== null &&
       getComputedStyle(selectionElement).getPropertyValue("width") === "69px"

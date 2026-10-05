@@ -5,7 +5,7 @@ import { SkipNavLink } from "./core/skip-nav-link.tsx";
 import { Breadcrumbs, type Breadcrumb } from "./navigation/breadcrumbs.tsx";
 export function Gallery(handle: Handle<{ children: RemixNode; breadcrumbs?: Breadcrumb[] }>) {
   return () => (
-    <div className="bg-app-image flex min-h-screen flex-col bg-neutral-800 bg-cover bg-fixed bg-center bg-no-repeat">
+    <div className="flex min-h-screen flex-col bg-neutral-800 bg-[url('./images/background-768.jpg')] bg-cover bg-fixed bg-center bg-no-repeat lg:bg-[url('./images/background-2078.jpg')]">
       <SkipNavLink contentId="main" />
       <Header />
       <div className="flex flex-1 flex-col gap-6 py-4 sm:w-104 sm:gap-8 sm:self-center sm:py-8 lg:w-full lg:max-w-240 xl:max-w-7xl">

@@ -1,4 +1,18 @@
 import { clientEntry, on, ref, type Handle } from "remix/component";
+import { animateEntrance, animateExit } from "@remix-run/ui/animation";
+
+const toastColors = {
+  success: "bg-[hsl(143_85%_96%)] border-[hsl(145_92%_87%)] text-[hsl(140_100%_27%)]",
+  warning: "bg-[hsl(49_100%_97%)] border-[hsl(49_91%_84%)] text-[hsl(31_92%_45%)]",
+  error: "bg-[hsl(359_100%_97%)] border-[hsl(359_100%_94%)] text-[hsl(360_100%_45%)]",
+};
+
+const toastAnimation = {
+  opacity: 0,
+  transform: "translateY(100%)",
+  duration: 400,
+  easing: "ease",
+};
 
 const iconPaths = {
   success:
@@ -21,28 +35,23 @@ export const Toast = clientEntry(
     let notificationId = handle.props.notificationId;
     let toastElement: HTMLElement | undefined;
     let visible = true;
-    let removed = false;
     let remaining = 4000;
     let started = 0;
     let timeout: ReturnType<typeof setTimeout> | undefined;
     let pointerStart: { x: number; y: number } | undefined;
     function dismiss() {
-      if (removed) return;
+      if (!visible) return;
       clearTimeout(timeout);
-      removed = true;
+      visible = false;
       void handle.update();
-      timeout = setTimeout(() => {
-        visible = false;
-        void handle.update();
-      }, 400);
     }
     function pause() {
-      if (removed || !visible) return;
+      if (!visible) return;
       clearTimeout(timeout);
       remaining = Math.max(0, remaining - (Date.now() - started));
     }
     function resume() {
-      if (removed || !visible) return;
+      if (!visible) return;
       clearTimeout(timeout);
       started = Date.now();
       timeout = setTimeout(dismiss, remaining);
@@ -60,25 +69,34 @@ export const Toast = clientEntry(
         },
         { signal },
       );
-      signal.addEventListener("abort", () => clearTimeout(timeout), { once: true });
+      signal.addEventListener(
+        "abort",
+        () => {
+          toastElement = undefined;
+          clearTimeout(timeout);
+        },
+        { once: true },
+      );
     });
     return () => {
       if (notificationId !== handle.props.notificationId) {
         notificationId = handle.props.notificationId;
         visible = true;
-        removed = false;
         remaining = 4000;
         if (toastElement) resume();
       }
       return visible ? (
         <section
+          key="toast"
           aria-label="Notifications"
-          className={`drink-toast toast-${handle.props.kind}`}
+          className={`fixed right-6 bottom-6 z-[999999] flex w-[356px] touch-none items-center gap-1.5 rounded-lg border p-4 font-[family-name:ui-sans-serif,system-ui,sans-serif] text-sm font-medium shadow-[0_4px_12px_#0000001a] sm:w-auto [@media(max-width:600px)]:right-4 [@media(max-width:600px)]:bottom-4 [@media(max-width:600px)]:left-4 [@media(max-width:600px)]:w-auto ${toastColors[handle.props.kind]}`}
           role="status"
           // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- Alt+T focuses notifications; focus pauses expiry and Escape dismisses them.
           tabIndex={0}
-          data-removed={removed}
+          data-kind={handle.props.kind}
           mix={[
+            animateEntrance(toastAnimation),
+            animateExit(toastAnimation),
             initialize,
             on("pointerenter", pause),
             on("pointerleave", resume),
@@ -107,8 +125,9 @@ export const Toast = clientEntry(
             }),
           ]}
         >
-          <div className="drink-toast-icon">
+          <div className="mr-1 -ml-[3px] flex size-4 shrink-0 items-center">
             <svg
+              className="-ml-px shrink-0"
               width="20"
               height="20"
               viewBox={handle.props.kind === "warning" ? "0 0 24 24" : "0 0 20 20"}
@@ -118,7 +137,7 @@ export const Toast = clientEntry(
               <path fillRule="evenodd" clipRule="evenodd" d={iconPaths[handle.props.kind]} />
             </svg>
           </div>
-          <span>{handle.props.message}</span>
+          <span className="leading-normal">{handle.props.message}</span>
         </section>
       ) : null;
     };

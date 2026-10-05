@@ -5,27 +5,10 @@ import { createBrowserPage } from "#/test/e2e.ts";
 describe("Authentication", () => {
   test("unauthenticated user is redirected to login when accessing admin", async (testContext) => {
     const page = await createBrowserPage(testContext);
-    // Check that the first redirect goes to /login (before OAuth redirect)
-    const response = await page.goto("/admin", { waitUntil: "commit" });
-
-    // The middleware should redirect to /login
-    const requestUrl = new URL(response?.url() ?? "");
-
-    // Either we're at /login or redirecting to Google OAuth (which means we went through /login)
-    const wentThroughLogin = requestUrl.pathname === "/login" || requestUrl.host.includes("google");
-    expect(wentThroughLogin).toBe(true);
-  });
-
-  test("authenticated admin can access admin pages", async (testContext) => {
-    const pageAsAdmin = await createBrowserPage(testContext, { admin: true });
-    await pageAsAdmin.goto("/admin/drinks");
-    await pageAsAdmin.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
-
-    // Should see the admin drinks page
-    await pageAsAdmin.getByRole("heading", { name: "Drinks", exact: true }).waitFor();
-
-    // Should see the user email in header
-    await pageAsAdmin.getByText("admin@test.com").waitFor();
+    const response = await page.request.get("/admin/drinks", { maxRedirects: 0 });
+    expect(response.status()).toBe(302);
+    expect(response.headers().location).toBe("/login");
+    expect(response.headers()["cache-control"]).toBe("private, no-store");
   });
 
   test("admin can logout", async (testContext) => {
@@ -33,11 +16,15 @@ describe("Authentication", () => {
     await pageAsAdmin.goto("/admin/drinks");
     await pageAsAdmin.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
 
+    await pageAsAdmin.getByText("admin@test.com").waitFor();
+
     // Click logout
     await pageAsAdmin.getByRole("button", { name: "Sign out" }).click();
 
     // Should be redirected to home
     await pageAsAdmin.waitForURL("/");
+    const response = await pageAsAdmin.request.get("/admin/drinks", { maxRedirects: 0 });
+    expect(response.headers().location).toBe("/login");
   });
 });
 

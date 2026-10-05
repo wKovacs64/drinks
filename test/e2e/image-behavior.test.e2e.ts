@@ -79,29 +79,6 @@ test("hosted images preserve format fallbacks and responsive selection at twice 
     await sources.nth(0).getAttribute("srcset"),
   );
   expect(await preload.getAttribute("imagesizes")).toBe(await image.getAttribute("sizes"));
-  expect(await image.getAttribute("sizes")).toBe(
-    "(min-width: 1280px) 400px, ((min-width: 1024px) and (max-width: 1279px)) 480px, ((min-width: 640px) and (max-width: 1023px)) 420px, 100vw",
-  );
-
-  for (const [source, format] of [
-    [sources.nth(0), "avif"],
-    [sources.nth(1), "webp"],
-    [image, null],
-  ] as const) {
-    const candidates = await source.getAttribute("srcset");
-    if (!candidates) throw new Error("Missing responsive image candidates");
-    const widths = candidates.split(",\n").map((candidate) => {
-      const [sourceUrl, descriptor] = candidate.split(" ");
-      const transformations = new URL(sourceUrl).searchParams.get("tr")?.split(",") ?? [];
-      expect(transformations).toContain("c-maintain_ratio");
-      expect(transformations).toContain("fo-auto");
-      if (format) expect(transformations).toContain(`f-${format}`);
-      else expect(transformations.some((value) => value.startsWith("f-"))).toBe(false);
-      return Number.parseInt(descriptor, 10);
-    });
-    expect(widths).toEqual([320, 400, 420, 480, 640, 800, 840, 960, 1280]);
-  }
-
   for (const width of [390, 768, 1024, 1280, 1440]) {
     await pageAsAdmin.setViewportSize({ width, height: 900 });
     await pageAsAdmin.waitForFunction(

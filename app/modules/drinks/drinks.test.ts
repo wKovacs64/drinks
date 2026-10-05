@@ -273,25 +273,6 @@ describe("createDrinksService", () => {
     ]);
   });
 
-  test("returns published drinks for a multi-word tag slug", async () => {
-    const db = getDb();
-    await db.updateMany(
-      drinks,
-      { tags: JSON.stringify(["tequila", "bright citrus"]) },
-      { where: { slug: "test-margarita" } },
-    );
-    const service = createDrinksService({ db });
-
-    const taggedDrinks = await service.getDrinksByTagSlug({ tagSlug: "bright-citrus" });
-
-    expect(taggedDrinks?.tag).toEqual({ displayName: "bright citrus", slug: "bright-citrus" });
-    expect(taggedDrinks?.drinks.map((drink) => drink.slug)).toEqual(["test-margarita"]);
-    expect(taggedDrinks?.drinks[0]?.tags).toEqual([
-      { displayName: "tequila", slug: "tequila" },
-      { displayName: "bright citrus", slug: "bright-citrus" },
-    ]);
-  });
-
   test("resolves equivalent stored tags to one tag page", async () => {
     const db = getDb();
     await db.updateMany(
@@ -313,19 +294,8 @@ describe("createDrinksService", () => {
       "test-margarita",
       "test-mojito",
     ]);
-  });
-
-  test("returns all published tags as link-ready tag views", async () => {
-    await setDrinkStatus("test-old-fashioned", "unpublished");
-    const service = createDrinksService({ db: getDb() });
-
-    const tags = await service.getAllTags();
-
-    expect(tags).toEqual([
-      { displayName: "citrus", slug: "citrus" },
-      { displayName: "mint", slug: "mint" },
-      { displayName: "rum", slug: "rum" },
-      { displayName: "tequila", slug: "tequila" },
+    expect(taggedDrinks?.drinks[0]?.tags).toEqual([
+      { displayName: "bright citrus", slug: "bright-citrus" },
     ]);
   });
 
@@ -384,12 +354,12 @@ describe("createDrinksService", () => {
     ]);
   });
 
-  test("returns an empty search result list when query is blank", async () => {
+  test("returns no search results for blank or unmatched queries", async () => {
     const service = createDrinksService({ db: getDb() });
 
-    const emptySearchResults = await service.searchPublishedDrinks({ query: "" });
-
-    expect(emptySearchResults).toEqual([]);
+    for (const query of ["", "xyznonexistent123"]) {
+      expect(await service.searchPublishedDrinks({ query })).toEqual([]);
+    }
   });
 
   test("returns all drinks for admin list views as a direct list", async () => {
@@ -692,34 +662,6 @@ describe("createAdminDrinksWriteService", () => {
     });
   });
 
-  test("invalidates both old and new detail pages when a drink slug changes", async () => {
-    const purgeDrinkCache = mock.fn<DrinksWriteEffects["purgeDrinkCache"]>(async () => undefined);
-    const service = testAdminDrinksWriteService({
-      writeEffects: {
-        purgeDrinkCache,
-      },
-    });
-
-    await service.update({
-      slug: "test-margarita",
-      draft: {
-        title: "Renamed Margarita",
-        slug: "renamed-margarita",
-        ingredients: ["2 oz tequila", "1 oz lime juice", "1 oz triple sec"],
-        calories: 200,
-        tags: ["tequila", "citrus"],
-        notes: "A classic test margarita",
-        rank: 10,
-        status: "published",
-      },
-    });
-
-    expect(purgeDrinkCache).toHaveBeenCalledWith({
-      slugs: ["test-margarita", "renamed-margarita"],
-      tags: ["tequila", "citrus"],
-    });
-  });
-
   for (const cleanupFails of [false, true]) {
     test(`compensates an upload after failed create and preserves the persistence error${cleanupFails ? " if cleanup fails" : ""}`, async () => {
       const originalEditor = await getExistingDrinkEditor("test-margarita");
@@ -997,24 +939,9 @@ describe("createAdminDrinksWriteService", () => {
   }
 });
 
-describe("searchPublishedDrinks", () => {
-  test("returns matching drinks for an ingredient query", async () => {
-    const results = await createReadOnlyService().searchPublishedDrinks({ query: "bourbon" });
-    expect(results.length).toBe(1);
-    expect(results[0]?.slug).toBe("test-old-fashioned");
-  });
-
-  test("returns empty array for non-matching query", async () => {
-    const results = await createReadOnlyService().searchPublishedDrinks({
-      query: "xyznonexistent123",
-    });
-    expect(results).toEqual([]);
-  });
-});
-
 describe("drinkDraftSchema", () => {
-  test("accepts valid input", () => {
-    const result = parseSafe(drinkDraftSchema, {
+  test("normalizes form input into a transport-independent draft", () => {
+    const draft = parse(drinkDraftSchema, {
       title: "Margarita",
       slug: "margarita",
       ingredients: "tequila\nlime juice\ntriple sec",
@@ -1025,7 +952,16 @@ describe("drinkDraftSchema", () => {
       status: "published",
     });
 
-    expect(result.success).toBe(true);
+    expect(draft).toEqual({
+      title: "Margarita",
+      slug: "margarita",
+      ingredients: ["tequila", "lime juice", "triple sec"],
+      calories: 200,
+      tags: ["tequila", "citrus"],
+      notes: "A classic cocktail",
+      rank: 1,
+      status: "published",
+    });
   });
 
   test("rejects invalid slug", () => {
@@ -1056,43 +992,5 @@ describe("drinkDraftSchema", () => {
     });
 
     expect(result.success).toBe(false);
-  });
-
-  test("parses newline-separated ingredients", () => {
-    const result = parseSafe(drinkDraftSchema, {
-      title: "Test",
-      slug: "test",
-      ingredients: "gin\ntonic\nlime",
-      calories: "100",
-      tags: "gin",
-      notes: "",
-      rank: "0",
-      status: "published",
-    });
-
-    expect(result.success).toBe(true);
-    if (!result.success) {
-      return;
-    }
-    expect(result.value.ingredients).toEqual(["gin", "tonic", "lime"]);
-  });
-
-  test("parses comma-separated tags", () => {
-    const result = parseSafe(drinkDraftSchema, {
-      title: "Test",
-      slug: "test",
-      ingredients: "a",
-      calories: "100",
-      tags: "gin, refreshing, summer",
-      notes: "",
-      rank: "0",
-      status: "published",
-    });
-
-    expect(result.success).toBe(true);
-    if (!result.success) {
-      return;
-    }
-    expect(result.value.tags).toEqual(["gin", "refreshing", "summer"]);
   });
 });

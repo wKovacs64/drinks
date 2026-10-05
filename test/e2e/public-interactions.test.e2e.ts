@@ -101,6 +101,7 @@ test("tags and drink details retain their navigation and contents", async (testC
   await page.waitForURL("/test-margarita");
   await page.getByText("A classic test margarita").waitFor();
   await page.getByText("2 oz tequila", { exact: true }).waitFor();
+  await page.getByText("200 cal", { exact: true }).waitFor();
   await page.goBack();
   await page.waitForURL("/tags/tequila");
   await page.getByRole("heading", { name: "Test Margarita", level: 2 }).waitFor();
@@ -112,9 +113,18 @@ test("search preserves results through repeated queries, empty results, and hist
   await page.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
   await page.getByRole("heading", { name: "Test Margarita", exact: true }).waitFor();
   const input = page.getByRole("textbox", { name: "Search Term" });
+  const responsePromise = page.waitForResponse(
+    (response) =>
+      new URL(response.url()).pathname === "/search" &&
+      new URL(response.url()).searchParams.get("q") === "mint",
+  );
   await input.fill("mint");
   await input.press("Enter");
+  const responseBody = await (await responsePromise).text();
+  expect(responseBody).not.toContain("<html");
+  expect(responseBody).not.toContain("<header");
   await page.getByRole("heading", { name: "Test Mojito", exact: true }).waitFor();
+  expect(await page.getByRole("navigation").filter({ hasText: "mint" }).count()).toBe(1);
   expect(await page.getByRole("heading", { name: "Test Margarita", exact: true }).count()).toBe(0);
   await input.fill("no-matching-drink");
   await input.press("Enter");
@@ -122,27 +132,7 @@ test("search preserves results through repeated queries, empty results, and hist
   expect(await page.getByRole("article").count()).toBe(0);
   await page.goBack();
   await page.getByRole("heading", { name: "Test Mojito", exact: true }).waitFor();
-  await page.goBack();
-  await page.getByRole("heading", { name: "Test Margarita", exact: true }).waitFor();
-});
-
-test("search refreshes its content without rendering the surrounding gallery again", async (testContext) => {
-  const page = await createBrowserPage(testContext);
-  await page.goto("/search?q=tequila");
-  await page.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
-  const responsePromise = page.waitForResponse(
-    (response) =>
-      new URL(response.url()).pathname === "/search" &&
-      new URL(response.url()).searchParams.get("q") === "mint",
-  );
-  const input = page.getByRole("textbox", { name: "Search Term" });
-  await input.fill("mint");
-  await input.press("Enter");
-  const response = await responsePromise;
-  expect(await response.text()).not.toContain("<html");
-  expect(await response.text()).not.toContain("<header");
-  await page.getByRole("heading", { name: "Test Mojito", exact: true }).waitFor();
-  expect(await page.getByRole("navigation").filter({ hasText: "mint" }).count()).toBe(1);
+  expect(await input.inputValue()).toBe("mint");
   await page.goBack();
   await page.getByRole("heading", { name: "Test Margarita", exact: true }).waitFor();
   expect(await input.inputValue()).toBe("tequila");

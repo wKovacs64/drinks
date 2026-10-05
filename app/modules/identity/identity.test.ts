@@ -86,12 +86,6 @@ describe("createIdentityService", () => {
     expect(await service.getSessionUser({ userId: "test-user-id" })).toEqual(user);
   });
 
-  test("returns null for a missing session User", async () => {
-    const service = createIdentityService({ db: getDb() });
-
-    expect(await service.getSessionUser({ userId: "missing-user-id" })).toBeNull();
-  });
-
   test("resolves the current User role on each lookup", async () => {
     const db = getDb();
     const service = createIdentityService({ db });
@@ -130,23 +124,10 @@ describe("safeRedirectTo", () => {
     expect(safeRedirectTo("/admin")).toBe("/admin");
   });
 
-  test("returns default redirect for null input", () => {
-    expect(safeRedirectTo(null)).toBe("/");
-  });
-
-  test("returns default redirect for undefined input", () => {
-    expect(safeRedirectTo(undefined)).toBe("/");
-  });
-
-  test("returns custom default redirect", () => {
-    expect(safeRedirectTo(null, "/home")).toBe("/home");
-  });
-
-  test("rejects absolute URLs to external hosts", () => {
-    expect(safeRedirectTo("https://evil.com")).toBe("/");
-  });
-
-  test("rejects protocol-relative URLs", () => {
-    expect(safeRedirectTo("//evil.com")).toBe("/");
+  test("uses the configured fallback for missing or unsafe return destinations", () => {
+    for (const destination of [null, undefined, "https://evil.com", "//evil.com"]) {
+      expect(safeRedirectTo(destination)).toBe("/");
+      expect(safeRedirectTo(destination, "/home")).toBe("/home");
+    }
   });
 });

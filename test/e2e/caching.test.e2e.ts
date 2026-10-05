@@ -4,14 +4,6 @@ import { createBrowserPage } from "#/test/e2e.ts";
 import { http, HttpResponse } from "msw";
 import { server as requestMocks } from "#/test/server.ts";
 
-test("admin login redirects cannot be cached", async (testContext) => {
-  const page = await createBrowserPage(testContext);
-  const response = await page.request.get("/admin/drinks", { maxRedirects: 0 });
-  expect(response.status()).toBe(302);
-  expect(response.headers().location).toBe("/login");
-  expect(response.headers()["cache-control"]).toBe("private, no-store");
-});
-
 test("public pages retain their original cache lifetimes and Fastly keys", async (testContext) => {
   const page = await createBrowserPage(testContext, { admin: true });
   const cases = [

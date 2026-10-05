@@ -8,6 +8,7 @@ test("deletion follows the native redirect and retains sorting and filtering", a
   const page = await createBrowserPage(testContext, { admin: true });
   await page.goto("/admin/drinks");
   await page.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
+  await page.clock.install();
   await page.getByRole("textbox", { name: "Filter drinks" }).fill("Test");
   await page.getByRole("button", { name: "Calories", exact: true }).click();
   await page.waitForFunction(() =>
@@ -41,20 +42,39 @@ test("deletion follows the native redirect and retains sorting and filtering", a
     "Test Mojito",
     "Test Margarita",
   ]);
+  await page.getByRole("textbox", { name: "Filter drinks" }).fill("Test M");
+  await page.clock.runFor(4500);
+  await page.getByRole("status").waitFor({ state: "hidden" });
+  await page
+    .getByRole("row")
+    .filter({ hasText: "Test Mojito" })
+    .getByRole("button", { name: "Delete" })
+    .click();
+  await page.getByRole("cell", { name: "Test Mojito", exact: true }).waitFor({ state: "hidden" });
+  await page.getByRole("status").filter({ hasText: "Drink deleted!" }).waitFor();
+  expect(await page.getByRole("textbox", { name: "Filter drinks" }).inputValue()).toBe("Test M");
+  expect(await page.locator("tbody tr td:first-child").allTextContents()).toEqual([
+    "Test Margarita",
+  ]);
 });
 
-test("admin filter excludes recipe fields and Escape restores the list", async (testContext) => {
+test("admin filter excludes recipe fields and timestamps and Escape restores the list", async (testContext) => {
   const pageAsAdmin = await createBrowserPage(testContext, { admin: true });
+  await getDb().updateMany(drinks, { created_at: 1735776000 }, { where: { slug: "test-mojito" } });
   await pageAsAdmin.goto("/admin/drinks");
   await pageAsAdmin.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
   const filter = pageAsAdmin.getByRole("textbox", { name: "Filter drinks" });
-  await filter.fill("citrus");
-  await pageAsAdmin.waitForFunction(
-    () => document.querySelectorAll("tbody tr").length === 0,
-    undefined,
-    { timeout: 2000 },
-  );
-  expect(await pageAsAdmin.locator("tbody tr").count()).toBe(0);
+  for (const excludedValue of ["citrus", "2025-01-02"]) {
+    await filter.fill("Test");
+    await pageAsAdmin.waitForFunction(() => document.querySelectorAll("tbody tr").length === 3);
+    await filter.fill(excludedValue);
+    await pageAsAdmin.waitForFunction(
+      () => document.querySelectorAll("tbody tr").length === 0,
+      undefined,
+      { timeout: 2000 },
+    );
+    expect(await pageAsAdmin.locator("tbody tr").count()).toBe(0);
+  }
   await filter.fill("MARGARITA");
   await pageAsAdmin.waitForFunction(() => document.querySelectorAll("tbody tr").length === 1);
   expect(await pageAsAdmin.locator("tbody tr td:first-child").allTextContents()).toEqual([
@@ -71,18 +91,6 @@ test("admin filter excludes recipe fields and Escape restores the list", async (
   });
   expect(await filter.inputValue()).toBe("");
   expect(await pageAsAdmin.locator("tbody tr").count()).toBe(3);
-});
-
-test("admin filter ignores serialized timestamps", async (testContext) => {
-  const page = await createBrowserPage(testContext, { admin: true });
-  await getDb().updateMany(drinks, { created_at: 1735776000 }, { where: { slug: "test-mojito" } });
-  await page.goto("/admin/drinks");
-  await page.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
-  await page.getByRole("textbox", { name: "Filter drinks" }).fill("2025-01-02");
-  await page.waitForFunction(() => document.querySelectorAll("tbody tr").length === 0, undefined, {
-    timeout: 2000,
-  });
-  expect(await page.locator("tbody tr").count()).toBe(0);
 });
 
 test("sorting cycles ascending, descending, and the original order", async (testContext) => {
@@ -308,42 +316,4 @@ test("image crop supports drawing and keyboard movement and uploads a square JPE
   await pageAsAdmin.waitForURL("/admin/drinks");
   await pageAsAdmin.getByRole("status").filter({ hasText: "Drink updated!" }).waitFor();
   expect(await pageAsAdmin.getByRole("status").innerText()).toContain("Drink updated!");
-});
-
-test("deletion preserves the active filter and later deletions show a fresh notification", async (testContext) => {
-  const pageAsAdmin = await createBrowserPage(testContext, { admin: true });
-  await pageAsAdmin.goto("/admin/drinks");
-  await pageAsAdmin.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
-  const filter = pageAsAdmin.getByRole("textbox", { name: "Filter drinks" });
-  await filter.fill("Test M");
-  await pageAsAdmin.waitForFunction(() => document.querySelectorAll("tbody tr").length === 2);
-  expect(await pageAsAdmin.locator("tbody tr").count()).toBe(2);
-  pageAsAdmin.on("dialog", (dialog) => dialog.accept());
-  await pageAsAdmin
-    .getByRole("row")
-    .filter({ has: pageAsAdmin.getByRole("cell", { name: "Test Mojito", exact: true }) })
-    .getByRole("button", { name: "Delete" })
-    .click();
-  await pageAsAdmin
-    .getByRole("cell", { name: "Test Mojito", exact: true })
-    .waitFor({ state: "hidden" });
-  await pageAsAdmin.waitForFunction(() => document.querySelectorAll("tbody tr").length === 1);
-  expect(await filter.inputValue()).toBe("Test M");
-  expect(await pageAsAdmin.locator("tbody tr").count()).toBe(1);
-  await pageAsAdmin.getByRole("status").waitFor();
-  await pageAsAdmin.getByRole("status").waitFor({ state: "hidden", timeout: 6000 });
-  expect(await pageAsAdmin.getByRole("status").count()).toBe(0);
-  await pageAsAdmin
-    .getByRole("row")
-    .filter({ has: pageAsAdmin.getByRole("cell", { name: "Test Margarita", exact: true }) })
-    .getByRole("button", { name: "Delete" })
-    .click();
-  await pageAsAdmin
-    .getByRole("cell", { name: "Test Margarita", exact: true })
-    .waitFor({ state: "hidden" });
-  await pageAsAdmin.waitForFunction(() => document.querySelectorAll("tbody tr").length === 0);
-  expect(await pageAsAdmin.locator("tbody tr").count()).toBe(0);
-  await pageAsAdmin.getByRole("status").filter({ hasText: "Drink deleted!" }).waitFor();
-  expect(await pageAsAdmin.getByRole("status").innerText()).toContain("Drink deleted!");
-  await pageAsAdmin.getByRole("status").waitFor();
 });

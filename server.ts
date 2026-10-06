@@ -17,7 +17,7 @@ const server = http.createServer(
   }),
 );
 server.listen(port, process.env.HOST ?? "0.0.0.0", () => {
-  console.log(`Remix v3 drinks is running at http://localhost:${port}`);
+  console.log(`Remix drinks is running at http://localhost:${port}`);
   if (process.env.REMIX_NODE_HMR === "1")
     void import("remix/node-hmr/runtime").then((runtime) => runtime.emitServerReady());
 });

@@ -4,7 +4,7 @@ status: accepted
 
 # Let the Admin Drink Write Route Adapter own web translation
 
-The **Admin Drink Write Route Adapter** is the complete Remix v3 adapter for the **Admin Drink
+The **Admin Drink Write Route Adapter** is the complete Remix adapter for the **Admin Drink
 Write Path**. It prepares create/update submissions, validates `drinkDraftSchema`, calls the
 transport-agnostic Drinks module write service, and exhaustively translates typed create, update, and
 delete outcomes into field/form error data, not-found responses, redirects, and toasts.

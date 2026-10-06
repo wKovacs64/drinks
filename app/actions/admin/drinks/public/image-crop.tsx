@@ -1,7 +1,6 @@
 import { css, on, ref, type Handle } from "remix/component";
 import { Image } from "#/app/ui/images/public/image.tsx";
 
-// Preserve the crop border from react-image-crop (MIT); see THIRD_PARTY_NOTICES.md.
 const cropBorderStyles = css({
   backgroundImage:
     "linear-gradient(90deg, #fff 50%, #444 50%), linear-gradient(90deg, #fff 50%, #444 50%), linear-gradient(#fff 50%, #444 50%), linear-gradient(#fff 50%, #444 50%)",

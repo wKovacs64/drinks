@@ -39,7 +39,7 @@ to this deeper web adapter.
 ## Consequences
 
 - Browser tests under `test/e2e/` exercise Drink-specific web behavior; module tests exercise
-  the transport-agnostic write service. See `docs/testing.md` for the current testing boundaries.
+  the transport-agnostic write service. See `docs/testing.md` for test harness setup.
 - Generic route action helpers should not partially translate **Admin Drink Write Path** outcomes.
 - This path should not introduce a generic action helper unless this ADR is revisited.
 - If another route family later needs the same kind of typed-outcome-to-web-response interpreter, add

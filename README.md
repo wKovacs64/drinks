@@ -42,8 +42,9 @@ deletion and CDN purges. `pnpm start` uses production integrations; run `pnpm bu
 
 ## Development
 
-Run `pnpm validate` before submitting changes. See [testing conventions](docs/testing.md) for browser
-setup and [the release workflow](RELEASING.md) for releases and deployment.
+Run `pnpm validate` before submitting changes. See [the contributor workflow](CONTRIBUTING.md) for
+implementation and review, [the test harness docs](docs/testing.md) for browser setup, and
+[the release workflow](RELEASING.md) for releases and deployment.
 See [SVG icon instructions](app/assets/svg-icons/README.md) for adding and using icons.
 
 ## Database migrations

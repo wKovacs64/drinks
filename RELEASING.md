@@ -1,6 +1,8 @@
 # Releasing
 
-1. Merge changes into `main` using conventional commits.
+1. Create feature branches and open PRs to `main` using
+   [conventional commit](https://www.conventionalcommits.org/) messages (`feat:`, `fix:`, etc.).
+   Preserve this format in commits merged into `main` so release-please can classify changes.
 2. release-please opens or updates the release PR with the changelog and version bump.
 3. Merge the release PR when ready to release.
 

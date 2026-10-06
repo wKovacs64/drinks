@@ -6,6 +6,17 @@
 </div>
 <hr>
 
+## Technologies used
+
+- [Remix](https://remix.run/) (routing, native components, assets, schema validation, sessions, Google authentication, ORM, and migrations)
+- [SQLite](https://www.sqlite.org/) (Node native SQLite driver)
+- [ImageKit](https://imagekit.io/) (image storage/CDN, official Node SDK for uploads and deletion)
+- [Unpic](https://unpic.pics/) (responsive images through its framework-independent core and ImageKit provider)
+- [MiniSearch](https://github.com/lucaong/minisearch) (search)
+- [Fly](https://fly.io/) (hosting)
+- [Tailwind CSS](https://tailwindcss.com/) (styles)
+- [GitHub Actions](https://docs.github.com/en/actions) (CI/CD)
+
 ## Run your own
 
 1. Clone this repo and install dependencies with `pnpm install`. The required Node version is in

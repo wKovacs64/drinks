@@ -1,6 +1,6 @@
 import type { Middleware } from "remix/router";
 import { Renderer, type RenderFunction } from "remix/middleware/render";
-import { Document } from "#/app/ui/document.tsx";
+import { Document } from "#/app/actions/document.tsx";
 import { Exception } from "#/app/ui/core/exception.tsx";
 import { ApplicationErrorDocument } from "#/app/ui/core/response-error-document.tsx";
 

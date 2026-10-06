@@ -1,3 +1,4 @@
+import { routes } from "#/app/routes.ts";
 import { redirect } from "remix/response/redirect";
 import type { Session } from "remix/session";
 import { parseSafe, string } from "remix/data-schema";
@@ -14,7 +15,10 @@ import {
   type UpdateAdminDrinkResult,
 } from "#/app/modules/drinks/drinks.ts";
 import { parseCreateDrinkSubmission, parseUpdateDrinkSubmission } from "./submission.server.ts";
-import { EDITOR_RESPONSE_MEDIA_TYPE, type DrinkEditorResponse } from "./editor-response.ts";
+import {
+  EDITOR_RESPONSE_MEDIA_TYPE,
+  type DrinkEditorResponse,
+} from "#/app/web/admin-drink-write/public/editor-response.ts";
 import { renderResponseError } from "#/app/web/error-pages/response-error.server.tsx";
 
 type AdminDrinkWriteActionAdapterInput = {
@@ -171,7 +175,7 @@ function invalidActionData(result: AdminDrinkWriteActionData & { status?: number
 
 function redirectToAdminDrinksWithToast(session: Session, toast: ToastMessage): Response {
   session.flash("toast", toast);
-  return redirect("/admin/drinks", { status: 303 });
+  return redirect(routes.admin.drinks.index.href(), { status: 303 });
 }
 
 function drinkNotFoundResponse(request?: Request): Response {

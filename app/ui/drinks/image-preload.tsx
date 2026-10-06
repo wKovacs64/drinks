@@ -1,6 +1,6 @@
 import type { Handle } from "remix/component";
 import { transformBaseSourceProps } from "@unpic/core/base";
-import { imagekitTransformer, isImageKitUrl } from "#/app/core/images.ts";
+import { imagekitTransformer, isImageKitUrl } from "#/app/core/public/images.ts";
 import { detailImageSizes, drinkImageBreakpoints, galleryImageSizes } from "./image-layout.ts";
 import type { DrinkView } from "#/app/modules/drinks/drinks.ts";
 

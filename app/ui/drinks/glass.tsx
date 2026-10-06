@@ -1,5 +1,5 @@
 import type { Handle, RemixNode } from "remix/component";
-import { classes } from "#/app/core/strings.ts";
+import { classes } from "#/app/core/public/strings.ts";
 
 export function Glass(
   handle: Handle<{

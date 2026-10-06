@@ -1,7 +1,7 @@
 import type { Handle } from "remix/component";
-import { Link, type LinkProps } from "#/app/ui/navigation/link.tsx";
+import { Link, type LinkProps } from "#/app/ui/navigation/public/link.tsx";
 
-import { classes } from "#/app/core/strings.ts";
+import { classes } from "#/app/core/public/strings.ts";
 
 export function TagLink(handle: Handle<LinkProps>) {
   return () => {

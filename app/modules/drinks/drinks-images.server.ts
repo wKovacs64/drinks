@@ -1,4 +1,4 @@
-import { imageUrl } from "#/app/core/images.ts";
+import { imageUrl } from "#/app/core/public/images.ts";
 import type { Drink } from "#/app/db/schema.ts";
 import type { DrinkView } from "./drinks.ts";
 import { toDrinkTagViews } from "./drinks-tags.server.ts";

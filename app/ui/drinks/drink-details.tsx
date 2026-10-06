@@ -1,5 +1,5 @@
+import { routes } from "#/app/routes.ts";
 import { unsafeHTML, type Handle } from "remix/component";
-import { createHref as href } from "remix/route-pattern/href";
 import type { DrinkView } from "#/app/modules/drinks/drinks.ts";
 import { Tag } from "#/app/ui/tags/tag.tsx";
 import { TagLink } from "#/app/ui/tags/tag-link.tsx";
@@ -21,7 +21,7 @@ export function DrinkDetails(handle: Handle<{ drink: DrinkView }>) {
               <TagLink
                 className="mt-4 mr-4 ml-0 leading-tight lg:mr-0 lg:ml-4"
                 aria-label={`Find all drinks containing ${tag.displayName}`}
-                to={href("/tags/:tag", { tag: tag.slug })}
+                to={routes.tags.show.href({ tag: tag.slug })}
                 key={tag.slug}
               >
                 <Tag className="p-2 text-sm leading-tight font-normal lg:text-base lg:leading-tight lg:font-light">

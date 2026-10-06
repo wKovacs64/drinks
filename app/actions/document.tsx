@@ -1,3 +1,4 @@
+import { routes } from "#/app/routes.ts";
 import type { Handle, RemixNode } from "remix/component";
 import { ImportMap } from "remix/component/server";
 import {
@@ -8,7 +9,7 @@ import {
   stylesheetHref,
 } from "#/app/assets.ts";
 import { getEnvVars } from "#/app/core/env.server.ts";
-import { ImagePreload, type ImagePreloadProps } from "./drinks/image-preload.tsx";
+import { ImagePreload, type ImagePreloadProps } from "#/app/ui/drinks/image-preload.tsx";
 export function Document(
   handle: Handle<{
     children: RemixNode;
@@ -63,7 +64,7 @@ export function Document(
           <link rel="icon" sizes="any" href="/images/favicon.ico" />
           <link rel="icon" type="image/png" sizes="32x32" href="/images/icon-32x32.png" />
           <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png" />
-          <link rel="manifest" href="/manifest.webmanifest" />
+          <link rel="manifest" href={routes.manifest.href()} />
           {/* Moving a loaded stylesheet makes the browser unload/revalidate it. Keep it
               in place across frame navigation; a new fingerprint gets a new identity. */}
           <link

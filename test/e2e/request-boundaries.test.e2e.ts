@@ -75,3 +75,26 @@ test("the single-image editor rejects an additional uploaded file", async (testC
     fieldErrors: { imageFile: ["Upload only one image"] },
   });
 });
+
+test("browser assets expose public source and the route map while keeping server source private", async (testContext) => {
+  const page = await createBrowserPage(testContext);
+  for (const path of [
+    "/assets/app/actions/public/entry.ts",
+    "/assets/app/routes.ts",
+    "/assets/app/ui/icons/public/icon.tsx",
+  ]) {
+    const response = await page.request.get(path);
+    expect(response.status()).toBe(200);
+    expect(response.headers()["content-type"]).toContain("javascript");
+  }
+  for (const path of [
+    "/assets/app/actions/document.tsx",
+    "/assets/app/ui/core/header.tsx",
+    "/assets/app/modules/drinks/drinks.ts",
+    "/assets/app/modules/drinks/drinks.server.ts",
+    "/assets/app/modules/drinks/drinks.test.ts",
+  ]) {
+    const response = await page.request.get(path);
+    expect(response.status()).toBe(404);
+  }
+});

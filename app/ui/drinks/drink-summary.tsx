@@ -1,6 +1,6 @@
 import type { Handle } from "remix/component";
-import { classes } from "#/app/core/strings.ts";
-import { Source, Image, type ImageProps, type SourceProps } from "#/app/ui/public/image.tsx";
+import { classes } from "#/app/core/public/strings.ts";
+import { Source, Image, type ImageProps, type SourceProps } from "#/app/ui/images/public/image.tsx";
 import type { DrinkView } from "#/app/modules/drinks/drinks.ts";
 
 export function DrinkSummary(handle: Handle<DrinkSummaryProps>) {

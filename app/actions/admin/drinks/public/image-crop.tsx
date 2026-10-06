@@ -1,5 +1,5 @@
 import { css, on, ref, type Handle } from "remix/component";
-import { Image } from "./image.tsx";
+import { Image } from "#/app/ui/images/public/image.tsx";
 
 // Preserve the crop border from react-image-crop (MIT); see THIRD_PARTY_NOTICES.md.
 const cropBorderStyles = css({

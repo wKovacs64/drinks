@@ -56,7 +56,7 @@ once with `pnpm exec playwright install chromium --only-shell`. Use `pnpm test -
 Run `pnpm build` before `pnpm start` to prepare assets and check types. The server runs the TypeScript
 application directly through Remix's Node adapter. Production script and stylesheet URLs are
 fingerprinted by Remix, with immutable caching.
-Use `pnpm assets:inspect app/ui/public/entry.ts` to inspect the browser asset policy configured in
+Use `pnpm assets:inspect app/actions/public/entry.ts` to inspect the browser asset policy configured in
 `remix.json`. See [testing conventions](docs/testing.md) for test boundaries and setup, and
 [SVG icon instructions](app/assets/svg-icons/README.md) for the `add-icon` workflow.
 

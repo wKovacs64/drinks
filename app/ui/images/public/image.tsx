@@ -1,7 +1,7 @@
 import type { Handle, Props } from "remix/component";
 import { transformBaseImageProps, transformBaseSourceProps } from "@unpic/core/base";
 import type { ImageKitOperations } from "unpic/providers/imagekit";
-import { imagekitTransformer, isImageKitUrl } from "#/app/core/images.ts";
+import { imagekitTransformer, isImageKitUrl } from "#/app/core/public/images.ts";
 export type ImageProps = {
   src: string;
   alt?: string;

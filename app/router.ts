@@ -1,23 +1,29 @@
-import { createRouter, type MiddlewareContext, type Middleware } from "remix/router";
+import { createRouter, type MiddlewareContext } from "remix/router";
 import { render } from "remix/middleware/render";
 import { staticFiles } from "remix/middleware/static";
-import { Auth } from "remix/middleware/auth";
-import { Session } from "remix/session";
 import { cop } from "remix/middleware/cop";
 import { compression } from "remix/middleware/compression";
 import { logger } from "remix/middleware/logger";
 import { isCompressibleMimeType } from "remix/mime";
-import { redirect } from "remix/response/redirect";
 import {
   getIdentitySessionMiddleware,
   getIdentityAuthMiddleware,
-  createReturnToUrl,
 } from "#/app/modules/identity/identity.server.ts";
 import controller from "./actions/controller.tsx";
 import { renderAssets } from "./assets.ts";
 import { routes } from "./routes.ts";
 import { adminDrinkEditorRedirects } from "#/app/web/admin-drink-write/editor-redirects.server.ts";
 import { routeErrorPages } from "#/app/web/error-pages/route-errors.server.tsx";
+import { protectAdmin } from "./middleware/admin.server.ts";
+import { responseHeaders } from "./middleware/response-headers.server.ts";
+import drinksController from "./actions/drinks/controller.tsx";
+import tagsController from "./actions/tags/controller.tsx";
+import searchController from "./actions/search/controller.tsx";
+import authController from "./actions/auth/controller.tsx";
+import adminController from "./actions/admin/controller.ts";
+import adminDrinksController from "./actions/admin/drinks/controller.tsx";
+import newDrinkController from "./actions/admin/drinks/new/controller.tsx";
+import editDrinkController from "./actions/admin/drinks/edit/controller.tsx";
 const renderMiddleware = render({
   assets: renderAssets,
   onError: (error) => console.error("Remix rendering failed", error),
@@ -32,46 +38,6 @@ declare module "remix" {
     context: AppContext;
   }
 }
-const protectAdmin: Middleware = async (context, next) => {
-  const url = new URL(context.request.url);
-  const isAdmin = url.pathname === "/admin" || url.pathname.startsWith("/admin/");
-  if (isAdmin) {
-    const identity = context.get(Auth);
-    if (!identity?.ok) {
-      context.get(Session)?.set("returnTo", createReturnToUrl(context.request));
-      return redirect("/login");
-    }
-    if (
-      !(
-        typeof identity.identity === "object" &&
-        identity.identity &&
-        "role" in identity.identity &&
-        identity.identity.role === "admin"
-      )
-    )
-      return redirect("/unauthorized");
-  }
-  return next();
-};
-const responseHeaders: Middleware = async (context, next) => {
-  const pathname = new URL(context.request.url).pathname;
-  const isAdmin = pathname === "/admin" || pathname.startsWith("/admin/");
-  const response = await next();
-  if (isAdmin || pathname.startsWith("/auth/") || ["/login", "/logout"].includes(pathname))
-    response.headers.set("Cache-Control", "private, no-store");
-  response.headers.set("X-Content-Type-Options", "nosniff");
-  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-  response.headers.set("X-Frame-Options", "DENY");
-  response.headers.set(
-    "Permissions-Policy",
-    "geolocation=(), camera=(), microphone=(), payment=(), usb=()",
-  );
-  response.headers.set(
-    "Content-Security-Policy",
-    "base-uri 'none'; frame-ancestors 'none'; form-action 'self'; default-src 'self'; connect-src 'self' https://ik.imagekit.io/; img-src 'self' data: blob: https:; script-src 'self' blob: 'unsafe-inline'; style-src 'self' 'unsafe-inline'",
-  );
-  return response;
-};
 export const router = createRouter<AppContext>({
   middleware: [
     logger({ format: "%method %pathname %status %duration ms", colors: false }),
@@ -96,3 +62,11 @@ export const router = createRouter<AppContext>({
   ],
 });
 router.map(routes, controller);
+router.map(routes.drinks, drinksController);
+router.map(routes.tags, tagsController);
+router.map(routes.search, searchController);
+router.map(routes.auth, authController);
+router.map(routes.admin, adminController);
+router.map(routes.admin.drinks, adminDrinksController);
+router.map(routes.admin.drinks.new, newDrinkController);
+router.map(routes.admin.drinks.edit, editDrinkController);

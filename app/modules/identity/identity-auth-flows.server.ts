@@ -1,3 +1,4 @@
+import { routes } from "#/app/routes.ts";
 import {
   completeAuth,
   finishExternalAuth,
@@ -42,7 +43,7 @@ export async function authenticate(
       name: result.profile.name,
       avatarUrl: result.profile.picture,
     });
-    if (!user) return redirect("/login-failed");
+    if (!user) return redirect(routes.auth.failed.href());
     const session = completeAuth(context);
     session.set("userId", user.id);
     return redirect(safeRedirectTo(returnTo));
@@ -51,10 +52,10 @@ export async function authenticate(
       "Google authentication failed",
       error instanceof Error ? error.message : "Unknown error",
     );
-    return redirect("/login-failed");
+    return redirect(routes.auth.failed.href());
   }
 }
 export function logout(context: RequestContext<Record<string, string>, ContextEntries>): Response {
   context.get(Session)?.destroy();
-  return redirect("/");
+  return redirect(routes.home.href());
 }

@@ -1,6 +1,7 @@
+import { routes } from "#/app/routes.ts";
 import { clientEntry, on, type Handle, type RemixNode } from "remix/component";
-import { classes } from "#/app/core/strings.ts";
-import { Link } from "#/app/ui/navigation/link.tsx";
+import { classes } from "#/app/core/public/strings.ts";
+import { Link } from "#/app/ui/navigation/public/link.tsx";
 import type { AdminDrinkListItem } from "#/app/modules/drinks/drinks.ts";
 type Drink = Omit<AdminDrinkListItem, "createdAt" | "updatedAt"> & {
   createdAt: string;
@@ -165,7 +166,7 @@ export const AdminDrinksList = clientEntry(
               <span className="text-zinc-500">{drinks.length}</span>
             </div>
             <Link
-              to="/admin/drinks/new"
+              to={routes.admin.drinks.new.index.href()}
               className="rounded bg-amber-600 px-4 py-2 font-medium text-zinc-950 hover:bg-amber-500"
             >
               Add Drink

@@ -1,3 +1,4 @@
+import { routes } from "#/app/routes.ts";
 import type { Handle } from "remix/component";
 
 export function Exception(handle: Handle<{ message: string }>) {
@@ -20,7 +21,7 @@ export function Exception(handle: Handle<{ message: string }>) {
         <code className="text-base">{handle.props.message}</code>
       </pre>
       <a
-        href="/"
+        href={routes.home.href()}
         className="drinks-focusable border-b border-solid pb-1 hover:shadow-[inset_0_-2px_0_0] focus-visible:shadow-[inset_0_-2px_0_0] md:text-xl"
       >
         Try Starting Over

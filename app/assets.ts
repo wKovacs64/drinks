@@ -43,12 +43,14 @@ function getScriptEntry(sourceId: string) {
   });
   return entry;
 }
-export const scriptEntry = await getScriptEntry("app/ui/public/entry.ts");
+export const scriptEntry = await getScriptEntry("app/actions/public/entry.ts");
 export const stylesheetHref = await assets.getHref("public/app.css");
 export const lightFontHref = await assets.getHref(
   "public/fonts/source-sans-3-latin-300-normal.woff2",
 );
-export const preloadAfterPaintHref = await assets.getHref("app/ui/public/preload-after-paint.ts");
+export const preloadAfterPaintHref = await assets.getHref(
+  "app/actions/public/preload-after-paint.ts",
+);
 export const renderAssets: Pick<typeof assets, "getScriptEntry"> = {
   async getScriptEntry(sourceId) {
     const entry = await getScriptEntry(sourceId);

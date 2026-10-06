@@ -1,5 +1,5 @@
 import type { Handle } from "remix/component";
-import { Link, type LinkProps } from "#/app/ui/navigation/link.tsx";
+import { Link, type LinkProps } from "#/app/ui/navigation/public/link.tsx";
 
 export function NavLink(
   handle: Handle<{

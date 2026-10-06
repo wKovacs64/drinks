@@ -1,6 +1,6 @@
+import { routes } from "#/app/routes.ts";
 import type { Handle } from "remix/component";
-import { Link } from "#/app/ui/navigation/link.tsx";
-import { createHref as href } from "remix/route-pattern/href";
+import { Link } from "#/app/ui/navigation/public/link.tsx";
 import type { DrinkView } from "#/app/modules/drinks/drinks.ts";
 import { Glass } from "./glass.tsx";
 import { DrinkSummary } from "./drink-summary.tsx";
@@ -14,7 +14,7 @@ export function DrinkList(handle: Handle<{ drinks: DrinkView[] }>) {
         {drinks.map((drink, index) => (
           <Link
             key={drink.slug}
-            to={href("/:slug", { slug: drink.slug })}
+            to={routes.drinks.show.href({ slug: drink.slug })}
             aria-label={drink.title}
             className="group focus-visible:outline-hidden"
             prefetch="viewport"

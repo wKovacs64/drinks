@@ -9,10 +9,8 @@
       "public": "public"
     },
     "allowFiles": [
-      "app/ui/**",
-      "app/core/images.ts",
-      "app/web/admin-drink-write/editor-response.ts",
-      "app/core/strings.ts",
+      "app/**/public/**",
+      "app/routes.ts",
       "public/app.css",
       "public/fonts/**",
       "public/images/**"

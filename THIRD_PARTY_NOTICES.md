@@ -1,7 +1,7 @@
 # Third-party notices
 
-The crop presentation in `app/ui/public/image-crop.tsx` and notification icon paths in
-`app/ui/public/toast.tsx` preserve the original application's appearance. They are adapted from
+The crop presentation in `app/actions/admin/drinks/public/image-crop.tsx` and notification icon paths in
+`app/actions/admin/public/toast.tsx` preserve the original application's appearance. They are adapted from
 react-image-crop (copyright Dominic Tobias) and Sonner (copyright Emil Kowalski), respectively,
 both distributed under the MIT License.
 

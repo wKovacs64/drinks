@@ -1,6 +1,7 @@
+import { routes } from "#/app/routes.ts";
 export function safeRedirectTo(
   to: FormDataEntryValue | string | null | undefined,
-  defaultRedirect = "/",
+  defaultRedirect = routes.home.href(),
 ): string {
   if (!to || typeof to !== "string") {
     return defaultRedirect;

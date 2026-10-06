@@ -1,13 +1,13 @@
 import { clientEntry, navigate, on, type Handle } from "remix/component";
-import { classes } from "#/app/core/strings.ts";
+import { classes } from "#/app/core/public/strings.ts";
 import { parseSafe } from "remix/data-schema";
 import {
   drinkEditorResponseSchema,
   EDITOR_RESPONSE_MEDIA_TYPE,
-} from "#/app/web/admin-drink-write/editor-response.ts";
+} from "#/app/web/admin-drink-write/public/editor-response.ts";
 import slugify from "@sindresorhus/slugify";
 import type { DrinkEditor } from "#/app/modules/drinks/drinks.ts";
-import { ImageCrop } from "./image-crop.tsx";
+import { ImageCrop } from "#/app/actions/admin/drinks/public/image-crop.tsx";
 const STATUS_OPTIONS: {
   value: DrinkEditor["initialValues"]["status"];
   label: string;

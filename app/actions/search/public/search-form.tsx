@@ -1,5 +1,6 @@
+import { routes } from "#/app/routes.ts";
 import { clientEntry, ref, type Handle } from "remix/component";
-import { Icon } from "#/app/ui/icons/icon.tsx";
+import { Icon } from "#/app/ui/icons/public/icon.tsx";
 export const SearchForm = clientEntry(
   import.meta.url,
   function SearchForm(handle: Handle<{ initialSearchTerm: string }>) {
@@ -28,7 +29,7 @@ export const SearchForm = clientEntry(
       return (
         <form
           method="get"
-          action="/search"
+          action={routes.search.index.href()}
           data-rmx-target="search-results"
           className="mb-8 flex h-12 bg-white"
         >

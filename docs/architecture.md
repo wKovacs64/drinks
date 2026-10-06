@@ -4,8 +4,10 @@
 
 `server.ts` adapts `app/router.ts` to Node HTTP through `remix/node-fetch-server`.
 `remix/node-tsx` handles TypeScript/JSX at runtime. `app/routes.ts` defines typed Remix route patterns,
-and `app/actions/controller.tsx` maps them to thin service calls and server-rendered pages. Interactive
-components under `app/ui/public/` hydrate with Remix `clientEntry`; there is no React runtime.
+and `app/router.ts` maps each route group to its controller under `app/actions/`. Controllers create
+per-request services, call their public interfaces or a deep web adapter, and return framework
+responses. Route-local page components own the page JSX; shared views stay under `app/ui/`.
+Interactive components hydrate with Remix `clientEntry`; there is no React runtime.
 Use Tailwind utilities for component presentation and Remix's `css` mixin when utilities do not
 fit. Toast presence uses `@remix-run/ui/animation`; the crop border's custom keyframes live in
 its component. Global CSS is reserved for fonts, theme tokens, and shared base/utility rules.
@@ -35,6 +37,43 @@ Tailwind CSS use content fingerprints and immutable caching. Development combine
 and component HMR with a stable Fetch proxy and the Tailwind watcher. The browser HMR stream is
 forwarded on the application origin, so LAN previews work with the existing CSP.
 
+## Remix source ownership
+
+The source layout follows the [Remix project tour](https://guides.remix.run/start-here/#project-tour-where-code-lives)
+while keeping business behavior in deep modules:
+
+- `server.ts` adapts the runtime and awaits startup migrations.
+- `app/routes.ts` is the typed URL contract. Route groups match controller ownership, and the new/edit
+  editor routes use `form()` for their GET/POST pair. Application links, form destinations, Frame
+  sources, and redirects use the route leaves' `.href()` helpers. Existing URLs and methods stay the same.
+- `app/router.ts` installs middleware and explicitly maps root, Drinks, Tags, Search, Auth, Admin,
+  Admin Drinks, New Drink, and Edit Drink controllers.
+- `app/middleware/` owns application-wide admin access and response-header middleware.
+- `app/actions/` owns controllers and route-local pages. The root owns `document.tsx`, home and
+  not-found pages, and `public/entry.ts`. Admin owns its layout; Admin Drinks owns its list and
+  shared create/edit editor. Search owns its document, results region, and status views.
+- `app/ui/` holds shared gallery views and browser-safe Image, Icon, and Link implementations.
+- `app/web/` retains deep HTTP adapters for submission validation, outcome translation, redirects,
+  session toasts, search document/Frame response selection, and error responses.
+- `app/modules/` retains the Drinks and Identity business interfaces and private implementations.
+  Route/page organization does not move business behavior into controllers or browser code.
+
+Browser-reachable implementation lives under `public/` beside its narrowest owner. Shared browser
+utilities live under `app/core/public/`; responsive images, icons, and links have their own
+`app/ui/<owner>/public/` directories. Search form/status code lives under `app/actions/search/public/`;
+the admin list, drink form, and crop code share `app/actions/admin/drinks/public/`. The editor response
+contract stays with its HTTP owner under `app/web/admin-drink-write/public/`.
+
+The asset policy permits `app/**/public/**`, `app/routes.ts`, and generated static assets. It denies
+server and test files. Local runtime dependencies of client entries must follow that policy; imports
+of module read-model types are erased and do not expose the modules' runtime schemas or services.
+Server-rendered page/layout files stay outside the browser allowlist.
+
+Root `public/` contains generated static assets and local uploads, rather than maintained source.
+Git ignores its contents except `.gitkeep`; Docker excludes it from the build context and regenerates
+the assets with `pnpm build`. Maintain image/icon sources under `app/assets/` and browser source under
+the colocated `app/**/public/` directories.
+
 ## Persistence
 
 `app/db/schema.ts` defines native Remix tables, with physical SQLite column names and defaults.
@@ -59,8 +98,8 @@ ImageKit uploads/deletions use its official Node SDK behind the integration boun
 
 ## Responsive Images
 
-Native Remix components in `app/ui/public/image.tsx` adapt `@unpic/core/base` output to Remix DOM
-props. The shared transformer in `app/core/images.ts` imports only `unpic/providers/imagekit`;
+Native Remix components in `app/ui/images/public/image.tsx` adapt `@unpic/core/base` output to Remix DOM
+props. The shared transformer in `app/core/public/images.ts` imports only `unpic/providers/imagekit`;
 neither integration uses React or loads the automatic provider registry. The same provider builds
 blur-placeholder and social-image URLs.
 
@@ -197,7 +236,7 @@ The OAuth callback and session-auth middleware use the same private factory impl
 The adapters own OAuth completion, session rotation and invalidation, redirects, Return-to URL
 sanitization, and authentication-error handling; the service owns admission and User resolution.
 
-`app/router.ts` owns the admin route gate: unauthenticated requests redirect to login and
+`app/middleware/admin.server.ts`, installed by `app/router.ts`, owns the admin route gate: unauthenticated requests redirect to login and
 authenticated users without the admin role redirect to `/unauthorized`.
 
 ## Route Actions and Web Adapters
@@ -220,7 +259,7 @@ explicit mode for create/edit behavior, including automatic slugs only in create
 slug edit.
 
 The enhanced editor keeps its text, selected image, and crop in the mounted form while submitting
-the asynchronously prepared JPEG. `app/web/admin-drink-write/editor-response.ts` defines its
+the asynchronously prepared JPEG. `app/web/admin-drink-write/public/editor-response.ts` defines its
 validated response contract: complete field/form errors, a missing target, or a navigation destination.
 Validation and missing-target responses retain their `400` and `404` statuses. The adapter translates
 Drink write outcomes; the browser presents those translated outcomes without reconstructing domain

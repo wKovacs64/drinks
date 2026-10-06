@@ -1,4 +1,4 @@
-import { Icon } from "#/app/ui/icons/icon.tsx";
+import { Icon } from "#/app/ui/icons/public/icon.tsx";
 
 export function Footer() {
   return () => {

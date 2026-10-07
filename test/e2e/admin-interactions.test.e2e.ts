@@ -210,6 +210,78 @@ test("leaving the editor cancels its pending submission", async (testContext) =>
   expect(await pageAsAdmin.getByRole("alert").count()).toBe(0);
 });
 
+for (const corner of ["north west", "north east", "south east", "south west"]) {
+  test(`${corner} crop handle preserves its opposite corner and clamps pointer and keyboard resizing`, async (testContext) => {
+    const page = await createBrowserPage(testContext, { admin: true });
+    await page.goto("/admin/drinks/test-margarita/edit");
+    await page.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
+    await page.locator('input[type="file"]').setInputFiles("app/assets/images/background-768.jpg");
+    const preview = page.getByAltText("Crop preview");
+    const selection = page.getByRole("group", {
+      name: "Use the arrow keys to move the crop selection area",
+    });
+    await selection.waitFor();
+    const imageBounds = await preview.boundingBox();
+    if (!imageBounds) throw new Error("Crop image has no bounds");
+    const imageSize = await preview.evaluate((element) => {
+      if (!(element instanceof HTMLImageElement)) throw new Error("Crop preview is not an image");
+      return { width: element.width, height: element.height };
+    });
+    const waitForSize = (size: number) =>
+      page.waitForFunction((expectedSize) => {
+        const element = document.querySelector(
+          '[role="group"][aria-label="Use the arrow keys to move the crop selection area"]',
+        );
+        return element !== null && parseFloat(getComputedStyle(element).width) === expectedSize;
+      }, size);
+    await page.mouse.move(imageBounds.x + 2, imageBounds.y + 2);
+    await page.mouse.down();
+    await page.mouse.move(imageBounds.x + 70, imageBounds.y + 70, { steps: 4 });
+    await page.mouse.up();
+    await waitForSize(68);
+
+    const west = corner.includes("west"),
+      north = corner.includes("north");
+    const dragHandle = page.getByRole("button", {
+      name: `Use the arrow keys to move the ${corner} drag handle to change the crop selection area`,
+    });
+    const drag = async (delta: number) => {
+      const bounds = await dragHandle.boundingBox();
+      if (!bounds) throw new Error("Crop handle has no bounds");
+      const x = bounds.x + bounds.width / 2,
+        y = bounds.y + bounds.height / 2;
+      await page.mouse.move(x, y);
+      await page.mouse.down();
+      await page.mouse.move(x + delta, y, { steps: 4 });
+      await page.mouse.up();
+    };
+    const assertSelection = async (size: number) => {
+      await waitForSize(size);
+      const bounds = await selection.boundingBox();
+      if (!bounds) throw new Error("Crop selection has no bounds");
+      expect(bounds.width).toBe(size);
+      expect(bounds.height).toBe(size);
+      expect(bounds.x - imageBounds.x + (west ? size : 0)).toBe(west ? 70 : 2);
+      expect(bounds.y - imageBounds.y + (north ? size : 0)).toBe(north ? 70 : 2);
+    };
+
+    await drag(west ? 10 : -10);
+    await assertSelection(58);
+    await dragHandle.press(west ? "Shift+ArrowRight" : "Shift+ArrowLeft");
+    await assertSelection(48);
+    const maximumSize = Math.min(
+      west ? 70 : imageSize.width - 2,
+      north ? 70 : imageSize.height - 2,
+    );
+    await drag(west ? -1000 : 1000);
+    await assertSelection(maximumSize);
+    for (let step = 0; step < 4; step++) {
+      await dragHandle.press(west ? "Control+ArrowRight" : "Control+ArrowLeft");
+    }
+    await assertSelection(1);
+  });
+}
+
 test("image crop supports drawing and keyboard movement and uploads a square JPEG", async (testContext) => {
   const pageAsAdmin = await createBrowserPage(testContext, { admin: true });
   await pageAsAdmin.goto("/admin/drinks/test-margarita/edit");

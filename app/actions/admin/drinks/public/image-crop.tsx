@@ -22,6 +22,27 @@ const cropHandlePositions = {
 };
 
 type Crop = { x: number; y: number; size: number };
+
+function resizeCrop(
+  crop: Crop,
+  bounds: { width: number; height: number },
+  direction: string,
+  delta: number,
+): Crop {
+  const west = direction.includes("w"),
+    north = direction.includes("n");
+  const maximum = Math.min(
+    west ? crop.x + crop.size : bounds.width - crop.x,
+    north ? crop.y + crop.size : bounds.height - crop.y,
+  );
+  const size = Math.max(1, Math.min(maximum, crop.size + delta));
+  return {
+    size,
+    x: west ? crop.x + crop.size - size : crop.x,
+    y: north ? crop.y + crop.size - size : crop.y,
+  };
+}
+
 export function ImageCrop(
   handle: Handle<{
     existingImageUrl?: string;
@@ -98,16 +119,7 @@ export function ImageCrop(
           north = direction.includes("n");
         const delta =
           direction.includes("e") || west ? deltaX * (west ? -1 : 1) : deltaY * (north ? -1 : 1);
-        const maximum = Math.min(
-          west ? startingCrop.x + startingCrop.size : width - startingCrop.x,
-          north ? startingCrop.y + startingCrop.size : height - startingCrop.y,
-        );
-        const size = Math.max(1, Math.min(maximum, startingCrop.size + delta));
-        crop = {
-          size,
-          x: west ? startingCrop.x + startingCrop.size - size : startingCrop.x,
-          y: north ? startingCrop.y + startingCrop.size - size : startingCrop.y,
-        };
+        crop = resizeCrop(startingCrop, { width, height }, direction, delta);
       }
       void handle.update();
     }
@@ -155,16 +167,7 @@ export function ImageCrop(
             : north
               ? -step
               : step;
-    const maximum = Math.min(
-      west ? crop.x + crop.size : imageElement.width - crop.x,
-      north ? crop.y + crop.size : imageElement.height - crop.y,
-    );
-    const size = Math.max(1, Math.min(maximum, crop.size + delta));
-    crop = {
-      size,
-      x: west ? crop.x + crop.size - size : crop.x,
-      y: north ? crop.y + crop.size - size : crop.y,
-    };
+    crop = resizeCrop(crop, imageElement, direction, delta);
     void handle.update();
   }
   function beginDraw(event: PointerEvent & { currentTarget: Element }) {

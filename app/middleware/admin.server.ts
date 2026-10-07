@@ -4,10 +4,9 @@ import { Session } from "remix/session";
 import { redirect } from "remix/response/redirect";
 import { routes } from "#/app/routes.ts";
 import { createReturnToUrl } from "#/app/modules/identity/identity.server.ts";
+import { isAdminUrl } from "#/app/web/route-matching.server.ts";
 export const protectAdmin: Middleware = async (context, next) => {
-  const url = new URL(context.request.url);
-  const isAdmin = url.pathname === "/admin" || url.pathname.startsWith("/admin/");
-  if (isAdmin) {
+  if (isAdminUrl(context.url)) {
     const identity = context.get(Auth);
     if (!identity?.ok) {
       context.get(Session)?.set("returnTo", createReturnToUrl(context.request));

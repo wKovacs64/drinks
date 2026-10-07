@@ -1,9 +1,8 @@
 import type { Middleware } from "remix/router";
+import { isAdminUrl, isAuthUrl } from "#/app/web/route-matching.server.ts";
 export const responseHeaders: Middleware = async (context, next) => {
-  const pathname = new URL(context.request.url).pathname;
-  const isAdmin = pathname === "/admin" || pathname.startsWith("/admin/");
   const response = await next();
-  if (isAdmin || pathname.startsWith("/auth/") || ["/login", "/logout"].includes(pathname))
+  if (isAdminUrl(context.url) || isAuthUrl(context.url))
     response.headers.set("Cache-Control", "private, no-store");
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");

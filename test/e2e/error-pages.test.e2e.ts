@@ -43,12 +43,13 @@ test("an admin route failure keeps the original root application error fallback"
   await getDb().exec(
     rawSql("UPDATE drinks SET created_at = 9999999999999999 WHERE slug = 'test-margarita'"),
   );
-  const response = await page.goto("/admin/drinks");
-  expect(response?.status()).toBe(500);
-  expect(await page.getByRole("heading", { name: "Application Error", exact: true }).count()).toBe(
-    1,
-  );
-  expect(await page.locator("header").count()).toBe(0);
+  for (const path of ["/admin/drinks", "/%61dmin/%64rinks"]) {
+    const response = await page.goto(path);
+    expect(response?.status()).toBe(500);
+    expect(response?.headers()["cache-control"]).toBe("private, no-store");
+    await page.getByRole("heading", { name: "Application Error", exact: true }).waitFor();
+    expect(await page.locator("header").count()).toBe(0);
+  }
 });
 
 test("a failed search update replaces the gallery with the original exception document", async (testContext) => {

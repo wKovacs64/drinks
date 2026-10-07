@@ -27,7 +27,13 @@ test("public pages retain their original cache lifetimes and Fastly keys", async
 
 test("missing drinks, tags, and routes retain short-lived caching", async (testContext) => {
   const page = await createBrowserPage(testContext);
-  for (const path of ["/missing-drink", "/tags/missing-tag", "/missing/route"]) {
+  for (const path of [
+    "/missing-drink",
+    "/tags/missing-tag",
+    "/missing/route",
+    "/administrator",
+    "/%61dministrator",
+  ]) {
     const response = await page.request.get(path);
     expect(response.status()).toBe(404);
     expect(response.headers()["cache-control"]).toBe(
@@ -45,16 +51,23 @@ test("admin pages and authentication responses cannot be cached", async (testCon
     "/admin/drinks/new",
     "/admin/drinks/test-margarita/edit",
     "/admin/drinks/missing/edit",
+    "/%61dmin/%64rinks/test-margarita/%65dit",
     "/login",
+    "/%6Cogin",
     "/auth/google/callback",
+    "/%61uth/google/callback",
+    "/login-failed",
+    "/unauthorized",
   ]) {
     const response = await page.request.get(path, { maxRedirects: 0 });
     expect(response.headers()["cache-control"]).toBe("private, no-store");
     expect(response.headers()["surrogate-key"]).toBe(undefined);
   }
-  const logoutResponse = await page.request.post("/logout", { maxRedirects: 0 });
-  expect(logoutResponse.status()).toBe(302);
-  expect(logoutResponse.headers()["cache-control"]).toBe("private, no-store");
+  for (const path of ["/logout", "/%6Cogout"]) {
+    const logoutResponse = await page.request.post(path, { maxRedirects: 0 });
+    expect(logoutResponse.status()).toBe(302);
+    expect(logoutResponse.headers()["cache-control"]).toBe("private, no-store");
+  }
 });
 
 test("editing a drink purges the existing public route cache keys", async (testContext) => {

@@ -7,49 +7,46 @@ ENV NODE_ENV="production"
 # set the working directory
 WORKDIR /app
 
-# install pnpm
+# Keep package-manager tooling out of the runtime image.
+FROM base AS build-tools
 RUN npm install -g pnpm@12.9.1
 
 # Install all node_modules, including dev dependencies
-FROM base AS dev-deps
+FROM build-tools AS dev-deps
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 
 # Install production-only node_modules
-FROM base AS prod-deps
+FROM build-tools AS prod-deps
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile --prod
 
 # Build the app
-FROM base AS build
+FROM dev-deps AS build
 
-COPY --from=dev-deps /app/node_modules /app/node_modules
 COPY . .
 RUN pnpm run build
 
 # Finally, build the runtime image with minimal footprint
 FROM base AS runtime
 
-# Disable verifyDepsBeforeRun as the lockfile is immutable and dependencies are pre-verified
-ENV PNPM_CONFIG_VERIFY_DEPS_BEFORE_RUN="false"
-
 ENV PORT="8080"
 
-COPY --from=prod-deps /app/node_modules /app/node_modules
-COPY --from=build /app/app /app/app
-COPY --from=build /app/scripts /app/scripts
-COPY --from=build /app/server.ts /app/server.ts
-COPY --from=build /app/tsconfig.json /app/tsconfig.json
-COPY --from=build /app/public /app/public
-COPY --from=build /app/package.json /app/package.json
-COPY --from=build /app/remix.json /app/remix.json
-COPY --from=build /app/pnpm-workspace.yaml /app/pnpm-workspace.yaml
-COPY --from=build /app/start.sh /app/start.sh
+# Preserve a writable working directory for local SQLite and asset output.
+RUN chown node:node /app
+
+COPY --from=prod-deps --chown=node:node /app/node_modules /app/node_modules
+COPY --from=build --chown=node:node /app/app /app/app
+COPY --from=build --chown=node:node /app/scripts /app/scripts
+COPY --from=build --chown=node:node /app/server.ts /app/server.ts
+COPY --from=build --chown=node:node /app/tsconfig.json /app/tsconfig.json
+COPY --from=build --chown=node:node /app/public /app/public
+COPY --from=build --chown=node:node /app/package.json /app/package.json
+COPY --from=build --chown=node:node /app/remix.json /app/remix.json
 
 # run the app as the node (non-root) user
-RUN chown -R node:node /app
 USER node
 
 # accept some build arguments
@@ -60,4 +57,4 @@ ARG DEPLOYMENT_ENV="unknown"
 ENV COMMIT_SHA="${COMMIT_SHA}"
 ENV DEPLOYMENT_ENV="${DEPLOYMENT_ENV}"
 
-ENTRYPOINT [ "sh", "start.sh" ]
+CMD [ "node", "--import", "remix/node-tsx", "server.ts" ]

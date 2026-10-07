@@ -1,1 +1,0 @@
-ALTER TABLE `drinks` ADD `status` text DEFAULT 'published' NOT NULL;

@@ -4,25 +4,20 @@ status: accepted
 
 # Let the Admin Drink Write Route Adapter own web translation
 
-The **Admin Drink Write Route Adapter** is the complete React Router adapter for the **Admin Drink
+The **Admin Drink Write Route Adapter** is the complete Remix adapter for the **Admin Drink
 Write Path**. It prepares create/update submissions, validates `drinkDraftSchema`, calls the
 transport-agnostic Drinks module write service, and exhaustively translates typed create, update, and
 delete outcomes into field/form error data, not-found responses, redirects, and toasts.
 
-The Drinks module must continue to return transport-agnostic typed outcomes. It must not import React
-Router, construct `Response` objects, or decide toast behavior.
+The Drinks module must continue to return transport-agnostic typed outcomes. Web response
+construction and toast behavior belong in the adapter.
 
 ## Context
 
-Earlier iterations kept routes thin with a generic `routeAction` helper. That helper handled schema
-validation, thrown domain errors, redirects, and toasts. The admin drink write adapter translated only
-some Drink-specific outcomes before handing control to `routeAction` for the final web response.
-After deepening this route seam, the helper had no remaining production callers and was removed.
-
-That split repeatedly made the seam shallow. Understanding one **Admin Drink Write Path** outcome
-required knowing the Drinks outcome union, adapter branch behavior, thrown domain-error behavior,
-React Router thrown responses, and toast callback resolution. It also collapsed typed field-error maps
-to the first field/message when bridging through a thrown field error.
+Splitting web translation between a Drink-specific adapter and a generic action helper makes one
+**Admin Drink Write Path** outcome depend on multiple response interpreters. Keeping submission
+validation, typed outcome translation, redirects, and toasts in the same adapter gives callers a
+single web seam and preserves complete field-error maps without converting them to thrown errors.
 
 ## Decision
 
@@ -43,13 +38,14 @@ to this deeper web adapter.
 
 ## Consequences
 
-- The interface test surface for Drink-specific web behavior is `app/web/admin-drink-write/route-adapter.test.ts`.
+- Browser tests under `test/e2e/` exercise Drink-specific web behavior; module tests exercise
+  the transport-agnostic write service. See `docs/testing.md` for test harness setup.
 - Generic route action helpers should not partially translate **Admin Drink Write Path** outcomes.
-- The previous `routeAction` helper should not be restored for this path unless this ADR is revisited.
+- This path should not introduce a generic action helper unless this ADR is revisited.
 - If another route family later needs the same kind of typed-outcome-to-web-response interpreter, add
   it at that route seam first. Extract a generic helper only after more than one production seam proves
   the abstraction.
 - New **Admin Drink Write Path** outcome kinds should force an exhaustive update in the adapter before
   typecheck passes.
-- New save notice codes should force an explicit toast/response decision in the adapter before
+- New write notice codes should force an explicit toast/response decision in the adapter before
   typecheck passes.

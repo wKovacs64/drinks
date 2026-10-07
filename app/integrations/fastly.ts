@@ -1,0 +1,48 @@
+import { getEnvVars } from "#/app/core/env.ts";
+
+export function getSurrogateKeyForTagSlug(tagSlug: string) {
+  return tagSlug;
+}
+
+function getSurrogateKeyForCanonicalTag(tag: string) {
+  return tag.replaceAll(" ", "_");
+}
+
+async function purgeFastlyCache(surrogateKeys: string[]): Promise<void> {
+  const { FASTLY_SERVICE_ID, FASTLY_PURGE_API_KEY, NODE_ENV } = getEnvVars();
+  if (NODE_ENV === "development") return;
+  if (!FASTLY_SERVICE_ID || !FASTLY_PURGE_API_KEY) {
+    console.log("Fastly not configured, skipping cache purge");
+    return;
+  }
+
+  const response = await fetch(`https://api.fastly.com/service/${FASTLY_SERVICE_ID}/purge`, {
+    method: "POST",
+    headers: {
+      "Fastly-Key": FASTLY_PURGE_API_KEY,
+      "Surrogate-Key": surrogateKeys.join(" "),
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Fastly cache purge failed (HTTP ${response.status})`);
+  }
+}
+
+/**
+ * Purge targeted cache keys affected by a drink change.
+ * The `all` key is intentionally excluded here; it is only purged on deploy.
+ */
+export async function purgeDrinkCache(affectedPages: {
+  slugs: string[];
+  tags: string[];
+}): Promise<void> {
+  const keys = [
+    "index",
+    "search",
+    ...affectedPages.slugs,
+    "tags",
+    ...affectedPages.tags.map(getSurrogateKeyForCanonicalTag),
+  ];
+  await purgeFastlyCache(keys);
+}

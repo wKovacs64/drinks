@@ -1,9 +1,17 @@
 # Contributing
 
-If you would like to contribute code to this project, you can do so by forking the repository and
-sending a pull request.
+Fork the repository and send a pull request. See [README.md](README.md) for setup and validation,
+and [AGENTS.md](AGENTS.md) for project context and skill configuration.
 
-When submitting code, please make every effort to follow existing conventions and style in order to
-keep the code as readable as possible.
+## Implementation and review
 
-Thank you.
+1. Implement the issue or spec using the skill appropriate to the work. Current ownership and runtime
+   contracts are in [architecture](docs/architecture.md); test setup is in [the test harness docs](docs/testing.md).
+2. Review the change against [coding standards](CODING_STANDARDS.md) and the originating issue or spec.
+   Report standards and spec findings separately.
+3. Resolve the findings, then run the checks appropriate to the change using the scripts in
+   `package.json`. Documentation-only changes need formatting and verification of references and claims.
+   The change is ready when review findings are resolved and the relevant checks pass.
+
+Update architecture when current ownership or runtime contracts change. Commit and release mechanics
+are in [RELEASING.md](RELEASING.md).

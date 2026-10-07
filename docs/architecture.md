@@ -1,136 +1,40 @@
 # Architecture
 
-## Deep Modules
+Current code ownership and runtime contracts.
 
-Server-side business behavior lives in a small number of deep domain modules under `app/modules/`.
+## Runtime imports
 
-Each module exposes exactly two public entrypoints:
+Node runs TypeScript source directly, with Remix's loader handling TSX. Subpath and relative imports
+resolve source files, so their specifiers include explicit `.ts` or `.tsx` extensions. The native
+subpath mapping is defined in `package.json`.
 
-- `<module>.ts` for shared types, Draft and Editor contracts, read models (e.g. **Drink view**), and re-exported schemas
-- `<module>.server.ts` for server-only factories and public server behavior
+## Ownership
 
-Everything else in the module directory is private implementation detail.
+Server business behavior lives under `app/modules/<module>/`. The public entrypoint is
+`<module>.ts`, exposing types, read models, schemas, and service factories; other files are private.
 
-Current target modules:
+Routes construct services and return framework responses. The Drinks module owns Drink write
+behavior, image lifecycle orchestration, cache purge orchestration, and transport-independent typed
+write outcomes. The admin write adapter owns the complete web translation, including submission
+validation, field errors, redirects, and toasts. Native form failures render the submitted editor
+with HTTP 400; enhanced submissions explicitly request the editor JSON media type.
+[ADR-0001](adr/0001-admin-drink-write-route-adapters.md) and [ADR-0002](adr/0002-admin-drink-write-route-adapter-owns-web-translation.md) record this seam.
 
-- `Drinks`
-- `Identity`
+## Browser and assets
 
-## Public Entry Points
+Browser source lives in owner-local `public/` directories, with shared browser utilities under
+`app/core/public/`. The asset allowlist permits those directories and `app/routes.ts`; every runtime
+import in a browser graph must be allowed. Type-only imports are erased before serving browser code.
+Files use ordinary `.ts` and `.tsx` names; server isolation comes from the allowlist rather than a
+filename suffix. Static asset sources live under `app/assets/`; root `public/` is generated output and
+local uploads. Navigation uses native anchors. Viewport-prefetch anchors contain a small hydrated
+marker whose ref mixin owns observer and image-listener cleanup; card markup stays server-rendered.
+The editor client entry keys its inner form by action URL so soft navigation resets the draft and
+submission endpoint together.
 
-Consumers should import only from:
+## Write completion
 
-- `#/app/modules/<module>/<module>`
-- `#/app/modules/<module>/<module>.server`
-
-Do not import module internals from routes, tests, or other modules.
-
-## Service Factories
-
-Routes stay thin. They create a service per request and delegate business behavior to it.
-
-Example shape:
-
-```ts
-const drinksService = createDrinksService({ db: getDb() });
-const adminDrinksWriteService = createAdminDrinksWriteService({
-  db: getDb(),
-  writeEffects: { uploadImage, deleteImage, purgeDrinkCache },
-});
-```
-
-Factories accept explicit boundary dependencies only.
-
-Internal collaborators such as markdown rendering, search internals, and image placeholder
-decoration stay module-private.
-
-## Drinks Module
-
-`Drinks` owns:
-
-- drink create, edit, delete behavior
-- Draft validation contract
-- Editor read models for admin forms
-- gallery read models (**Drink view**, **Drink for viewer**) for routes and UI
-- publish visibility policy
-- tag and search read behavior
-- image lifecycle orchestration
-- search invalidation and drink-cache purge orchestration
-
-Routes should ask the module for capability-shaped reads instead of shaping raw persistence rows.
-
-Current `Drinks` seam examples:
-
-- `getPublishedDrinks()`
-- `getAllDrinks()`
-- `getDrinkBySlug({ slug, viewerRole })`
-- `getDrinksByTag(tag)`
-- `getAllTags()`
-- `searchPublishedDrinks({ query })`
-- `getNewDrinkEditor()`
-- `getDrinkEditorBySlug(slug)`
-- `createAdminDrinksWriteService(...).create({ draft, imageBuffer })`
-- `createAdminDrinksWriteService(...).update({ slug, draft, imageBuffer? })`
-- `createAdminDrinksWriteService(...).delete({ slug })`
-
-## Identity Module
-
-`Identity` owns:
-
-- login and callback flows
-- logout
-- session helpers
-- auth middleware
-- request user context helpers
-
-`identity.server.ts` is the single public server seam for those concerns.
-
-## Route Actions and Web Adapters
-
-Routes stay thin by constructing per-request services and delegating route-specific behavior to the
-smallest deep web adapter that owns that route seam.
-
-A route may call a module service directly when the route has no meaningful translation logic. When a
-route must coordinate submission parsing, schema validation, typed module outcomes, React Router
-responses, redirects, and toasts, put that behavior behind a web adapter instead of rebuilding it in
-the route.
-
-The **Admin Drink Write Route Adapter** is the accepted deep web adapter for the **Admin Drink Write
-Path**. It owns multipart submission preparation, `drinkDraftSchema` validation, and the complete
-translation from typed Drinks module write outcomes into field/form error data, not-found responses,
-redirects, and toasts. Routes and generic helpers must not partially translate those outcomes.
-
-## Expected Failures and Notices
-
-Expected business-rule failures should cross Deep Module seams as typed outcomes or typed errors that
-remain transport-agnostic. Web adapters translate those expected failures into route/framework
-responses. Unexpected failures should still bubble.
-
-Successful operations may also return warning metadata for non-fatal follow-up problems. The web
-adapter for the route seam owns how those warnings become toasts or response metadata.
-
-## Testing Boundaries
-
-Tests should exercise public behavior through module schemas and service factories, not private
-helpers.
-
-Preferred boundary tests:
-
-- `drinkDraftSchema`
-- `createDrinksService(...)`
-- `createAdminDrinksWriteService(...)`
-- `createIdentityService(...)`
-- `createAdminDrinkActionAdapter(...)`
-- `updateAdminDrinkActionAdapter(...)`
-- `deleteAdminDrinkActionAdapter(...)`
-
-Use the real SQLite and Drizzle-backed test database where it is cheap. Stub expensive external
-effects at the service boundary.
-
-## Development Workflow
-
-Use `docs/development-workflow.md` as the source of truth for skill sequencing.
-
-Architecture-affecting work should usually start with `domain-model` so module boundaries,
-capability names, and durable decisions are clarified before implementation. Use
-`improve-codebase-architecture` only as an occasional architecture review tool after larger changes.
+A committed Drink write counts as success even if old-image cleanup or a public-cache refresh fails.
+Report these follow-up failures as warnings so an admin is not invited to repeat an already-completed
+write. Remote effects stay outside database transactions; before persistence succeeds, a failure
+must preserve the original error even if compensating cleanup also fails.

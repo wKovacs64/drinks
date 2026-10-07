@@ -63,3 +63,18 @@
 .drinks-focusable {
   @apply ease-default transition-shadow focus-visible:ring-3 focus-visible:ring-blue-500/50 focus-visible:outline-hidden;
 }
+
+@font-face {
+  font-family: "Source Sans 3";
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url("./fonts/source-sans-3-latin-300-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Source Sans 3";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./fonts/source-sans-3-latin-400-normal.woff2") format("woff2");
+}

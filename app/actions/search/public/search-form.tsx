@@ -24,7 +24,10 @@ export const SearchForm = clientEntry(
     return () => {
       if (previousSearchTerm !== handle.props.initialSearchTerm) {
         previousSearchTerm = handle.props.initialSearchTerm;
-        if (searchInput) searchInput.value = previousSearchTerm;
+        const searchTerm = previousSearchTerm;
+        handle.queueTask((signal) => {
+          if (!signal.aborted && searchInput) searchInput.value = searchTerm;
+        });
       }
       return (
         <form

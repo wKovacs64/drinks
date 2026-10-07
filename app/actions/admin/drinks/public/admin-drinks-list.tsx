@@ -1,7 +1,6 @@
 import { routes } from "#/app/routes.ts";
 import { clientEntry, on, type Handle, type RemixNode } from "remix/component";
 import { classes } from "#/app/core/public/strings.ts";
-import { Link } from "#/app/ui/navigation/public/link.tsx";
 import type { AdminDrinkListItem } from "#/app/modules/drinks/drinks.ts";
 type Drink = Omit<AdminDrinkListItem, "createdAt" | "updatedAt"> & {
   createdAt: string;
@@ -64,12 +63,12 @@ function DrinkRow(handle: Handle<{ drink: Drink }>) {
         <td className="py-3 pr-4 whitespace-nowrap">
           <div className="flex items-center gap-3">
             {drink.presentation.thumbnail}
-            <Link
-              to={drink.presentation.detailHref}
+            <a
+              href={drink.presentation.detailHref}
               className="font-medium text-zinc-300 hover:text-amber-500"
             >
               {drink.title}
-            </Link>
+            </a>
           </div>
         </td>
         <td className="py-3 pr-4 whitespace-nowrap text-zinc-400">{drink.slug}</td>
@@ -94,9 +93,9 @@ function DrinkRow(handle: Handle<{ drink: Drink }>) {
           {formatTimestamp(drink.updatedAt)}
         </td>
         <td className="py-3 text-right whitespace-nowrap">
-          <Link to={drink.presentation.editHref} className="text-zinc-400 hover:text-amber-500">
+          <a href={drink.presentation.editHref} className="text-zinc-400 hover:text-amber-500">
             Edit
-          </Link>
+          </a>
           <form
             method="post"
             action={drink.presentation.deleteAction}
@@ -165,12 +164,12 @@ export const AdminDrinksList = clientEntry(
               <h1 className="text-2xl font-medium text-zinc-200">Drinks</h1>
               <span className="text-zinc-500">{drinks.length}</span>
             </div>
-            <Link
-              to={routes.admin.drinks.new.index.href()}
+            <a
+              href={routes.admin.drinks.new.index.href()}
               className="rounded bg-amber-600 px-4 py-2 font-medium text-zinc-950 hover:bg-amber-500"
             >
               Add Drink
-            </Link>
+            </a>
           </div>
 
           <input

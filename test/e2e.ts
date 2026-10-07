@@ -10,14 +10,21 @@ import { server as requestMocks } from "#/test/server.ts";
 
 export async function createBrowserPage(
   testContext: TestContext,
-  options: { admin?: boolean } = {},
+  options: { admin?: boolean; javaScriptEnabled?: boolean } = {},
 ) {
   await resetAndSeedDatabase();
   purgeSearchCache();
   const server = await createTestServer(router.fetch);
   // Playwright's request client runs in this worker too; let it reach the real test router.
   requestMocks.use(http.all(`${server.baseUrl}/*`, () => passthrough()));
-  const page = await testContext.serve(server);
+  let page = await testContext.serve(server);
+  if (options.javaScriptEnabled === false) {
+    const browser = page.context().browser();
+    if (!browser) throw new Error("Native form tests require a browser");
+    page = await browser.newPage({ baseURL: server.baseUrl, javaScriptEnabled: false });
+    const nativePage = page;
+    testContext.after(() => nativePage.close());
+  }
   if (options.admin) {
     await page.context().addCookies([
       {

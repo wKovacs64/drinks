@@ -25,10 +25,27 @@ export default createController(routes.admin.drinks.new, {
       );
     },
     action(context) {
+      if (!context.auth.ok) return redirect(routes.auth.login.href());
+      const user = context.auth.identity;
       return createAdminDrinkActionAdapter({
         request: context.request,
         session: context.session,
         adminDrinksWriteService: createDrinkWriteService(),
+        invalidEditor: {
+          load: () => createDrinksService({ db: getDb() }).getNewDrinkEditor(),
+          async render(editor, errors) {
+            return context.render(
+              <DrinkEditorPage
+                editor={editor}
+                user={user}
+                action={routes.admin.drinks.new.action.href()}
+                modulePreloads={await getClientEntryPreloads(DrinkForm)}
+                errors={errors}
+              />,
+              { status: 400 },
+            );
+          },
+        },
       });
     },
   },

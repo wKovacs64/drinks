@@ -1,22 +1,22 @@
-import type { Handle } from "remix/component";
-import { Link, type LinkProps } from "#/app/ui/navigation/public/link.tsx";
+import type { Handle, Props } from "remix/component";
+import { ViewportPrefetch } from "#/app/ui/navigation/public/viewport-prefetch.tsx";
 
 export function NavLink(
   handle: Handle<{
-    children: LinkProps["children"];
-    to: LinkProps["to"];
+    children: Props<"a">["children"];
+    href: string;
   }>,
 ) {
   return () => {
-    const { children, to } = handle.props;
+    const { children, href } = handle.props;
     return (
-      <Link
+      <a
         className="drinks-focusable border-b border-dotted pb-1 transition hover:border-solid focus:border-solid"
-        to={to}
-        prefetch="viewport"
+        href={href}
       >
+        <ViewportPrefetch href={href} />
         {children}
-      </Link>
+      </a>
     );
   };
 }

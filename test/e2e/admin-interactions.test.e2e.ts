@@ -129,7 +129,7 @@ test("automatic slug stops changing after a manual edit", async (testContext) =>
   expect(await pageAsAdmin.getByLabel("Title", { exact: true }).inputValue()).toBe("");
   expect(await pageAsAdmin.getByLabel("Calories", { exact: true }).inputValue()).toBe("");
   expect(await pageAsAdmin.getByLabel("Rank", { exact: true }).inputValue()).toBe("0");
-  expect(await pageAsAdmin.locator('input[name="status"]').inputValue()).toBe("published");
+  expect(await pageAsAdmin.locator('input[name="status"]:checked').inputValue()).toBe("published");
   expect(await pageAsAdmin.getByRole("button", { name: "Create Drink", exact: true }).count()).toBe(
     1,
   );
@@ -144,12 +144,14 @@ test("automatic slug stops changing after a manual edit", async (testContext) =>
   await pageAsAdmin.getByLabel("Slug", { exact: true }).fill("my-sour");
   await pageAsAdmin.getByLabel("Title", { exact: true }).fill("Another Name");
   expect(await pageAsAdmin.getByLabel("Slug", { exact: true }).inputValue()).toBe("my-sour");
-  await pageAsAdmin.getByRole("button", { name: "Unpublished", exact: true }).click();
+  await pageAsAdmin.getByRole("radio", { name: "Unpublished", exact: true }).check();
   await pageAsAdmin.waitForFunction(() => {
-    const statusInput = document.querySelector('input[name="status"]');
+    const statusInput = document.querySelector('input[name="status"]:checked');
     return statusInput instanceof HTMLInputElement && statusInput.value === "unpublished";
   });
-  expect(await pageAsAdmin.locator('input[name="status"]').inputValue()).toBe("unpublished");
+  expect(await pageAsAdmin.locator('input[name="status"]:checked').inputValue()).toBe(
+    "unpublished",
+  );
 });
 
 test("duplicate slug preserves edits and displays validation", async (testContext) => {
@@ -173,7 +175,7 @@ test("deleting a missing drink returns 404", async (testContext) => {
   const response = await pageAsAdmin.request.post("/admin/drinks/missing/delete");
   expect(response.status()).toBe(404);
   expect(response.headers()["content-type"]).toContain("text/html");
-  expect(await response.text()).toContain("Unhandled Thrown Response!");
+  expect(await response.text()).toContain("404 Not Found");
 });
 
 test("leaving the editor cancels its pending submission", async (testContext) => {
@@ -482,4 +484,24 @@ test("image crop supports drawing and keyboard movement and uploads a square JPE
   await pageAsAdmin.waitForURL("/admin/drinks");
   await pageAsAdmin.getByRole("status").filter({ hasText: "Drink updated!" }).waitFor();
   expect(await pageAsAdmin.getByRole("status").innerText()).toContain("Drink updated!");
+});
+
+test("a canceled toast gesture resumes its expiration", async (testContext) => {
+  const page = await createBrowserPage(testContext, { admin: true });
+  await page.goto("/admin/drinks/test-margarita/edit");
+  await page.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
+  await page.clock.install();
+  await page.getByRole("button", { name: "Update Drink" }).click();
+  const notification = page.getByRole("status").filter({ hasText: "Drink updated!" });
+  await notification.waitFor();
+  const bounds = await notification.boundingBox();
+  if (!bounds) throw new Error("Notification must be visible");
+  await page.mouse.move(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+  await page.mouse.down();
+  await page.clock.runFor(5000);
+  expect(await notification.isVisible()).toBe(true);
+  await notification.dispatchEvent("pointercancel", { pointerId: 1, pointerType: "mouse" });
+  await page.clock.runFor(4500);
+  await notification.waitFor({ state: "hidden" });
+  await page.mouse.up();
 });

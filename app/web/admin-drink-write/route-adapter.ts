@@ -11,6 +11,7 @@ import {
   type CreateAdminDrinkResult,
   type DeleteAdminDrinkResult,
   type DrinkDraft,
+  type DrinkEditor,
   type DrinkWriteNotice,
   type UpdateAdminDrinkResult,
 } from "#/app/modules/drinks/drinks.ts";
@@ -25,14 +26,21 @@ type AdminDrinkWriteActionAdapterInput = {
   adminDrinksWriteService: AdminDrinksWriteService;
 };
 
-type AdminDrinkWriteActionData = {
+type InvalidDrinkEditor = {
   fieldErrors: Record<string, string[] | undefined>;
   formErrors: string[];
 };
 
+type AdminDrinkEditorAdapterInput = AdminDrinkWriteActionAdapterInput & {
+  invalidEditor: {
+    load: () => Promise<DrinkEditor | null>;
+    render: (editor: DrinkEditor, errors: string[]) => Promise<Response>;
+  };
+};
+
 type DrinkDraftParseResult =
   | { kind: "ready"; draft: DrinkDraft }
-  | ({ kind: "invalid"; status: 400 } & AdminDrinkWriteActionData);
+  | ({ kind: "invalid"; status: 400 } & InvalidDrinkEditor);
 
 const drinkFormSchema = object({
   title: field(string()),
@@ -45,16 +53,16 @@ const drinkFormSchema = object({
   status: field(string()),
 });
 
-export async function createAdminDrinkActionAdapter(input: AdminDrinkWriteActionAdapterInput) {
+export async function createAdminDrinkActionAdapter(input: AdminDrinkEditorAdapterInput) {
   const submission = await parseCreateDrinkSubmission(input.request);
 
   if (submission.kind === "invalid") {
-    return invalidActionData(submission);
+    return invalidEditorResponse(input, submission, submission.formData);
   }
 
   const draftResult = parseDrinkDraft(submission.formData);
   if (draftResult.kind === "invalid") {
-    return invalidActionData(draftResult);
+    return invalidEditorResponse(input, draftResult, submission.formData);
   }
 
   const result = await input.adminDrinksWriteService.create({
@@ -62,7 +70,7 @@ export async function createAdminDrinkActionAdapter(input: AdminDrinkWriteAction
     imageBuffer: submission.imageUpload.buffer,
   });
 
-  return translateCreateResult(result, input.session);
+  return translateCreateResult(result, input, submission.formData);
 }
 
 export async function deleteAdminDrinkActionAdapter(
@@ -74,17 +82,17 @@ export async function deleteAdminDrinkActionAdapter(
 }
 
 export async function updateAdminDrinkActionAdapter(
-  input: AdminDrinkWriteActionAdapterInput & { slug: string },
+  input: AdminDrinkEditorAdapterInput & { slug: string },
 ) {
   const submission = await parseUpdateDrinkSubmission(input.request);
 
   if (submission.kind === "invalid") {
-    return invalidActionData(submission);
+    return invalidEditorResponse(input, submission, submission.formData);
   }
 
   const draftResult = parseDrinkDraft(submission.formData);
   if (draftResult.kind === "invalid") {
-    return invalidActionData(draftResult);
+    return invalidEditorResponse(input, draftResult, submission.formData);
   }
 
   const result = await input.adminDrinksWriteService.update({
@@ -93,32 +101,46 @@ export async function updateAdminDrinkActionAdapter(
     imageBuffer: submission.imageUpload?.buffer,
   });
 
-  return translateUpdateResult(result, input.session, input.request);
+  return translateUpdateResult(result, input, submission.formData);
 }
 
-function translateCreateResult(result: CreateAdminDrinkResult, session: Session) {
+function translateCreateResult(
+  result: CreateAdminDrinkResult,
+  input: AdminDrinkEditorAdapterInput,
+  formData: FormData,
+) {
   switch (result.kind) {
     case "success":
-      return redirectToAdminDrinksWithToast(session, resolveWriteToast("created", result.notices));
+      return redirectToAdminDrinksWithToast(
+        input.session,
+        resolveWriteToast("created", result.notices),
+      );
 
     case "fieldError":
-      return invalidActionData(result);
+      return invalidEditorResponse(input, result, formData);
 
     default:
       return assertNever(result);
   }
 }
 
-function translateUpdateResult(result: UpdateAdminDrinkResult, session: Session, request: Request) {
+function translateUpdateResult(
+  result: UpdateAdminDrinkResult,
+  input: AdminDrinkEditorAdapterInput,
+  formData: FormData,
+) {
   switch (result.kind) {
     case "success":
-      return redirectToAdminDrinksWithToast(session, resolveWriteToast("updated", result.notices));
+      return redirectToAdminDrinksWithToast(
+        input.session,
+        resolveWriteToast("updated", result.notices),
+      );
 
     case "fieldError":
-      return invalidActionData(result);
+      return invalidEditorResponse(input, result, formData);
 
     case "notFound":
-      return drinkNotFoundResponse(request);
+      return drinkNotFoundResponse(input.request);
 
     default:
       return assertNever(result);
@@ -162,13 +184,42 @@ function parseDrinkDraft(formData: FormData): DrinkDraftParseResult {
   };
 }
 
-function invalidActionData(result: AdminDrinkWriteActionData & { status?: number }) {
+async function invalidEditorResponse(
+  input: AdminDrinkEditorAdapterInput,
+  result: InvalidDrinkEditor,
+  formData?: FormData,
+) {
   const data: DrinkEditorResponse = {
     kind: "invalid",
     fieldErrors: result.fieldErrors,
     formErrors: result.formErrors,
   };
-  return Response.json(data, { status: result.status ?? 400 });
+  if (acceptsEditorResponse(input.request)) return Response.json(data, { status: 400 });
+
+  const editor = await input.invalidEditor.load();
+  if (!editor) return drinkNotFoundResponse(input.request);
+  const initialValues = { ...editor.initialValues };
+  for (const name of [
+    "title",
+    "slug",
+    "ingredients",
+    "calories",
+    "tags",
+    "notes",
+    "rank",
+  ] as const) {
+    const value = formData?.get(name);
+    if (typeof value === "string") initialValues[name] = value;
+  }
+  const status = formData?.get("status");
+  if (status === "published" || status === "unpublished") initialValues.status = status;
+  const errors = [
+    ...result.formErrors,
+    ...Object.values(result.fieldErrors).flatMap((messages) => messages ?? []),
+  ];
+  const image = formData?.get("imageFile");
+  if (typeof image === "string" && image) errors.push("Select the image again before saving.");
+  return input.invalidEditor.render({ ...editor, initialValues }, errors);
 }
 
 function redirectToAdminDrinksWithToast(session: Session, toast: ToastMessage): Response {

@@ -83,7 +83,10 @@ export const Toast = clientEntry(
         notificationId = handle.props.notificationId;
         visible = true;
         remaining = 4000;
-        if (toastElement) resume();
+        pointerStart = undefined;
+        handle.queueTask((signal) => {
+          if (!signal.aborted && toastElement) resume();
+        });
       }
       return visible ? (
         <section
@@ -111,6 +114,10 @@ export const Toast = clientEntry(
                 event.currentTarget.setPointerCapture(event.pointerId);
                 pause();
               }
+            }),
+            on("pointercancel", () => {
+              pointerStart = undefined;
+              resume();
             }),
             on("pointerup", (event) => {
               if (event instanceof PointerEvent && pointerStart) {

@@ -21,6 +21,7 @@ type DrinkImageUpload = {
 
 type DrinkSubmissionInvalidResult = {
   kind: "invalid";
+  formData?: FormData;
   fieldErrors: Record<string, string[] | undefined>;
   formErrors: string[];
   status: 400;
@@ -50,7 +51,7 @@ export async function parseCreateDrinkSubmission(
   }
 
   if (!result.imageUpload) {
-    return imageFieldError("Image is required");
+    return imageFieldError("Image is required", result.formData);
   }
 
   return {
@@ -85,14 +86,15 @@ async function parseMultipartDrinkForm(
   let imageUpload: DrinkImageUpload | undefined;
 
   async function uploadHandler(fileUpload: FileUpload) {
-    if (fileUpload.fieldName !== "imageFile") {
-      return;
+    if (fileUpload.fieldName !== "imageFile" || !fileUpload.name) {
+      return null;
     }
 
     imageUpload = {
       buffer: Buffer.from(await fileUpload.bytes()),
       contentType: fileUpload.type,
     };
+    return fileUpload.name;
   }
 
   let formData: FormData;
@@ -129,15 +131,16 @@ async function parseMultipartDrinkForm(
   }
 
   if (imageUpload && !ALLOWED_IMAGE_TYPES.includes(imageUpload.contentType)) {
-    return imageFieldError("Image must be a JPEG, PNG, WebP, or GIF");
+    return imageFieldError("Image must be a JPEG, PNG, WebP, or GIF", formData);
   }
 
   return { kind: "ready", formData, imageUpload };
 }
 
-function imageFieldError(message: string): DrinkSubmissionInvalidResult {
+function imageFieldError(message: string, formData?: FormData): DrinkSubmissionInvalidResult {
   return {
     kind: "invalid",
+    formData,
     fieldErrors: {
       imageFile: [message],
     },

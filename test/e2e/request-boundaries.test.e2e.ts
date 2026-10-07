@@ -1,6 +1,7 @@
 import { test } from "remix/test";
 import { expect } from "remix/assert";
 import { createBrowserPage } from "#/test/e2e.ts";
+import { EDITOR_RESPONSE_MEDIA_TYPE } from "#/app/web/admin-drink-write/public/editor-response.ts";
 
 test("admin mutations reject cross-site browser provenance even without Origin", async (testContext) => {
   const pageAsAdmin = await createBrowserPage(testContext, { admin: true });
@@ -13,6 +14,7 @@ test("admin mutations reject cross-site browser provenance even without Origin",
 test("the editor preserves its existing per-image size limit", async (testContext) => {
   const pageAsAdmin = await createBrowserPage(testContext, { admin: true });
   const response = await pageAsAdmin.request.post("/admin/drinks/test-margarita/edit", {
+    headers: { Accept: EDITOR_RESPONSE_MEDIA_TYPE },
     multipart: {
       imageFile: {
         name: "large.jpg",
@@ -30,6 +32,7 @@ test("the editor preserves its existing per-image size limit", async (testContex
 test("the editor bounds the complete multipart submission", async (testContext) => {
   const pageAsAdmin = await createBrowserPage(testContext, { admin: true });
   const response = await pageAsAdmin.request.post("/admin/drinks/test-margarita/edit", {
+    headers: { Accept: EDITOR_RESPONSE_MEDIA_TYPE },
     multipart: {
       title: "x".repeat(2 * 1024 * 1024),
       notes: "x".repeat(2 * 1024 * 1024),
@@ -45,6 +48,7 @@ test("the editor bounds the complete multipart submission", async (testContext) 
 test("the editor bounds the number of submitted fields", async (testContext) => {
   const pageAsAdmin = await createBrowserPage(testContext, { admin: true });
   const response = await pageAsAdmin.request.post("/admin/drinks/test-margarita/edit", {
+    headers: { Accept: EDITOR_RESPONSE_MEDIA_TYPE },
     multipart: Object.fromEntries(Array.from({ length: 17 }, (_, index) => [`field${index}`, "x"])),
   });
   expect(response.status()).toBe(400);
@@ -56,6 +60,7 @@ test("the editor bounds the number of submitted fields", async (testContext) => 
 test("the single-image editor rejects an additional uploaded file", async (testContext) => {
   const pageAsAdmin = await createBrowserPage(testContext, { admin: true });
   const response = await pageAsAdmin.request.post("/admin/drinks/test-margarita/edit", {
+    headers: { Accept: EDITOR_RESPONSE_MEDIA_TYPE },
     multipart: {
       title: "Test Margarita",
       slug: "test-margarita",

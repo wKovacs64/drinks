@@ -21,7 +21,7 @@ export function DrinkDetails(handle: Handle<{ drink: DrinkView }>) {
               <TagLink
                 className="mt-4 mr-4 ml-0 leading-tight lg:mr-0 lg:ml-4"
                 aria-label={`Find all drinks containing ${tag.displayName}`}
-                to={routes.tags.show.href({ tag: tag.slug })}
+                href={routes.tags.show.href({ tag: tag.slug })}
                 key={tag.slug}
               >
                 <Tag className="p-2 text-sm leading-tight font-normal lg:text-base lg:leading-tight lg:font-light">

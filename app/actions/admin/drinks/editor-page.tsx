@@ -10,10 +10,11 @@ export function DrinkEditorPage(
     user: SessionUser;
     action: string;
     modulePreloads: readonly string[];
+    errors?: string[];
   }>,
 ) {
   return () => {
-    const { editor, user, action, modulePreloads } = handle.props;
+    const { editor, user, action, modulePreloads, errors } = handle.props;
     return (
       <Document
         title={
@@ -29,7 +30,7 @@ export function DrinkEditorPage(
             <h1 className="mb-6 text-2xl font-medium text-zinc-200">
               {editor.mode === "create" ? "Add New Drink" : "Edit Drink"}
             </h1>
-            <DrinkForm editor={editor} action={action} />
+            <DrinkForm editor={editor} action={action} errors={errors} />
           </div>
         </AdminLayout>
       </Document>

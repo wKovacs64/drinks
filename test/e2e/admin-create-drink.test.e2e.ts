@@ -66,7 +66,7 @@ test("create retries preserve text, selected image, and crop after validation an
   await page.getByLabel("Tags (comma-separated)").fill("gin, citrus");
   await page.getByLabel("Notes (markdown)").fill("Keep these notes");
   await page.getByLabel("Rank").fill("7");
-  await page.getByRole("button", { name: "Unpublished", exact: true }).click();
+  await page.getByRole("radio", { name: "Unpublished", exact: true }).check();
   await page.locator('input[type="file"]').setInputFiles("app/assets/images/background-768.jpg");
   const selection = page.getByRole("group", {
     name: "Use the arrow keys to move the crop selection area",
@@ -111,7 +111,7 @@ test("create retries preserve text, selected image, and crop after validation an
   expect(await page.getByLabel("Tags (comma-separated)").inputValue()).toBe("gin, citrus");
   expect(await page.getByLabel("Notes (markdown)").inputValue()).toBe("Keep these notes");
   expect(await page.getByLabel("Rank").inputValue()).toBe("7");
-  expect(await page.locator('input[name="status"]').inputValue()).toBe("unpublished");
+  expect(await page.locator('input[name="status"]:checked').inputValue()).toBe("unpublished");
   expect(await selection.getAttribute("style")).toBe(cropStyle);
   expect(await page.getByAltText("Crop preview").getAttribute("src")).toBe(previewSource);
 

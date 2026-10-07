@@ -15,13 +15,14 @@ test("an unmatched path keeps the gallery navigation around its not-found messag
   await page.getByRole("heading", { name: "Test Margarita", exact: true }).waitFor();
 });
 
-test("a missing admin drink displays the original response error page", async (testContext) => {
+test("a missing admin drink displays a not-found response and a working recovery link", async (testContext) => {
   const page = await createBrowserPage(testContext, { admin: true });
   const response = await page.goto("/admin/drinks/missing/edit");
   expect(response?.status()).toBe(404);
-  await page.getByRole("heading", { name: "404", exact: true }).waitFor();
+  await page.getByRole("heading", { name: "404 Not Found", exact: true }).waitFor();
   expect(await page.locator("header").count()).toBe(0);
-  expect(await page.getByRole("link", { name: "Back to Drinks" }).count()).toBe(0);
+  await page.getByRole("link", { name: "Back to Drinks" }).click();
+  await page.getByRole("cell", { name: "Test Margarita", exact: true }).waitFor();
 });
 
 test("a public route failure displays the exception page and a working recovery link", async (testContext) => {
@@ -38,7 +39,7 @@ test("a public route failure displays the exception page and a working recovery 
   await page.getByRole("heading", { name: "Test Mojito", exact: true }).waitFor();
 });
 
-test("an admin route failure keeps the original root application error fallback", async (testContext) => {
+test("an admin route failure displays the asset-independent server error document", async (testContext) => {
   const page = await createBrowserPage(testContext, { admin: true });
   await getDb().exec(
     rawSql("UPDATE drinks SET created_at = 9999999999999999 WHERE slug = 'test-margarita'"),
@@ -47,7 +48,7 @@ test("an admin route failure keeps the original root application error fallback"
     const response = await page.goto(path);
     expect(response?.status()).toBe(500);
     expect(response?.headers()["cache-control"]).toBe("private, no-store");
-    await page.getByRole("heading", { name: "Application Error", exact: true }).waitFor();
+    await page.getByRole("heading", { name: "Server error", exact: true }).waitFor();
     expect(await page.locator("header").count()).toBe(0);
   }
 });

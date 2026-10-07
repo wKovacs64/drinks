@@ -49,10 +49,25 @@ export function ImageCrop(
     onCropReady: (getImage: () => Promise<Blob | null>) => void;
   }>,
 ) {
+  let isInteractive = false;
   let imageSource = "";
   let crop: Crop | undefined;
   let imageElement: HTMLImageElement | undefined;
   let fileInput: HTMLInputElement | undefined;
+  const initializeFileInput = ref<HTMLInputElement>((element, signal) => {
+    fileInput = element;
+    if (!isInteractive) {
+      isInteractive = true;
+      void handle.update();
+    }
+    signal.addEventListener(
+      "abort",
+      () => {
+        if (fileInput === element) fileInput = undefined;
+      },
+      { once: true },
+    );
+  });
   let previousImageWidth = 0;
   let previousImageHeight = 0;
   let error: string | undefined;
@@ -218,12 +233,13 @@ export function ImageCrop(
     const filePicker = (
       <input
         type="file"
-        accept="image/*"
-        className="hidden"
+        name="imageFile"
+        aria-label="Image"
+        accept="image/jpeg,image/png,image/webp,image/gif"
+        required={!isInteractive && !handle.props.existingImageUrl}
+        className={isInteractive ? "hidden" : "block w-full text-zinc-300"}
         mix={[
-          ref((element) => {
-            if (element instanceof HTMLInputElement) fileInput = element;
-          }),
+          initializeFileInput,
           on<HTMLInputElement, "change">("change", async (event) => {
             const file = event.currentTarget.files?.[0];
             if (!file) return;
@@ -430,13 +446,15 @@ export function ImageCrop(
               height={80}
               className="rounded object-cover"
             />
-            <button
-              type="button"
-              mix={on("click", () => fileInput?.click())}
-              className="rounded border border-zinc-700 px-3 py-1.5 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200"
-            >
-              Change image
-            </button>
+            {isInteractive ? (
+              <button
+                type="button"
+                mix={on("click", () => fileInput?.click())}
+                className="rounded border border-zinc-700 px-3 py-1.5 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200"
+              >
+                Change image
+              </button>
+            ) : null}
           </div>
           {error ? <p className="text-red-400">{error}</p> : null}
         </div>
@@ -444,15 +462,17 @@ export function ImageCrop(
     return (
       <div className="space-y-3">
         {filePicker}
-        <div className="flex items-center justify-center rounded border border-dashed border-zinc-700 bg-zinc-900 p-8">
-          <button
-            type="button"
-            mix={on("click", () => fileInput?.click())}
-            className="rounded bg-zinc-800 px-4 py-2 text-zinc-300 hover:bg-zinc-700"
-          >
-            Select image
-          </button>
-        </div>
+        {isInteractive ? (
+          <div className="flex items-center justify-center rounded border border-dashed border-zinc-700 bg-zinc-900 p-8">
+            <button
+              type="button"
+              mix={on("click", () => fileInput?.click())}
+              className="rounded bg-zinc-800 px-4 py-2 text-zinc-300 hover:bg-zinc-700"
+            >
+              Select image
+            </button>
+          </div>
+        ) : null}
         {error ? <p className="text-red-400">{error}</p> : null}
       </div>
     );

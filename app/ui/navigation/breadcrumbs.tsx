@@ -9,7 +9,7 @@ export function Breadcrumbs(handle: Handle<{ breadcrumbs: Breadcrumb[] }>) {
       <ul>
         {handle.props.breadcrumbs.map((crumb, index) => (
           <li key={index} className="inline">
-            {crumb.href ? <NavLink to={crumb.href}>{crumb.title}</NavLink> : crumb.title}
+            {crumb.href ? <NavLink href={crumb.href}>{crumb.title}</NavLink> : crumb.title}
             {index < handle.props.breadcrumbs.length - 1 ? <NavDivider /> : null}
           </li>
         ))}

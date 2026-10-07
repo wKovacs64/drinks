@@ -1,6 +1,6 @@
 import { auth, createSessionAuthScheme } from "remix/middleware/auth";
-import { getDb } from "#/app/db/client.server.ts";
-import { createIdentityService } from "./identity-service.server.ts";
+import { getDb } from "#/app/db/client.ts";
+import { createIdentityService } from "./identity-service.ts";
 import type { SessionUser } from "./identity.ts";
 export function getIdentityAuthMiddleware() {
   return auth({

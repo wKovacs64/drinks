@@ -1,7 +1,7 @@
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { createSqliteDatabase } from "remix/data-table/sqlite";
-import { getEnvVars } from "#/app/core/env.server.ts";
+import { getEnvVars } from "#/app/core/env.ts";
 let database: ReturnType<typeof createSqliteDatabase> | undefined;
 export function getDb() {
   if (!database) {

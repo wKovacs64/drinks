@@ -1,4 +1,4 @@
-import type { getDb } from "#/app/db/client.server.ts";
+import type { getDb } from "#/app/db/client.ts";
 import { users, readUser, type User } from "#/app/db/schema.ts";
 import type { IdentityService, SessionUser } from "./identity.ts";
 

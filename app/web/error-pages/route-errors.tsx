@@ -3,7 +3,7 @@ import { Renderer, type RenderFunction } from "remix/middleware/render";
 import { Document } from "#/app/actions/document.tsx";
 import { Exception } from "#/app/ui/core/exception.tsx";
 import { ApplicationErrorDocument } from "#/app/ui/core/response-error-document.tsx";
-import { isAdminUrl, isAuthUrl } from "#/app/web/route-matching.server.ts";
+import { isAdminUrl, isAuthUrl } from "#/app/web/route-matching.ts";
 
 function isRenderFunction(value: unknown): value is RenderFunction {
   return typeof value === "function";

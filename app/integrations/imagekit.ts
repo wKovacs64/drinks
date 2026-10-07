@@ -1,7 +1,7 @@
 import { mkdir, unlink, writeFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import { ImageKit, toFile } from "@imagekit/nodejs";
-import { getEnvVars } from "#/app/core/env.server.ts";
+import { getEnvVars } from "#/app/core/env.ts";
 const localImagePrefix = "local:";
 
 function getImageKit() {

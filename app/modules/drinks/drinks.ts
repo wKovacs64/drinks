@@ -1,147 +1,431 @@
-import type { InferOutput } from "remix/data-schema";
-import { drinkDraftSchema, drinkStatusValues } from "./drinks-schemas.ts";
+export * from "./drinks-contract.ts";
 
-export type DrinkStatus = (typeof drinkStatusValues)[number];
+import { randomUUID } from "node:crypto";
+import { enum_, parse } from "remix/data-schema";
 
-/**
- * Drink read model for gallery UI (image placeholders, note text as shown).
- * Used for published-only lists/search/tags and for slug detail — including
- * unpublished rows when {@link DrinkForViewer.visibility} is `"private"`.
- */
-export type DrinkTagView = {
-  displayName: string;
-  slug: string;
+import type { getDb } from "#/app/db/client.ts";
+import { drinks, readDrink, writeDrink } from "#/app/db/schema.ts";
+import { markdownToHtml } from "./drinks-markdown.ts";
+import { withPlaceholderImages } from "./drinks-images.ts";
+import { purgeSearchCache, searchDrinks } from "./drinks-search.ts";
+import { toDrinkTagViews } from "./drinks-tags.ts";
+
+export { purgeSearchCache };
+import {
+  drinkStatusValues,
+  DrinkWriteNoticeCodes,
+  type AdminDrinksWriteService,
+  type CreateAdminDrinkCommand,
+  type DeleteAdminDrinkCommand,
+  type DeleteAdminDrinkResult,
+  type DrinkDraft,
+  type DrinksService,
+  type DrinkTagView,
+  type DrinkWriteNotice,
+  type UpdateAdminDrinkCommand,
+  type UpdateAdminDrinkResult,
+} from "./drinks-contract.ts";
+
+type Db = ReturnType<typeof getDb>;
+
+type AffectedDrinkPages = {
+  slugs: string[];
+  tags: string[];
 };
 
-export type DrinkView = {
-  title: string;
-  slug: string;
-  image: { url: string; blurDataUrl: string };
-  ingredients: string[];
-  calories: number;
-  notes: string | null;
-  tags: DrinkTagView[];
+type DrinksWriteEffects = {
+  uploadImage: (file: Buffer, fileName: string) => Promise<{ url: string; fileId: string }>;
+  deleteImage: (fileId: string) => Promise<void>;
+  purgeDrinkCache: (affectedPages: AffectedDrinkPages) => Promise<void>;
 };
 
-export { drinkDraftSchema, drinkStatusValues };
-
-export type DrinkDraft = InferOutput<typeof drinkDraftSchema>;
-
-export type DrinkEditor = {
-  mode: "create" | "edit";
-  drinkSlug?: string;
-  imageUrl?: string;
-  initialValues: {
-    title: string;
-    slug: string;
-    ingredients: string;
-    calories: string;
-    tags: string;
-    notes: string;
-    rank: string;
-    status: DrinkStatus;
-  };
-};
-
-export const DrinkWriteNoticeCodes = {
-  oldImageCleanupFailed: "oldImageCleanupFailed",
-  cacheRefreshFailed: "cacheRefreshFailed",
-} as const;
-
-export type DrinkWriteNoticeCode =
-  (typeof DrinkWriteNoticeCodes)[keyof typeof DrinkWriteNoticeCodes];
-
-export type DrinkWriteNotice = {
-  code: DrinkWriteNoticeCode;
-  message: string;
-};
-
-type SaveDrinkResult = {
-  drinkSlug: string;
-  notices: DrinkWriteNotice[];
-};
-
-export type ViewerRole = "user" | "admin";
-
-export type DrinkForViewer = {
-  visibility: "public" | "private";
-  drink: DrinkView;
-};
-
-export type AdminDrinkListItem = {
-  id: string;
-  title: string;
-  slug: string;
-  imageUrl: string;
-  calories: number;
-  rank: number;
-  status: DrinkStatus;
-  createdAt: Date;
-  updatedAt: Date;
-};
-
-export type CreateAdminDrinkCommand = {
-  draft: DrinkDraft;
-  imageBuffer: Buffer;
-};
-
-export type UpdateAdminDrinkCommand = {
-  slug: string;
-  draft: DrinkDraft;
-  imageBuffer?: Buffer;
-};
-
-export type DeleteAdminDrinkCommand = {
-  slug: string;
-};
-
-export type AdminDrinkWriteSuccessResult = SaveDrinkResult & {
-  kind: "success";
-};
-
-export type AdminDrinkWriteFieldErrorResult = {
-  kind: "fieldError";
-  fieldErrors: Record<string, string[] | undefined>;
-  formErrors: string[];
-};
-
-export type AdminDrinkWriteNotFoundResult = {
-  kind: "notFound";
-  slug: string;
-};
-
-export type UpdateAdminDrinkResult =
-  | AdminDrinkWriteSuccessResult
-  | AdminDrinkWriteFieldErrorResult
-  | AdminDrinkWriteNotFoundResult;
-
-export type DeleteAdminDrinkSuccessResult = {
-  kind: "success";
-  notices: DrinkWriteNotice[];
-};
-
-export type DeleteAdminDrinkResult = DeleteAdminDrinkSuccessResult | AdminDrinkWriteNotFoundResult;
-
-export type CreateAdminDrinkResult = AdminDrinkWriteSuccessResult | AdminDrinkWriteFieldErrorResult;
-
-export interface AdminDrinksWriteService {
-  create(command: CreateAdminDrinkCommand): Promise<CreateAdminDrinkResult>;
-  update(command: UpdateAdminDrinkCommand): Promise<UpdateAdminDrinkResult>;
-  delete(command: DeleteAdminDrinkCommand): Promise<DeleteAdminDrinkResult>;
+export function createDrinksService(deps: { db: Db }): DrinksService {
+  return buildDrinksServiceReadMethods({ db: deps.db });
 }
 
-export type DrinksByTagSlug = {
-  tag: DrinkTagView;
-  drinks: DrinkView[];
-};
+export function createAdminDrinksWriteService(deps: {
+  db: Db;
+  writeEffects: DrinksWriteEffects;
+}): AdminDrinksWriteService {
+  return {
+    async create(command) {
+      return createAdminDrink(deps.db, deps.writeEffects, command);
+    },
+    async update(command) {
+      return updateAdminDrink(deps.db, deps.writeEffects, command);
+    },
+    async delete(command) {
+      return deleteAdminDrink(deps.db, deps.writeEffects, command);
+    },
+  };
+}
 
-export interface DrinksService {
-  getPublishedDrinks(): Promise<DrinkView[]>;
-  getAllDrinks(): Promise<AdminDrinkListItem[]>;
-  getDrinkBySlug(input: { slug: string; viewerRole: ViewerRole }): Promise<DrinkForViewer | null>;
-  getDrinksByTagSlug(input: { tagSlug: string }): Promise<DrinksByTagSlug | null>;
-  getAllTags(): Promise<DrinkTagView[]>;
-  searchPublishedDrinks(input: { query: string }): Promise<DrinkView[]>;
-  getNewDrinkEditor(): Promise<DrinkEditor>;
-  findDrinkEditorBySlug(slug: string): Promise<DrinkEditor | null>;
+function buildDrinksServiceReadMethods(deps: { db: Db }): DrinksService {
+  return {
+    async getPublishedDrinks() {
+      const publishedDrinks = (
+        await deps.db.findMany(drinks, {
+          where: { status: "published" },
+          orderBy: [
+            ["rank", "desc"],
+            ["created_at", "desc"],
+          ],
+        })
+      ).map(readDrink);
+
+      return withPlaceholderImages(publishedDrinks);
+    },
+    async getAllDrinks() {
+      const adminDrinks = await deps.db
+        .query(drinks)
+        .select(
+          "id",
+          "title",
+          "slug",
+          "image_url",
+          "calories",
+          "rank",
+          "status",
+          "created_at",
+          "updated_at",
+        )
+        .orderBy("rank", "desc")
+        .orderBy("created_at", "desc")
+        .all();
+
+      return adminDrinks.map((drink) => ({
+        id: drink.id,
+        title: drink.title,
+        slug: drink.slug,
+        imageUrl: drink.image_url,
+        calories: drink.calories,
+        rank: drink.rank,
+        status: parse(enum_(drinkStatusValues), drink.status),
+        createdAt: new Date(drink.created_at * 1000),
+        updatedAt: new Date(drink.updated_at * 1000),
+      }));
+    },
+    async getAllTags() {
+      const publishedTags = (
+        await deps.db.findMany(drinks, { where: { status: "published" } })
+      ).map(readDrink);
+      return toDrinkTagViews(publishedTags.flatMap((drink) => drink.tags)).toSorted((left, right) =>
+        left.displayName.localeCompare(right.displayName),
+      );
+    },
+    async getDrinkBySlug({ slug, viewerRole }) {
+      const drinkRow = await deps.db.findOne(drinks, { where: { slug } });
+      const drink = drinkRow ? readDrink(drinkRow) : null;
+
+      if (!drink) {
+        return null;
+      }
+
+      if (viewerRole !== "admin" && drink.status !== "published") {
+        return null;
+      }
+
+      const [enhancedDrink] = await withPlaceholderImages([drink]);
+      const renderedNotes = enhancedDrink.notes
+        ? markdownToHtml(enhancedDrink.notes)
+        : enhancedDrink.notes;
+
+      return {
+        visibility: drink.status === "published" ? "public" : "private",
+        drink: {
+          ...enhancedDrink,
+          notes: renderedNotes,
+        },
+      };
+    },
+    async getDrinksByTagSlug({ tagSlug }) {
+      const publishedDrinks = (
+        await deps.db.findMany(drinks, {
+          where: { status: "published" },
+          orderBy: [
+            ["rank", "desc"],
+            ["created_at", "desc"],
+          ],
+        })
+      ).map(readDrink);
+
+      let resolvedTag: DrinkTagView | null = null;
+      const matchingDrinks = publishedDrinks.filter((drink) => {
+        const matchingTag = toDrinkTagViews(drink.tags).find((tag) => tag.slug === tagSlug);
+
+        if (!matchingTag) {
+          return false;
+        }
+
+        resolvedTag ??= matchingTag;
+        return true;
+      });
+
+      if (!resolvedTag || matchingDrinks.length === 0) {
+        return null;
+      }
+
+      return {
+        tag: resolvedTag,
+        drinks: await withPlaceholderImages(matchingDrinks),
+      };
+    },
+    async searchPublishedDrinks({ query }) {
+      if (!query) {
+        return [];
+      }
+
+      const matchingDrinks = await searchDrinks(deps.db, query);
+      return withPlaceholderImages(matchingDrinks);
+    },
+    async getNewDrinkEditor() {
+      return {
+        mode: "create",
+        initialValues: {
+          title: "",
+          slug: "",
+          ingredients: "",
+          calories: "",
+          tags: "",
+          notes: "",
+          rank: "0",
+          status: "published",
+        },
+      };
+    },
+    async findDrinkEditorBySlug(slug) {
+      const drinkRow = await deps.db.findOne(drinks, { where: { slug } });
+      const drink = drinkRow ? readDrink(drinkRow) : null;
+
+      if (!drink) {
+        return null;
+      }
+
+      return {
+        mode: "edit",
+        drinkSlug: drink.slug,
+        imageUrl: drink.imageUrl,
+        initialValues: {
+          title: drink.title,
+          slug: drink.slug,
+          ingredients: drink.ingredients.join("\n"),
+          calories: String(drink.calories),
+          tags: drink.tags.join(", "),
+          notes: drink.notes ?? "",
+          rank: String(drink.rank),
+          status: drink.status,
+        },
+      };
+    },
+  };
+}
+
+async function deleteAdminDrink(
+  db: Db,
+  writeEffects: Pick<DrinksWriteEffects, "deleteImage" | "purgeDrinkCache">,
+  { slug }: DeleteAdminDrinkCommand,
+): Promise<DeleteAdminDrinkResult> {
+  const existingRow = await db.findOne(drinks, { where: { slug } });
+  const existingDrink = existingRow ? readDrink(existingRow) : null;
+
+  if (!existingDrink) {
+    return { kind: "notFound", slug };
+  }
+
+  await db.delete(drinks, existingDrink.id);
+
+  purgeSearchCache();
+  const notices = await retireDrinkImage(writeEffects, existingDrink.imageFileId);
+  notices.push(
+    ...(await refreshDrinkCache(writeEffects, {
+      slugs: [existingDrink.slug],
+      tags: existingDrink.tags,
+    })),
+  );
+
+  return { kind: "success", notices };
+}
+
+async function updateAdminDrink(
+  db: Db,
+  writeEffects: DrinksWriteEffects,
+  { slug, draft, imageBuffer }: UpdateAdminDrinkCommand,
+): Promise<UpdateAdminDrinkResult> {
+  const existingRow = await db.findOne(drinks, { where: { slug } });
+  const existingDrink = existingRow ? readDrink(existingRow) : null;
+
+  if (!existingDrink) {
+    return { kind: "notFound", slug };
+  }
+
+  const slugAvailability = await checkSlugAvailability(db, draft.slug, existingDrink.id);
+  if (!slugAvailability.available) {
+    return {
+      kind: "fieldError",
+      fieldErrors: { slug: ["Slug already exists"] },
+      formErrors: [],
+    };
+  }
+
+  const uploadedImage = imageBuffer
+    ? await writeEffects.uploadImage(imageBuffer, `${draft.slug}.jpg`)
+    : undefined;
+  const updatedDrink = await updateDrinkRow(db, existingDrink.id, {
+    ...draft,
+    imageUrl: uploadedImage?.url ?? existingDrink.imageUrl,
+    imageFileId: uploadedImage?.fileId ?? existingDrink.imageFileId,
+  }).catch(async (error: unknown) => {
+    if (uploadedImage) await compensateUploadedImage(writeEffects, uploadedImage.fileId);
+    throw error;
+  });
+
+  purgeSearchCache();
+  const notices = uploadedImage
+    ? await retireDrinkImage(writeEffects, existingDrink.imageFileId)
+    : [];
+  notices.push(
+    ...(await refreshDrinkCache(writeEffects, {
+      slugs: [...new Set([existingDrink.slug, updatedDrink.slug])],
+      tags: [...new Set([...existingDrink.tags, ...updatedDrink.tags])],
+    })),
+  );
+
+  return {
+    kind: "success",
+    drinkSlug: updatedDrink.slug,
+    notices,
+  };
+}
+
+async function createAdminDrink(
+  db: Db,
+  writeEffects: DrinksWriteEffects,
+  { draft, imageBuffer }: CreateAdminDrinkCommand,
+) {
+  if (!imageBuffer) {
+    throw new Error("Image buffer is required when creating a drink");
+  }
+
+  const slugAvailability = await checkSlugAvailability(db, draft.slug);
+  if (!slugAvailability.available) {
+    return {
+      kind: "fieldError" as const,
+      fieldErrors: { slug: ["Slug already exists"] },
+      formErrors: [],
+    };
+  }
+
+  const uploadedImage = await writeEffects.uploadImage(imageBuffer, `${draft.slug}.jpg`);
+
+  const createdDrink = await insertDrinkRow(db, {
+    ...draft,
+    imageUrl: uploadedImage.url,
+    imageFileId: uploadedImage.fileId,
+  }).catch(async (error: unknown) => {
+    await compensateUploadedImage(writeEffects, uploadedImage.fileId);
+    throw error;
+  });
+
+  purgeSearchCache();
+  const notices = await refreshDrinkCache(writeEffects, {
+    slugs: [createdDrink.slug],
+    tags: createdDrink.tags,
+  });
+
+  return {
+    kind: "success" as const,
+    drinkSlug: createdDrink.slug,
+    notices,
+  };
+}
+
+async function compensateUploadedImage(
+  writeEffects: Pick<DrinksWriteEffects, "deleteImage">,
+  fileId: string,
+): Promise<void> {
+  try {
+    await writeEffects.deleteImage(fileId);
+  } catch (error) {
+    console.error("Failed to clean up uploaded image after persistence failure:", error);
+  }
+}
+
+async function retireDrinkImage(
+  writeEffects: Pick<DrinksWriteEffects, "deleteImage">,
+  fileId: string,
+): Promise<DrinkWriteNotice[]> {
+  try {
+    await writeEffects.deleteImage(fileId);
+    return [];
+  } catch (error) {
+    return [
+      {
+        code: DrinkWriteNoticeCodes.oldImageCleanupFailed,
+        message: error instanceof Error ? error.message : "Unknown image cleanup failure",
+      },
+    ];
+  }
+}
+
+async function refreshDrinkCache(
+  writeEffects: Pick<DrinksWriteEffects, "purgeDrinkCache">,
+  affectedPages: AffectedDrinkPages,
+): Promise<DrinkWriteNotice[]> {
+  try {
+    await writeEffects.purgeDrinkCache(affectedPages);
+    return [];
+  } catch (error) {
+    return [
+      {
+        code: DrinkWriteNoticeCodes.cacheRefreshFailed,
+        message: error instanceof Error ? error.message : "Unknown cache refresh failure",
+      },
+    ];
+  }
+}
+
+async function checkSlugAvailability(
+  db: ReturnType<typeof getDb>,
+  slug: string,
+  currentDrinkId?: string,
+): Promise<{ available: true } | { available: false }> {
+  const existingRow = await db.findOne(drinks, { where: { slug } });
+  const existingDrink = existingRow ? readDrink(existingRow) : null;
+
+  return !existingDrink || existingDrink.id === currentDrinkId
+    ? { available: true }
+    : { available: false };
+}
+
+async function insertDrinkRow(
+  db: ReturnType<typeof getDb>,
+  draft: DrinkDraft & { imageUrl: string; imageFileId: string },
+) {
+  const createdDrink = readDrink(
+    await db.create(drinks, writeDrink({ id: randomUUID(), ...draft }), { returnRow: true }),
+  );
+
+  return createdDrink;
+}
+
+async function updateDrinkRow(
+  db: ReturnType<typeof getDb>,
+  drinkId: string,
+  draft: DrinkDraft & { imageUrl: string; imageFileId: string },
+) {
+  const existingRow = await db.find(drinks, drinkId);
+  if (!existingRow) throw new Error("Drink not found");
+  const updatedDrink = readDrink(
+    await db.update(
+      drinks,
+      drinkId,
+      writeDrink({
+        ...readDrink(existingRow),
+        ...draft,
+        updatedAt: new Date(),
+      }),
+    ),
+  );
+
+  return updatedDrink;
 }

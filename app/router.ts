@@ -8,14 +8,14 @@ import { isCompressibleMimeType } from "remix/mime";
 import {
   getIdentitySessionMiddleware,
   getIdentityAuthMiddleware,
-} from "#/app/modules/identity/identity.server.ts";
+} from "#/app/modules/identity/identity.ts";
 import controller from "./actions/controller.tsx";
 import { renderAssets } from "./assets.ts";
 import { routes } from "./routes.ts";
-import { adminDrinkEditorRedirects } from "#/app/web/admin-drink-write/editor-redirects.server.ts";
-import { routeErrorPages } from "#/app/web/error-pages/route-errors.server.tsx";
-import { protectAdmin } from "./middleware/admin.server.ts";
-import { responseHeaders } from "./middleware/response-headers.server.ts";
+import { adminDrinkEditorRedirects } from "#/app/web/admin-drink-write/editor-redirects.ts";
+import { routeErrorPages } from "#/app/web/error-pages/route-errors.tsx";
+import { protectAdmin } from "./middleware/admin.ts";
+import { responseHeaders } from "./middleware/response-headers.ts";
 import drinksController from "./actions/drinks/controller.tsx";
 import tagsController from "./actions/tags/controller.tsx";
 import searchController from "./actions/search/controller.tsx";

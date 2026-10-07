@@ -14,10 +14,10 @@ import {
   type DrinkWriteNotice,
   type UpdateAdminDrinkResult,
 } from "#/app/modules/drinks/drinks.ts";
-import { parseCreateDrinkSubmission, parseUpdateDrinkSubmission } from "./submission.server.ts";
+import { parseCreateDrinkSubmission, parseUpdateDrinkSubmission } from "./submission.ts";
 import type { DrinkEditorResponse } from "#/app/web/admin-drink-write/public/editor-response.ts";
-import { acceptsEditorResponse } from "./editor-request.server.ts";
-import { renderResponseError } from "#/app/web/error-pages/response-error.server.tsx";
+import { acceptsEditorResponse } from "./editor-request.ts";
+import { renderResponseError } from "#/app/web/error-pages/response-error.tsx";
 
 type AdminDrinkWriteActionAdapterInput = {
   request: Request;

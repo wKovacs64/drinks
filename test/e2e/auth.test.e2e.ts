@@ -1,7 +1,7 @@
 import { test, describe } from "remix/test";
 import { expect } from "remix/assert";
 import { createBrowserPage } from "#/test/e2e.ts";
-import { getDb } from "#/app/db/client.server.ts";
+import { getDb } from "#/app/db/client.ts";
 import { drinks, users } from "#/app/db/schema.ts";
 import { TEST_ADMIN_USER } from "#/test/database.ts";
 import { EDITOR_RESPONSE_MEDIA_TYPE } from "#/app/web/admin-drink-write/public/editor-response.ts";

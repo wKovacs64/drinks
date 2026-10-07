@@ -1,7 +1,7 @@
 import { createCookie } from "remix/cookie";
 import { createCookieSessionStorage } from "remix/session-storage/cookie";
 import { session } from "remix/middleware/session";
-import { getEnvVars } from "#/app/core/env.server.ts";
+import { getEnvVars } from "#/app/core/env.ts";
 import type { SessionUser } from "./identity.ts";
 export const sessionCookie = { name: "__session" } as const;
 export function getIdentitySessionMiddleware() {

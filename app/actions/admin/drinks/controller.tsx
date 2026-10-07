@@ -1,14 +1,14 @@
 import { createController } from "remix/router";
 import { routes } from "#/app/routes.ts";
-import { getDb } from "#/app/db/client.server.ts";
-import { createDrinksService } from "#/app/modules/drinks/drinks.server.ts";
+import { getDb } from "#/app/db/client.ts";
+import { createDrinksService } from "#/app/modules/drinks/drinks.ts";
 import { redirect } from "remix/response/redirect";
 import { parseSafe, object, string, enum_ } from "remix/data-schema";
-import { deleteAdminDrinkActionAdapter } from "#/app/web/admin-drink-write/route-adapter.server.ts";
+import { deleteAdminDrinkActionAdapter } from "#/app/web/admin-drink-write/route-adapter.ts";
 import { getClientEntryPreloads } from "#/app/assets.ts";
 import { AdminDrinksList } from "./public/admin-drinks-list.tsx";
 import { AdminDrinksPage } from "./index-page.tsx";
-import { createDrinkWriteService } from "./write-service.server.ts";
+import { createDrinkWriteService } from "./write-service.ts";
 if (process.env.NODE_ENV === "production") await getClientEntryPreloads(AdminDrinksList);
 const toastSchema = object({
   kind: enum_(["success", "warning", "error"] as const),

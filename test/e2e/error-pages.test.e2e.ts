@@ -1,7 +1,7 @@
 import { test } from "remix/test";
 import { expect } from "remix/assert";
 import { rawSql } from "remix/data-table";
-import { getDb } from "#/app/db/client.server.ts";
+import { getDb } from "#/app/db/client.ts";
 import { createBrowserPage } from "#/test/e2e.ts";
 
 test("an unmatched path keeps the gallery navigation around its not-found message", async (testContext) => {

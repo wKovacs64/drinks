@@ -1,11 +1,11 @@
 import { createController } from "remix/router";
 import { routes } from "#/app/routes.ts";
-import { getDb } from "#/app/db/client.server.ts";
-import { createDrinksService } from "#/app/modules/drinks/drinks.server.ts";
+import { getDb } from "#/app/db/client.ts";
+import { createDrinksService } from "#/app/modules/drinks/drinks.ts";
 import { rawSql } from "remix/data-table";
 import { assets, fetchHmrEvents } from "#/app/assets.ts";
-import { getEnvVars } from "#/app/core/env.server.ts";
-import { publicHeaders, notFoundHeaders } from "#/app/web/gallery-cache.server.ts";
+import { getEnvVars } from "#/app/core/env.ts";
+import { publicHeaders, notFoundHeaders } from "#/app/web/gallery-cache.ts";
 import { HomePage } from "./home-page.tsx";
 import { NotFoundPage } from "./not-found-page.tsx";
 export default createController(routes, {

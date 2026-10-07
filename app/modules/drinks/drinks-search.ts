@@ -1,5 +1,5 @@
 import MiniSearch from "minisearch";
-import type { getDb } from "#/app/db/client.server.ts";
+import type { getDb } from "#/app/db/client.ts";
 import { drinks, readDrink, type Drink } from "#/app/db/schema.ts";
 let searchData: { allDrinks: Drink[]; searchIndex: MiniSearch } | undefined;
 export async function searchDrinks(db: ReturnType<typeof getDb>, query: string): Promise<Drink[]> {

@@ -3,9 +3,8 @@ import { Auth, requireAuth } from "remix/middleware/auth";
 import { Session } from "remix/session";
 import { redirect } from "remix/response/redirect";
 import { routes } from "#/app/routes.ts";
-import { createReturnToUrl } from "#/app/modules/identity/identity.server.ts";
-import { isAdminUrl } from "#/app/web/route-matching.server.ts";
-import type { SessionUser } from "#/app/modules/identity/identity.ts";
+import { createReturnToUrl, type SessionUser } from "#/app/modules/identity/identity.ts";
+import { isAdminUrl } from "#/app/web/route-matching.ts";
 
 const requireAdminAuthentication = requireAuth<SessionUser>({
   onFailure(context) {

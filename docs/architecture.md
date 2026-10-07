@@ -10,9 +10,8 @@ subpath mapping is defined in `package.json`.
 
 ## Ownership
 
-Server business behavior lives under `app/modules/<module>/`. The public entrypoints are
-`<module>.ts` and `<module>.server.ts`; other files are private. The shared entrypoint exposes types,
-read models, and schemas; the server entrypoint exposes factories and server behavior.
+Server business behavior lives under `app/modules/<module>/`. The public entrypoint is
+`<module>.ts`, exposing types, read models, schemas, and service factories; other files are private.
 
 Routes construct services and return framework responses. The Drinks module owns Drink write
 behavior, image lifecycle orchestration, cache purge orchestration, and transport-independent typed
@@ -23,8 +22,10 @@ and [ADR-0002](adr/0002-admin-drink-write-route-adapter-owns-web-translation.md)
 ## Browser and assets
 
 Browser source lives in owner-local `public/` directories, with shared browser utilities under
-`app/core/public/`. Hydrated dependency graphs run in the browser and cannot import server-only
-runtime code. Static asset sources live under `app/assets/`; root `public/` is generated output and
+`app/core/public/`. The asset allowlist permits those directories and `app/routes.ts`; every runtime
+import in a browser graph must be allowed. Type-only imports are erased before serving browser code.
+Files use ordinary `.ts` and `.tsx` names; server isolation comes from the allowlist rather than a
+filename suffix. Static asset sources live under `app/assets/`; root `public/` is generated output and
 local uploads.
 
 ## Write completion

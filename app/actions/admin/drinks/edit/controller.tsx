@@ -1,14 +1,14 @@
 import { createController } from "remix/router";
 import { routes } from "#/app/routes.ts";
-import { getDb } from "#/app/db/client.server.ts";
-import { createDrinksService } from "#/app/modules/drinks/drinks.server.ts";
+import { getDb } from "#/app/db/client.ts";
+import { createDrinksService } from "#/app/modules/drinks/drinks.ts";
 import { redirect } from "remix/response/redirect";
 import { getClientEntryPreloads } from "#/app/assets.ts";
 import { DrinkForm } from "../public/drink-form.tsx";
 import { DrinkEditorPage } from "../editor-page.tsx";
-import { createDrinkWriteService } from "../write-service.server.ts";
+import { createDrinkWriteService } from "../write-service.ts";
 import { ResponseErrorDocument } from "#/app/ui/core/response-error-document.tsx";
-import { updateAdminDrinkActionAdapter } from "#/app/web/admin-drink-write/route-adapter.server.ts";
+import { updateAdminDrinkActionAdapter } from "#/app/web/admin-drink-write/route-adapter.ts";
 export default createController(routes.admin.drinks.edit, {
   actions: {
     async index(context) {

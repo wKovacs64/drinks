@@ -5,15 +5,16 @@ import { parse, parseSafe } from "remix/data-schema";
 import { DataTableDatabaseError, rawSql } from "remix/data-table";
 import { http, HttpResponse } from "msw";
 import { server as requestMocks } from "#/test/server.ts";
-import { getDb } from "#/app/db/client.server.ts";
+import { getDb } from "#/app/db/client.ts";
 import { drinks } from "#/app/db/schema.ts";
 import { resetAndSeedDatabase } from "#/test/database.ts";
-import { drinkDraftSchema, DrinkWriteNoticeCodes } from "./drinks.ts";
 import {
+  drinkDraftSchema,
+  DrinkWriteNoticeCodes,
   createAdminDrinksWriteService,
   createDrinksService,
   purgeSearchCache,
-} from "./drinks.server.ts";
+} from "./drinks.ts";
 
 type DrinksWriteEffects = Parameters<typeof createAdminDrinksWriteService>[0]["writeEffects"];
 

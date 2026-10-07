@@ -1,5 +1,5 @@
 import type { Middleware } from "remix/router";
-import { isAdminUrl, isAuthUrl } from "#/app/web/route-matching.server.ts";
+import { isAdminUrl, isAuthUrl } from "#/app/web/route-matching.ts";
 export const responseHeaders: Middleware = async (context, next) => {
   const response = await next();
   if (isAdminUrl(context.url) || isAuthUrl(context.url))

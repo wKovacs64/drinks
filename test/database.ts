@@ -1,6 +1,6 @@
 import { rawSql } from "remix/data-table";
-import { getEnvVars } from "#/app/core/env.server.ts";
-import { getDb } from "#/app/db/client.server.ts";
+import { getEnvVars } from "#/app/core/env.ts";
+import { getDb } from "#/app/db/client.ts";
 import {
   users,
   drinks,

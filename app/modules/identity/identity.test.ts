@@ -1,10 +1,10 @@
 import "#/test/setup.ts";
 import { beforeEach, describe, test } from "remix/test";
 import { expect } from "remix/assert";
-import { getDb } from "#/app/db/client.server.ts";
+import { getDb } from "#/app/db/client.ts";
 import { users, writeUser } from "#/app/db/schema.ts";
 import { resetAndSeedDatabase } from "#/test/database.ts";
-import { createIdentityService, safeRedirectTo } from "./identity.server.ts";
+import { createIdentityService, safeRedirectTo } from "./identity.ts";
 
 describe("createIdentityService", () => {
   beforeEach(resetAndSeedDatabase);

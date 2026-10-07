@@ -1,7 +1,7 @@
 import { test } from "remix/test";
 import { expect } from "remix/assert";
 import { createBrowserPage } from "#/test/e2e.ts";
-import { getDb } from "#/app/db/client.server.ts";
+import { getDb } from "#/app/db/client.ts";
 import { drinks } from "#/app/db/schema.ts";
 
 test("deletion follows the native redirect and retains sorting and filtering", async (testContext) => {

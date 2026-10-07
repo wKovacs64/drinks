@@ -1,8 +1,8 @@
 import { createController } from "remix/router";
 import { routes } from "#/app/routes.ts";
-import { getDb } from "#/app/db/client.server.ts";
-import { createDrinksService } from "#/app/modules/drinks/drinks.server.ts";
-import { searchPageRouteAdapter } from "#/app/web/search-page/route-adapter.server.tsx";
+import { getDb } from "#/app/db/client.ts";
+import { createDrinksService } from "#/app/modules/drinks/drinks.ts";
+import { searchPageRouteAdapter } from "#/app/web/search-page/route-adapter.tsx";
 import { SearchForm } from "./public/search-form.tsx";
 import { getClientEntryPreloads } from "#/app/assets.ts";
 if (process.env.NODE_ENV === "production") await getClientEntryPreloads(SearchForm);

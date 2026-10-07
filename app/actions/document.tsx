@@ -8,7 +8,7 @@ import {
   scriptEntry,
   stylesheetHref,
 } from "#/app/assets.ts";
-import { getEnvVars } from "#/app/core/env.server.ts";
+import { getEnvVars } from "#/app/core/env.ts";
 import { ImagePreload, type ImagePreloadProps } from "#/app/ui/drinks/image-preload.tsx";
 export function Document(
   handle: Handle<{

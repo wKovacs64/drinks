@@ -1,7 +1,7 @@
 import { routes } from "#/app/routes.ts";
 import type { Middleware } from "remix/router";
 import { createMatcher } from "remix/route-pattern/match";
-import { acceptsEditorResponse } from "./editor-request.server.ts";
+import { acceptsEditorResponse } from "./editor-request.ts";
 import {
   EDITOR_RESPONSE_MEDIA_TYPE,
   type DrinkEditorResponse,

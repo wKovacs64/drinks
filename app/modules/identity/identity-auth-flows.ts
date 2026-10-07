@@ -8,10 +8,10 @@ import {
 import type { ContextEntries, RequestContext } from "remix/router";
 import { redirect } from "remix/response/redirect";
 import { Session } from "remix/session";
-import { getEnvVars } from "#/app/core/env.server.ts";
-import { getDb } from "#/app/db/client.server.ts";
-import { createIdentityService } from "./identity-service.server.ts";
-import { safeRedirectTo } from "./identity-navigation.server.ts";
+import { getEnvVars } from "#/app/core/env.ts";
+import { getDb } from "#/app/db/client.ts";
+import { createIdentityService } from "./identity-service.ts";
+import { safeRedirectTo } from "./identity-navigation.ts";
 let provider: ReturnType<typeof createGoogleAuthProvider> | undefined;
 function getProvider() {
   const env = getEnvVars();

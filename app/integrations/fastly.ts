@@ -1,4 +1,4 @@
-import { getEnvVars } from "#/app/core/env.server.ts";
+import { getEnvVars } from "#/app/core/env.ts";
 
 export function getSurrogateKeyForTagSlug(tagSlug: string) {
   return tagSlug;

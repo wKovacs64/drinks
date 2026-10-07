@@ -1,7 +1,7 @@
 import * as http from "node:http";
 import { createRequestListener } from "remix/node-fetch-server";
 import { migrateDatabase } from "#/scripts/migrate.ts";
-import { getDb } from "#/app/db/client.server.ts";
+import { getDb } from "#/app/db/client.ts";
 import { router } from "#/app/router.ts";
 import { assets } from "#/app/assets.ts";
 await migrateDatabase();

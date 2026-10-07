@@ -1,8 +1,8 @@
 import { createController } from "remix/router";
 import { routes } from "#/app/routes.ts";
-import { getDb } from "#/app/db/client.server.ts";
-import { createDrinksService } from "#/app/modules/drinks/drinks.server.ts";
-import { publicHeaders, notFoundHeaders } from "#/app/web/gallery-cache.server.ts";
+import { getDb } from "#/app/db/client.ts";
+import { createDrinksService } from "#/app/modules/drinks/drinks.ts";
+import { publicHeaders, notFoundHeaders } from "#/app/web/gallery-cache.ts";
 import { DrinkPage } from "./show-page.tsx";
 import { NotFoundPage } from "../not-found-page.tsx";
 export default createController(routes.drinks, {

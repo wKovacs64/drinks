@@ -91,8 +91,13 @@ test("browser assets expose public source and the route map while keeping server
     "/assets/app/actions/document.tsx",
     "/assets/app/ui/core/header.tsx",
     "/assets/app/modules/drinks/drinks.ts",
-    "/assets/app/modules/drinks/drinks.server.ts",
+    "/assets/app/modules/drinks/drinks-contract.ts",
     "/assets/app/modules/drinks/drinks.test.ts",
+    "/assets/app/modules/identity/identity.ts",
+    "/assets/app/core/env.ts",
+    "/assets/app/db/client.ts",
+    "/assets/app/integrations/imagekit.ts",
+    "/assets/app/web/admin-drink-write/submission.ts",
   ]) {
     const response = await page.request.get(path);
     expect(response.status()).toBe(404);

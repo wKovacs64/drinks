@@ -210,6 +210,100 @@ test("leaving the editor cancels its pending submission", async (testContext) =>
   expect(await pageAsAdmin.getByRole("alert").count()).toBe(0);
 });
 
+for (const gesture of ["draw", "move", "resize"]) {
+  test(`changing the image cancels an active ${gesture} gesture`, async (testContext) => {
+    const page = await createBrowserPage(testContext, { admin: true });
+    await page.goto("/admin/drinks/test-margarita/edit");
+    await page.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
+    const filePicker = page.locator('input[type="file"]');
+    await filePicker.setInputFiles("app/assets/images/background-768.jpg");
+    const preview = page.getByAltText("Crop preview");
+    const selection = page.getByRole("group", {
+      name: "Use the arrow keys to move the crop selection area",
+    });
+    await selection.waitFor();
+    if (gesture === "resize") {
+      const imageBounds = await preview.boundingBox();
+      if (!imageBounds) throw new Error("Crop preview has no bounds");
+      await page.mouse.move(imageBounds.x + 2, imageBounds.y + 2);
+      await page.mouse.down();
+      await page.mouse.move(imageBounds.x + 70, imageBounds.y + 70);
+      await page.mouse.up();
+      await page.waitForFunction(() => {
+        const crop = document.querySelector(
+          '[role="group"][aria-label="Use the arrow keys to move the crop selection area"]',
+        );
+        return crop !== null && getComputedStyle(crop).width === "68px";
+      });
+    }
+    const target =
+      gesture === "draw"
+        ? preview.locator("..")
+        : gesture === "move"
+          ? selection
+          : page.getByRole("button", {
+              name: "Use the arrow keys to move the south east drag handle to change the crop selection area",
+            });
+    // Retain the old target to prove queued movement cannot change the replacement crop.
+    const moveOldTarget = await target.evaluateHandle((element) => {
+      let start: PointerEvent | undefined;
+      element.addEventListener(
+        "pointerdown",
+        (event) => {
+          if (event instanceof PointerEvent) start = event;
+        },
+        { once: true },
+      );
+      return () => {
+        if (!start) throw new Error("Crop gesture did not start");
+        element.dispatchEvent(
+          new PointerEvent("pointermove", {
+            pointerId: start.pointerId,
+            clientX: start.clientX + 30,
+            clientY: start.clientY + 30,
+          }),
+        );
+      };
+    });
+    const bounds = await target.boundingBox();
+    if (!bounds) throw new Error("Crop gesture target has no bounds");
+    await page.mouse.move(
+      bounds.x + (gesture === "draw" ? 2 : bounds.width / 2),
+      bounds.y + (gesture === "draw" ? 2 : bounds.height / 2),
+    );
+    await page.mouse.down();
+    // Activate the button without releasing the active pointer first.
+    await page.getByRole("button", { name: "Change image" }).evaluate((element) => {
+      if (!(element instanceof HTMLElement)) throw new Error("Change image is not an HTML control");
+      element.click();
+    });
+    await preview.waitFor({ state: "hidden" });
+    await filePicker.setInputFiles("app/assets/images/background-768.jpg");
+    await selection.waitFor();
+    const replacementStyle = await selection.getAttribute("style");
+    await moveOldTarget.evaluate((move) => move());
+    await page.mouse.up();
+    // Flush the same component through a real keyboard update before inspecting its crop.
+    await selection.press("ArrowRight");
+    await selection.press("ArrowLeft");
+    await page.waitForFunction(
+      (expectedStyle) => {
+        return (
+          document
+            .querySelector(
+              '[role="group"][aria-label="Use the arrow keys to move the crop selection area"]',
+            )
+            ?.getAttribute("style") === expectedStyle
+        );
+      },
+      replacementStyle,
+      { timeout: 2000 },
+    );
+    expect(await selection.getAttribute("style")).toBe(replacementStyle);
+    await moveOldTarget.dispose();
+  });
+}
+
 for (const corner of ["north west", "north east", "south east", "south west"]) {
   test(`${corner} crop handle preserves its opposite corner and clamps pointer and keyboard resizing`, async (testContext) => {
     const page = await createBrowserPage(testContext, { admin: true });

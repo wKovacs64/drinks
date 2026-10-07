@@ -1,4 +1,4 @@
-import { createRouter, type MiddlewareContext } from "remix/router";
+import { createRouter, type RouterContext } from "remix/router";
 import { render } from "remix/middleware/render";
 import { staticFiles } from "remix/middleware/static";
 import { cop } from "remix/middleware/cop";
@@ -30,26 +30,16 @@ const renderMiddleware = render({
 });
 const sessionMiddleware = getIdentitySessionMiddleware();
 const authMiddleware = getIdentityAuthMiddleware();
-export type AppContext = MiddlewareContext<
-  [typeof renderMiddleware, typeof sessionMiddleware, typeof authMiddleware]
->;
-declare module "remix" {
-  interface RouterTypes {
-    context: AppContext;
-  }
-}
-export const router = createRouter<AppContext>({
+export const router = createRouter({
   middleware: [
     logger({ format: "%method %pathname %status %duration ms", colors: false }),
     // The original origin deliberately leaves compression to Fastly and Fly Proxy.
-    ...(process.env.NODE_ENV === "production"
-      ? []
-      : [
-          compression({
-            filterMediaType: (mediaType) =>
-              mediaType !== "text/event-stream" && isCompressibleMimeType(mediaType),
-          }),
-        ]),
+    process.env.NODE_ENV === "production"
+      ? (_context, next) => next()
+      : compression({
+          filterMediaType: (mediaType) =>
+            mediaType !== "text/event-stream" && isCompressibleMimeType(mediaType),
+        }),
     cop(),
     staticFiles("./public", { index: false }),
     renderMiddleware,
@@ -61,6 +51,12 @@ export const router = createRouter<AppContext>({
     protectAdmin,
   ],
 });
+export type AppContext = RouterContext<typeof router>;
+declare module "remix" {
+  interface RouterTypes {
+    context: AppContext;
+  }
+}
 router.map(routes, controller);
 router.map(routes.drinks, drinksController);
 router.map(routes.tags, tagsController);

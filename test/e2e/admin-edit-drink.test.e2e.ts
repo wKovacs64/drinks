@@ -4,6 +4,37 @@ import { createBrowserPage } from "#/test/e2e.ts";
 import { getDb } from "#/app/db/client.server.ts";
 import { users } from "#/app/db/schema.ts";
 import { TEST_ADMIN_USER } from "#/test/database.ts";
+import { EDITOR_RESPONSE_MEDIA_TYPE } from "#/app/web/admin-drink-write/public/editor-response.ts";
+
+test("a missing Drink negotiates editor errors while native submissions keep HTML", async (testContext) => {
+  const page = await createBrowserPage(testContext, { admin: true });
+  for (const { accept, enhanced } of [
+    { accept: `text/html;q=0.5, ${EDITOR_RESPONSE_MEDIA_TYPE};q=0.8`, enhanced: true },
+    { accept: `${EDITOR_RESPONSE_MEDIA_TYPE};q=0, */*`, enhanced: false },
+    { accept: "text/html, */*;q=0.8", enhanced: false },
+  ]) {
+    const response = await page.request.post("/admin/drinks/missing/edit", {
+      headers: { Accept: accept },
+      multipart: {
+        title: "Missing Drink",
+        slug: "missing",
+        ingredients: "2 oz tequila",
+        calories: "200",
+        tags: "tequila",
+        notes: "",
+        rank: "0",
+        status: "published",
+      },
+    });
+    expect(response.status()).toBe(404);
+    if (enhanced) {
+      expect(await response.json()).toEqual({ kind: "notFound", message: "Drink not found" });
+    } else {
+      expect(response.headers()["content-type"]).toContain("text/html");
+      expect(await response.text()).toContain("<html");
+    }
+  }
+});
 
 describe("Edit Drink", () => {
   test("can edit an existing drink", async (testContext) => {

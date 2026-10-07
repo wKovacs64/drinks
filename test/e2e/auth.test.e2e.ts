@@ -6,6 +6,33 @@ import { drinks, users } from "#/app/db/schema.ts";
 import { TEST_ADMIN_USER } from "#/test/database.ts";
 import { EDITOR_RESPONSE_MEDIA_TYPE } from "#/app/web/admin-drink-write/public/editor-response.ts";
 
+test("editor redirects require an explicit acceptable editor media type", async (testContext) => {
+  const page = await createBrowserPage(testContext);
+  for (const { accept, enhanced } of [
+    { accept: `${EDITOR_RESPONSE_MEDIA_TYPE};q=0.8, text/html;q=0.5`, enhanced: true },
+    { accept: `${EDITOR_RESPONSE_MEDIA_TYPE};q=1`, enhanced: true },
+    { accept: `${EDITOR_RESPONSE_MEDIA_TYPE};q=0, */*`, enhanced: false },
+    { accept: "text/html, */*;q=0.8", enhanced: false },
+    { accept: "application/*", enhanced: false },
+  ]) {
+    const response = await page.request.post("/%61dmin/drinks/test-margarita/%65dit", {
+      headers: { Accept: accept },
+      maxRedirects: 0,
+    });
+    expect(response.status()).toBe(enhanced ? 200 : 302);
+    expect(response.headers()["cache-control"]).toBe("private, no-store");
+    if (enhanced) {
+      expect(await response.json()).toEqual({
+        kind: "navigate",
+        location: "/login",
+        document: true,
+      });
+    } else {
+      expect(response.headers().location).toBe("/login");
+    }
+  }
+});
+
 for (const actor of ["anonymous", "user"]) {
   test(`${actor} cannot read or write admin routes through encoded URLs`, async (testContext) => {
     const page = await createBrowserPage(testContext, { admin: actor === "user" });

@@ -93,7 +93,11 @@ export function ImageCrop(
     crop = { x: (imageElement.width - size) / 2, y: (imageElement.height - size) / 2, size };
     void handle.update();
   }
-  function beginDrag(event: PointerEvent & { currentTarget: Element }, direction?: string) {
+  function beginDrag(
+    event: PointerEvent & { currentTarget: Element },
+    signal: AbortSignal,
+    direction?: string,
+  ) {
     if (!imageElement || !crop) return;
     event.preventDefault();
     event.stopPropagation();
@@ -124,20 +128,21 @@ export function ImageCrop(
       void handle.update();
     }
     const controller = new AbortController();
+    const gestureSignal = AbortSignal.any([signal, controller.signal]);
     element.addEventListener(
       "pointermove",
       (moveEvent) => {
         if (moveEvent instanceof PointerEvent) move(moveEvent);
       },
-      { signal: controller.signal },
+      { signal: gestureSignal },
     );
     element.addEventListener("pointerup", () => controller.abort(), {
       once: true,
-      signal: controller.signal,
+      signal: gestureSignal,
     });
     element.addEventListener("pointercancel", () => controller.abort(), {
       once: true,
-      signal: controller.signal,
+      signal: gestureSignal,
     });
   }
   function resizeWithKeyboard(event: KeyboardEvent, direction: string) {
@@ -170,7 +175,7 @@ export function ImageCrop(
     crop = resizeCrop(crop, imageElement, direction, delta);
     void handle.update();
   }
-  function beginDraw(event: PointerEvent & { currentTarget: Element }) {
+  function beginDraw(event: PointerEvent & { currentTarget: Element }, signal: AbortSignal) {
     if (!imageElement || event.button !== 0) return;
     event.preventDefault();
     const element = event.currentTarget;
@@ -179,6 +184,7 @@ export function ImageCrop(
     const startingX = Math.max(0, Math.min(bounds.width, event.clientX - bounds.left));
     const startingY = Math.max(0, Math.min(bounds.height, event.clientY - bounds.top));
     const controller = new AbortController();
+    const gestureSignal = AbortSignal.any([signal, controller.signal]);
     element.addEventListener(
       "pointermove",
       (moveEvent) => {
@@ -197,15 +203,15 @@ export function ImageCrop(
         };
         void handle.update();
       },
-      { signal: controller.signal },
+      { signal: gestureSignal },
     );
     element.addEventListener("pointerup", () => controller.abort(), {
       once: true,
-      signal: controller.signal,
+      signal: gestureSignal,
     });
     element.addEventListener("pointercancel", () => controller.abort(), {
       once: true,
-      signal: controller.signal,
+      signal: gestureSignal,
     });
   }
   return () => {
@@ -253,8 +259,8 @@ export function ImageCrop(
             <div className="relative inline-block max-h-96 max-w-full cursor-crosshair">
               <div
                 className="max-h-[inherit] overflow-hidden"
-                mix={on("pointerdown", (event) => {
-                  if (event instanceof PointerEvent) beginDraw(event);
+                mix={on("pointerdown", (event, signal) => {
+                  if (event instanceof PointerEvent) beginDraw(event, signal);
                 })}
               >
                 <img
@@ -342,8 +348,8 @@ export function ImageCrop(
                   }}
                   mix={[
                     cropBorderStyles,
-                    on("pointerdown", (event) => {
-                      if (event instanceof PointerEvent) beginDrag(event);
+                    on("pointerdown", (event, signal) => {
+                      if (event instanceof PointerEvent) beginDrag(event, signal);
                     }),
                     on("keydown", (event) => {
                       if (!(event instanceof KeyboardEvent) || !crop || !imageElement) return;
@@ -394,8 +400,8 @@ export function ImageCrop(
                         role="button"
                         aria-label={`Use the arrow keys to move the ${direction.includes("n") ? "north" : "south"} ${direction.includes("w") ? "west" : "east"} drag handle to change the crop selection area`}
                         mix={[
-                          on("pointerdown", (event) => {
-                            if (event instanceof PointerEvent) beginDrag(event, direction);
+                          on("pointerdown", (event, signal) => {
+                            if (event instanceof PointerEvent) beginDrag(event, signal, direction);
                           }),
                           on("keydown", (event) => {
                             if (event instanceof KeyboardEvent)

@@ -15,10 +15,8 @@ import {
   type UpdateAdminDrinkResult,
 } from "#/app/modules/drinks/drinks.ts";
 import { parseCreateDrinkSubmission, parseUpdateDrinkSubmission } from "./submission.server.ts";
-import {
-  EDITOR_RESPONSE_MEDIA_TYPE,
-  type DrinkEditorResponse,
-} from "#/app/web/admin-drink-write/public/editor-response.ts";
+import type { DrinkEditorResponse } from "#/app/web/admin-drink-write/public/editor-response.ts";
+import { acceptsEditorResponse } from "./editor-request.server.ts";
 import { renderResponseError } from "#/app/web/error-pages/response-error.server.tsx";
 
 type AdminDrinkWriteActionAdapterInput = {
@@ -179,8 +177,7 @@ function redirectToAdminDrinksWithToast(session: Session, toast: ToastMessage): 
 }
 
 function drinkNotFoundResponse(request?: Request): Response {
-  if (request?.headers.get("Accept") !== EDITOR_RESPONSE_MEDIA_TYPE)
-    return renderResponseError(404);
+  if (!request || !acceptsEditorResponse(request)) return renderResponseError(404);
   const data: DrinkEditorResponse = { kind: "notFound", message: "Drink not found" };
   return Response.json(data, { status: 404 });
 }

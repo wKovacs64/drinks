@@ -1,6 +1,7 @@
 import { routes } from "#/app/routes.ts";
 import type { Middleware } from "remix/router";
 import { createMatcher } from "remix/route-pattern/match";
+import { acceptsEditorResponse } from "./editor-request.server.ts";
 import {
   EDITOR_RESPONSE_MEDIA_TYPE,
   type DrinkEditorResponse,
@@ -18,7 +19,7 @@ export const adminDrinkEditorRedirects: Middleware = async (context, next) => {
   const isEditorSubmission =
     context.request.method === "POST" &&
     editorMatchers.some((matcher) => matcher.match(context.url) !== null) &&
-    context.request.headers.get("Accept") === EDITOR_RESPONSE_MEDIA_TYPE;
+    acceptsEditorResponse(context.request);
   const location = response.headers.get("Location");
   if (!isEditorSubmission || !location || response.status < 300 || response.status >= 400)
     return response;

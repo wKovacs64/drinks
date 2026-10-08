@@ -1,5 +1,24 @@
 # Changelog
 
+## [5.0.0](https://github.com/wKovacs64/drinks/compare/v4.2.5...v5.0.0) (2026-10-08)
+
+
+### ⚠ BREAKING CHANGES
+
+* rewrite in Remix v3 ([#386](https://github.com/wKovacs64/drinks/issues/386))
+
+### Performance Improvements
+
+* parallelize Remix tests and assert expected error logs ([7f1e0ff](https://github.com/wKovacs64/drinks/commit/7f1e0ff71911a786198fb8c15945fae7d5ce5099))
+* reduce browser startup blocking and consolidate tests ([#389](https://github.com/wKovacs64/drinks/issues/389)) ([d97c57a](https://github.com/wKovacs64/drinks/commit/d97c57a206a15dec18b1312ec0b9d850fbb0cee6))
+* reduce public gallery startup blocking ([#391](https://github.com/wKovacs64/drinks/issues/391)) ([b10d1ad](https://github.com/wKovacs64/drinks/commit/b10d1ad766142a56aa045d457bfe2eccb6cc9596))
+* speed up Remix tests and clean up expected error output ([#393](https://github.com/wKovacs64/drinks/issues/393)) ([7f1e0ff](https://github.com/wKovacs64/drinks/commit/7f1e0ff71911a786198fb8c15945fae7d5ce5099))
+
+
+### Code Refactoring
+
+* rewrite in Remix v3 ([#386](https://github.com/wKovacs64/drinks/issues/386)) ([14bcb0f](https://github.com/wKovacs64/drinks/commit/14bcb0f8cdd575c791f03d449819925caec5531c))
+
 ## [4.2.5](https://github.com/wKovacs64/drinks/compare/v4.2.4...v4.2.5) (2026-08-26)
 
 

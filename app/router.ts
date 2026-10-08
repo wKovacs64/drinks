@@ -32,7 +32,11 @@ const sessionMiddleware = getIdentitySessionMiddleware();
 const authMiddleware = getIdentityAuthMiddleware();
 export const router = createRouter({
   middleware: [
-    logger({ format: "%method %pathname %status %duration ms", colors: false }),
+    logger({
+      format: "%method %pathname %status %duration ms",
+      colors: false,
+      log: process.env.NODE_ENV === "test" ? () => {} : undefined,
+    }),
     // The original origin deliberately leaves compression to Fastly and Fly Proxy.
     process.env.NODE_ENV === "production"
       ? (_context, next) => next()

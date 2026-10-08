@@ -21,7 +21,7 @@
   "test": {
     "files": ["app/modules/**/*.test.ts", "test/e2e/**/*.test.e2e.ts"],
     "type": ["server", "e2e"],
-    "concurrency": 1,
+    "concurrency": 4,
     "pool": "forks",
     "playwright": {
       "configFile": "./test/browser.config.ts"

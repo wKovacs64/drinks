@@ -552,12 +552,14 @@ describe("createAdminDrinksWriteService", () => {
   });
 
   for (const cleanupFails of [false, true]) {
-    test(`compensates an upload after failed create and preserves the persistence error${cleanupFails ? " if cleanup fails" : ""}`, async () => {
+    test(`compensates an upload after failed create and preserves the persistence error${cleanupFails ? " if cleanup fails" : ""}`, async (testContext) => {
+      const logError = testContext.mock.method(console, "error", () => {});
+      const cleanupError = new Error("compensation unavailable");
       const originalEditor = await getExistingDrinkEditor("test-margarita");
       const storedImages = new Set<string>();
       const purgeDrinkCache = mock.fn<DrinksWriteEffects["purgeDrinkCache"]>();
       const deleteImage = mock.fn<DrinksWriteEffects["deleteImage"]>(async (fileId) => {
-        if (cleanupFails) throw new Error("compensation unavailable");
+        if (cleanupFails) throw cleanupError;
         storedImages.delete(fileId);
       });
       const service = testAdminDrinksWriteService({
@@ -585,6 +587,11 @@ describe("createAdminDrinksWriteService", () => {
       expect([...storedImages]).toEqual(cleanupFails ? ["new-image"] : []);
       expect(deleteImage).toHaveBeenCalledWith("new-image");
       expect(purgeDrinkCache).not.toHaveBeenCalled();
+      expect(logError.mock.calls.map((call) => call.arguments)).toEqual(
+        cleanupFails
+          ? [["Failed to clean up uploaded image after persistence failure:", cleanupError]]
+          : [],
+      );
     });
   }
 
@@ -611,11 +618,13 @@ describe("createAdminDrinksWriteService", () => {
   });
 
   for (const cleanupFails of [false, true]) {
-    test(`retains the referenced image and compensates the upload when update persistence fails${cleanupFails ? " even if compensation fails" : ""}`, async () => {
+    test(`retains the referenced image and compensates the upload when update persistence fails${cleanupFails ? " even if compensation fails" : ""}`, async (testContext) => {
+      const logError = testContext.mock.method(console, "error", () => {});
+      const cleanupError = new Error("compensation unavailable");
       const originalEditor = await getExistingDrinkEditor("test-margarita");
       const storedImages = new Set(["seed-fileId-1"]);
       const deleteImage = mock.fn<DrinksWriteEffects["deleteImage"]>(async (fileId) => {
-        if (cleanupFails) throw new Error("compensation unavailable");
+        if (cleanupFails) throw cleanupError;
         storedImages.delete(fileId);
       });
       const purgeDrinkCache = mock.fn<DrinksWriteEffects["purgeDrinkCache"]>();
@@ -647,6 +656,11 @@ describe("createAdminDrinksWriteService", () => {
       );
       expect(deleteImage).toHaveBeenCalledWith("replacement-image");
       expect(purgeDrinkCache).not.toHaveBeenCalled();
+      expect(logError.mock.calls.map((call) => call.arguments)).toEqual(
+        cleanupFails
+          ? [["Failed to clean up uploaded image after persistence failure:", cleanupError]]
+          : [],
+      );
     });
   }
 

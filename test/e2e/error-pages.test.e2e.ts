@@ -1,8 +1,20 @@
-import { test } from "remix/test";
+import { test, type TestContext } from "remix/test";
 import { expect } from "remix/assert";
-import { rawSql } from "remix/data-table";
+import { DataTableDatabaseError, rawSql } from "remix/data-table";
 import { getDb } from "#/app/db/client.ts";
 import { createBrowserPage } from "#/test/e2e.ts";
+
+function captureRouteErrors(testContext: TestContext) {
+  const logError = testContext.mock.method(console, "error", () => {});
+  return (errorType: typeof SyntaxError | typeof DataTableDatabaseError) => {
+    expect(logError).toHaveBeenCalled();
+    for (const call of logError.mock.calls) {
+      expect(call.arguments.length).toBe(2);
+      expect(call.arguments[0]).toBe("Route failed");
+      expect(call.arguments[1]).toBeInstanceOf(errorType);
+    }
+  };
+}
 
 test("an unmatched path keeps the gallery navigation around its not-found message", async (testContext) => {
   const page = await createBrowserPage(testContext);
@@ -27,6 +39,7 @@ test("a missing admin drink displays a not-found response and a working recovery
 
 test("a public route failure displays the exception page and a working recovery link", async (testContext) => {
   const page = await createBrowserPage(testContext);
+  const expectLoggedError = captureRouteErrors(testContext);
   await getDb().exec(
     rawSql("UPDATE drinks SET ingredients = 'invalid-json' WHERE slug = 'test-margarita'"),
   );
@@ -37,10 +50,12 @@ test("a public route failure displays the exception page and a working recovery 
   await getDb().exec(rawSql("DELETE FROM drinks WHERE slug = 'test-margarita'"));
   await page.getByRole("link", { name: "Try Starting Over" }).click();
   await page.getByRole("heading", { name: "Test Mojito", exact: true }).waitFor();
+  expectLoggedError(SyntaxError);
 });
 
 test("an admin route failure displays the asset-independent server error document", async (testContext) => {
   const page = await createBrowserPage(testContext, { admin: true });
+  const expectLoggedError = captureRouteErrors(testContext);
   await getDb().exec(
     rawSql("UPDATE drinks SET created_at = 9999999999999999 WHERE slug = 'test-margarita'"),
   );
@@ -51,10 +66,12 @@ test("an admin route failure displays the asset-independent server error documen
     await page.getByRole("heading", { name: "Server error", exact: true }).waitFor();
     expect(await page.locator("header").count()).toBe(0);
   }
+  expectLoggedError(DataTableDatabaseError);
 });
 
 test("a failed search update replaces the gallery with the original exception document", async (testContext) => {
   const page = await createBrowserPage(testContext);
+  const expectLoggedError = captureRouteErrors(testContext);
   await page.goto("/search");
   await page.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
   await getDb().exec(
@@ -68,10 +85,12 @@ test("a failed search update replaces the gallery with the original exception do
     timeout: 2000,
   });
   expect(await page.getByRole("link", { name: "Try Starting Over" }).count()).toBe(1);
+  expectLoggedError(SyntaxError);
 });
 
 test("a failed drink navigation displays its exception document instead of retaining the gallery", async (testContext) => {
   const page = await createBrowserPage(testContext);
+  const expectLoggedError = captureRouteErrors(testContext);
   // Disable the document cache so a viewport-prefetched success cannot hide the later failure.
   await page.route("**/test-margarita", (route) => route.continue());
   await page.goto("/");
@@ -83,4 +102,5 @@ test("a failed drink navigation displays its exception document instead of retai
   await page.getByRole("heading", { name: "Unhandled Exception" }).waitFor();
   expect(new URL(page.url()).pathname).toBe("/test-margarita");
   expect(await page.locator("header").count()).toBe(0);
+  expectLoggedError(SyntaxError);
 });

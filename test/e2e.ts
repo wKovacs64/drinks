@@ -1,7 +1,8 @@
 import "#/test/setup.ts";
 import { createTestServer } from "remix/node-fetch-server/test";
 import type { TestContext } from "remix/test";
-import { http, passthrough } from "msw";
+import { http } from "msw/http";
+import { passthrough } from "msw/utils/passthrough";
 import { router } from "#/app/router.ts";
 import { resetAndSeedDatabase, TEST_ADMIN_USER } from "#/test/database.ts";
 import { getRawSessionCookieValue, sessionCookie } from "#/app/modules/identity/identity.ts";

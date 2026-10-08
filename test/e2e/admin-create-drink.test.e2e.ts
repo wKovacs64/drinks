@@ -1,7 +1,7 @@
 import { test, describe } from "remix/test";
 import { expect } from "remix/assert";
 import { createBrowserPage } from "#/test/e2e.ts";
-import { http, HttpResponse } from "msw";
+import { http, HttpResponse } from "msw/http";
 import { server as requestMocks } from "#/test/server.ts";
 
 describe("Create New Drink", () => {

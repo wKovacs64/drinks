@@ -19,7 +19,7 @@
     "denyFiles": ["**/*.test.*"]
   },
   "test": {
-    "files": ["app/modules/**/*.test.ts", "test/e2e/**/*.test.e2e.ts"],
+    "files": ["app/modules/**/*.test.ts", "test/**/*.test.ts", "test/e2e/**/*.test.e2e.ts"],
     "type": ["server", "e2e"],
     "concurrency": 4,
     "pool": "forks",

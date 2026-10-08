@@ -6,7 +6,7 @@ import { server } from "./server.ts";
 await migrateDatabase();
 
 beforeAll(() => {
-  server.listen({ onUnhandledRequest: "error" });
+  server.listen({ onUnhandledFrame: "error" });
 });
 
 afterEach(() => {

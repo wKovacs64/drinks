@@ -6,7 +6,7 @@ import { createRequestListener } from "remix/node-fetch-server";
 
 const styles = spawn(
   "pnpm",
-  ["exec", "tailwindcss", "-i", "app/styles/app.css", "-o", "public/app.css", "--watch"],
+  ["exec", "tailwindcss", "-i", "app/assets/app.css", "-o", "public/app.css", "--watch"],
   { stdio: "inherit" },
 );
 const publicPort = Number(process.env.PORT ?? 5173);

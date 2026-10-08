@@ -23,7 +23,7 @@
   "scripts": {
     "dev": "pnpm build:styles && NODE_ENV=development node --env-file-if-exists=.env scripts/dev.ts",
     "build": "pnpm build:styles && pnpm typecheck",
-    "build:styles": "node scripts/prepare-assets.ts && tailwindcss -i app/styles/app.css -o public/app.css --minify",
+    "build:styles": "node scripts/prepare-assets.ts && tailwindcss -i app/assets/app.css -o public/app.css --minify",
     "start": "NODE_ENV=production node --env-file-if-exists=.env --import remix/node-tsx server.ts",
     "lint": "oxlint",
     "typecheck": "tsc --noEmit",

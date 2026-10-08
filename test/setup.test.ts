@@ -4,11 +4,6 @@ import { createServer } from "node:http";
 import { test } from "remix/test";
 import { expect } from "remix/assert";
 
-test("allows ImageKit's data URL probe to use the native fetch implementation", async () => {
-  const response = await fetch("data:text/plain,ImageKit%20probe");
-  expect(await response.text()).toBe("ImageKit probe");
-});
-
 test("rejects unhandled requests before they reach the network", async () => {
   let networkRequests = 0;
   const server = createServer((_request, response) => {

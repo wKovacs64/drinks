@@ -1,4 +1,3 @@
-import { routes } from "#/app/routes.ts";
 import { run } from "remix/component";
 import { supportsMultipleImportMaps } from "./import-map-support.ts";
 const app = run({
@@ -29,8 +28,9 @@ app.addEventListener("error", (event) => {
     const destination = app.frames.top.src;
     const searchFrame = app.frames.get("search-results");
     window.location.assign(
-      new URL(destination, window.location.href).pathname === routes.search.index.href() &&
-        searchFrame
+      searchFrame &&
+        new URL(destination, window.location.href).pathname ===
+          new URL(searchFrame.src, window.location.href).pathname
         ? searchFrame.src
         : destination,
     );

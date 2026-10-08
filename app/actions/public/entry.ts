@@ -1,21 +1,21 @@
 import { routes } from "#/app/routes.ts";
 import { run } from "remix/component";
-import {
-  detectMultipleImportMapSupport,
-  importModule,
-  preloadShim,
-} from "remix/multiple-import-maps-polyfill";
+import { supportsMultipleImportMaps } from "./import-map-support.ts";
 const app = run({
   async loadModule(moduleUrl, exportName) {
-    const module = await importModule(moduleUrl);
+    const module = (await supportsMultipleImportMaps)
+      ? await import(moduleUrl)
+      : await (await import("remix/multiple-import-maps-polyfill")).importModule(moduleUrl);
     const component = module[exportName];
     if (typeof component !== "function")
       throw new Error(`Unknown component: ${moduleUrl}#${exportName}`);
     return component;
   },
   async processClientEntryPreloads(preloads) {
-    if (await detectMultipleImportMapSupport()) return preloads;
-    await preloadShim(preloads);
+    if (await supportsMultipleImportMaps) return preloads;
+    const polyfill = await import("remix/multiple-import-maps-polyfill");
+    if (await polyfill.detectMultipleImportMapSupport()) return preloads;
+    await polyfill.preloadShim(preloads);
     return [];
   },
 });

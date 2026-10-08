@@ -37,7 +37,7 @@ test("a missing Drink negotiates editor errors while native submissions keep HTM
 });
 
 describe("Edit Drink", () => {
-  test("can edit an existing drink", async (testContext) => {
+  test("editing preserves values after duplicate-slug validation and succeeds on retry", async (testContext) => {
     const pageAsAdmin = await createBrowserPage(testContext, { admin: true });
     await pageAsAdmin.goto("/admin/drinks/test-margarita/edit");
     await pageAsAdmin.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
@@ -51,6 +51,13 @@ describe("Edit Drink", () => {
     // Update the title
     await pageAsAdmin.getByLabel("Title").fill("Updated Margarita");
     expect(await pageAsAdmin.getByLabel("Slug").inputValue()).toBe("test-margarita");
+    await pageAsAdmin.getByLabel("Slug").fill("test-mojito");
+    await pageAsAdmin.getByRole("button", { name: "Update Drink" }).click();
+    await pageAsAdmin.getByRole("alert").filter({ hasText: "Slug already exists" }).waitFor();
+    expect(await pageAsAdmin.getByLabel("Title").inputValue()).toBe("Updated Margarita");
+    expect(await pageAsAdmin.getByLabel("Slug").inputValue()).toBe("test-mojito");
+    expect(new URL(pageAsAdmin.url()).pathname).toBe("/admin/drinks/test-margarita/edit");
+    await pageAsAdmin.getByLabel("Slug").fill("test-margarita");
 
     // Submit the form
     await pageAsAdmin.getByRole("button", { name: "Update Drink" }).click();

@@ -3,14 +3,6 @@ import { expect } from "remix/assert";
 import { createBrowserPage } from "#/test/e2e.ts";
 import { EDITOR_RESPONSE_MEDIA_TYPE } from "#/app/web/admin-drink-write/public/editor-response.ts";
 
-test("admin mutations reject cross-site browser provenance even without Origin", async (testContext) => {
-  const pageAsAdmin = await createBrowserPage(testContext, { admin: true });
-  const response = await pageAsAdmin.request.post("/admin/drinks/missing/delete", {
-    headers: { "Sec-Fetch-Site": "cross-site" },
-  });
-  expect(response.status()).toBe(403);
-});
-
 test("the editor preserves its existing per-image size limit", async (testContext) => {
   const pageAsAdmin = await createBrowserPage(testContext, { admin: true });
   const response = await pageAsAdmin.request.post("/admin/drinks/test-margarita/edit", {

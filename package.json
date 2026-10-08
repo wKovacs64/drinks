@@ -32,6 +32,7 @@
     "validate": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test",
     "test": "pnpm build:styles && node --env-file=.env.test node_modules/remix/dist/cli-entry.js test",
     "test:watch": "pnpm test --watch",
+    "perf": "node --env-file-if-exists=.env scripts/performance.ts",
     "db:migrate": "node --env-file-if-exists=.env node_modules/remix/dist/cli-entry.js db migrate",
     "db:status": "node --env-file-if-exists=.env node_modules/remix/dist/cli-entry.js db status",
     "assets:inspect": "node node_modules/remix/dist/cli-entry.js assets inspect"
@@ -54,6 +55,7 @@
     "@types/node": "^26.0.0",
     "@wkovacs64/add-icon": "1.2.2",
     "@wkovacs64/oxlint-config": "0.3.0",
+    "lighthouse": "13.5.0",
     "msw": "2.15.0",
     "oxfmt": "0.71.0",
     "oxlint": "1.86.0",

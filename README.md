@@ -47,6 +47,9 @@ implementation and review, [the test harness docs](docs/testing.md) for browser 
 [the release workflow](RELEASING.md) for releases and deployment.
 See [SVG icon instructions](app/assets/svg-icons/README.md) for adding and using icons.
 
+Use `pnpm perf` for local production Lighthouse measurements and saved baseline comparisons.
+See [the performance workflow](docs/performance.md) for browser setup, profiles, and trace inspection.
+
 ## Database migrations
 
 Add a new numbered SQL migration under `app/db/migrations/` and update `app/db/schema.ts` together;

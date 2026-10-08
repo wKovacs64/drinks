@@ -249,6 +249,9 @@ $RECYCLE.BIN/
 # Local dev database
 /data
 
+# Local performance reports, traces, and screenshots
+/performance-results/
+
 # Root public is generated static output and local uploads; app/**/public is source.
 /public/*
 !/public/.gitkeep

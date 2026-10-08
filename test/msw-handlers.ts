@@ -1,4 +1,5 @@
-import { http, HttpResponse, passthrough } from "msw";
+import { http, HttpResponse } from "msw/http";
+import { passthrough } from "msw/utils/passthrough";
 
 // 1x1 transparent WebP (smallest valid WebP)
 const TINY_WEBP = new Uint8Array([
@@ -46,7 +47,10 @@ export const handlers = [
     return HttpResponse.json({ status: "ok" });
   }),
 
-  // ImageKit probes fetch FormData support with a data URL. String matchers parse its colon
-  // as a route parameter; inspect the original URL after a regex match instead.
-  http.get(/.*/, ({ request }) => (request.url.startsWith("data:") ? passthrough() : undefined)),
+  // ImageKit probes fetch FormData support with a data URL. Match only that protocol
+  // so other unhandled GET requests still fail under the strict network policy.
+  http.get(
+    ({ request }) => request.url.startsWith("data:"),
+    () => passthrough(),
+  ),
 ];

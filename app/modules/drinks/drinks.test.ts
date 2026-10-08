@@ -3,7 +3,7 @@ import { beforeEach, describe, mock, test } from "remix/test";
 import { expect } from "remix/assert";
 import { parse, parseSafe } from "remix/data-schema";
 import { DataTableDatabaseError, rawSql } from "remix/data-table";
-import { http, HttpResponse } from "msw";
+import { http, HttpResponse } from "msw/http";
 import { server as requestMocks } from "#/test/server.ts";
 import { getDb } from "#/app/db/client.ts";
 import { drinks } from "#/app/db/schema.ts";

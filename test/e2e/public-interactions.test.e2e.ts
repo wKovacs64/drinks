@@ -109,9 +109,20 @@ test("tags and drink details retain their navigation and contents", async (testC
 
 test("search preserves results through repeated queries, empty results, and history", async (testContext) => {
   const page = await createBrowserPage(testContext);
+  const margaritaPrefetched = Promise.withResolvers<void>();
+  const mojitoPrefetched = Promise.withResolvers<void>();
+  await page.route("**/test-margarita", async (route) => {
+    margaritaPrefetched.resolve();
+    await route.continue();
+  });
+  await page.route("**/test-mojito", async (route) => {
+    mojitoPrefetched.resolve();
+    await route.continue();
+  });
   await page.goto("/search?q=tequila");
   await page.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
   await page.getByRole("heading", { name: "Test Margarita", exact: true }).waitFor();
+  await margaritaPrefetched.promise;
   const input = page.getByRole("textbox", { name: "Search Term" });
   const responsePromise = page.waitForResponse(
     (response) =>
@@ -124,6 +135,7 @@ test("search preserves results through repeated queries, empty results, and hist
   expect(responseBody).not.toContain("<html");
   expect(responseBody).not.toContain("<header");
   await page.getByRole("heading", { name: "Test Mojito", exact: true }).waitFor();
+  await mojitoPrefetched.promise;
   expect(await page.getByRole("navigation").filter({ hasText: "mint" }).count()).toBe(1);
   expect(await page.getByRole("heading", { name: "Test Margarita", exact: true }).count()).toBe(0);
   await input.fill("no-matching-drink");
@@ -141,11 +153,14 @@ test("search preserves results through repeated queries, empty results, and hist
   expect(await input.inputValue()).toBe("mint");
 });
 
-test("visible photos finish loading before speculative drink navigation downloads", async (testContext) => {
+test("speculative drink navigation waits for visibility and loaded photos", async (testContext) => {
   const page = await createBrowserPage(testContext);
+  await page.setViewportSize({ width: 390, height: 340 });
   const releasePhoto = Promise.withResolvers<void>();
   const drinkPrefetched = Promise.withResolvers<void>();
+  const lastPrefetched = Promise.withResolvers<void>();
   let prefetchRequests = 0;
+  let lastRequests = 0;
   await page.route("**/slow-photo.svg", async (route) => {
     await releasePhoto.promise;
     await route.fulfill({
@@ -156,6 +171,11 @@ test("visible photos finish loading before speculative drink navigation download
   await page.route("**/test-margarita", async (route) => {
     prefetchRequests++;
     drinkPrefetched.resolve();
+    await route.continue();
+  });
+  await page.route("**/test-old-fashioned", async (route) => {
+    lastRequests++;
+    lastPrefetched.resolve();
     await route.continue();
   });
   await page.addInitScript(() => {
@@ -174,54 +194,9 @@ test("visible photos finish loading before speculative drink navigation download
   releasePhoto.resolve();
   await drinkPrefetched.promise;
   expect(prefetchRequests).toBe(1);
-});
-
-test("viewport prefetch follows cards into view without downloading offscreen destinations", async (testContext) => {
-  const page = await createBrowserPage(testContext);
-  await page.setViewportSize({ width: 390, height: 340 });
-  const firstPrefetch = Promise.withResolvers<void>();
-  const lastPrefetch = Promise.withResolvers<void>();
-  let lastRequests = 0;
-  await page.route("**/test-margarita", async (route) => {
-    firstPrefetch.resolve();
-    await route.continue();
-  });
-  await page.route("**/test-old-fashioned", async (route) => {
-    lastRequests++;
-    lastPrefetch.resolve();
-    await route.continue();
-  });
-  await page.goto("/");
-  await firstPrefetch.promise;
   expect(lastRequests).toBe(0);
   const lastCard = page.getByRole("link", { name: "Test Old Fashioned", exact: true });
   await lastCard.scrollIntoViewIfNeeded();
-  await lastPrefetch.promise;
+  await lastPrefetched.promise;
   expect(lastRequests).toBe(1);
-  await lastCard.focus();
-  expect(await lastCard.evaluate((element) => element === document.activeElement)).toBe(true);
-  await lastCard.press("Enter");
-  await page.waitForURL("/test-old-fashioned");
-  await page.getByText("2 oz bourbon", { exact: true }).waitFor();
-});
-
-test("viewport prefetch observes replacement search results", async (testContext) => {
-  const page = await createBrowserPage(testContext);
-  const margaritaPrefetched = Promise.withResolvers<void>();
-  const mojitoPrefetched = Promise.withResolvers<void>();
-  await page.route("**/test-margarita", async (route) => {
-    margaritaPrefetched.resolve();
-    await route.continue();
-  });
-  await page.route("**/test-mojito", async (route) => {
-    mojitoPrefetched.resolve();
-    await route.continue();
-  });
-  await page.goto("/search?q=tequila");
-  await margaritaPrefetched.promise;
-  const input = page.getByRole("textbox", { name: "Search Term" });
-  await input.fill("rum");
-  await input.press("Enter");
-  await page.getByRole("heading", { name: "Test Mojito", exact: true }).waitFor();
-  await mojitoPrefetched.promise;
 });

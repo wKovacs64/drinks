@@ -9,6 +9,7 @@ test("navigation keeps the gallery styled without downloading its stylesheet aga
   const headerBackground = await page.locator("header").evaluate((header) => {
     return getComputedStyle(header).backgroundColor;
   });
+  expect(headerBackground).not.toBe("rgba(0, 0, 0, 0)");
   let stylesheetRequests = 0;
   await page.route("**/app.css", async (route) => {
     stylesheetRequests++;

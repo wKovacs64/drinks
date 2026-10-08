@@ -34,11 +34,12 @@ test("editor redirects require an explicit acceptable editor media type", async 
 });
 
 for (const actor of ["anonymous", "user"]) {
-  test(`${actor} cannot read or write admin routes through encoded URLs`, async (testContext) => {
+  test(`${actor} cannot read or write ordinary or encoded admin URLs`, async (testContext) => {
     const page = await createBrowserPage(testContext, { admin: actor === "user" });
     if (actor === "user") await getDb().update(users, TEST_ADMIN_USER.id, { role: "user" });
     const destination = actor === "anonymous" ? "/login" : "/unauthorized";
     for (const path of [
+      "/admin/drinks",
       "/%61dmin",
       "/%61dmin/",
       "/ad%6Din/drinks",
@@ -52,6 +53,7 @@ for (const actor of ["anonymous", "user"]) {
       expect(response.headers()["cache-control"]).toBe("private, no-store");
     }
     for (const path of [
+      "/admin/drinks/test-margarita/delete",
       "/%61dmin/drinks/new",
       "/ad%6din/drinks/test-margarita/edit",
       "/%61dmin/drinks/test-margarita/delete",
@@ -112,14 +114,6 @@ test("admin can read and submit an encoded editor URL", async (testContext) => {
 });
 
 describe("Authentication", () => {
-  test("unauthenticated user is redirected to login when accessing admin", async (testContext) => {
-    const page = await createBrowserPage(testContext);
-    const response = await page.request.get("/admin/drinks", { maxRedirects: 0 });
-    expect(response.status()).toBe(302);
-    expect(response.headers().location).toBe("/login");
-    expect(response.headers()["cache-control"]).toBe("private, no-store");
-  });
-
   test("admin can logout", async (testContext) => {
     const pageAsAdmin = await createBrowserPage(testContext, { admin: true });
     await pageAsAdmin.goto("/admin/drinks");
@@ -156,13 +150,19 @@ test("admin permissions are checked from the database on every request", async (
   expect(publicResponse.status()).toBe(200);
 });
 
-test("cross-origin admin submissions are rejected", async (testContext) => {
+test("admin submissions reject cross-origin and cross-site browser provenance", async (testContext) => {
   const pageAsAdmin = await createBrowserPage(testContext, { admin: true });
-  const response = await pageAsAdmin.request.post("/admin/drinks/test-margarita/delete", {
-    headers: { Origin: "https://another.example" },
-    maxRedirects: 0,
-  });
-  expect(response.status()).toBe(403);
+  const provenanceHeaders: Record<string, string>[] = [
+    { Origin: "https://another.example" },
+    { "Sec-Fetch-Site": "cross-site" },
+  ];
+  for (const headers of provenanceHeaders) {
+    const response = await pageAsAdmin.request.post("/admin/drinks/test-margarita/delete", {
+      headers,
+      maxRedirects: 0,
+    });
+    expect(response.status()).toBe(403);
+  }
   const drink = await pageAsAdmin.request.get("/test-margarita");
   expect(drink.status()).toBe(200);
 });

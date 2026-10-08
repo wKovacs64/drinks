@@ -120,11 +120,8 @@ describe("createIdentityService", () => {
 });
 
 describe("safeRedirectTo", () => {
-  test("returns the path for a valid relative URL", () => {
+  test("accepts relative Return-to URLs and uses the configured fallback for unsafe destinations", () => {
     expect(safeRedirectTo("/admin")).toBe("/admin");
-  });
-
-  test("uses the configured fallback for missing or unsafe return destinations", () => {
     for (const destination of [null, undefined, "https://evil.com", "//evil.com"]) {
       expect(safeRedirectTo(destination)).toBe("/");
       expect(safeRedirectTo(destination, "/home")).toBe("/home");

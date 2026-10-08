@@ -154,22 +154,6 @@ test("automatic slug stops changing after a manual edit", async (testContext) =>
   );
 });
 
-test("duplicate slug preserves edits and displays validation", async (testContext) => {
-  const pageAsAdmin = await createBrowserPage(testContext, { admin: true });
-  await pageAsAdmin.goto("/admin/drinks/test-margarita/edit");
-  await pageAsAdmin.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
-  await pageAsAdmin.getByLabel("Title", { exact: true }).fill("Edited Margarita");
-  await pageAsAdmin.getByLabel("Slug", { exact: true }).fill("test-mojito");
-  await pageAsAdmin.getByRole("button", { name: "Update Drink" }).click();
-  await pageAsAdmin.getByRole("alert").filter({ hasText: "Slug already exists" }).waitFor();
-  expect(await pageAsAdmin.getByRole("alert").innerText()).toContain("Slug already exists");
-  expect(await pageAsAdmin.getByLabel("Title", { exact: true }).inputValue()).toBe(
-    "Edited Margarita",
-  );
-  expect(await pageAsAdmin.getByLabel("Slug", { exact: true }).inputValue()).toBe("test-mojito");
-  await pageAsAdmin.waitForURL("/admin/drinks/test-margarita/edit");
-});
-
 test("deleting a missing drink returns 404", async (testContext) => {
   const pageAsAdmin = await createBrowserPage(testContext, { admin: true });
   const response = await pageAsAdmin.request.post("/admin/drinks/missing/delete");

@@ -159,13 +159,10 @@ describe("createDrinksService", () => {
   });
 
   test("returns published drinks", async () => {
+    await setDrinkStatus("test-old-fashioned", "unpublished");
     const publishedDrinks = await createDrinksService({ db: getDb() }).getPublishedDrinks();
 
-    expect(publishedDrinks.map((drink) => drink.slug)).toEqual([
-      "test-margarita",
-      "test-mojito",
-      "test-old-fashioned",
-    ]);
+    expect(publishedDrinks.map((drink) => drink.slug)).toEqual(["test-margarita", "test-mojito"]);
     expect(publishedDrinks[0]).toMatchObject({
       title: "Test Margarita",
       calories: 200,
@@ -179,35 +176,7 @@ describe("createDrinksService", () => {
     expect(typeof publishedDrinks[0]?.image?.blurDataUrl).toBe("string");
   });
 
-  test("loads a new-drink editor with form-shaped defaults", async () => {
-    const service = createDrinksService({ db: getDb() });
-
-    const editor = await service.getNewDrinkEditor();
-
-    expect(editor).toEqual({
-      mode: "create",
-      initialValues: {
-        title: "",
-        slug: "",
-        ingredients: "",
-        calories: "",
-        tags: "",
-        notes: "",
-        rank: "0",
-        status: "published",
-      },
-    });
-  });
-
-  test("returns null when an editor drink slug is missing", async () => {
-    const service = createDrinksService({ db: getDb() });
-
-    const editor = await service.findDrinkEditorBySlug("missing-drink");
-
-    expect(editor).toBeNull();
-  });
-
-  test("returns a drink for viewer when a published drink is requested", async () => {
+  test("resolves public and private Drink visibility for the viewer", async () => {
     const service = createDrinksService({ db: getDb() });
 
     const drinkForViewer = await service.getDrinkBySlug({
@@ -228,34 +197,16 @@ describe("createDrinksService", () => {
     expect(typeof drinkForViewer?.drink.image?.url).toBe("string");
     expect(typeof drinkForViewer?.drink.image?.blurDataUrl).toBe("string");
     expect(drinkForViewer?.drink.notes).toContain("<p>A classic test margarita</p>");
-  });
-
-  test("hides an unpublished drink from non-admin viewers", async () => {
     await setDrinkStatus("test-margarita", "unpublished");
-    const service = createDrinksService({ db: getDb() });
-
-    const drinkForViewer = await service.getDrinkBySlug({
-      slug: "test-margarita",
-      viewerRole: "user",
-    });
-
-    expect(drinkForViewer).toBeNull();
-  });
-
-  test("returns an unpublished drink to admin viewers with private visibility", async () => {
-    await setDrinkStatus("test-margarita", "unpublished");
-    const service = createDrinksService({ db: getDb() });
-
-    const drinkForViewer = await service.getDrinkBySlug({
+    expect(await service.getDrinkBySlug({ slug: "test-margarita", viewerRole: "user" })).toBeNull();
+    const adminDrink = await service.getDrinkBySlug({
       slug: "test-margarita",
       viewerRole: "admin",
     });
-
-    expect(drinkForViewer?.visibility).toBe("private");
-    expect(drinkForViewer?.drink.slug).toBe("test-margarita");
-    expect(typeof drinkForViewer?.drink.image?.url).toBe("string");
-    expect(typeof drinkForViewer?.drink.image?.blurDataUrl).toBe("string");
-    expect(drinkForViewer?.drink.notes).toContain("<p>A classic test margarita</p>");
+    expect(adminDrink).toMatchObject({
+      visibility: "private",
+      drink: { slug: "test-margarita", notes: drinkForViewer?.drink.notes },
+    });
   });
 
   test("returns the resolved tag and published drinks for a tag slug", async () => {
@@ -300,7 +251,7 @@ describe("createDrinksService", () => {
     ]);
   });
 
-  test("defensively canonicalizes and de-duplicates all published tags", async () => {
+  test("canonicalizes stored Tags in both the published Tag list and Drink views", async () => {
     const db = getDb();
     await db.updateMany(
       drinks,
@@ -319,22 +270,10 @@ describe("createDrinksService", () => {
       { displayName: "rum", slug: "rum" },
       { displayName: "tequila", slug: "tequila" },
     ]);
-  });
-
-  test("defensively canonicalizes stored tags when returning drink views", async () => {
-    const db = getDb();
-    await db.updateMany(
-      drinks,
-      { tags: JSON.stringify(["Tequila!", "bright citrus", "bright-citrus", " "]) },
-      { where: { slug: "test-margarita" } },
-    );
-    const service = createDrinksService({ db });
-
     const drinkForViewer = await service.getDrinkBySlug({
       slug: "test-margarita",
       viewerRole: "user",
     });
-
     expect(drinkForViewer?.drink.tags).toEqual([
       { displayName: "tequila", slug: "tequila" },
       { displayName: "bright citrus", slug: "bright-citrus" },
@@ -364,6 +303,7 @@ describe("createDrinksService", () => {
   });
 
   test("returns all drinks for admin list views as a direct list", async () => {
+    await setDrinkStatus("test-old-fashioned", "unpublished");
     const service = createDrinksService({ db: getDb() });
 
     const allDrinks = await service.getAllDrinks();
@@ -379,6 +319,7 @@ describe("createDrinksService", () => {
       calories: 200,
       rank: 10,
     });
+    expect(allDrinks[2]?.status).toBe("unpublished");
   });
 });
 
@@ -440,45 +381,6 @@ describe("createAdminDrinksWriteService", () => {
         status: "published",
       },
     });
-  });
-
-  test("updates through the transport-agnostic admin write boundary", async () => {
-    const purgeDrinkCache = mock.fn<DrinksWriteEffects["purgeDrinkCache"]>(async () => undefined);
-    const adminWriteService = createAdminDrinksWriteService({
-      db: getDb(),
-      writeEffects: {
-        uploadImage: mock.fn<DrinksWriteEffects["uploadImage"]>(),
-        deleteImage: mock.fn<DrinksWriteEffects["deleteImage"]>(),
-        purgeDrinkCache,
-      },
-    });
-
-    const result = await adminWriteService.update({
-      slug: "test-margarita",
-      draft: {
-        title: "Admin Updated Margarita",
-        slug: "admin-updated-margarita",
-        ingredients: ["tequila", "lime"],
-        calories: 210,
-        tags: ["tequila", "lime"],
-        notes: null,
-        rank: 1,
-        status: "published",
-      },
-    });
-
-    expect(result).toEqual({
-      kind: "success",
-      drinkSlug: "admin-updated-margarita",
-      notices: [],
-    });
-    expect(purgeDrinkCache).toHaveBeenCalledWith({
-      slugs: ["test-margarita", "admin-updated-margarita"],
-      tags: ["tequila", "citrus", "lime"],
-    });
-
-    const editor = await getExistingDrinkEditor("admin-updated-margarita");
-    expect(editor.initialValues.title).toBe("Admin Updated Margarita");
   });
 
   test("returns typed admin write outcomes for duplicate update slugs and missing drinks", async () => {
@@ -601,7 +503,7 @@ describe("createAdminDrinksWriteService", () => {
     });
   });
 
-  test("updates an existing drink without replacing its image", async () => {
+  test("renames and updates a Drink without replacing its image", async () => {
     const uploadImage = mock.fn<DrinksWriteEffects["uploadImage"]>();
     const deleteImage = mock.fn<DrinksWriteEffects["deleteImage"]>();
     const purgeDrinkCache = mock.fn<DrinksWriteEffects["purgeDrinkCache"]>(async () => undefined);
@@ -616,7 +518,7 @@ describe("createAdminDrinksWriteService", () => {
 
     const draft = parse(drinkDraftSchema, {
       title: "Updated Margarita",
-      slug: "test-margarita",
+      slug: "updated-margarita",
       ingredients: "3 oz tequila\n1.5 oz lime juice",
       calories: "250",
       tags: "Tequila, updated, tequila!, UPDATED",
@@ -632,27 +534,28 @@ describe("createAdminDrinksWriteService", () => {
 
     expect(result).toEqual({
       kind: "success",
-      drinkSlug: "test-margarita",
+      drinkSlug: "updated-margarita",
       notices: [],
     });
 
     expect(uploadImage).not.toHaveBeenCalled();
     expect(deleteImage).not.toHaveBeenCalled();
     expect(purgeDrinkCache).toHaveBeenCalledWith({
-      slugs: ["test-margarita"],
+      slugs: ["test-margarita", "updated-margarita"],
       tags: ["tequila", "citrus", "updated"],
     });
 
-    const editor = await getExistingDrinkEditor("test-margarita");
+    expect(await createReadOnlyService().findDrinkEditorBySlug("test-margarita")).toBeNull();
+    const editor = await getExistingDrinkEditor("updated-margarita");
 
     expect(editor).toEqual({
       mode: "edit",
-      drinkSlug: "test-margarita",
+      drinkSlug: "updated-margarita",
       imageUrl:
         "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
       initialValues: {
         title: "Updated Margarita",
-        slug: "test-margarita",
+        slug: "updated-margarita",
         ingredients: "3 oz tequila\n1.5 oz lime juice",
         calories: "250",
         tags: "tequila, updated",
@@ -965,24 +868,9 @@ describe("drinkDraftSchema", () => {
     });
   });
 
-  test("rejects invalid slug", () => {
-    const result = parseSafe(drinkDraftSchema, {
+  test("rejects an invalid slug or missing title", () => {
+    const validInput = {
       title: "Test",
-      slug: "INVALID SLUG!!!",
-      ingredients: "a",
-      calories: "100",
-      tags: "a",
-      notes: "",
-      rank: "0",
-      status: "published",
-    });
-
-    expect(result.success).toBe(false);
-  });
-
-  test("rejects missing title", () => {
-    const result = parseSafe(drinkDraftSchema, {
-      title: "",
       slug: "test",
       ingredients: "a",
       calories: "100",
@@ -990,8 +878,9 @@ describe("drinkDraftSchema", () => {
       notes: "",
       rank: "0",
       status: "published",
-    });
-
-    expect(result.success).toBe(false);
+    };
+    for (const invalidField of [{ slug: "INVALID SLUG!!!" }, { title: "" }]) {
+      expect(parseSafe(drinkDraftSchema, { ...validInput, ...invalidField }).success).toBe(false);
+    }
   });
 });

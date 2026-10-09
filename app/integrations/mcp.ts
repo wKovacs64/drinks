@@ -39,7 +39,7 @@ export const mcpHandler = createMcpHandler(({ requestInfo }) => {
     { name: "drinks.fyi", version: "1.0.0" },
     {
       instructions:
-        "Use get_drink before explaining how to make a Drink. Base drinks.fyi recipe explanations on its returned ingredients and notes, preserving quantities, steps, and optional variations. Do not invent missing details or blend in other recipes. Cite sourceUrl for the recipe. The Drink card already shows imageUrl; do not add unrelated images or sources to this recipe's presentation. If notes are missing, say drinks.fyi provides no instructions.",
+        "Returned Drink cards are the complete response to drink searches and selections. When cards are displayed, do not add introductory text, repeat their titles, ingredient quantities, calories or links, create a second recipe preview, or add images or follow-up questions. If the user explicitly requests preparation instructions, use get_drink and explain only the returned notes, preserving steps and optional variations. Do not invent missing details or blend in other recipes or sources. If notes are missing, say drinks.fyi provides no instructions.",
     },
   );
   const drinks = createDrinksService({ db: getDb() });
@@ -51,7 +51,7 @@ export const mcpHandler = createMcpHandler(({ requestInfo }) => {
         text: cardHtml,
         _meta: {
           "openai/widgetDescription":
-            "Displays drinks.fyi Drink cards using each returned photo, title, ingredient quantities, calories when available, and sourceUrl. Search results omit preparation notes; get_drink returns them.",
+            "Displays the complete drinks.fyi search or selection result: Drink cards with the returned photos, titles, ingredient quantities, calories and recipe links. The cards already answer the request. Do not repeat their contents in text or create another recipe/image preview. Do not add an introduction or a follow-up question. Only provide additional preparation details when the user explicitly asks for them; use get_drink notes.",
           ui: {
             prefersBorder: false,
             csp: {
@@ -68,7 +68,7 @@ export const mcpHandler = createMcpHandler(({ requestInfo }) => {
     "search_drinks",
     {
       description:
-        "Search Published drinks.fyi recipes by name or ingredient and display matching Drink cards. Use a result's slug with get_drink for its complete recipe.",
+        "Search Published drinks.fyi recipes by name or ingredient and display matching Drink cards. The cards are the answer; end the response after displaying them, without text, additional images or recipe previews. Use a result's slug with get_drink only when preparation instructions are requested.",
       inputSchema: z.strictObject({ query: z.string().trim().min(1) }),
       outputSchema: searchResultSchema,
       annotations,
@@ -78,7 +78,14 @@ export const mcpHandler = createMcpHandler(({ requestInfo }) => {
       const results = (await drinks.searchPublishedDrinks({ query })).map(toSummary);
       const structuredContent = { drinks: results };
       return {
-        content: [{ type: "text", text: JSON.stringify(structuredContent) }],
+        content: [
+          {
+            type: "text",
+            text: results.length
+              ? "Matching Drink cards are displayed with photos, ingredients, calories and recipe links. End the response here. Do not repeat the cards in text or add another image or recipe preview."
+              : "No matching drinks.fyi recipes found.",
+          },
+        ],
         structuredContent,
       };
     },
@@ -88,7 +95,7 @@ export const mcpHandler = createMcpHandler(({ requestInfo }) => {
     "get_drink",
     {
       description:
-        "Retrieve a Published drinks.fyi recipe by its search result slug, including ingredient quantities and full recipe notes/instructions.",
+        "Retrieve a Published drinks.fyi recipe by its search result slug and display its Drink card. Returns full recipe notes/instructions. End the response after the card unless preparation instructions were explicitly requested; then explain only the returned notes without repeating the card's ingredients, calories, links or photo.",
       inputSchema: z.strictObject({ slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/) }),
       outputSchema: drinkResultSchema,
       annotations,
@@ -101,7 +108,12 @@ export const mcpHandler = createMcpHandler(({ requestInfo }) => {
         drink: { ...toSummary(result.drink), notes: result.drink.notes },
       };
       return {
-        content: [{ type: "text", text: JSON.stringify(structuredContent) }],
+        content: [
+          {
+            type: "text",
+            text: "The Drink card is displayed with its photo, ingredients, calories and recipe link. End the response here unless preparation instructions were explicitly requested; then explain only the returned notes. Do not repeat the card or add another image or recipe preview.",
+          },
+        ],
         structuredContent,
       };
     },

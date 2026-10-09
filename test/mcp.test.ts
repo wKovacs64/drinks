@@ -99,9 +99,6 @@ test("clients search by name and ingredient, then retrieve exact quantities and 
       sourceUrl: `${baseUrl}/test-margarita`,
     },
   });
-  expect(result.content).toEqual([
-    { type: "text", text: JSON.stringify(result.structuredContent) },
-  ]);
 });
 
 test("unmatched searches return an empty result", async (testContext) => {

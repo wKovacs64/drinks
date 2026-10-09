@@ -35,6 +35,19 @@ Each marker's ref mixin owns observer and image-listener cleanup; card markup st
 The editor client entry keys its inner form by action URL so soft navigation resets the draft and
 submission endpoint together.
 
+The public `/mcp` adapter lives under `app/integrations/mcp.ts` and runs before website document,
+session, authentication, and browser provenance middleware. It uses the official SDK's Fetch handler
+for stateless Streamable HTTP, its own Host/Origin checks, and `no-store` caching.
+It always calls the Drinks module as a public viewer; website cookies cannot grant MCP access.
+See [the SDK's HTTP lifecycle](https://ts.sdk.modelcontextprotocol.io/v2/serving/http).
+
+The MCP Apps card entry lives under `app/integrations/mcp/public/`. Asset preparation bundles the
+shared Drink summary with the MCP Apps bridge; its compiled script, gallery stylesheet, and fonts
+are embedded in the UI resource. This bundle runs independently of the website loader and native
+asset graph. The card receives structured recipes through the standard bridge and opens its absolute
+Drink URL with the host's `ui/open-link` method. Resource metadata permits images from the app origin
+and ImageKit. See [MCP Apps UI guidance](https://developers.openai.com/plugins/build/chatgpt-ui).
+
 ## Write completion
 
 A committed Drink write counts as success even if old-image cleanup or a public-cache refresh fails.

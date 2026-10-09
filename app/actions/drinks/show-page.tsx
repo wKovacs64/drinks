@@ -6,7 +6,6 @@ import { Gallery } from "#/app/ui/gallery.tsx";
 import { DrinkSummary } from "#/app/ui/drinks/drink-summary.tsx";
 import { DrinkDetails } from "#/app/ui/drinks/drink-details.tsx";
 import { Glass } from "#/app/ui/drinks/glass.tsx";
-import { detailImageSizes, drinkImageBreakpoints } from "#/app/ui/drinks/image-layout.ts";
 import { imageUrl } from "#/app/core/public/images.ts";
 
 export function DrinkPage(handle: Handle<{ drink: DrinkView }>) {
@@ -26,14 +25,7 @@ export function DrinkPage(handle: Handle<{ drink: DrinkView }>) {
           breadcrumbs={[{ title: "All Drinks", href: routes.home.href() }, { title: drink.title }]}
         >
           <Glass>
-            <DrinkSummary
-              className="lg:flex-row"
-              drink={drink}
-              breakpoints={drinkImageBreakpoints}
-              sizes={detailImageSizes}
-              stacked
-              priority
-            />
+            <DrinkSummary drink={drink} variant="detail" priority />
             <DrinkDetails drink={drink} />
           </Glass>
         </Gallery>

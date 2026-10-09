@@ -4,6 +4,7 @@ import { migrateDatabase } from "#/scripts/migrate.ts";
 import { getDb } from "#/app/db/client.ts";
 import { router } from "#/app/router.ts";
 import { assets } from "#/app/assets.ts";
+import { mcpHandler } from "#/app/integrations/mcp.ts";
 await migrateDatabase();
 const port = Number(process.env.PORT ?? 5173);
 const server = http.createServer(
@@ -24,6 +25,7 @@ server.listen(port, process.env.HOST ?? "0.0.0.0", () => {
 async function shutdown() {
   server.closeAllConnections();
   server.close();
+  await mcpHandler.close();
   await assets.close();
   await getDb().close();
   process.exit(0);

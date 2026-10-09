@@ -16,6 +16,7 @@ import { adminDrinkEditorRedirects } from "#/app/web/admin-drink-write/editor-re
 import { routeErrorPages } from "#/app/web/error-pages/route-errors.tsx";
 import { protectAdmin } from "./middleware/admin.ts";
 import { responseHeaders } from "./middleware/response-headers.ts";
+import { mcp } from "#/app/integrations/mcp.ts";
 import drinksController from "./actions/drinks/controller.tsx";
 import tagsController from "./actions/tags/controller.tsx";
 import searchController from "./actions/search/controller.tsx";
@@ -44,6 +45,7 @@ export const router = createRouter({
           filterMediaType: (mediaType) =>
             mediaType !== "text/event-stream" && isCompressibleMimeType(mediaType),
         }),
+    mcp,
     cop(),
     staticFiles("./public", { index: false }),
     renderMiddleware,

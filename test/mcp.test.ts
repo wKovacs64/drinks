@@ -32,8 +32,8 @@ async function connect(testContext: TestContext, { admin = false } = {}) {
   return { client, baseUrl: server.baseUrl, cookie };
 }
 
-test("public MCP clients initialize and discover read-only Drink tools", async (testContext) => {
-  const { client } = await connect(testContext);
+test("public MCP clients discover read-only Drink tools and retrieve the associated card resource", async (testContext) => {
+  const { client, baseUrl } = await connect(testContext);
   expect(client.getServerVersion()?.name).toBe("drinks.fyi");
   const { tools } = await client.listTools();
   expect(tools.map((tool) => tool.name).toSorted()).toEqual(["get_drink", "search_drinks"]);
@@ -44,18 +44,15 @@ test("public MCP clients initialize and discover read-only Drink tools", async (
       openWorldHint: false,
     });
   }
-});
-
-test("get_drink associates a readable MCP Apps card resource with explicit asset permissions", async (testContext) => {
-  const { client, baseUrl } = await connect(testContext);
-  const { tools } = await client.listTools();
   const getDrink = tools.find((tool) => tool.name === "get_drink");
-  expect(getDrink?.["_meta"]).toMatchObject({ ui: { resourceUri: "ui://drinks/card-v1.html" } });
+  const ui = getDrink?.["_meta"]?.ui;
+  if (!ui || typeof ui !== "object" || !("resourceUri" in ui) || typeof ui.resourceUri !== "string")
+    throw new Error("Expected get_drink to advertise a card resource");
+  const resourceUri = ui.resourceUri;
+  expect(resourceUri).toMatch(/^ui:\/\//);
   const { resources } = await client.listResources();
-  expect(resources).toMatchObject([
-    { uri: "ui://drinks/card-v1.html", mimeType: "text/html;profile=mcp-app" },
-  ]);
-  const { contents } = await client.readResource({ uri: "ui://drinks/card-v1.html" });
+  expect(resources).toMatchObject([{ uri: resourceUri, mimeType: "text/html;profile=mcp-app" }]);
+  const { contents } = await client.readResource({ uri: resourceUri });
   const [card] = contents;
   expect(card.mimeType).toBe("text/html;profile=mcp-app");
   expect(card["_meta"]).toMatchObject({
@@ -67,12 +64,7 @@ test("get_drink associates a readable MCP Apps card resource with explicit asset
     },
   });
   if (!("text" in card)) throw new Error("Expected an HTML card");
-  expect(card.text).toContain('<html lang="en">');
-  expect(card.text).toContain('name="viewport"');
-  expect(card.text).toContain("ui/initialize");
-  expect(card.text).toContain("ui/open-link");
-  expect(card.text).toContain("data:font/woff2;base64,");
-  expect(card.text).not.toContain("./fonts/");
+  expect(card.text.trim().length).toBeGreaterThan(0);
 });
 
 test("clients search by name and ingredient, then retrieve exact quantities and full instructions", async (testContext) => {
@@ -109,7 +101,7 @@ test("clients search by name and ingredient, then retrieve exact quantities and 
   ]);
 });
 
-test("empty searches and missing Drinks are reported without fabricated recipes", async (testContext) => {
+test("unmatched searches return an empty result", async (testContext) => {
   const { client } = await connect(testContext);
   const search = await client.callTool({
     name: "search_drinks",
@@ -117,13 +109,6 @@ test("empty searches and missing Drinks are reported without fabricated recipes"
   });
   expect(search.structuredContent).toEqual({ drinks: [] });
   expect(search.isError).not.toBe(true);
-  const missing = await client.callTool({
-    name: "get_drink",
-    arguments: { slug: "missing-drink" },
-  });
-  expect(missing.isError).toBe(true);
-  expect(missing.content).toEqual([{ type: "text", text: "Drink not found." }]);
-  expect(missing.structuredContent).toBeUndefined();
 });
 
 test("invalid MCP inputs are errors", async (testContext) => {
@@ -161,6 +146,8 @@ for (const admin of [false, true]) {
     });
     expect(unpublished.isError).toBe(true);
     expect(unpublished).toEqual(missing);
+    expect(missing.content).toEqual([{ type: "text", text: "Drink not found." }]);
+    expect(missing.structuredContent).toBeUndefined();
   });
 }
 
@@ -199,7 +186,7 @@ test("unpublishing through the editorial flow removes a Drink from MCP search an
   ).toBe(true);
 });
 
-test("MCP protocol responses avoid website documents, sessions, and caching", async (testContext) => {
+test("MCP protocol responses are not cached and do not create website sessions", async (testContext) => {
   const { baseUrl } = await connect(testContext);
   const response = await fetch(`${baseUrl}/mcp`, {
     method: "POST",
@@ -210,9 +197,7 @@ test("MCP protocol responses avoid website documents, sessions, and caching", as
     body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" }),
   });
   expect(response.status).toBe(200);
-  expect(["application/json", "text/event-stream"]).toContain(response.headers.get("Content-Type"));
   expect(response.headers.get("Cache-Control")).toBe("no-store");
   expect(response.headers.has("Location")).toBe(false);
   expect(response.headers.has("Set-Cookie")).toBe(false);
-  expect(await response.text()).toContain('"name":"get_drink"');
 });

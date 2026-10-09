@@ -39,7 +39,7 @@ export const mcpHandler = createMcpHandler(({ requestInfo }) => {
     { name: "drinks.fyi", version: "1.0.0" },
     {
       instructions:
-        "Returned Drink cards are the complete response to drink searches and selections. When cards are displayed, do not add introductory text, repeat their titles, ingredient quantities, calories or links, create a second recipe preview, or add images or follow-up questions. If the user explicitly requests preparation instructions, use get_drink and explain only the returned notes, preserving steps and optional variations. Do not invent missing details or blend in other recipes or sources. If notes are missing, say drinks.fyi provides no instructions.",
+        "Drink cards are the complete response. For preparation requests, call get_drink with the selected slug to display existing instructions and variations inside the card. Recipe details are delivered privately to the card, not to you. End the response after displaying cards. Do not add text, images, recipe previews, other sources or follow-up questions. Do not invent missing recipe details.",
     },
   );
   const drinks = createDrinksService({ db: getDb() });
@@ -51,7 +51,7 @@ export const mcpHandler = createMcpHandler(({ requestInfo }) => {
         text: cardHtml,
         _meta: {
           "openai/widgetDescription":
-            "Displays the complete drinks.fyi search or selection result: Drink cards with the returned photos, titles, ingredient quantities, calories and recipe links. The cards already answer the request. Do not repeat their contents in text or create another recipe/image preview. Do not add an introduction or a follow-up question. Only provide additional preparation details when the user explicitly asks for them; use get_drink notes.",
+            "Displays drinks.fyi recipes with their own photos, ingredient quantities, calories and recipe links. get_drink also displays all stored preparation instructions and variations. Recipe data is private to this widget. The cards are the complete answer, including preparation requests. Do not add text, images, recipe previews or follow-up questions.",
           ui: {
             prefersBorder: false,
             csp: {
@@ -78,7 +78,7 @@ export const mcpHandler = createMcpHandler(({ requestInfo }) => {
       const results = (await drinks.searchPublishedDrinks({ query, preferExactTitle: true })).map(
         toSummary,
       );
-      const structuredContent = { drinks: results };
+      const structuredContent = { drinks: results.map(({ slug }) => ({ slug })) };
       return {
         content: [
           {
@@ -89,6 +89,7 @@ export const mcpHandler = createMcpHandler(({ requestInfo }) => {
           },
         ],
         structuredContent,
+        _meta: { drinks: results },
       };
     },
   );
@@ -97,7 +98,7 @@ export const mcpHandler = createMcpHandler(({ requestInfo }) => {
     "get_drink",
     {
       description:
-        "Retrieve a Published drinks.fyi recipe by its search result slug and display its Drink card. Returns full recipe notes/instructions. End the response after the card unless preparation instructions were explicitly requested; then explain only the returned notes without repeating the card's ingredients, calories, links or photo.",
+        "Display a Published drinks.fyi recipe by its search result slug, including all stored preparation instructions and variations inside the Drink card. Use this tool for preparation requests. Recipe details are private to the card. End the response after the card without text, images, recipe previews or follow-up questions.",
       inputSchema: z.strictObject({ slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/) }),
       outputSchema: drinkResultSchema,
       annotations,
@@ -106,17 +107,16 @@ export const mcpHandler = createMcpHandler(({ requestInfo }) => {
     async ({ slug }) => {
       const result = await drinks.getDrinkBySlug({ slug, viewerRole: "user" });
       if (!result) return { isError: true, content: [{ type: "text", text: "Drink not found." }] };
-      const structuredContent = {
-        drink: { ...toSummary(result.drink), notes: result.drink.notes },
-      };
+      const structuredContent = { drink: { slug: result.drink.slug } };
       return {
         content: [
           {
             type: "text",
-            text: "The Drink card is displayed with its photo, ingredients, calories and recipe link. End the response here unless preparation instructions were explicitly requested; then explain only the returned notes. Do not repeat the card or add another image or recipe preview.",
+            text: "The full recipe is displayed in the Drink card, including all stored instructions and variations. End the response here. Do not add text, images or another recipe preview.",
           },
         ],
         structuredContent,
+        _meta: { drinks: [{ ...toSummary(result.drink), notes: result.drink.notes }] },
       };
     },
   );

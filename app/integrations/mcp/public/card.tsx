@@ -37,7 +37,6 @@ app.ontoolresult = (result) => {
         variant="compact"
         priority
       />
-      <span className="block px-4 pb-2 text-end font-normal">drinks.fyi</span>
     </a>,
   );
 };

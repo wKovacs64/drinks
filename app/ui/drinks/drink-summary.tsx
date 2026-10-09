@@ -41,14 +41,18 @@ export function DrinkSummary(handle: Handle<DrinkSummaryProps>) {
         <figure
           className={classes(
             "m-0 flex-1",
-            compact && "@min-[360px]:w-2/5 @min-[360px]:flex-none",
+            compact && "relative aspect-square @min-[360px]:w-2/5 @min-[360px]:flex-none",
             !drink.image && "bg-stone-900",
           )}
         >
-          <picture className="aspect-square">
+          <picture className={compact ? "absolute inset-0" : "aspect-square"}>
             <Source type="image/avif" {...imageProps} />
             <Source type="image/webp" {...imageProps} />
-            <Image alt={drink.title} {...imageProps} />
+            <Image
+              alt={drink.title}
+              {...imageProps}
+              className={compact ? "[block-size:100%]" : undefined}
+            />
           </picture>
         </figure>
         <div className={classes("flex flex-1", compact && "min-w-0")}>
@@ -78,8 +82,18 @@ export function DrinkSummary(handle: Handle<DrinkSummaryProps>) {
                 <li key={ingredient}>{ingredient}</li>
               ))}
             </ul>
-            <div className={classes("text-end", detail && "text-xl")}>
-              {drink.calories ? <span>{drink.calories} cal</span> : ""}
+            <div
+              className={classes(
+                compact ? "flex items-baseline gap-2" : "text-end",
+                detail && "text-xl",
+              )}
+            >
+              {compact && <span className="font-normal">drinks.fyi</span>}
+              {drink.calories ? (
+                <span className={compact ? "ms-auto" : undefined}>{drink.calories} cal</span>
+              ) : (
+                ""
+              )}
             </div>
           </div>
         </div>

@@ -82,14 +82,8 @@ export function DrinkSummary(handle: Handle<DrinkSummaryProps>) {
                 <li key={ingredient}>{ingredient}</li>
               ))}
             </ul>
-            <div
-              className={classes(
-                compact ? "flex items-baseline gap-2" : "text-end",
-                detail && "text-xl",
-              )}
-            >
+            <div className={classes("text-end", detail && "text-xl")}>
               {drink.calories ? <span>{drink.calories} cal</span> : ""}
-              {compact && <span className="ms-auto font-normal">drinks.fyi</span>}
             </div>
           </div>
         </div>

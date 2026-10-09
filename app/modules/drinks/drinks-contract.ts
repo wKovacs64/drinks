@@ -141,7 +141,11 @@ export interface DrinksService {
   getDrinkBySlug(input: { slug: string; viewerRole: ViewerRole }): Promise<DrinkForViewer | null>;
   getDrinksByTagSlug(input: { tagSlug: string }): Promise<DrinksByTagSlug | null>;
   getAllTags(): Promise<DrinkTagView[]>;
-  searchPublishedDrinks(input: { query: string }): Promise<DrinkView[]>;
+  searchPublishedDrinks(input: {
+    query: string;
+    /** Return only the exact title match when one exists. */
+    preferExactTitle?: boolean;
+  }): Promise<DrinkView[]>;
   getNewDrinkEditor(): Promise<DrinkEditor>;
   findDrinkEditorBySlug(slug: string): Promise<DrinkEditor | null>;
 }

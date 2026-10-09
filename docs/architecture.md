@@ -39,6 +39,8 @@ The public `/mcp` adapter lives under `app/integrations/mcp.ts` and runs before 
 session, authentication, and browser provenance middleware. It uses the official SDK's Fetch handler
 for stateless Streamable HTTP, its own Host/Origin checks, and `no-store` caching.
 It always calls the Drinks module as a public viewer; website cookies cannot grant MCP access.
+MCP search requests exact-title preference from the Drinks module: a case-insensitive title match
+returns only that Drink; other queries and website searches retain broad matching.
 See [the SDK's HTTP lifecycle](https://ts.sdk.modelcontextprotocol.io/v2/serving/http).
 
 The MCP Apps card entry lives under `app/integrations/mcp/public/`. Asset preparation bundles the

@@ -49,6 +49,9 @@ test("public MCP clients discover read-only Drink tools and retrieve the associa
   if (!ui || typeof ui !== "object" || !("resourceUri" in ui) || typeof ui.resourceUri !== "string")
     throw new Error("Expected get_drink to advertise a card resource");
   const resourceUri = ui.resourceUri;
+  expect(tools.find((tool) => tool.name === "search_drinks")?.["_meta"]?.ui).toMatchObject({
+    resourceUri,
+  });
   expect(resourceUri).toMatch(/^ui:\/\//);
   const { resources } = await client.listResources();
   expect(resources).toMatchObject([{ uri: resourceUri, mimeType: "text/html;profile=mcp-app" }]);

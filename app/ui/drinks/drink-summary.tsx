@@ -93,7 +93,7 @@ export function DrinkSummary(handle: Handle<DrinkSummaryProps>) {
 }
 
 type DrinkSummaryProps = {
-  drink: DrinkView;
+  drink: Pick<DrinkView, "title" | "ingredients" | "calories" | "image">;
   variant: keyof typeof imagePresets;
   priority?: ImageProps["priority"];
 };

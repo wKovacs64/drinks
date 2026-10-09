@@ -1,4 +1,5 @@
 import { cpSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { build } from "esbuild";
 mkdirSync("public/images", { recursive: true });
 mkdirSync("public/fonts", { recursive: true });
 cpSync("app/assets/images", "public/images", { recursive: true });
@@ -26,3 +27,12 @@ writeFileSync(
   "public/sw.js",
   `self.addEventListener('install', event => event.waitUntil(self.skipWaiting()));\nself.addEventListener('activate', event => event.waitUntil(Promise.all([caches.keys().then(keys => Promise.all(keys.map(key => caches.delete(key)))), self.clients.claim()])));\n`,
 );
+// Bundle the shared Drink summary and MCP Apps bridge without the website runtime.
+await build({
+  entryPoints: ["app/integrations/mcp/public/card.tsx"],
+  outfile: "public/mcp-card.js",
+  bundle: true,
+  platform: "browser",
+  format: "esm",
+  minify: true,
+});

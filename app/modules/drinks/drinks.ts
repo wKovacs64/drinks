@@ -170,13 +170,16 @@ function buildDrinksServiceReadMethods(deps: { db: Db }): DrinksService {
         drinks: await withPlaceholderImages(matchingDrinks),
       };
     },
-    async searchPublishedDrinks({ query }) {
+    async searchPublishedDrinks({ query, preferExactTitle = false }) {
       if (!query) {
         return [];
       }
 
       const matchingDrinks = await searchDrinks(deps.db, query);
-      return withPlaceholderImages(matchingDrinks);
+      const exactTitleMatch = preferExactTitle
+        ? matchingDrinks.find((drink) => drink.title.toLowerCase() === query.trim().toLowerCase())
+        : undefined;
+      return withPlaceholderImages(exactTitleMatch ? [exactTitleMatch] : matchingDrinks);
     },
     async getNewDrinkEditor() {
       return {

@@ -68,14 +68,16 @@ export const mcpHandler = createMcpHandler(({ requestInfo }) => {
     "search_drinks",
     {
       description:
-        "Search Published drinks.fyi recipes by name or ingredient and display matching Drink cards. The cards are the answer; end the response after displaying them, without text, additional images or recipe previews. Use a result's slug with get_drink only when preparation instructions are requested.",
+        "Search Published drinks.fyi recipes by name or ingredient and display matching Drink cards. An exact title match, ignoring case and surrounding whitespace, returns only that Drink; other queries return all matching Drinks. The cards are the answer; end the response after displaying them, without text, additional images or recipe previews. Use a result's slug with get_drink only when preparation instructions are requested.",
       inputSchema: z.strictObject({ query: z.string().trim().min(1) }),
       outputSchema: searchResultSchema,
       annotations,
       _meta: { ui: { resourceUri: cardUri } },
     },
     async ({ query }) => {
-      const results = (await drinks.searchPublishedDrinks({ query })).map(toSummary);
+      const results = (await drinks.searchPublishedDrinks({ query, preferExactTitle: true })).map(
+        toSummary,
+      );
       const structuredContent = { drinks: results };
       return {
         content: [

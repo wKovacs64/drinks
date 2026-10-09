@@ -7,7 +7,8 @@ import { http } from "msw/http";
 import { passthrough } from "msw/utils/passthrough";
 import { router } from "#/app/router.ts";
 import { resetAndSeedDatabase, TEST_ADMIN_USER } from "#/test/database.ts";
-import { purgeSearchCache } from "#/app/modules/drinks/drinks.ts";
+import { createDrinksService, purgeSearchCache } from "#/app/modules/drinks/drinks.ts";
+import { searchResultSchema } from "#/app/integrations/mcp/public/recipe.ts";
 import { server as requestMocks } from "#/test/server.ts";
 import { getDb } from "#/app/db/client.ts";
 import { drinks } from "#/app/db/schema.ts";
@@ -99,6 +100,31 @@ test("clients search by name and ingredient, then retrieve exact quantities and 
       sourceUrl: `${baseUrl}/test-margarita`,
     },
   });
+});
+
+test("MCP exact titles return only that Drink while partial, ingredient and website searches stay broad", async (testContext) => {
+  const { client } = await connect(testContext);
+  const db = getDb();
+  await db.update(drinks, "test-drink-3", { title: "Old Fashioned" });
+  await db.update(drinks, "test-drink-2", {
+    notes: "Serve in an old fashioned glass.",
+    ingredients: JSON.stringify(["2 oz bourbon", "mint", "sugar"]),
+  });
+  const search = async (query: string) => {
+    const result = await client.callTool({ name: "search_drinks", arguments: { query } });
+    return searchResultSchema.parse(result.structuredContent).drinks.map((drink) => drink.slug);
+  };
+  for (const query of ["Old Fashioned", "  OLD FASHIONED  "])
+    expect(await search(query)).toEqual(["test-old-fashioned"]);
+  for (const query of ["fashioned", "bourbon"])
+    expect((await search(query)).toSorted()).toEqual(["test-mojito", "test-old-fashioned"]);
+  const websiteResults = await createDrinksService({ db }).searchPublishedDrinks({
+    query: "old fashioned",
+  });
+  expect(websiteResults.map((drink) => drink.slug).toSorted()).toEqual([
+    "test-mojito",
+    "test-old-fashioned",
+  ]);
 });
 
 test("unmatched searches return an empty result", async (testContext) => {

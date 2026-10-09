@@ -6,9 +6,11 @@ slugs. `get_drink` accepts `{ slug }` and returns ingredient quantities, calorie
 and source URLs, and full existing notes/instructions as HTML. Missing and Unpublished drinks return
 the same tool error. Website Admin sessions have no effect.
 
-`get_drink` associates its result with `ui://drinks/card-v1.html`, an MCP Apps resource that renders
-the shared Drink summary in a compact layout. The card links to the corresponding details page on
-the serving app's origin. Clients without MCP Apps support still receive the complete recipe.
+`get_drink` associates its result with `ui://drinks/card-v2.html`, an MCP Apps resource that renders
+the shared Drink summary in a compact layout. Below 32rem of available card width, the photo appears
+above the recipe; wider cards show them side by side. The layout uses container width rather than
+device detection. The card links to the corresponding details page on the serving app's origin.
+Clients without MCP Apps support still receive the complete recipe.
 
 Server instructions guide recipe explanations to use the returned ingredients and notes, preserve
 quantities and steps, cite the Drink's source URL, and avoid invented details or unrelated recipes,
@@ -37,8 +39,9 @@ mode with permission to add custom MCP servers:
    check it reports that preparation instructions are unavailable.
 4. Search by ingredient, choose a result, then ask a follow-up about the selected Drink. Check empty
    searches and missing Drinks are reported accurately.
-5. At a narrow conversation width, check readable ingredients and no horizontal overflow. Tab to
-   the card and activate it with Enter. Check that navigation opens the matching dev details page.
+5. At a phone conversation width, check that the photo appears above the recipe with readable
+   ingredients and no horizontal overflow. At a wider card width, check the side-by-side layout.
+   Tab to the card and activate it with Enter. Check that navigation opens the matching dev details page.
 6. Refresh the custom connection after tool or UI changes; repeat affected checks in a new conversation.
 
 Connection and refresh steps follow [OpenAI's connect-and-test guide](https://developers.openai.com/plugins/deploy/connect-chatgpt)

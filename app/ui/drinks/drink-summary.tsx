@@ -11,7 +11,7 @@ import {
 const imagePresets = {
   gallery: { breakpoints: drinkImageBreakpoints, sizes: galleryImageSizes },
   detail: { breakpoints: drinkImageBreakpoints, sizes: detailImageSizes },
-  compact: { breakpoints: [320, 480, 640], sizes: "(min-width: 360px) 200px, 100vw" },
+  compact: { breakpoints: [320, 480, 640], sizes: "(min-width: 33rem) 14.5rem, 100vw" },
 };
 
 export function DrinkSummary(handle: Handle<DrinkSummaryProps>) {
@@ -34,14 +34,14 @@ export function DrinkSummary(handle: Handle<DrinkSummaryProps>) {
       <section
         className={classes(
           "flex h-full flex-col bg-gray-100",
-          compact && "@min-[360px]:flex-row",
+          compact && "@min-lg:flex-row",
           detail && "lg:flex-row",
         )}
       >
         <figure
           className={classes(
             "m-0 flex-1",
-            compact && "relative aspect-square @min-[360px]:w-2/5 @min-[360px]:flex-none",
+            compact && "relative aspect-square @min-lg:w-2/5 @min-lg:flex-none",
             !drink.image && "bg-stone-900",
           )}
         >

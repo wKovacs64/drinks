@@ -9,7 +9,7 @@ import type { Middleware } from "remix/router";
 import { getDb } from "#/app/db/client.ts";
 import { createDrinksService, type DrinkView } from "#/app/modules/drinks/drinks.ts";
 import { routes } from "#/app/routes.ts";
-import { drinkResultSchema, recipeSchema } from "#/app/integrations/mcp/public/recipe.ts";
+import { drinkResultSchema, searchResultSchema } from "#/app/integrations/mcp/public/recipe.ts";
 import {
   registerAppResource,
   registerAppTool,
@@ -51,7 +51,7 @@ export const mcpHandler = createMcpHandler(({ requestInfo }) => {
         text: cardHtml,
         _meta: {
           "openai/widgetDescription":
-            "Displays the drinks.fyi Drink photo, title, ingredient quantities, and calories when available, with a link to its sourceUrl. Preparation instructions are in the tool result's notes.",
+            "Displays drinks.fyi Drink cards using each returned photo, title, ingredient quantities, calories when available, and sourceUrl. Search results omit preparation notes; get_drink returns them.",
           ui: {
             prefersBorder: false,
             csp: {
@@ -63,14 +63,16 @@ export const mcpHandler = createMcpHandler(({ requestInfo }) => {
       },
     ],
   }));
-  server.registerTool(
+  registerAppTool(
+    server,
     "search_drinks",
     {
       description:
-        "Search Published drinks.fyi recipes by name or ingredient. Use a result's slug with get_drink for its complete recipe.",
+        "Search Published drinks.fyi recipes by name or ingredient and display matching Drink cards. Use a result's slug with get_drink for its complete recipe.",
       inputSchema: z.strictObject({ query: z.string().trim().min(1) }),
-      outputSchema: z.object({ drinks: z.array(recipeSchema.omit({ notes: true })) }),
+      outputSchema: searchResultSchema,
       annotations,
+      _meta: { ui: { resourceUri: cardUri } },
     },
     async ({ query }) => {
       const results = (await drinks.searchPublishedDrinks({ query })).map(toSummary);

@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 
-export const cardUri = "ui://drinks/card-v2.html";
+export const cardUri = "ui://drinks/card-v3.html";
 const script = readFileSync("public/mcp-card.js", "utf8");
 let styles = readFileSync("public/app.css", "utf8");
 // Inline fonts keep the sandbox independent of website asset CORS and relative URLs.
@@ -19,7 +19,7 @@ export const cardHtml = `<!doctype html>
   <style>${styles}</style>
 </head>
 <body class="m-0 p-2 font-sans font-light">
-  <main id="card" class="@container mx-auto max-w-xl"></main>
+  <main id="card" class="@container mx-auto flex max-w-xl flex-col gap-4"></main>
   <script type="module">${script.replaceAll("</script", "<\\/script")}</script>
 </body>
 </html>`;

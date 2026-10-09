@@ -10,3 +10,4 @@ export const recipeSchema = z.object({
   sourceUrl: z.url().refine((value) => ["http:", "https:"].includes(new URL(value).protocol)),
 });
 export const drinkResultSchema = z.object({ drink: recipeSchema });
+export const searchResultSchema = z.object({ drinks: z.array(recipeSchema.omit({ notes: true })) });

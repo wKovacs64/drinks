@@ -10,6 +10,14 @@ the same tool error. Website Admin sessions have no effect.
 the shared Drink summary in a compact layout. The card links to the corresponding details page on
 the serving app's origin. Clients without MCP Apps support still receive the complete recipe.
 
+Server instructions guide recipe explanations to use the returned ingredients and notes, preserve
+quantities and steps, cite the Drink's source URL, and avoid invented details or unrelated recipes,
+images, and sources. The card description identifies the photo and ingredients already displayed
+while pointing to the returned notes for preparation instructions. These are model guidance;
+they cannot enforce source exclusivity in ChatGPT's response. See OpenAI's
+[server instructions](https://developers.openai.com/plugins/build/mcp-server#create-the-server) and
+[component metadata](https://developers.openai.com/plugins/reference#component-resource-_meta-fields).
+
 Run `pnpm test test/mcp.test.ts` for the public HTTP boundary. Run `pnpm build:styles` and restart
 the server after card changes. Change the resource URI when making breaking UI changes, since hosts
 use it as a cache key. See [OpenAI's UI resource guidance](https://developers.openai.com/plugins/build/chatgpt-ui#embed-the-component-in-the-server-response).
@@ -23,7 +31,10 @@ mode with permission to add custom MCP servers:
    with no authentication. Install the resulting integration.
 2. Open a new conversation, type `@`, select `drinks.fyi Dev`, and ask for Paper Plane.
 3. Check title, exact ingredient quantities, photo, and the conditional calorie display against
-   the dev Drink page. Ask how to make it; verify the answer uses the complete existing instructions.
+   the dev Drink page. Ask how to make it; verify the answer preserves the existing instructions
+   and quantities, attributes the recipe to its Drink page, and adds no unrelated image or source.
+   Check it does not invent recipe details such as preparation time. For a Drink without notes,
+   check it reports that preparation instructions are unavailable.
 4. Search by ingredient, choose a result, then ask a follow-up about the selected Drink. Check empty
    searches and missing Drinks are reported accurately.
 5. At a narrow conversation width, check readable ingredients and no horizontal overflow. Tab to

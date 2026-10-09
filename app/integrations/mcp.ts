@@ -35,7 +35,13 @@ export const mcpHandler = createMcpHandler(({ requestInfo }) => {
     imageUrl: new URL(drink.image.url, origin).href,
     sourceUrl: new URL(routes.drinks.show.href({ slug: drink.slug }), origin).href,
   });
-  const server = new McpServer({ name: "drinks.fyi", version: "1.0.0" });
+  const server = new McpServer(
+    { name: "drinks.fyi", version: "1.0.0" },
+    {
+      instructions:
+        "Use get_drink before explaining how to make a Drink. Base drinks.fyi recipe explanations on its returned ingredients and notes, preserving quantities, steps, and optional variations. Do not invent missing details or blend in other recipes. Cite sourceUrl for the recipe. The Drink card already shows imageUrl; do not add unrelated images or sources to this recipe's presentation. If notes are missing, say drinks.fyi provides no instructions.",
+    },
+  );
   const drinks = createDrinksService({ db: getDb() });
   registerAppResource(server, "Drink card", cardUri, {}, async () => ({
     contents: [
@@ -44,6 +50,8 @@ export const mcpHandler = createMcpHandler(({ requestInfo }) => {
         mimeType: RESOURCE_MIME_TYPE,
         text: cardHtml,
         _meta: {
+          "openai/widgetDescription":
+            "Displays the drinks.fyi Drink photo, title, ingredient quantities, and calories when available, with a link to its sourceUrl. Preparation instructions are in the tool result's notes.",
           ui: {
             prefersBorder: false,
             csp: {

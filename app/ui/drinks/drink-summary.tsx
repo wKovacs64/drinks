@@ -88,12 +88,8 @@ export function DrinkSummary(handle: Handle<DrinkSummaryProps>) {
                 detail && "text-xl",
               )}
             >
-              {compact && <span className="font-normal">drinks.fyi</span>}
-              {drink.calories ? (
-                <span className={compact ? "ms-auto" : undefined}>{drink.calories} cal</span>
-              ) : (
-                ""
-              )}
+              {drink.calories ? <span>{drink.calories} cal</span> : ""}
+              {compact && <span className="ms-auto font-normal">drinks.fyi</span>}
             </div>
           </div>
         </div>

@@ -34,10 +34,8 @@ app.ontoolresult = (result) => {
     >
       <DrinkSummary
         drink={{ ...drink, image: { url: drink.imageUrl, blurDataUrl: "" }, tags: [] }}
-        breakpoints={[320, 480, 640]}
-        sizes="(min-width: 360px) 200px, 100vw"
+        variant="compact"
         priority
-        compact
       />
       <span className="block px-4 pb-2 text-end font-normal">drinks.fyi</span>
     </a>,

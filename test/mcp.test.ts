@@ -71,15 +71,23 @@ test("public MCP clients discover read-only Drink tools and retrieve the associa
   expect(card.text.trim().length).toBeGreaterThan(0);
 });
 
-test("clients search by name and ingredient, then retrieve exact quantities and full instructions", async (testContext) => {
+test("recipe details reach the widget while model-visible results contain only Drink slugs", async (testContext) => {
   const { client, baseUrl } = await connect(testContext);
   await getDb().update(drinks, "test-drink-1", {
     notes: "Shake with ice.\n\nStrain into a glass. Garnish with **lime**.",
   });
   for (const query of ["Test Margarita", "tequila"]) {
     const result = await client.callTool({ name: "search_drinks", arguments: { query } });
-    expect(result.structuredContent).toMatchObject({
-      drinks: [{ title: "Test Margarita", slug: "test-margarita" }],
+    expect(result.structuredContent).toEqual({ drinks: [{ slug: "test-margarita" }] });
+    expect(JSON.stringify(result.content)).not.toContain("2 oz tequila");
+    expect(result["_meta"]).toMatchObject({
+      drinks: [
+        {
+          title: "Test Margarita",
+          slug: "test-margarita",
+          ingredients: ["2 oz tequila", "1 oz lime juice", "1 oz triple sec"],
+        },
+      ],
     });
   }
   const result = await client.callTool({
@@ -87,18 +95,23 @@ test("clients search by name and ingredient, then retrieve exact quantities and 
     arguments: { slug: "test-margarita" },
   });
   expect(result.isError).not.toBe(true);
-  expect(result.structuredContent).toEqual({
-    drink: {
-      title: "Test Margarita",
-      slug: "test-margarita",
-      ingredients: ["2 oz tequila", "1 oz lime juice", "1 oz triple sec"],
-      notes:
-        "<p>Shake with ice.</p>\n<p>Strain into a glass. Garnish with <strong>lime</strong>.</p>\n",
-      calories: 200,
-      imageUrl:
-        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
-      sourceUrl: `${baseUrl}/test-margarita`,
-    },
+  expect(result.structuredContent).toEqual({ drink: { slug: "test-margarita" } });
+  for (const detail of ["2 oz tequila", "Shake with ice.", `${baseUrl}/test-margarita`])
+    expect(JSON.stringify(result.content)).not.toContain(detail);
+  expect(result["_meta"]).toEqual({
+    drinks: [
+      {
+        title: "Test Margarita",
+        slug: "test-margarita",
+        ingredients: ["2 oz tequila", "1 oz lime juice", "1 oz triple sec"],
+        notes:
+          "<p>Shake with ice.</p>\n<p>Strain into a glass. Garnish with <strong>lime</strong>.</p>\n",
+        calories: 200,
+        imageUrl:
+          "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+        sourceUrl: `${baseUrl}/test-margarita`,
+      },
+    ],
   });
 });
 
@@ -134,6 +147,7 @@ test("unmatched searches return an empty result", async (testContext) => {
     arguments: { query: "xyznonexistent" },
   });
   expect(search.structuredContent).toEqual({ drinks: [] });
+  expect(search["_meta"]).toEqual({ drinks: [] });
   expect(search.isError).not.toBe(true);
 });
 
@@ -162,6 +176,7 @@ for (const admin of [false, true]) {
       arguments: { query: "tequila" },
     });
     expect(search.structuredContent).toEqual({ drinks: [] });
+    expect(search["_meta"]).toEqual({ drinks: [] });
     const unpublished = await client.callTool({
       name: "get_drink",
       arguments: { slug: "test-margarita" },

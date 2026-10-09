@@ -46,7 +46,8 @@ See [the SDK's HTTP lifecycle](https://ts.sdk.modelcontextprotocol.io/v2/serving
 The MCP Apps card entry lives under `app/integrations/mcp/public/`. Asset preparation bundles the
 shared Drink summary with the MCP Apps bridge; its compiled script, gallery stylesheet, and fonts
 are embedded in the UI resource. This bundle runs independently of the website loader and native
-asset graph. The card receives structured recipes through the standard bridge and opens its absolute
+asset graph. The card receives full recipes in tool result `_meta` through the standard bridge; model-visible
+results contain only Drink slugs. Retrieval displays existing notes inside the card. The card opens its absolute
 Drink URL with the host's `ui/open-link` method. Resource metadata permits images from the app origin
 and ImageKit. See [MCP Apps UI guidance](https://developers.openai.com/plugins/build/chatgpt-ui).
 

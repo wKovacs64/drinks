@@ -1,5 +1,23 @@
 # Changelog
 
+## [5.1.0](https://github.com/wKovacs64/drinks/compare/v5.0.0...v5.1.0) (2026-10-10)
+
+
+### Features
+
+* add public drinks MCP integration ([#397](https://github.com/wKovacs64/drinks/issues/397)) ([eb16df6](https://github.com/wKovacs64/drinks/commit/eb16df6ea8821824057bf65060c5c75a67d89159))
+
+
+### Bug Fixes
+
+* discourage duplicate narration below Drink cards ([275139c](https://github.com/wKovacs64/drinks/commit/275139cd4d2355dc9172e41c384b52d142275a5f))
+* ground MCP recipe explanations ([6522688](https://github.com/wKovacs64/drinks/commit/6522688b8b62472e63571199143fb8da04ffa145))
+* ground MCP recipe explanations in drinks.fyi content ([#400](https://github.com/wKovacs64/drinks/issues/400)) ([6522688](https://github.com/wKovacs64/drinks/commit/6522688b8b62472e63571199143fb8da04ffa145))
+* prefer exact Drink titles in MCP searches ([4da3f79](https://github.com/wKovacs64/drinks/commit/4da3f790374b2b5fa1fa28133a432f9b3bfbf05d))
+* render Drink cards for MCP searches ([#402](https://github.com/wKovacs64/drinks/issues/402)) ([2891bb4](https://github.com/wKovacs64/drinks/commit/2891bb476c2211b6c5d931f283d1f4b5f32b8dff))
+* stack MCP cards on narrow screens ([ddee530](https://github.com/wKovacs64/drinks/commit/ddee530f5abc17d30e586f698b978df9c506e6a3))
+* stack MCP Drink cards on phones ([#401](https://github.com/wKovacs64/drinks/issues/401)) ([ddee530](https://github.com/wKovacs64/drinks/commit/ddee530f5abc17d30e586f698b978df9c506e6a3))
+
 ## [5.0.0](https://github.com/wKovacs64/drinks/compare/v4.2.5...v5.0.0) (2026-10-08)
 
 

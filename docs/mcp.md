@@ -1,16 +1,26 @@
 # Public MCP integration
 
 `/mcp` serves stateless MCP Streamable HTTP using the official TypeScript SDK. No authentication
-is required. `search_drinks` accepts `{ query }`; `get_drink` accepts `{ slug }`.
+is required. `search_drinks` accepts `{ query }` and discovers Drink references without displaying UI.
+`show_drinks` accepts `{ slugs, view }` and displays the final selection once. Its `view` is
+`summary` for searches/selections or `recipe` for preparation requests.
 Model-visible `structuredContent` contains only Drink slugs for follow-up selection. Full Published
 recipes go directly to the widget in tool result `_meta`, hidden from the model. Missing and
 Unpublished drinks return the same tool error. Website Admin sessions have no effect.
 See [OpenAI's tool result visibility contract](https://developers.openai.com/plugins/reference#tool-results).
 
-Both tools associate their results with `ui://drinks/card-v5.html`, an MCP Apps resource that renders
-the shared Drink summary in a compact layout. Search displays one card per Published drink in result
-order; an exact title match returns only that Drink, and an empty search displays no cards.
-Retrieval displays the selected Drink, including all existing notes/instructions as HTML.
+Only `show_drinks` associates its result with `ui://drinks/card-v6.html`, an MCP Apps resource that
+renders the shared Drink summary in a compact layout. It displays one card per selected Published
+drink in slug order. The recipe view includes all existing notes/instructions as HTML; the summary
+view omits preparation notes. If any selected Drink is missing or Unpublished, the entire display
+request fails without returning recipes.
+
+An exact-title search returns only that Drink; other searches retain broad matching. Search never
+displays cards. The model is instructed to call `show_drinks` once with the final selected slugs
+and view, avoiding a preliminary summary card before a recipe card. Broad searches display all
+returned slugs in result order unless the user requests a subset. Empty searches need no display call. See
+[OpenAI's decoupled data/render pattern](https://developers.openai.com/plugins/build/chatgpt-ui#decoupled-pattern).
+
 Each card uses its returned photo and ingredient quantities. Below 32rem of available card width,
 the photo appears above the recipe; wider cards show them side by side. The layout uses container
 width rather than device detection. The summary links to the corresponding details page on the
@@ -40,7 +50,8 @@ mode with permission to add custom MCP servers:
 3. Check title, exact ingredient quantities, photo, and the conditional calorie display against
    the dev Drink page. Ask how to make it; verify the card displays all existing instructions
    and variations without a separate explanation, unrelated image or source. For a Drink without
-   notes, check the card adds no invented instructions.
+   notes, check the card adds no invented instructions. Check there is one recipe card, without a
+   separate summary card above it.
 4. Search by ingredient (for example, "got any coffee drinks?") and check that the matching Drinks
    appear as cards using their own photos and ingredients. Check multiple matches keep result order
    and empty searches display no cards. Choose a result, then ask a follow-up about the selected

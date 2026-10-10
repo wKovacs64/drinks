@@ -8,7 +8,7 @@ import { passthrough } from "msw/utils/passthrough";
 import { router } from "#/app/router.ts";
 import { resetAndSeedDatabase, TEST_ADMIN_USER } from "#/test/database.ts";
 import { createDrinksService, purgeSearchCache } from "#/app/modules/drinks/drinks.ts";
-import { searchResultSchema } from "#/app/integrations/mcp/public/recipe.ts";
+import { cardResultSchema, searchResultSchema } from "#/app/integrations/mcp/public/recipe.ts";
 import { server as requestMocks } from "#/test/server.ts";
 import { getDb } from "#/app/db/client.ts";
 import { drinks } from "#/app/db/schema.ts";
@@ -37,7 +37,8 @@ test("public MCP clients discover read-only Drink tools and retrieve the associa
   const { client, baseUrl } = await connect(testContext);
   expect(client.getServerVersion()?.name).toBe("drinks.fyi");
   const { tools } = await client.listTools();
-  expect(tools.map((tool) => tool.name).toSorted()).toEqual(["get_drink", "search_drinks"]);
+  expect(tools.filter((tool) => tool["_meta"]?.ui).length).toBe(1);
+  expect(tools.map((tool) => tool.name).toSorted()).toEqual(["search_drinks", "show_drinks"]);
   for (const tool of tools) {
     expect(tool.annotations).toMatchObject({
       readOnlyHint: true,
@@ -45,14 +46,12 @@ test("public MCP clients discover read-only Drink tools and retrieve the associa
       openWorldHint: false,
     });
   }
-  const getDrink = tools.find((tool) => tool.name === "get_drink");
-  const ui = getDrink?.["_meta"]?.ui;
+  const display = tools.find((tool) => tool.name === "show_drinks");
+  const ui = display?.["_meta"]?.ui;
   if (!ui || typeof ui !== "object" || !("resourceUri" in ui) || typeof ui.resourceUri !== "string")
-    throw new Error("Expected get_drink to advertise a card resource");
+    throw new Error("Expected show_drinks to advertise a card resource");
   const resourceUri = ui.resourceUri;
-  expect(tools.find((tool) => tool.name === "search_drinks")?.["_meta"]?.ui).toMatchObject({
-    resourceUri,
-  });
+  expect(tools.find((tool) => tool.name === "search_drinks")?.["_meta"]?.ui).toBeUndefined();
   expect(resourceUri).toMatch(/^ui:\/\//);
   const { resources } = await client.listResources();
   expect(resources).toMatchObject([{ uri: resourceUri, mimeType: "text/html;profile=mcp-app" }]);
@@ -80,22 +79,14 @@ test("recipe details reach the widget while model-visible results contain only D
     const result = await client.callTool({ name: "search_drinks", arguments: { query } });
     expect(result.structuredContent).toEqual({ drinks: [{ slug: "test-margarita" }] });
     expect(JSON.stringify(result.content)).not.toContain("2 oz tequila");
-    expect(result["_meta"]).toMatchObject({
-      drinks: [
-        {
-          title: "Test Margarita",
-          slug: "test-margarita",
-          ingredients: ["2 oz tequila", "1 oz lime juice", "1 oz triple sec"],
-        },
-      ],
-    });
+    expect(result["_meta"]?.drinks).toBeUndefined();
   }
   const result = await client.callTool({
-    name: "get_drink",
-    arguments: { slug: "test-margarita" },
+    name: "show_drinks",
+    arguments: { slugs: ["test-margarita"], view: "recipe" },
   });
   expect(result.isError).not.toBe(true);
-  expect(result.structuredContent).toEqual({ drink: { slug: "test-margarita" } });
+  expect(result.structuredContent).toEqual({ drinks: [{ slug: "test-margarita" }] });
   for (const detail of ["2 oz tequila", "Shake with ice.", `${baseUrl}/test-margarita`])
     expect(JSON.stringify(result.content)).not.toContain(detail);
   expect(result["_meta"]).toEqual({
@@ -113,6 +104,25 @@ test("recipe details reach the widget while model-visible results contain only D
       },
     ],
   });
+});
+
+test("displaying multiple summaries preserves selected order and omits preparation notes", async (testContext) => {
+  const { client } = await connect(testContext);
+  const slugs = ["test-mojito", "test-margarita"];
+  const result = await client.callTool({
+    name: "show_drinks",
+    arguments: { slugs, view: "summary" },
+  });
+  expect(result.structuredContent).toEqual({ drinks: slugs.map((slug) => ({ slug })) });
+  const summaries = cardResultSchema.parse(result["_meta"]).drinks;
+  expect(summaries.map((drink) => drink.slug)).toEqual(slugs);
+  expect(summaries.map((drink) => drink.notes)).toEqual([undefined, undefined]);
+  const unavailable = await client.callTool({
+    name: "show_drinks",
+    arguments: { slugs: [...slugs, "missing-drink"], view: "summary" },
+  });
+  expect(unavailable.isError).toBe(true);
+  expect(unavailable["_meta"]?.drinks).toBeUndefined();
 });
 
 test("MCP exact titles return only that Drink while partial, ingredient and website searches stay broad", async (testContext) => {
@@ -147,7 +157,7 @@ test("unmatched searches return an empty result", async (testContext) => {
     arguments: { query: "xyznonexistent" },
   });
   expect(search.structuredContent).toEqual({ drinks: [] });
-  expect(search["_meta"]).toEqual({ drinks: [] });
+  expect(search["_meta"]?.drinks).toBeUndefined();
   expect(search.isError).not.toBe(true);
 });
 
@@ -157,9 +167,18 @@ test("invalid MCP inputs are errors", async (testContext) => {
     { name: "search_drinks", arguments: {} },
     { name: "search_drinks", arguments: { query: "  " } },
     { name: "search_drinks", arguments: { query: 42 } },
-    { name: "get_drink", arguments: {} },
-    { name: "get_drink", arguments: { slug: "../admin" } },
-    { name: "get_drink", arguments: { slug: "test-margarita", viewerRole: "admin" } },
+    { name: "show_drinks", arguments: {} },
+    { name: "show_drinks", arguments: { slugs: ["../admin"], view: "recipe" } },
+    { name: "show_drinks", arguments: { slugs: [], view: "summary" } },
+    { name: "show_drinks", arguments: { slugs: ["test-margarita"], view: "unknown" } },
+    {
+      name: "show_drinks",
+      arguments: { slugs: ["test-margarita", "test-margarita"], view: "summary" },
+    },
+    {
+      name: "show_drinks",
+      arguments: { slugs: ["test-margarita"], view: "recipe", viewerRole: "admin" },
+    },
   ]) {
     const result = await client.callTool(call);
     expect(result.isError).toBe(true);
@@ -176,14 +195,14 @@ for (const admin of [false, true]) {
       arguments: { query: "tequila" },
     });
     expect(search.structuredContent).toEqual({ drinks: [] });
-    expect(search["_meta"]).toEqual({ drinks: [] });
+    expect(search["_meta"]?.drinks).toBeUndefined();
     const unpublished = await client.callTool({
-      name: "get_drink",
-      arguments: { slug: "test-margarita" },
+      name: "show_drinks",
+      arguments: { slugs: ["test-margarita"], view: "recipe" },
     });
     const missing = await client.callTool({
-      name: "get_drink",
-      arguments: { slug: "missing-drink" },
+      name: "show_drinks",
+      arguments: { slugs: ["missing-drink"], view: "recipe" },
     });
     expect(unpublished.isError).toBe(true);
     expect(unpublished).toEqual(missing);
@@ -223,7 +242,12 @@ test("unpublishing through the editorial flow removes a Drink from MCP search an
       .structuredContent,
   ).toEqual({ drinks: [] });
   expect(
-    (await client.callTool({ name: "get_drink", arguments: { slug: "test-margarita" } })).isError,
+    (
+      await client.callTool({
+        name: "show_drinks",
+        arguments: { slugs: ["test-margarita"], view: "recipe" },
+      })
+    ).isError,
   ).toBe(true);
 });
 

@@ -18,8 +18,8 @@ test("the card displays private recipe notes and opens summary and note links th
   testContext.after(() => client.close());
   await client.connect(new StreamableHTTPClientTransport(new URL("/mcp", page.url())));
   const result = await client.callTool({
-    name: "get_drink",
-    arguments: { slug: "test-margarita" },
+    name: "show_drinks",
+    arguments: { slugs: ["test-margarita"], view: "recipe" },
   });
   await page.setViewportSize({ width: 390, height: 1000 });
   await page.setContent('<iframe title="Drink card" style="width:100%;border:0"></iframe>');

@@ -11,5 +11,4 @@ export const recipeSchema = z.object({
 });
 export const cardResultSchema = z.object({ drinks: z.array(recipeSchema) });
 const drinkReferenceSchema = recipeSchema.pick({ slug: true });
-export const drinkResultSchema = z.object({ drink: drinkReferenceSchema });
 export const searchResultSchema = z.object({ drinks: z.array(drinkReferenceSchema) });

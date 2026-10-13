@@ -55,7 +55,7 @@
     "@modelcontextprotocol/client": "2.3.1",
     "@tailwindcss/cli": "4.3.3",
     "@types/lodash-es": "4.17.12",
-    "@types/node": "26.6.4",
+    "@types/node": "26.6.5",
     "@wkovacs64/add-icon": "1.2.2",
     "@wkovacs64/oxlint-config": "0.3.0",
     "esbuild": "0.28.2",

@@ -59,7 +59,7 @@
     "@wkovacs64/add-icon": "1.2.2",
     "@wkovacs64/oxlint-config": "0.3.0",
     "esbuild": "0.28.2",
-    "msw": "3.0.2",
+    "msw": "3.0.3",
     "oxfmt": "0.72.0",
     "oxlint": "1.87.0",
     "oxlint-tsgolint": "7.0.2003",

@@ -167,8 +167,8 @@ importers:
   .:
     dependencies:
       '@fontsource/source-sans-3':
-        specifier: 5.3.0
-        version: 5.3.0
+        specifier: 5.3.1
+        version: 5.3.1
       '@imagekit/nodejs':
         specifier: 7.12.1
         version: 7.12.1
@@ -572,8 +572,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@fontsource/source-sans-3@5.3.0':
-    resolution: {integrity: sha512-VrWixSgF93kOVSEkwjs9ImnAbxrBew4PgcnaJYEitG9TyJSwxjFUNJIgzB1XFP/acyAWcTDg7+sWe7JI8LTB9w==}
+  '@fontsource/source-sans-3@5.3.1':
+    resolution: {integrity: sha512-O3YxvbotUOgYI2Zx0bBcEMNjnwitRf9P2+9pd54sMoux1NHrdXnMwZusw2P78lFhEzOPN4glOEQmX0ASaS68uA==}
 
   '@imagekit/nodejs@7.12.1':
     resolution: {integrity: sha512-4eIg2llqpes+KbJ5AJSQgKp27b2oGR32wm/XckYsqPBJxpUYRQm0sBPRtmXdmV31hWG48J6d7NvKvW9Ylk3XdA==}
@@ -2751,7 +2751,7 @@ snapshots:
   '@esbuild/win32-x64@0.28.2':
     optional: true
 
-  '@fontsource/source-sans-3@5.3.0': {}
+  '@fontsource/source-sans-3@5.3.1': {}
 
   '@imagekit/nodejs@7.12.1':
     dependencies:

@@ -49,7 +49,7 @@
     "minisearch": "7.2.0",
     "remix": "3.0.0",
     "unpic": "4.2.2",
-    "zod": "4.6.6"
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@modelcontextprotocol/client": "2.3.1",

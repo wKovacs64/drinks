@@ -222,8 +222,8 @@ importers:
         specifier: 1.2.2
         version: 1.2.2
       '@wkovacs64/oxlint-config':
-        specifier: 0.3.0
-        version: 0.3.0(oxlint-tsgolint@7.0.2004)(oxlint@1.88.0(oxlint-tsgolint@7.0.2004))
+        specifier: 0.4.0
+        version: 0.4.0(oxlint-tsgolint@7.0.2004)(oxlint@1.88.0(oxlint-tsgolint@7.0.2004))
       esbuild:
         specifier: 0.28.2
         version: 0.28.2
@@ -1961,8 +1961,8 @@ packages:
     engines: {node: '>=20.19.0'}
     hasBin: true
 
-  '@wkovacs64/oxlint-config@0.3.0':
-    resolution: {integrity: sha512-LTf6xsV5hfUppVwp48S5NbTtdEnhSBjBvCBccLXWWF5c+yIHE1S7j5Z+cnFnl8zKxAtZiLN1ztS5LqRPeZiDOA==}
+  '@wkovacs64/oxlint-config@0.4.0':
+    resolution: {integrity: sha512-1xFGysX+KzWoaQz4OsoVCeHbapZSmoKALASg7Dkdzs2g5Rlrm3KInelUJHwdM4tK9scVJG3Uyi5iIRnpaGG7WQ==}
     engines: {node: '>=24'}
     peerDependencies:
       oxlint: '>=1.79.0 <2'
@@ -3759,7 +3759,7 @@ snapshots:
       esbuild: 0.27.7
       typescript: 5.9.3
 
-  '@wkovacs64/oxlint-config@0.3.0(oxlint-tsgolint@7.0.2004)(oxlint@1.88.0(oxlint-tsgolint@7.0.2004))':
+  '@wkovacs64/oxlint-config@0.4.0(oxlint-tsgolint@7.0.2004)(oxlint@1.88.0(oxlint-tsgolint@7.0.2004))':
     dependencies:
       oxlint: 1.88.0(oxlint-tsgolint@7.0.2004)
       oxlint-tsgolint: 7.0.2004

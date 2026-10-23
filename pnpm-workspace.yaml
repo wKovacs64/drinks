@@ -11,3 +11,24 @@ minimumReleaseAgeExclude:
   - "@wkovacs64/oxlint-config@0.3.0"
   # Renovate security update: esbuild@0.28.1
   - esbuild@0.28.1
+  # Remix 3.1 release: https://github.com/remix-run/remix/releases/tag/remix%403.1.0
+  - remix@3.1.0
+  - "@remix-run/ui@0.13.0"
+  - "@remix-run/assets@1.0.1"
+  - "@remix-run/cli@1.0.1"
+  - "@remix-run/component@1.1.0"
+  - "@remix-run/compression-middleware@1.0.1"
+  - "@remix-run/cookie@1.0.1"
+  - "@remix-run/cors-middleware@1.0.1"
+  - "@remix-run/fetch-proxy@1.0.1"
+  - "@remix-run/file-storage-s3@1.1.0"
+  - "@remix-run/form-data-middleware@1.1.0"
+  - "@remix-run/form-data-parser@1.1.0"
+  - "@remix-run/headers@1.0.1"
+  - "@remix-run/multipart-parser@1.1.0"
+  - "@remix-run/render-middleware@1.0.1"
+  - "@remix-run/response@1.0.1"
+  - "@remix-run/session-middleware@1.0.1"
+  - "@remix-run/spa@1.0.1"
+  - "@remix-run/static-middleware@1.0.1"
+  - "@remix-run/tar-parser@1.0.1"

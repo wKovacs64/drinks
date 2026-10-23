@@ -29,9 +29,12 @@ Files use ordinary `.ts` and `.tsx` names; server isolation comes from the allow
 filename suffix. Browsers that pass an in-document multiple-import-map probe use native module
 loading; other browsers retain Remix's compatibility loader. Deferred module hints begin after
 paint and yield between small batches. Static asset sources live under `app/assets/`; root `public/`
-is generated output and local uploads. Navigation uses native anchors. Gallery lists share one small
-hydrated viewport-prefetch marker and observer; standalone navigation anchors have their own marker.
-Each marker's ref mixin owns observer and image-listener cleanup; card markup stays server-rendered.
+is generated output and local uploads. Navigation uses native anchors. Gallery, navigation, and Tag
+links use Remix's `data-rmx-prefetch="viewport"` for low-priority frame HTML and asset discovery,
+respecting Save-Data and slow connections. Card markup stays server-rendered without prefetch client
+entries. Remix owns script-entry caching and watch/HMR invalidation.
+See [Remix prefetching](https://github.com/remix-run/remix/blob/remix%403.1.0/packages/component/docs/frames.md#prefetching)
+and [asset caching](https://github.com/remix-run/remix/releases/tag/assets%401.0.1).
 The editor client entry keys its inner form by action URL so soft navigation resets the draft and
 submission endpoint together.
 

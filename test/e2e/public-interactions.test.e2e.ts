@@ -147,22 +147,41 @@ test("search preserves results through repeated queries, empty results, and hist
   expect(await input.inputValue()).toBe("mint");
 });
 
-test("speculative drink navigation waits for visibility and loaded photos", async (testContext) => {
+for (const connection of [
+  { saveData: true, effectiveType: "4g" },
+  { saveData: false, effectiveType: "2g" },
+  { saveData: false, effectiveType: "slow-2g" },
+]) {
+  test(`speculative navigation respects connection ${JSON.stringify(connection)}`, async (testContext) => {
+    const page = await createBrowserPage(testContext);
+    await page.addInitScript((value) => {
+      Object.defineProperty(navigator, "connection", { value });
+    }, connection);
+    let drinkRequests = 0;
+    await page.route("**/test-margarita", async (route) => {
+      drinkRequests++;
+      await route.continue();
+    });
+    await page.goto("/");
+    await page.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
+    await page.waitForTimeout(200);
+    expect(drinkRequests).toBe(0);
+    await page.getByRole("link", { name: "Test Margarita", exact: true }).click();
+    await page.waitForURL("/test-margarita");
+    await page.getByText("2 oz tequila", { exact: true }).waitFor();
+    expect(drinkRequests).toBe(1);
+  });
+}
+
+test("speculative drink navigation waits for visibility and uses frame requests", async (testContext) => {
   const page = await createBrowserPage(testContext);
   await page.setViewportSize({ width: 390, height: 340 });
-  const releasePhoto = Promise.withResolvers<void>();
   const drinkPrefetched = Promise.withResolvers<void>();
   const lastPrefetched = Promise.withResolvers<void>();
   let prefetchRequests = 0;
   let lastRequests = 0;
-  await page.route("**/slow-photo.svg", async (route) => {
-    await releasePhoto.promise;
-    await route.fulfill({
-      contentType: "image/svg+xml",
-      body: '<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>',
-    });
-  });
   await page.route("**/test-margarita", async (route) => {
+    expect(route.request().headers()["x-remix-frame"]).toBe("true");
     prefetchRequests++;
     drinkPrefetched.resolve();
     await route.continue();
@@ -172,20 +191,8 @@ test("speculative drink navigation waits for visibility and loaded photos", asyn
     lastPrefetched.resolve();
     await route.continue();
   });
-  await page.addInitScript(() => {
-    const observer = new MutationObserver(() => {
-      const image = document.querySelector('img[alt="Test Margarita"]');
-      if (!(image instanceof HTMLImageElement)) return;
-      observer.disconnect();
-      image.src = "/slow-photo.svg";
-    });
-    observer.observe(document, { childList: true, subtree: true });
-  });
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
-  await page.waitForTimeout(100);
-  expect(prefetchRequests).toBe(0);
-  releasePhoto.resolve();
   await drinkPrefetched.promise;
   expect(prefetchRequests).toBe(1);
   expect(lastRequests).toBe(0);

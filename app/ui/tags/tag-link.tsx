@@ -1,5 +1,4 @@
 import type { Handle, Props } from "remix/component";
-import { ViewportPrefetch } from "#/app/ui/navigation/public/viewport-prefetch.tsx";
 
 import { classes } from "#/app/core/public/strings.ts";
 
@@ -13,8 +12,8 @@ export function TagLink(handle: Handle<Omit<Props<"a">, "href" | "role"> & { hre
           className,
         )}
         {...props}
+        data-rmx-prefetch="viewport"
       >
-        <ViewportPrefetch href={props.href} />
         {children}
       </a>
     );

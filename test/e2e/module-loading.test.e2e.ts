@@ -33,11 +33,11 @@ test("single-import-map browsers retain polyfilled hydration and late client ent
   });
   await page.goto("/");
   await page.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
-  expect(polyfillLoaded).toBe(true);
   await page.getByRole("link", { name: "Search", exact: true }).click();
   await page.waitForURL("/search");
   const input = page.getByRole("textbox", { name: "Search Term" });
   await input.fill("tequila");
   await input.press("Enter");
   await page.getByRole("heading", { name: "Test Margarita", exact: true }).waitFor();
+  expect(polyfillLoaded).toBe(true);
 });

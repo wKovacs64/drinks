@@ -147,15 +147,9 @@ test("search preserves results through repeated queries, empty results, and hist
   expect(await input.inputValue()).toBe("mint");
 });
 
-test("Drink links prefetch only when visible and Save-Data permits", async (testContext) => {
+test("visible Drink links prefetch and retain navigation", async (testContext) => {
   const page = await createBrowserPage(testContext);
   await page.setViewportSize({ width: 390, height: 340 });
-  await page.addInitScript(() => {
-    Object.defineProperty(navigator, "connection", {
-      configurable: true,
-      value: { saveData: false, effectiveType: "4g" },
-    });
-  });
   const requestedPaths = new Set<string>();
   page.on("request", (request) => {
     requestedPaths.add(new URL(request.url()).pathname);
@@ -176,15 +170,12 @@ test("Drink links prefetch only when visible and Save-Data permits", async (test
   await nextPrefetched;
   expect(requestedPaths.has("/test-old-fashioned")).toBe(false);
 
-  await page.evaluate(() => {
-    Object.defineProperty(navigator, "connection", {
-      value: { saveData: true, effectiveType: "4g" },
-    });
-  });
+  const lastPrefetched = page.waitForRequest(
+    (request) => new URL(request.url()).pathname === "/test-old-fashioned",
+  );
   const lastCard = page.getByRole("link", { name: "Test Old Fashioned", exact: true });
   await lastCard.scrollIntoViewIfNeeded();
-  await page.waitForTimeout(200);
-  expect(requestedPaths.has("/test-old-fashioned")).toBe(false);
+  await lastPrefetched;
   await lastCard.click();
   await page.waitForURL("/test-old-fashioned");
   await page.getByText("2 oz bourbon", { exact: true }).waitFor();

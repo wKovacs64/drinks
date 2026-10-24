@@ -162,6 +162,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  '@remix-run/multiple-import-maps-polyfill@1.0.0': dbc1c88b140c6c835cf7764cce6c298a7e21a72acabe9be4b6945a6fae43e3c7
+
 importers:
 
   .:
@@ -3475,7 +3478,7 @@ snapshots:
     dependencies:
       '@remix-run/headers': 1.0.1
 
-  '@remix-run/multiple-import-maps-polyfill@1.0.0':
+  '@remix-run/multiple-import-maps-polyfill@1.0.0(patch_hash=dbc1c88b140c6c835cf7764cce6c298a7e21a72acabe9be4b6945a6fae43e3c7)':
     dependencies:
       es-module-lexer: 2.3.2
 
@@ -4308,7 +4311,7 @@ snapshots:
       '@remix-run/method-override-middleware': 1.0.0
       '@remix-run/mime': 1.0.0
       '@remix-run/multipart-parser': 1.1.0
-      '@remix-run/multiple-import-maps-polyfill': 1.0.0
+      '@remix-run/multiple-import-maps-polyfill': 1.0.0(patch_hash=dbc1c88b140c6c835cf7764cce6c298a7e21a72acabe9be4b6945a6fae43e3c7)
       '@remix-run/node-fetch-server': 1.0.0
       '@remix-run/node-hmr': 1.0.0(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)
       '@remix-run/node-tsx': 1.0.0(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)

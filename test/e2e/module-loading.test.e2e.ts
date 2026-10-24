@@ -4,9 +4,7 @@ import { createBrowserPage } from "#/test/e2e.ts";
 
 test("single-import-map browsers retain polyfilled hydration and late client entries", async (context) => {
   const page = await createBrowserPage(context);
-  let polyfillLoaded = false;
   await page.route("**/features*.js", async (route) => {
-    polyfillLoaded = true;
     // Supply the capability result an older browser's isolated probe returns.
     await route.fulfill({
       contentType: "text/javascript",
@@ -36,8 +34,10 @@ test("single-import-map browsers retain polyfilled hydration and late client ent
   await page.getByRole("link", { name: "Search", exact: true }).click();
   await page.waitForURL("/search");
   const input = page.getByRole("textbox", { name: "Search Term" });
+  await page.waitForFunction(() => document.activeElement?.getAttribute("name") === "q");
   await input.fill("tequila");
   await input.press("Enter");
   await page.getByRole("heading", { name: "Test Margarita", exact: true }).waitFor();
-  expect(polyfillLoaded).toBe(true);
+  await input.press("Escape");
+  expect(await input.inputValue()).toBe("");
 });

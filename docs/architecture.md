@@ -27,7 +27,9 @@ Browser source lives in owner-local `public/` directories, with shared browser u
 import in a browser graph must be allowed. Type-only imports are erased before serving browser code.
 Files use ordinary `.ts` and `.tsx` names; server isolation comes from the allowlist rather than a
 filename suffix. Browsers that pass an in-document multiple-import-map probe use native module
-loading; other browsers retain Remix's compatibility loader. Deferred module hints begin after
+loading; other browsers retain Remix's compatibility loader. Its parser uses
+[`es-module-lexer/js`](https://github.com/guybedford/es-module-lexer/blob/2.3.2/README.md#csp-asmjs-build) to work under
+the app's CSP without eval or WebAssembly compilation. Deferred module hints begin after
 paint and yield between small batches. Static asset sources live under `app/assets/`; root `public/`
 is generated output and local uploads. Navigation uses native anchors. Gallery, navigation, and Tag
 links use Remix's `data-rmx-prefetch="viewport"` for low-priority frame HTML and asset discovery,

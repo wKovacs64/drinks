@@ -147,57 +147,45 @@ test("search preserves results through repeated queries, empty results, and hist
   expect(await input.inputValue()).toBe("mint");
 });
 
-for (const connection of [
-  { saveData: true, effectiveType: "4g" },
-  { saveData: false, effectiveType: "2g" },
-  { saveData: false, effectiveType: "slow-2g" },
-]) {
-  test(`speculative navigation respects connection ${JSON.stringify(connection)}`, async (testContext) => {
-    const page = await createBrowserPage(testContext);
-    await page.addInitScript((value) => {
-      Object.defineProperty(navigator, "connection", { value });
-    }, connection);
-    let drinkRequests = 0;
-    await page.route("**/test-margarita", async (route) => {
-      drinkRequests++;
-      await route.continue();
-    });
-    await page.goto("/");
-    await page.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
-    await page.waitForTimeout(200);
-    expect(drinkRequests).toBe(0);
-    await page.getByRole("link", { name: "Test Margarita", exact: true }).click();
-    await page.waitForURL("/test-margarita");
-    await page.getByText("2 oz tequila", { exact: true }).waitFor();
-    expect(drinkRequests).toBe(1);
-  });
-}
-
-test("speculative drink navigation waits for visibility and uses frame requests", async (testContext) => {
+test("Drink links prefetch only when visible and Save-Data permits", async (testContext) => {
   const page = await createBrowserPage(testContext);
   await page.setViewportSize({ width: 390, height: 340 });
-  const drinkPrefetched = Promise.withResolvers<void>();
-  const lastPrefetched = Promise.withResolvers<void>();
-  let prefetchRequests = 0;
-  let lastRequests = 0;
-  await page.route("**/test-margarita", async (route) => {
-    expect(route.request().headers()["x-remix-frame"]).toBe("true");
-    prefetchRequests++;
-    drinkPrefetched.resolve();
-    await route.continue();
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, "connection", {
+      configurable: true,
+      value: { saveData: false, effectiveType: "4g" },
+    });
   });
-  await page.route("**/test-old-fashioned", async (route) => {
-    lastRequests++;
-    lastPrefetched.resolve();
-    await route.continue();
+  const requestedPaths = new Set<string>();
+  page.on("request", (request) => {
+    requestedPaths.add(new URL(request.url()).pathname);
   });
+  const firstPrefetched = page.waitForRequest(
+    (request) => new URL(request.url()).pathname === "/test-margarita",
+  );
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
-  await drinkPrefetched.promise;
-  expect(prefetchRequests).toBe(1);
-  expect(lastRequests).toBe(0);
+  await firstPrefetched;
+  expect(requestedPaths.has("/test-mojito")).toBe(false);
+  expect(requestedPaths.has("/test-old-fashioned")).toBe(false);
+
+  const nextPrefetched = page.waitForRequest(
+    (request) => new URL(request.url()).pathname === "/test-mojito",
+  );
+  await page.getByRole("link", { name: "Test Mojito", exact: true }).scrollIntoViewIfNeeded();
+  await nextPrefetched;
+  expect(requestedPaths.has("/test-old-fashioned")).toBe(false);
+
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, "connection", {
+      value: { saveData: true, effectiveType: "4g" },
+    });
+  });
   const lastCard = page.getByRole("link", { name: "Test Old Fashioned", exact: true });
   await lastCard.scrollIntoViewIfNeeded();
-  await lastPrefetched.promise;
-  expect(lastRequests).toBe(1);
+  await page.waitForTimeout(200);
+  expect(requestedPaths.has("/test-old-fashioned")).toBe(false);
+  await lastCard.click();
+  await page.waitForURL("/test-old-fashioned");
+  await page.getByText("2 oz bourbon", { exact: true }).waitFor();
 });

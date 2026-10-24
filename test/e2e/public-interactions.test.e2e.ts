@@ -147,50 +147,36 @@ test("search preserves results through repeated queries, empty results, and hist
   expect(await input.inputValue()).toBe("mint");
 });
 
-test("speculative drink navigation waits for visibility and loaded photos", async (testContext) => {
+test("visible Drink links prefetch and retain navigation", async (testContext) => {
   const page = await createBrowserPage(testContext);
   await page.setViewportSize({ width: 390, height: 340 });
-  const releasePhoto = Promise.withResolvers<void>();
-  const drinkPrefetched = Promise.withResolvers<void>();
-  const lastPrefetched = Promise.withResolvers<void>();
-  let prefetchRequests = 0;
-  let lastRequests = 0;
-  await page.route("**/slow-photo.svg", async (route) => {
-    await releasePhoto.promise;
-    await route.fulfill({
-      contentType: "image/svg+xml",
-      body: '<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>',
-    });
+  const requestedPaths = new Set<string>();
+  page.on("request", (request) => {
+    requestedPaths.add(new URL(request.url()).pathname);
   });
-  await page.route("**/test-margarita", async (route) => {
-    prefetchRequests++;
-    drinkPrefetched.resolve();
-    await route.continue();
-  });
-  await page.route("**/test-old-fashioned", async (route) => {
-    lastRequests++;
-    lastPrefetched.resolve();
-    await route.continue();
-  });
-  await page.addInitScript(() => {
-    const observer = new MutationObserver(() => {
-      const image = document.querySelector('img[alt="Test Margarita"]');
-      if (!(image instanceof HTMLImageElement)) return;
-      observer.disconnect();
-      image.src = "/slow-photo.svg";
-    });
-    observer.observe(document, { childList: true, subtree: true });
-  });
+  const firstPrefetched = page.waitForRequest(
+    (request) => new URL(request.url()).pathname === "/test-margarita",
+  );
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
-  await page.waitForTimeout(100);
-  expect(prefetchRequests).toBe(0);
-  releasePhoto.resolve();
-  await drinkPrefetched.promise;
-  expect(prefetchRequests).toBe(1);
-  expect(lastRequests).toBe(0);
+  await firstPrefetched;
+  expect(requestedPaths.has("/test-mojito")).toBe(false);
+  expect(requestedPaths.has("/test-old-fashioned")).toBe(false);
+
+  const nextPrefetched = page.waitForRequest(
+    (request) => new URL(request.url()).pathname === "/test-mojito",
+  );
+  await page.getByRole("link", { name: "Test Mojito", exact: true }).scrollIntoViewIfNeeded();
+  await nextPrefetched;
+  expect(requestedPaths.has("/test-old-fashioned")).toBe(false);
+
+  const lastPrefetched = page.waitForRequest(
+    (request) => new URL(request.url()).pathname === "/test-old-fashioned",
+  );
   const lastCard = page.getByRole("link", { name: "Test Old Fashioned", exact: true });
   await lastCard.scrollIntoViewIfNeeded();
-  await lastPrefetched.promise;
-  expect(lastRequests).toBe(1);
+  await lastPrefetched;
+  await lastCard.click();
+  await page.waitForURL("/test-old-fashioned");
+  await page.getByText("2 oz bourbon", { exact: true }).waitFor();
 });

@@ -1,6 +1,5 @@
 import { routes } from "#/app/routes.ts";
 import type { Handle } from "remix/component";
-import { ViewportPrefetchGroup } from "#/app/ui/navigation/public/viewport-prefetch.tsx";
 import type { DrinkView } from "#/app/modules/drinks/drinks.ts";
 import { Glass } from "./glass.tsx";
 import { DrinkSummary } from "./drink-summary.tsx";
@@ -14,6 +13,7 @@ export function DrinkList(handle: Handle<{ drinks: DrinkView[] }>) {
           <a
             key={drink.slug}
             href={routes.drinks.show.href({ slug: drink.slug })}
+            data-rmx-prefetch="viewport"
             aria-label={drink.title}
             className="group focus-visible:outline-hidden"
           >
@@ -22,9 +22,6 @@ export function DrinkList(handle: Handle<{ drinks: DrinkView[] }>) {
             </Glass>
           </a>
         ))}
-        <ViewportPrefetchGroup
-          hrefs={drinks.map((drink) => routes.drinks.show.href({ slug: drink.slug }))}
-        />
       </div>
     );
   };

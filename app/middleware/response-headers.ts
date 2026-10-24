@@ -13,7 +13,7 @@ export const responseHeaders: Middleware = async (context, next) => {
   );
   response.headers.set(
     "Content-Security-Policy",
-    "base-uri 'none'; frame-ancestors 'none'; form-action 'self'; default-src 'self'; connect-src 'self' https://ik.imagekit.io/; img-src 'self' data: blob: https:; script-src 'self' blob: 'unsafe-inline'; style-src 'self' 'unsafe-inline'",
+    "base-uri 'none'; frame-ancestors 'none'; form-action 'self'; default-src 'self'; connect-src 'self' https://ik.imagekit.io/; img-src 'self' data: blob: https:; script-src 'self' blob: 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'",
   );
   return response;
 };

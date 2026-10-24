@@ -26,9 +26,12 @@ Browser source lives in owner-local `public/` directories, with shared browser u
 `app/core/public/`. The asset allowlist permits those directories and `app/routes.ts`; every runtime
 import in a browser graph must be allowed. Type-only imports are erased before serving browser code.
 Files use ordinary `.ts` and `.tsx` names; server isolation comes from the allowlist rather than a
-filename suffix. Browser hydration requires native multiple-import-map support under the app's CSP.
-The configured [compatibility loader](https://docs.remix.run/multiple-import-maps-polyfill/#content-security-policy)
-requires WebAssembly compilation, which the policy blocks. Deferred module hints begin after
+filename suffix. Browsers that pass an in-document multiple-import-map probe use native module
+loading; other browsers use Remix's compatibility loader. CSP permits `blob:` module scripts and
+`unsafe-eval` for the loader's WebAssembly parser and JavaScript string decoding. See the
+[loader's CSP requirements](https://docs.remix.run/multiple-import-maps-polyfill/#content-security-policy)
+and the [parser's CSP behavior](https://github.com/guybedford/es-module-lexer/blob/2.3.2/README.md#csp-asmjs-build).
+Deferred module hints begin after
 paint and yield between small batches. Static asset sources live under `app/assets/`; root `public/`
 is generated output and local uploads. Navigation uses native anchors. Gallery, navigation, and Tag
 links use Remix's `data-rmx-prefetch="viewport"` for low-priority frame HTML and asset discovery,

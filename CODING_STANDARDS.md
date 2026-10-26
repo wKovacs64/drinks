@@ -12,7 +12,8 @@ decisions. Formatting, lint, and type rules are enforced by the tools configured
 
 ## Module design
 
-When adding or moving files, follow [Remix's project tour](https://guides.remix.run/start-here/#project-tour-where-code-lives)
+When adding or moving files, follow Remix's project tour
+(`node_modules/remix/guides/01-start-here.md`)
 for framework organization.
 
 Keep server business behavior in deep modules. Create services per request with explicit boundary

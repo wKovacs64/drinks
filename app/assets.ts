@@ -1,6 +1,7 @@
 import { createAssetServer } from "remix/assets";
 import { loadConfig } from "remix/cli";
 import { componentHmr } from "remix/component-hmr/assets";
+import { createMatcher } from "remix/route-pattern/match";
 import type { EntryComponent } from "remix/component";
 const isDevelopment = process.env.NODE_ENV === "development";
 const browserHmrChannel =
@@ -10,6 +11,7 @@ const browserHmrChannel =
 const { assets: assetConfig } = await loadConfig();
 if (!assetConfig) throw new Error("Missing Remix asset configuration");
 const hmrEventsPath = `${assetConfig.basePath}/__remix_hmr/events`;
+const hmrEventsMatcher = createMatcher(hmrEventsPath);
 export const hmrClientHref = browserHmrChannel
   ? `${assetConfig.basePath}/__remix_hmr/client.js`
   : undefined;
@@ -54,7 +56,7 @@ export async function getClientEntryPreloads(entry: Pick<EntryComponent, "$entry
 }
 
 export async function fetchHmrEvents(request: Request): Promise<Response | undefined> {
-  if (!browserHmrChannel || new URL(request.url).pathname !== hmrEventsPath) return undefined;
+  if (!browserHmrChannel || hmrEventsMatcher.match(request.url) === null) return undefined;
   const response = await fetch(browserHmrChannel.url, { signal: request.signal });
   return new Response(response.body, {
     status: response.status,

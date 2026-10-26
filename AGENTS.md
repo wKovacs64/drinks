@@ -11,6 +11,8 @@ SQLite lives on a Fly volume.
 
 - For module, route, or auth work, read [architecture](docs/architecture.md) for current ownership
   and runtime contracts.
+- For Remix APIs or conventions, start at `node_modules/remix/INDEX.md`; its guides and package
+  READMEs match the installed version.
 - For test work, read [test harness setup](docs/testing.md).
 - When releasing or changing deployment behavior, read [the release workflow](RELEASING.md).
 

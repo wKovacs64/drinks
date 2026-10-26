@@ -3,19 +3,14 @@ import { Renderer, type RenderFunction } from "remix/middleware/render";
 import { Document } from "#/app/actions/document.tsx";
 import { Exception } from "#/app/ui/core/exception.tsx";
 import { ApplicationErrorDocument } from "#/app/ui/core/response-error-document.tsx";
-import { isAdminUrl, isAuthUrl } from "#/app/web/route-matching.ts";
+import { isAdminUrl, isAuthUrl, isResourceUrl } from "#/app/web/route-matching.ts";
 
 function isRenderFunction(value: unknown): value is RenderFunction {
   return typeof value === "function";
 }
 
 export const routeErrorPages: Middleware = async (context, next) => {
-  const pathname = context.url.pathname;
-  const isResourceRoute =
-    pathname.startsWith("/assets/") ||
-    pathname.startsWith("/_/") ||
-    ["/robots.txt", "/manifest.webmanifest"].includes(pathname);
-  if (isResourceRoute) return next();
+  if (isResourceUrl(context.url)) return next();
   const isPublicPage = !isAdminUrl(context.url) && !isAuthUrl(context.url);
 
   try {

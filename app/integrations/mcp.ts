@@ -6,6 +6,7 @@ import {
 } from "@modelcontextprotocol/server";
 import { z } from "zod";
 import type { Middleware } from "remix/router";
+import { createMatcher } from "remix/route-pattern/match";
 import { getDb } from "#/app/db/client.ts";
 import { createDrinksService, type DrinkView } from "#/app/modules/drinks/drinks.ts";
 import { routes } from "#/app/routes.ts";
@@ -131,9 +132,11 @@ export const mcpHandler = createMcpHandler(({ requestInfo }) => {
   return server;
 });
 
+const mcpMatcher = createMatcher("/mcp");
+
 // MCP owns its protocol responses; website sessions and document middleware never run here.
 export const mcp: Middleware = async (context, next) => {
-  if (context.url.pathname !== "/mcp") return next();
+  if (mcpMatcher.match(context.url) === null) return next();
   const request = context.request;
   const rejected =
     hostHeaderValidationResponse(request, [

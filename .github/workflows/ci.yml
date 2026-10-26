@@ -59,6 +59,9 @@ jobs:
       - name: 🔬 Lint
         run: pnpm run lint
 
+      - name: 🧑‍⚕️ Remix doctor
+        run: pnpm run doctor
+
   typecheck:
     name: ʦ TypeScript
     runs-on: ubuntu-latest

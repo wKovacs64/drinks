@@ -1,6 +1,7 @@
 import { routes } from "#/app/routes.ts";
 import type { Middleware } from "remix/router";
 import { createMatcher } from "remix/route-pattern/match";
+import { isLoginUrl } from "#/app/web/route-matching.ts";
 import { acceptsEditorResponse } from "./editor-request.ts";
 import {
   EDITOR_RESPONSE_MEDIA_TYPE,
@@ -27,7 +28,7 @@ export const adminDrinkEditorRedirects: Middleware = async (context, next) => {
   const data: DrinkEditorResponse = {
     kind: "navigate",
     location,
-    document: new URL(location, context.request.url).pathname === routes.auth.login.href(),
+    document: isLoginUrl(new URL(location, context.request.url)),
   };
   const headers = new Headers(response.headers);
   headers.delete("Location");

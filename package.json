@@ -41,7 +41,7 @@
     "@fontsource/source-sans-3": "5.3.1",
     "@imagekit/nodejs": "7.13.0",
     "@modelcontextprotocol/ext-apps": "2.0.3",
-    "@modelcontextprotocol/server": "2.3.1",
+    "@modelcontextprotocol/server": "2.4.0",
     "@remix-run/ui": "0.13.0",
     "@sindresorhus/slugify": "3.0.1",
     "@unpic/core": "1.0.3",

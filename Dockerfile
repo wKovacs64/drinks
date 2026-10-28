@@ -1,5 +1,5 @@
 # base node image
-FROM node:24-bookworm-slim AS base
+FROM node:26-bookworm-slim AS base
 
 # set for base and all layers that inherit from it
 ENV NODE_ENV="production"

@@ -62,7 +62,7 @@
     "esbuild": "0.28.2",
     "msw": "3.0.3",
     "oxfmt": "0.75.0",
-    "oxlint": "1.89.0",
+    "oxlint": "1.90.0",
     "oxlint-tsgolint": "7.0.2005",
     "playwright": "1.64.1",
     "tailwindcss": "4.3.3",

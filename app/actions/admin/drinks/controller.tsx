@@ -3,17 +3,14 @@ import { routes } from "#/app/routes.ts";
 import { requireAdmin } from "#/app/middleware/admin.ts";
 import { getDb } from "#/app/db/client.ts";
 import { createDrinksService } from "#/app/modules/drinks/drinks.ts";
-import { parseSafe, object, string, enum_ } from "remix/data-schema";
+import { parseSafe } from "remix/data-schema";
+import { toastSchema } from "#/app/core/toast.ts";
 import { deleteAdminDrinkActionAdapter } from "#/app/web/admin-drink-write/route-adapter.ts";
 import { getClientEntryPreloads } from "#/app/assets.ts";
 import { AdminDrinksList } from "./public/admin-drinks-list.tsx";
 import { AdminDrinksPage } from "./index-page.tsx";
 import { createDrinkWriteService } from "./write-service.ts";
 if (process.env.NODE_ENV === "production") await getClientEntryPreloads(AdminDrinksList);
-const toastSchema = object({
-  kind: enum_(["success", "warning", "error"] as const),
-  message: string(),
-});
 export default createController(routes.admin.drinks, {
   middleware: requireAdmin,
   actions: {

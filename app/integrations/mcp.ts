@@ -107,9 +107,11 @@ export const mcpHandler = createMcpHandler(({ requestInfo }) => {
       _meta: { ui: { resourceUri: cardUri } },
     },
     async ({ slugs, view }) => {
+      const results = await Promise.all(
+        slugs.map((slug) => drinks.getDrinkBySlug({ slug, viewerRole: "user" })),
+      );
       const recipes: z.infer<typeof cardResultSchema>["drinks"] = [];
-      for (const slug of slugs) {
-        const result = await drinks.getDrinkBySlug({ slug, viewerRole: "user" });
+      for (const result of results) {
         if (!result)
           return { isError: true, content: [{ type: "text", text: "Drink not found." }] };
         recipes.push({

@@ -27,6 +27,15 @@ test("an unmatched path keeps the gallery navigation around its not-found messag
   await page.getByRole("heading", { name: "Test Margarita", exact: true }).waitFor();
 });
 
+test("an unmatched path is not found for every method", async (testContext) => {
+  const page = await createBrowserPage(testContext);
+  for (const method of ["HEAD", "POST", "DELETE"]) {
+    const response = await page.request.fetch("/unknown/deep/path", { method });
+    expect(response.status()).toBe(404);
+    expect(response.headers().allow).toBe(undefined);
+  }
+});
+
 test("a missing admin drink displays a not-found response and a working recovery link", async (testContext) => {
   const page = await createBrowserPage(testContext, { admin: true });
   const response = await page.goto("/admin/drinks/missing/edit");

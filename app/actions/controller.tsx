@@ -5,9 +5,8 @@ import { createDrinksService } from "#/app/modules/drinks/drinks.ts";
 import { rawSql } from "remix/data-table";
 import { assets, fetchHmrEvents } from "#/app/assets.ts";
 import { env } from "#/app/core/env.ts";
-import { publicHeaders, notFoundHeaders } from "#/app/web/gallery-cache.ts";
+import { publicHeaders } from "#/app/web/gallery-cache.ts";
 import { HomePage } from "./home-page.tsx";
-import { NotFoundPage } from "./not-found-page.tsx";
 export default createController(routes, {
   actions: {
     async assets(context) {
@@ -69,9 +68,6 @@ export default createController(routes, {
       return context.render(<HomePage drinks={drinks} />, {
         headers: { ...publicHeaders, "Surrogate-Key": "all index" },
       });
-    },
-    notFound(context) {
-      return context.render(<NotFoundPage gallery />, { status: 404, headers: notFoundHeaders });
     },
   },
 });

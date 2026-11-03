@@ -5,9 +5,10 @@ import { http } from "msw/http";
 import { passthrough } from "msw/utils/passthrough";
 import { router } from "#/app/router.ts";
 import { resetAndSeedDatabase, TEST_ADMIN_USER } from "#/test/database.ts";
-import { getRawSessionCookieValue, sessionCookie } from "#/app/modules/identity/identity.ts";
+import { sessionCookie } from "#/app/modules/identity/identity.ts";
 import { purgeSearchCache } from "#/app/modules/drinks/drinks.ts";
 import { server as requestMocks } from "#/test/server.ts";
+import { getSessionCookieValue } from "#/test/session.ts";
 
 export async function createBrowserPage(
   testContext: TestContext,
@@ -30,12 +31,7 @@ export async function createBrowserPage(
     await page.context().addCookies([
       {
         name: sessionCookie.name,
-        value: await getRawSessionCookieValue({
-          ...TEST_ADMIN_USER,
-          name: TEST_ADMIN_USER.name ?? null,
-          avatarUrl: TEST_ADMIN_USER.avatarUrl ?? null,
-          role: "admin",
-        }),
+        value: await getSessionCookieValue(TEST_ADMIN_USER.id),
         url: server.baseUrl,
       },
     ]);

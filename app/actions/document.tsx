@@ -17,8 +17,6 @@ export function Document(
     description?: string;
     socialImage?: string;
     socialImageAlt?: string;
-    socialTitle?: string;
-    socialDescription?: string;
     preloadImages?: ImagePreloadProps[];
     modulePreloads?: readonly string[];
     deferModulePreloads?: boolean;
@@ -32,8 +30,6 @@ export function Document(
       description = "Craft Cocktail Gallery",
       socialImage = env.SITE_IMAGE_URL,
       socialImageAlt = env.SITE_IMAGE_ALT,
-      socialTitle = "drinks.fyi",
-      socialDescription = "Craft Cocktail Gallery",
       preloadImages,
       modulePreloads = scriptEntry.preloads,
       deferModulePreloads = true,
@@ -50,13 +46,13 @@ export function Document(
           <title>{title}</title>
           <meta name="description" content={description} />
           <meta property="og:type" content="website" />
-          <meta property="og:title" content={socialTitle} />
-          <meta property="og:description" content={socialDescription} />
+          <meta property="og:title" content={title} />
+          <meta property="og:description" content={description} />
           <meta property="og:image" content={socialImage} />
           <meta property="og:image:alt" content={socialImageAlt} />
           <meta name="twitter:card" content="summary_large_image" />
-          <meta name="twitter:title" content={socialTitle} />
-          <meta name="twitter:description" content={socialDescription} />
+          <meta name="twitter:title" content={title} />
+          <meta name="twitter:description" content={description} />
           <meta name="twitter:image" content={socialImage} />
           <meta name="twitter:image:alt" content={socialImageAlt} />
           <link rel="preconnect" href="https://ik.imagekit.io/" crossOrigin="anonymous" />

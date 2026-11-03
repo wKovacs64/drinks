@@ -64,6 +64,19 @@ test("search document and fragment responses are separately cacheable and server
   expect(await fragmentResponse.text()).toContain("Test Margarita");
 });
 
+test("social meta tags use the page title and description", async (testContext) => {
+  const page = await createBrowserPage(testContext);
+  await page.goto("/search");
+  for (const selector of ['meta[property="og:title"]', 'meta[name="twitter:title"]']) {
+    expect(await page.locator(selector).getAttribute("content")).toBe("Search Drinks");
+  }
+  for (const selector of ['meta[property="og:description"]', 'meta[name="twitter:description"]']) {
+    expect(await page.locator(selector).getAttribute("content")).toBe(
+      "Search all drinks by ingredient or description",
+    );
+  }
+});
+
 test("search focuses, shows pending feedback, finds drinks, and clears with Escape", async (testContext) => {
   const page = await createBrowserPage(testContext);
   await page.goto("/search");

@@ -15,8 +15,6 @@ export function DrinkPage(handle: Handle<{ drink: DrinkView }>) {
       <Document
         title={drink.title}
         description={drink.ingredients.join(", ")}
-        socialTitle={drink.title}
-        socialDescription={drink.ingredients.join(", ")}
         socialImage={imageUrl(drink.image.url, 1200, "jpg", 630, 50)}
         socialImageAlt={`${drink.title} in a glass`}
         preloadImages={[{ src: drink.image.url, layout: "detail" }]}

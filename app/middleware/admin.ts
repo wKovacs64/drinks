@@ -1,4 +1,4 @@
-import type { Middleware } from "remix/router";
+import { createMiddleware, type Middleware } from "remix/router";
 import { Auth, requireAuth } from "remix/middleware/auth";
 import { redirect } from "remix/response/redirect";
 import { routes } from "#/app/routes.ts";
@@ -15,21 +15,26 @@ const requireAdminAuthentication = requireAuth<SessionUser>({
   },
 });
 
-export const protectAdmin: Middleware = async (context, next) => {
-  if (!isAdminUrl(context.url)) return next();
+function isAdmin(identity: unknown): identity is { role: "admin" } {
+  return (
+    typeof identity === "object" &&
+    identity !== null &&
+    "role" in identity &&
+    identity.role === "admin"
+  );
+}
 
-  return requireAdminAuthentication(context, async () => {
-    const identity = context.get(Auth);
-    if (
-      !(
-        identity?.ok &&
-        typeof identity.identity === "object" &&
-        identity.identity &&
-        "role" in identity.identity &&
-        identity.identity.role === "admin"
-      )
-    )
-      return redirect(routes.auth.unauthorized.href());
-    return next();
-  });
+const requireAdminRole: Middleware = (context, next) => {
+  const auth = context.get(Auth);
+  if (!(auth?.ok && isAdmin(auth.identity))) return redirect(routes.auth.unauthorized.href());
+  return next();
+};
+
+/** Controller middleware that admits only an Admin and narrows `context.auth` to a `SessionUser`. */
+export const requireAdmin = createMiddleware(requireAdminAuthentication, requireAdminRole);
+
+/** Denies every admin URL by default, including ones no controller with `requireAdmin` handles. */
+export const protectAdmin: Middleware = (context, next) => {
+  if (!isAdminUrl(context.url)) return next();
+  return requireAdminAuthentication(context, async () => requireAdminRole(context, next));
 };

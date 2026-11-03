@@ -1,5 +1,7 @@
 import { test, describe } from "remix/test";
 import { expect } from "remix/assert";
+import { http, HttpResponse } from "msw/http";
+import { server as requestMocks } from "#/test/server.ts";
 import { createBrowserPage } from "#/test/e2e.ts";
 import { getDb } from "#/app/db/client.ts";
 import { drinks, users } from "#/app/db/schema.ts";
@@ -49,7 +51,9 @@ for (const actor of ["anonymous", "user"]) {
     ]) {
       const response = await page.request.get(path, { maxRedirects: 0 });
       expect(response.status()).toBe(302);
-      expect(response.headers().location).toBe(destination);
+      expect(response.headers().location).toBe(
+        actor === "anonymous" ? `/login?${new URLSearchParams({ returnTo: path })}` : destination,
+      );
       expect(response.headers()["cache-control"]).toBe("private, no-store");
     }
     for (const path of [
@@ -127,7 +131,48 @@ describe("Authentication", () => {
     // Should be redirected to home
     await pageAsAdmin.waitForURL("/");
     const response = await pageAsAdmin.request.get("/admin/drinks", { maxRedirects: 0 });
-    expect(response.headers().location).toBe("/login");
+    expect(response.headers().location).toBe("/login?returnTo=%2Fadmin%2Fdrinks");
+  });
+
+  test("Google sign-in follows only same-origin Return-to URLs", async (testContext) => {
+    const page = await createBrowserPage(testContext);
+    // Cookie session storage warns when sign-in regenerates the session ID.
+    const logWarning = testContext.mock.method(console, "warn", () => {});
+    requestMocks.use(
+      http.post("https://oauth2.googleapis.com/token", () =>
+        HttpResponse.json({ access_token: "test-access-token", token_type: "Bearer" }),
+      ),
+      http.get("https://openidconnect.googleapis.com/v1/userinfo", () =>
+        HttpResponse.json({
+          sub: "test-google-admin",
+          email: TEST_ADMIN_USER.email,
+          email_verified: true,
+          name: TEST_ADMIN_USER.name,
+        }),
+      ),
+    );
+    async function signIn(loginPath: string) {
+      const login = await page.request.get(loginPath, { maxRedirects: 0 });
+      const state = new URL(login.headers().location).searchParams.get("state");
+      if (!state) throw new Error("Google authorization URL is missing state");
+      const callback = await page.request.get(
+        `/auth/google/callback?${new URLSearchParams({ code: "test-code", state })}`,
+        { maxRedirects: 0 },
+      );
+      expect(callback.status()).toBe(302);
+      return callback.headers().location;
+    }
+
+    const adminVisit = await page.request.get("/admin/drinks?q=sour", { maxRedirects: 0 });
+    const loginPath = adminVisit.headers().location;
+    expect(loginPath).toBe("/login?returnTo=%2Fadmin%2Fdrinks%3Fq%3Dsour");
+    expect(await signIn(loginPath)).toBe("/admin/drinks?q=sour");
+    for (const returnTo of ["https://evil.example", "//evil.example", "/\\evil.example"]) {
+      expect(await signIn(`/login?${new URLSearchParams({ returnTo })}`)).toBe("/");
+    }
+    for (const call of logWarning.mock.calls) {
+      expect(String(call.arguments[0])).toContain("was regenerated");
+    }
   });
 });
 

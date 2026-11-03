@@ -38,8 +38,5 @@ export default createController(routes.admin.drinks, {
         adminDrinksWriteService: createDrinkWriteService(),
       });
     },
-    deleteRedirect() {
-      return redirect(routes.admin.drinks.index.href());
-    },
   },
 });

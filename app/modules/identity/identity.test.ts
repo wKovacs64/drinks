@@ -4,7 +4,7 @@ import { expect } from "remix/assert";
 import { getDb } from "#/app/db/client.ts";
 import { users, writeUser } from "#/app/db/schema.ts";
 import { resetAndSeedDatabase } from "#/test/database.ts";
-import { createIdentityService, safeRedirectTo } from "./identity.ts";
+import { createIdentityService } from "./identity.ts";
 
 describe("createIdentityService", () => {
   beforeEach(resetAndSeedDatabase);
@@ -116,15 +116,5 @@ describe("createIdentityService", () => {
     await db.delete(users, "test-admin-id");
 
     expect(await service.getSessionUser({ userId: "test-admin-id" })).toBeNull();
-  });
-});
-
-describe("safeRedirectTo", () => {
-  test("accepts relative Return-to URLs and uses the configured fallback for unsafe destinations", () => {
-    expect(safeRedirectTo("/admin")).toBe("/admin");
-    for (const destination of [null, undefined, "https://evil.com", "//evil.com"]) {
-      expect(safeRedirectTo(destination)).toBe("/");
-      expect(safeRedirectTo(destination, "/home")).toBe("/home");
-    }
   });
 });

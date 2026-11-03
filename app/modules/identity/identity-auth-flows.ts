@@ -8,25 +8,20 @@ import {
 import type { ContextEntries, RequestContext } from "remix/router";
 import { redirect } from "remix/response/redirect";
 import { Session } from "remix/session";
-import { getEnvVars } from "#/app/core/env.ts";
+import { env } from "#/app/core/env.ts";
 import { getDb } from "#/app/db/client.ts";
 import { createIdentityService } from "./identity-service.ts";
-let provider: ReturnType<typeof createGoogleAuthProvider> | undefined;
-function getProvider() {
-  const env = getEnvVars();
-  provider ??= createGoogleAuthProvider({
-    clientId: env.GOOGLE_CLIENT_ID,
-    clientSecret: env.GOOGLE_CLIENT_SECRET,
-    redirectUri: new URL(env.GOOGLE_REDIRECT_URI),
-    scopes: ["openid", "email", "profile"],
-  });
-  return provider;
-}
+const provider = createGoogleAuthProvider({
+  clientId: env.GOOGLE_CLIENT_ID,
+  clientSecret: env.GOOGLE_CLIENT_SECRET,
+  redirectUri: new URL(env.GOOGLE_REDIRECT_URI),
+  scopes: ["openid", "email", "profile"],
+});
 export async function initiateLogin(
   context: RequestContext<Record<string, string>, ContextEntries>,
 ): Promise<Response> {
   // Remix drops Return-to URLs that leave the origin.
-  return startExternalAuth(getProvider(), context, {
+  return startExternalAuth(provider, context, {
     returnTo: context.url.searchParams.get("returnTo"),
   });
 }
@@ -34,7 +29,7 @@ export async function authenticate(
   context: RequestContext<Record<string, string>, ContextEntries>,
 ): Promise<Response> {
   try {
-    const { result, returnTo } = await finishExternalAuth(getProvider(), context);
+    const { result, returnTo } = await finishExternalAuth(provider, context);
     const identityService = createIdentityService({ db: getDb() });
     const user = await identityService.admitUser({
       email: result.profile.email,

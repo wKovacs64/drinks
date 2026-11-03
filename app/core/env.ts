@@ -17,10 +17,9 @@ const envSchema = object({
   FASTLY_SERVICE_ID: optional(string()),
   FASTLY_PURGE_API_KEY: optional(string()),
 });
-export function getEnvVars() {
-  const result = parseSafe(envSchema, process.env);
-  if (result.success) return result.value;
+const envResult = parseSafe(envSchema, process.env);
+if (!envResult.success)
   throw new Error(
-    `Missing or invalid environment variables: ${result.issues.map((issue) => issue.path?.filter((segment): segment is string | number => typeof segment === "string" || typeof segment === "number").join(".")).join(", ")}`,
+    `Missing or invalid environment variables: ${envResult.issues.map((issue) => issue.path?.filter((segment): segment is string | number => typeof segment === "string" || typeof segment === "number").join(".")).join(", ")}`,
   );
-}
+export const env = envResult.value;

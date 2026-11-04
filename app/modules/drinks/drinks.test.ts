@@ -205,6 +205,21 @@ describe("createDrinksService", () => {
     });
   });
 
+  test("renders note links to open in a new tab without referrer or ranking credit", async () => {
+    await getDb().update(drinks, "test-drink-1", {
+      notes: "See [the source](https://example.com/margarita).",
+    });
+
+    const result = await createReadOnlyService().getDrinkBySlug({
+      slug: "test-margarita",
+      viewerRole: "user",
+    });
+
+    expect(result?.drink.notes).toBe(
+      '<p>See <a target="_blank" rel="noreferrer noopener nofollow" href="https://example.com/margarita">the source</a>.</p>\n',
+    );
+  });
+
   test("resolves equivalent stored Tags to one Tag page containing only Published drinks", async () => {
     const db = getDb();
     await db.updateMany(

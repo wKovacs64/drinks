@@ -1,15 +1,18 @@
-import { marked } from "marked";
+import { Marked, Renderer } from "marked";
+
+const markdown = new Marked({
+  renderer: {
+    // https://github.com/markedjs/marked/issues/655#issuecomment-383226346
+    link(linkToken) {
+      return Renderer.prototype.link
+        .call(this, linkToken)
+        .replace(/^<a /, '<a target="_blank" rel="noreferrer noopener nofollow" ');
+    },
+  },
+});
 
 export function markdownToHtml(markdownString: string) {
-  // https://github.com/markedjs/marked/issues/655#issuecomment-383226346
-  const renderer = new marked.Renderer();
-  const linkRenderer = renderer.link;
-  renderer.link = (linkToken) => {
-    const html = linkRenderer.call(renderer, linkToken);
-    return html.replace(/^<a /, '<a target="_blank" rel="noreferrer noopener nofollow" ');
-  };
-
   // TODO: sanitize resulting HTML
 
-  return marked(markdownString, { renderer, async: false });
+  return markdown.parse(markdownString, { async: false });
 }

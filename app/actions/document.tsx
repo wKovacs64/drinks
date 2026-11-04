@@ -58,7 +58,7 @@ export function Document(
           <meta name="twitter:description" content={socialDescription} />
           <meta name="twitter:image" content={socialImage} />
           <meta name="twitter:image:alt" content={socialImageAlt} />
-          <link rel="preconnect" href="https://ik.imagekit.io/" crossOrigin="anonymous" />
+          <link rel="preconnect" href="https://ik.imagekit.io/" />
           <link rel="dns-prefetch" href="https://ik.imagekit.io/" />
           <link rel="icon" sizes="any" href="/images/favicon.ico" />
           <link rel="icon" type="image/png" sizes="32x32" href="/images/icon-32x32.png" />

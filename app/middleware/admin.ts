@@ -1,15 +1,17 @@
 import type { Middleware } from "remix/router";
 import { Auth, requireAuth } from "remix/middleware/auth";
-import { Session } from "remix/session";
 import { redirect } from "remix/response/redirect";
 import { routes } from "#/app/routes.ts";
-import { createReturnToUrl, type SessionUser } from "#/app/modules/identity/identity.ts";
+import type { SessionUser } from "#/app/modules/identity/identity.ts";
 import { isAdminUrl } from "#/app/web/route-matching.ts";
 
 const requireAdminAuthentication = requireAuth<SessionUser>({
   onFailure(context) {
-    context.get(Session)?.set("returnTo", createReturnToUrl(context.request));
-    return redirect(routes.auth.login.href());
+    // Only a GET or HEAD can be replayed by navigating back after login.
+    const { method } = context.request;
+    if (method !== "GET" && method !== "HEAD") return redirect(routes.auth.login.href());
+    const returnTo = context.url.pathname + context.url.search;
+    return redirect(routes.auth.login.href(undefined, { searchParams: { returnTo } }));
   },
 });
 

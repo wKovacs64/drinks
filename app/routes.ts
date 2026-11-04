@@ -19,7 +19,6 @@ export const routes = route({
       new: form("/admin/drinks/new"),
       edit: form("/admin/drinks/:slug/edit"),
       deleteDrink: post("/admin/drinks/:slug/delete"),
-      deleteRedirect: get("/admin/drinks/:slug/delete"),
     },
   },
   healthcheck: get("/_/healthcheck"),

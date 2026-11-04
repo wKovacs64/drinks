@@ -11,7 +11,6 @@ import { Session } from "remix/session";
 import { getEnvVars } from "#/app/core/env.ts";
 import { getDb } from "#/app/db/client.ts";
 import { createIdentityService } from "./identity-service.ts";
-import { safeRedirectTo } from "./identity-navigation.ts";
 let provider: ReturnType<typeof createGoogleAuthProvider> | undefined;
 function getProvider() {
   const env = getEnvVars();
@@ -26,9 +25,9 @@ function getProvider() {
 export async function initiateLogin(
   context: RequestContext<Record<string, string>, ContextEntries>,
 ): Promise<Response> {
-  const savedReturnTo = context.get(Session)?.get("returnTo");
+  // Remix drops Return-to URLs that leave the origin.
   return startExternalAuth(getProvider(), context, {
-    returnTo: safeRedirectTo(typeof savedReturnTo === "string" ? savedReturnTo : undefined),
+    returnTo: context.url.searchParams.get("returnTo"),
   });
 }
 export async function authenticate(
@@ -46,7 +45,7 @@ export async function authenticate(
     if (!user) return redirect(routes.auth.failed.href());
     const session = completeAuth(context);
     session.set("userId", user.id);
-    return redirect(safeRedirectTo(returnTo));
+    return redirect(returnTo ?? routes.home.href());
   } catch (error) {
     console.error(
       "Google authentication failed",

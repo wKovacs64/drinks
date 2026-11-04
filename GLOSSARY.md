@@ -57,7 +57,7 @@ A **User** allowed to manage drinks and view **Unpublished drinks**.
 _Avoid_: editor, maintainer
 
 **Return-to URL**:
-The path saved before authentication so a **User** can resume the page they tried to reach.
+The same-origin page a **User** tried to reach, carried through login so they land there after authentication.
 _Avoid_: redirect target, callback path
 
 ### Editorial workflow

@@ -8,7 +8,7 @@ import {
   scriptEntry,
   stylesheetHref,
 } from "#/app/assets.ts";
-import { getEnvVars } from "#/app/core/env.ts";
+import { env } from "#/app/core/env.ts";
 import { ImagePreload, type ImagePreloadProps } from "#/app/ui/drinks/image-preload.tsx";
 export function Document(
   handle: Handle<{
@@ -25,7 +25,6 @@ export function Document(
   }>,
 ) {
   return () => {
-    const env = getEnvVars();
     const {
       children,
       title = "drinks.fyi",

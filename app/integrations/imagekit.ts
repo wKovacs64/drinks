@@ -1,18 +1,18 @@
 import { mkdir, unlink, writeFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import { ImageKit, toFile } from "@imagekit/nodejs";
-import { getEnvVars } from "#/app/core/env.ts";
+import { env } from "#/app/core/env.ts";
 const localImagePrefix = "local:";
 
 function getImageKit() {
-  return new ImageKit({ privateKey: getEnvVars().IMAGEKIT_PRIVATE_KEY });
+  return new ImageKit({ privateKey: env.IMAGEKIT_PRIVATE_KEY });
 }
 export async function uploadImage(
   file: Buffer,
   fileName: string,
 ): Promise<{ url: string; fileId: string }> {
   // Local test drives never upload to the production ImageKit library.
-  if (getEnvVars().NODE_ENV === "development") {
+  if (env.NODE_ENV === "development") {
     await mkdir("public/uploads", { recursive: true });
     const id = randomUUID();
     const filename = `${id}-${fileName}`;
@@ -33,6 +33,6 @@ export async function deleteImage(fileId: string): Promise<void> {
     await unlink(`public/uploads/${fileId.slice(localImagePrefix.length)}`);
     return;
   }
-  if (getEnvVars().NODE_ENV === "development") return;
+  if (env.NODE_ENV === "development") return;
   await getImageKit().files.delete(fileId);
 }

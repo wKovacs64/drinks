@@ -4,7 +4,7 @@ import { getDb } from "#/app/db/client.ts";
 import { createDrinksService } from "#/app/modules/drinks/drinks.ts";
 import { rawSql } from "remix/data-table";
 import { assets, fetchHmrEvents } from "#/app/assets.ts";
-import { getEnvVars } from "#/app/core/env.ts";
+import { env } from "#/app/core/env.ts";
 import { publicHeaders, notFoundHeaders } from "#/app/web/gallery-cache.ts";
 import { HomePage } from "./home-page.tsx";
 import { NotFoundPage } from "./not-found-page.tsx";
@@ -22,7 +22,7 @@ export default createController(routes, {
 
     robots() {
       return new Response(
-        `User-agent: *\n${getEnvVars().DEPLOYMENT_ENV === "prod" ? "Allow: /" : "Disallow: /"}`,
+        `User-agent: *\n${env.DEPLOYMENT_ENV === "prod" ? "Allow: /" : "Disallow: /"}`,
         {
           headers: {
             "Content-Type": "text/plain; charset=utf-8",

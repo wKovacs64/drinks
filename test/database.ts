@@ -1,5 +1,5 @@
 import { rawSql } from "remix/data-table";
-import { getEnvVars } from "#/app/core/env.ts";
+import { env } from "#/app/core/env.ts";
 import { getDb } from "#/app/db/client.ts";
 import {
   users,
@@ -62,7 +62,7 @@ export const TEST_DRINKS: Omit<NewDrink, "createdAt" | "updatedAt">[] = [
 ];
 
 export async function resetAndSeedDatabase() {
-  if (getEnvVars().NODE_ENV !== "test") throw new Error("Reset is only available in test mode");
+  if (env.NODE_ENV !== "test") throw new Error("Reset is only available in test mode");
   const db = getDb();
   await db.exec(rawSql("DELETE FROM drinks"));
   await db.exec(rawSql("DELETE FROM users"));

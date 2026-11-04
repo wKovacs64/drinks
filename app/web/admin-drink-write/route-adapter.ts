@@ -8,14 +8,14 @@ import {
   drinkDraftSchema,
   DrinkWriteNoticeCodes,
   type AdminDrinksWriteService,
+  type AdminDrinkWriteFieldErrorResult,
   type CreateAdminDrinkResult,
   type DeleteAdminDrinkResult,
-  type DrinkDraft,
   type DrinkEditor,
   type DrinkWriteNotice,
   type UpdateAdminDrinkResult,
 } from "#/app/modules/drinks/drinks.ts";
-import { parseCreateDrinkSubmission, parseUpdateDrinkSubmission } from "./submission.ts";
+import { parseDrinkSubmission } from "./submission.ts";
 import type { DrinkEditorResponse } from "#/app/web/admin-drink-write/public/editor-response.ts";
 import { acceptsEditorResponse } from "./editor-request.ts";
 import { renderResponseError } from "#/app/web/error-pages/response-error.tsx";
@@ -26,21 +26,12 @@ type AdminDrinkWriteActionAdapterInput = {
   adminDrinksWriteService: AdminDrinksWriteService;
 };
 
-type InvalidDrinkEditor = {
-  fieldErrors: Record<string, string[] | undefined>;
-  formErrors: string[];
-};
-
 type AdminDrinkEditorAdapterInput = AdminDrinkWriteActionAdapterInput & {
   invalidEditor: {
     load: () => Promise<DrinkEditor | null>;
     render: (editor: DrinkEditor, errors: string[]) => Promise<Response>;
   };
 };
-
-type DrinkDraftParseResult =
-  | { kind: "ready"; draft: DrinkDraft }
-  | ({ kind: "invalid"; status: 400 } & InvalidDrinkEditor);
 
 const drinkFormSchema = object({
   title: field(string()),
@@ -54,19 +45,27 @@ const drinkFormSchema = object({
 });
 
 export async function createAdminDrinkActionAdapter(input: AdminDrinkEditorAdapterInput) {
-  const submission = await parseCreateDrinkSubmission(input.request);
+  const submission = await parseDrinkSubmission(input.request);
 
   if (submission.kind === "invalid") {
-    return invalidEditorResponse(input, submission, submission.formData);
+    return invalidEditorResponse(input, submission.errors, submission.formData);
+  }
+
+  if (!submission.imageUpload) {
+    return invalidEditorResponse(input, ["Image is required"], submission.formData);
   }
 
   const draftResult = parseDrinkDraft(submission.formData);
-  if (draftResult.kind === "invalid") {
-    return invalidEditorResponse(input, draftResult, submission.formData);
+  if (!draftResult.success) {
+    return invalidEditorResponse(
+      input,
+      draftResult.issues.map((issue) => issue.message),
+      submission.formData,
+    );
   }
 
   const result = await input.adminDrinksWriteService.create({
-    draft: draftResult.draft,
+    draft: draftResult.value,
     imageBuffer: submission.imageUpload.buffer,
   });
 
@@ -84,20 +83,24 @@ export async function deleteAdminDrinkActionAdapter(
 export async function updateAdminDrinkActionAdapter(
   input: AdminDrinkEditorAdapterInput & { slug: string },
 ) {
-  const submission = await parseUpdateDrinkSubmission(input.request);
+  const submission = await parseDrinkSubmission(input.request);
 
   if (submission.kind === "invalid") {
-    return invalidEditorResponse(input, submission, submission.formData);
+    return invalidEditorResponse(input, submission.errors, submission.formData);
   }
 
   const draftResult = parseDrinkDraft(submission.formData);
-  if (draftResult.kind === "invalid") {
-    return invalidEditorResponse(input, draftResult, submission.formData);
+  if (!draftResult.success) {
+    return invalidEditorResponse(
+      input,
+      draftResult.issues.map((issue) => issue.message),
+      submission.formData,
+    );
   }
 
   const result = await input.adminDrinksWriteService.update({
     slug: input.slug,
-    draft: draftResult.draft,
+    draft: draftResult.value,
     imageBuffer: submission.imageUpload?.buffer,
   });
 
@@ -117,7 +120,7 @@ function translateCreateResult(
       );
 
     case "fieldError":
-      return invalidEditorResponse(input, result, formData);
+      return invalidEditorResponse(input, fieldErrorMessages(result), formData);
 
     default:
       return assertNever(result);
@@ -137,7 +140,7 @@ function translateUpdateResult(
       );
 
     case "fieldError":
-      return invalidEditorResponse(input, result, formData);
+      return invalidEditorResponse(input, fieldErrorMessages(result), formData);
 
     case "notFound":
       return drinkNotFoundResponse(input.request);
@@ -160,40 +163,24 @@ function translateDeleteResult(result: DeleteAdminDrinkResult, session: Session)
   }
 }
 
-function parseDrinkDraft(formData: FormData): DrinkDraftParseResult {
+function parseDrinkDraft(formData: FormData) {
   const formResult = parseSafe(drinkFormSchema, formData);
-  const result = formResult.success ? parseSafe(drinkDraftSchema, formResult.value) : formResult;
+  return formResult.success ? parseSafe(drinkDraftSchema, formResult.value) : formResult;
+}
 
-  if (result.success) {
-    return { kind: "ready", draft: result.value };
-  }
-
-  const fieldErrors: Record<string, string[]> = {};
-  const formErrors: string[] = [];
-  for (const issue of result.issues) {
-    const fieldName = issue.path?.[0];
-    if (typeof fieldName === "string") (fieldErrors[fieldName] ??= []).push(issue.message);
-    else formErrors.push(issue.message);
-  }
-
-  return {
-    kind: "invalid",
-    fieldErrors: fieldErrors,
-    formErrors: formErrors,
-    status: 400,
-  };
+function fieldErrorMessages(result: AdminDrinkWriteFieldErrorResult): string[] {
+  return [
+    ...result.formErrors,
+    ...Object.values(result.fieldErrors).flatMap((messages) => messages ?? []),
+  ];
 }
 
 async function invalidEditorResponse(
   input: AdminDrinkEditorAdapterInput,
-  result: InvalidDrinkEditor,
+  errors: string[],
   formData?: FormData,
 ) {
-  const data: DrinkEditorResponse = {
-    kind: "invalid",
-    fieldErrors: result.fieldErrors,
-    formErrors: result.formErrors,
-  };
+  const data: DrinkEditorResponse = { kind: "invalid", errors };
   if (acceptsEditorResponse(input.request)) return Response.json(data, { status: 400 });
 
   const editor = await input.invalidEditor.load();
@@ -213,13 +200,10 @@ async function invalidEditorResponse(
   }
   const status = formData?.get("status");
   if (status === "published" || status === "unpublished") initialValues.status = status;
-  const errors = [
-    ...result.formErrors,
-    ...Object.values(result.fieldErrors).flatMap((messages) => messages ?? []),
-  ];
   const image = formData?.get("imageFile");
-  if (typeof image === "string" && image) errors.push("Select the image again before saving.");
-  return input.invalidEditor.render({ ...editor, initialValues }, errors);
+  const imageNotice =
+    typeof image === "string" && image ? ["Select the image again before saving."] : [];
+  return input.invalidEditor.render({ ...editor, initialValues }, [...errors, ...imageNotice]);
 }
 
 function redirectToAdminDrinksWithToast(session: Session, toast: ToastMessage): Response {

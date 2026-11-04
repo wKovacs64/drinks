@@ -7,7 +7,7 @@ status: accepted
 The **Admin Drink Write Route Adapter** is the complete Remix adapter for the **Admin Drink
 Write Path**. It prepares create/update submissions, validates `drinkDraftSchema`, calls the
 transport-agnostic Drinks module write service, and exhaustively translates typed create, update, and
-delete outcomes into field/form error data, not-found responses, redirects, and toasts.
+delete outcomes into error messages, not-found responses, redirects, and toasts.
 
 The Drinks module must continue to return transport-agnostic typed outcomes. Web response
 construction and toast behavior belong in the adapter.
@@ -17,7 +17,7 @@ construction and toast behavior belong in the adapter.
 Splitting web translation between a Drink-specific adapter and a generic action helper makes one
 **Admin Drink Write Path** outcome depend on multiple response interpreters. Keeping submission
 validation, typed outcome translation, redirects, and toasts in the same adapter gives callers a
-single web seam and preserves complete field-error maps without converting them to thrown errors.
+single web seam and preserves every error message without converting them to thrown errors.
 
 ## Decision
 
@@ -28,7 +28,7 @@ updates, and deletes:
 - `drinkDraftSchema` validation for create/update form values
 - calls to `AdminDrinksWriteService`
 - complete typed outcome translation
-- full field/form error preservation
+- full error message preservation
 - not-found responses for missing update/delete targets
 - redirects to the admin drinks list
 - success and warning toasts

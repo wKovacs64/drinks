@@ -4,7 +4,7 @@ status: accepted
 
 # Keep Remix adapters for Admin Drink Write Path outcomes
 
-The **Admin Drink Write Path** keeps a transport-agnostic Drinks module seam: `createAdminDrinksWriteService` returns typed write outcomes, while Remix web adapters adapt those outcomes into framework responses, field/form errors, redirects, and toasts. We accept this seam because pushing Remix response concerns behind the Drinks module would reduce the module's transport independence.
+The **Admin Drink Write Path** keeps a transport-agnostic Drinks module seam: `createAdminDrinksWriteService` returns typed write outcomes, while Remix web adapters adapt those outcomes into framework responses, error messages, redirects, and toasts. We accept this seam because pushing Remix response concerns behind the Drinks module would reduce the module's transport independence.
 
 ADR-0002 specifies the adapter responsibilities: the **Admin Drink Write Route Adapter** owns the complete web translation for create, update, and delete outcomes instead of splitting that translation with a generic route action helper.
 

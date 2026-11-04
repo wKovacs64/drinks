@@ -126,21 +126,26 @@ test("a Drink removed while editing shows the missing target and preserves text"
   expect(new URL(page.url()).pathname).toBe("/admin/drinks/test-margarita/edit");
 });
 
-test("the editor displays every field and form error and can retry", async (testContext) => {
+test("the editor displays every error and can retry", async (testContext) => {
   const page = await createBrowserPage(testContext, { admin: true });
   await page.goto("/admin/drinks/test-margarita/edit");
   await page.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
   await page.getByLabel("Title", { exact: true }).fill("Retry Margarita");
-  // The current domain rules emit field errors; provide a full failure at the browser HTTP seam
-  // to exercise the web contract's form errors and multiple messages without inventing a rule.
+  // Provide several messages at the browser HTTP seam to exercise the web contract's error list
+  // without inventing a domain rule.
   await page.route("**/admin/drinks/test-margarita/edit", (route) =>
     route.fulfill({
       status: 400,
       contentType: "application/json",
       body: JSON.stringify({
         kind: "invalid",
-        fieldErrors: { slug: ["First slug issue", "Second slug issue"], title: ["Title issue"] },
-        formErrors: ["First form issue", "Second form issue"],
+        errors: [
+          "First form issue",
+          "Second form issue",
+          "First slug issue",
+          "Second slug issue",
+          "Title issue",
+        ],
       }),
     }),
   );

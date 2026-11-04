@@ -1,18 +1,17 @@
 export * from "./drinks-contract.ts";
 
 import { randomUUID } from "node:crypto";
-import { enum_, parse } from "remix/data-schema";
 
 import type { getDb } from "#/app/db/client.ts";
-import { drinks, readDrink, writeDrink } from "#/app/db/schema.ts";
+import { drinks } from "#/app/db/schema.ts";
 import { markdownToHtml } from "./drinks-markdown.ts";
 import { withPlaceholderImages } from "./drinks-images.ts";
+import { toDrink } from "./drinks-rows.ts";
 import { purgeSearchCache, searchDrinks } from "./drinks-search.ts";
 import { toDrinkTagViews } from "./drinks-tags.ts";
 
 export { purgeSearchCache };
 import {
-  drinkStatusValues,
   DrinkWriteNoticeCodes,
   type AdminDrinksWriteService,
   type DrinkDraft,
@@ -23,6 +22,8 @@ import {
 } from "./drinks-contract.ts";
 
 type Db = ReturnType<typeof getDb>;
+
+type StoredDrinkDraft = DrinkDraft & { imageUrl: string; imageFileId: string };
 
 type AffectedDrinkPages = {
   slugs: string[];
@@ -60,51 +61,42 @@ export function createDrinksService(deps: { db: Db }): DrinksService {
             ["created_at", "desc"],
           ],
         })
-      ).map(readDrink);
+      ).map(toDrink);
 
       return withPlaceholderImages(publishedDrinks);
     },
     async getAllDrinks() {
-      const adminDrinks = await deps.db
-        .query(drinks)
-        .select(
-          "id",
-          "title",
-          "slug",
-          "image_url",
-          "calories",
-          "rank",
-          "status",
-          "created_at",
-          "updated_at",
-        )
-        .orderBy("rank", "desc")
-        .orderBy("created_at", "desc")
-        .all();
+      const adminDrinks = (
+        await deps.db.findMany(drinks, {
+          orderBy: [
+            ["rank", "desc"],
+            ["created_at", "desc"],
+          ],
+        })
+      ).map(toDrink);
 
       return adminDrinks.map((drink) => ({
         id: drink.id,
         title: drink.title,
         slug: drink.slug,
-        imageUrl: drink.image_url,
+        imageUrl: drink.imageUrl,
         calories: drink.calories,
         rank: drink.rank,
-        status: parse(enum_(drinkStatusValues), drink.status),
-        createdAt: new Date(drink.created_at * 1000),
-        updatedAt: new Date(drink.updated_at * 1000),
+        status: drink.status,
+        createdAt: drink.createdAt,
+        updatedAt: drink.updatedAt,
       }));
     },
     async getAllTags() {
-      const publishedTags = (
+      const publishedDrinks = (
         await deps.db.findMany(drinks, { where: { status: "published" } })
-      ).map(readDrink);
-      return toDrinkTagViews(publishedTags.flatMap((drink) => drink.tags)).toSorted((left, right) =>
-        left.displayName.localeCompare(right.displayName),
+      ).map(toDrink);
+      return toDrinkTagViews(publishedDrinks.flatMap((drink) => drink.tags)).toSorted(
+        (left, right) => left.displayName.localeCompare(right.displayName),
       );
     },
     async getDrinkBySlug({ slug, viewerRole }) {
-      const drinkRow = await deps.db.findOne(drinks, { where: { slug } });
-      const drink = drinkRow ? readDrink(drinkRow) : null;
+      const drink = await findDrinkBySlug(deps.db, slug);
 
       if (!drink) {
         return null;
@@ -136,7 +128,7 @@ export function createDrinksService(deps: { db: Db }): DrinksService {
             ["created_at", "desc"],
           ],
         })
-      ).map(readDrink);
+      ).map(toDrink);
 
       let resolvedTag: DrinkTagView | null = null;
       const matchingDrinks = publishedDrinks.filter((drink) => {
@@ -171,8 +163,7 @@ export function createDrinksService(deps: { db: Db }): DrinksService {
       return withPlaceholderImages(exactTitleMatch ? [exactTitleMatch] : matchingDrinks);
     },
     async findDrinkEditorBySlug(slug) {
-      const drinkRow = await deps.db.findOne(drinks, { where: { slug } });
-      const drink = drinkRow ? readDrink(drinkRow) : null;
+      const drink = await findDrinkBySlug(deps.db, slug);
 
       if (!drink) {
         return null;
@@ -243,8 +234,7 @@ export function createAdminDrinksWriteService({
       };
     },
     async update({ slug, draft, imageBuffer }) {
-      const existingRow = await db.findOne(drinks, { where: { slug } });
-      const existingDrink = existingRow ? readDrink(existingRow) : null;
+      const existingDrink = await findDrinkBySlug(db, slug);
 
       if (!existingDrink) {
         return { kind: "notFound", slug };
@@ -289,8 +279,7 @@ export function createAdminDrinksWriteService({
       };
     },
     async delete({ slug }) {
-      const existingRow = await db.findOne(drinks, { where: { slug } });
-      const existingDrink = existingRow ? readDrink(existingRow) : null;
+      const existingDrink = await findDrinkBySlug(db, slug);
 
       if (!existingDrink) {
         return { kind: "notFound", slug };
@@ -362,43 +351,48 @@ async function checkSlugAvailability(
   slug: string,
   currentDrinkId?: string,
 ): Promise<{ available: true } | { available: false }> {
-  const existingRow = await db.findOne(drinks, { where: { slug } });
-  const existingDrink = existingRow ? readDrink(existingRow) : null;
+  const existingDrink = await db.query(drinks).where({ slug }).select("id").first();
 
   return !existingDrink || existingDrink.id === currentDrinkId
     ? { available: true }
     : { available: false };
 }
 
-async function insertDrinkRow(
-  db: ReturnType<typeof getDb>,
-  draft: DrinkDraft & { imageUrl: string; imageFileId: string },
-) {
-  const createdDrink = readDrink(
-    await db.create(drinks, writeDrink({ id: randomUUID(), ...draft }), { returnRow: true }),
-  );
+async function findDrinkBySlug(db: Db, slug: string) {
+  const row = await db.findOne(drinks, { where: { slug } });
+  return row ? toDrink(row) : null;
+}
 
-  return createdDrink;
+async function insertDrinkRow(db: ReturnType<typeof getDb>, draft: StoredDrinkDraft) {
+  return toDrink(
+    await db.create(drinks, { id: randomUUID(), ...toDrinkColumns(draft) }, { returnRow: true }),
+  );
 }
 
 async function updateDrinkRow(
   db: ReturnType<typeof getDb>,
   drinkId: string,
-  draft: DrinkDraft & { imageUrl: string; imageFileId: string },
+  draft: StoredDrinkDraft,
 ) {
-  const existingRow = await db.find(drinks, drinkId);
-  if (!existingRow) throw new Error("Drink not found");
-  const updatedDrink = readDrink(
-    await db.update(
-      drinks,
-      drinkId,
-      writeDrink({
-        ...readDrink(existingRow),
-        ...draft,
-        updatedAt: new Date(),
-      }),
-    ),
+  return toDrink(
+    await db.update(drinks, drinkId, {
+      ...toDrinkColumns(draft),
+      updated_at: Math.floor(Date.now() / 1000),
+    }),
   );
+}
 
-  return updatedDrink;
+function toDrinkColumns(draft: StoredDrinkDraft) {
+  return {
+    slug: draft.slug,
+    title: draft.title,
+    image_url: draft.imageUrl,
+    image_file_id: draft.imageFileId,
+    calories: draft.calories,
+    ingredients: JSON.stringify(draft.ingredients),
+    tags: JSON.stringify(draft.tags),
+    notes: draft.notes,
+    rank: draft.rank,
+    status: draft.status,
+  };
 }

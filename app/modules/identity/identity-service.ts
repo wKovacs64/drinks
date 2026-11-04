@@ -1,5 +1,7 @@
+import { enum_, parse } from "remix/data-schema";
+import type { TableRow } from "remix/data-table";
 import type { getDb } from "#/app/db/client.ts";
-import { users, readUser, type User } from "#/app/db/schema.ts";
+import { users } from "#/app/db/schema.ts";
 import type { IdentityService, SessionUser } from "./identity.ts";
 
 type CreateIdentityServiceDeps = {
@@ -17,21 +19,22 @@ export function createIdentityService({ db }: CreateIdentityServiceDeps): Identi
         avatar_url: avatarUrl ?? null,
         updated_at: Math.floor(Date.now() / 1000),
       });
-      return toSessionUser(readUser(updatedUser));
+      return toSessionUser(updatedUser);
     },
     async getSessionUser({ userId }) {
       const row = await db.find(users, userId);
-      return row ? toSessionUser(readUser(row)) : null;
+      return row ? toSessionUser(row) : null;
     },
   };
 }
 
-function toSessionUser(user: User): SessionUser {
+/** `c.enum` does not validate stored values; an invalid `role` throws `ValidationError`. */
+function toSessionUser(user: TableRow<typeof users>): SessionUser {
   return {
     id: user.id,
     email: user.email,
     name: user.name,
-    avatarUrl: user.avatarUrl,
-    role: user.role,
+    avatarUrl: user.avatar_url,
+    role: parse(enum_(["user", "admin"]), user.role),
   };
 }

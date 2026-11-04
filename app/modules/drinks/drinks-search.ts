@@ -1,6 +1,7 @@
 import MiniSearch from "minisearch";
 import type { getDb } from "#/app/db/client.ts";
-import { drinks, readDrink, type Drink } from "#/app/db/schema.ts";
+import { drinks } from "#/app/db/schema.ts";
+import { toDrink, type Drink } from "./drinks-rows.ts";
 let searchData: { allDrinks: Drink[]; searchIndex: MiniSearch } | undefined;
 export async function searchDrinks(db: ReturnType<typeof getDb>, query: string): Promise<Drink[]> {
   if (!searchData) {
@@ -12,7 +13,7 @@ export async function searchDrinks(db: ReturnType<typeof getDb>, query: string):
           ["created_at", "desc"],
         ],
       })
-    ).map(readDrink);
+    ).map(toDrink);
     const searchIndex = new MiniSearch({
       fields: ["title", "ingredients", "notes"],
       storeFields: ["slug"],

@@ -1,7 +1,7 @@
 import "#/test/setup.ts";
 import { beforeEach, describe, mock, test } from "remix/test";
 import { expect } from "remix/assert";
-import { parse, parseSafe } from "remix/data-schema";
+import { parse, parseSafe, ValidationError } from "remix/data-schema";
 import { DataTableDatabaseError, rawSql } from "remix/data-table";
 import { http, HttpResponse } from "msw/http";
 import { server as requestMocks } from "#/test/server.ts";
@@ -305,6 +305,19 @@ describe("createDrinksService", () => {
       rank: 10,
     });
     expect(allDrinks[2]?.status).toBe("unpublished");
+  });
+
+  test("rejects a stored Drink status outside the known statuses", async () => {
+    await getDb().exec(rawSql("UPDATE drinks SET status = 'archived' WHERE slug = 'test-mojito'"));
+    const service = createReadOnlyService();
+
+    await expect(service.getAllDrinks()).rejects.toBeInstanceOf(ValidationError);
+    await expect(
+      service.getDrinkBySlug({ slug: "test-mojito", viewerRole: "admin" }),
+    ).rejects.toBeInstanceOf(ValidationError);
+    await expect(service.findDrinkEditorBySlug("test-mojito")).rejects.toBeInstanceOf(
+      ValidationError,
+    );
   });
 });
 

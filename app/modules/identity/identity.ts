@@ -1,11 +1,14 @@
-import type { User } from "#/app/db/schema.ts";
+import type { TableRow } from "remix/data-table";
+import type { users } from "#/app/db/schema.ts";
+
+type UserRow = TableRow<typeof users>;
 
 export type SessionUser = {
-  id: User["id"];
-  email: User["email"];
-  name: User["name"];
-  avatarUrl: User["avatarUrl"];
-  role: User["role"];
+  id: UserRow["id"];
+  email: UserRow["email"];
+  name: UserRow["name"];
+  avatarUrl: UserRow["avatar_url"];
+  role: UserRow["role"];
 };
 
 export interface IdentityService {
@@ -15,7 +18,7 @@ export interface IdentityService {
     name: string | undefined;
     avatarUrl: string | undefined;
   }): Promise<SessionUser | null>;
-  getSessionUser(input: { userId: User["id"] }): Promise<SessionUser | null>;
+  getSessionUser(input: { userId: UserRow["id"] }): Promise<SessionUser | null>;
 }
 
 export { createIdentityService } from "./identity-service.ts";

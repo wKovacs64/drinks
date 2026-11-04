@@ -1,6 +1,6 @@
 import { imageUrl } from "#/app/core/public/images.ts";
-import type { Drink } from "#/app/db/schema.ts";
 import type { DrinkView } from "./drinks.ts";
+import type { Drink } from "./drinks-rows.ts";
 import { toDrinkTagViews } from "./drinks-tags.ts";
 
 // Transparent 1x1 pixel GIF as fallback when blur placeholder generation fails

@@ -19,7 +19,8 @@ Remix. A change that regresses either is rejected on that alone; when the two co
 
 Prove it in the PR: cite the test that covers each affected property (`caching`, `auth`,
 `request-boundaries`, `module-loading`, `image-behavior`, and `security-headers` under
-`test/e2e/`), or attach a before-and-after measurement when no test covers it.
+`test/e2e/`; the `🚦 Lighthouse` CI job, with budgets in [performance](docs/performance.md), for
+public-page performance), or attach a before-and-after measurement when no test covers it.
 
 ## Code style
 

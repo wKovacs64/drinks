@@ -70,7 +70,6 @@ export function ImageCrop(
   });
   let previousImageWidth = 0;
   let previousImageHeight = 0;
-  let error: string | undefined;
   const cropMaskId = `crop-mask-${crypto.randomUUID()}`;
   handle.signal.addEventListener(
     "abort",
@@ -243,7 +242,6 @@ export function ImageCrop(
           on<HTMLInputElement, "change">("change", async (event) => {
             const file = event.currentTarget.files?.[0];
             if (!file) return;
-            error = undefined;
             crop = undefined;
             if (imageSource) URL.revokeObjectURL(imageSource);
             imageSource = URL.createObjectURL(file);
@@ -456,7 +454,6 @@ export function ImageCrop(
               </button>
             ) : null}
           </div>
-          {error ? <p className="text-red-400">{error}</p> : null}
         </div>
       );
     return (
@@ -473,7 +470,6 @@ export function ImageCrop(
             </button>
           </div>
         ) : null}
-        {error ? <p className="text-red-400">{error}</p> : null}
       </div>
     );
   };

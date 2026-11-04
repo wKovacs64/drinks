@@ -1,10 +1,10 @@
 import { clientEntry, on, ref, type Handle } from "remix/component";
 import { animateEntrance, animateExit } from "@remix-run/ui/animation";
+import type { ToastMessage } from "#/app/core/toast.ts";
 
 const toastColors = {
   success: "bg-[hsl(143_85%_96%)] border-[hsl(145_92%_87%)] text-[hsl(140_100%_27%)]",
   warning: "bg-[hsl(49_100%_97%)] border-[hsl(49_91%_84%)] text-[hsl(31_92%_45%)]",
-  error: "bg-[hsl(359_100%_97%)] border-[hsl(359_100%_94%)] text-[hsl(360_100%_45%)]",
 };
 
 const toastAnimation = {
@@ -19,19 +19,11 @@ const iconPaths = {
     "M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z",
   warning:
     "M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z",
-  error:
-    "M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z",
 };
 
 export const Toast = clientEntry(
   import.meta.url,
-  function Toast(
-    handle: Handle<{
-      kind: "success" | "warning" | "error";
-      message: string;
-      notificationId: string;
-    }>,
-  ) {
+  function Toast(handle: Handle<ToastMessage & { notificationId: string }>) {
     let notificationId = handle.props.notificationId;
     let toastElement: HTMLElement | undefined;
     let visible = true;

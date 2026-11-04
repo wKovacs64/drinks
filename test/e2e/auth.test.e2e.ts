@@ -7,6 +7,16 @@ import { getDb } from "#/app/db/client.ts";
 import { drinks, users } from "#/app/db/schema.ts";
 import { TEST_ADMIN_USER } from "#/test/database.ts";
 import { EDITOR_RESPONSE_MEDIA_TYPE } from "#/app/web/admin-drink-write/public/editor-response.ts";
+import { Route } from "remix/routes";
+import { routes } from "#/app/routes.ts";
+
+function getRouteLeaves(routeMap: object): Route[] {
+  const values: unknown[] = Object.values(routeMap);
+  return values.flatMap((value) => {
+    if (value instanceof Route) return [value];
+    return typeof value === "object" && value !== null ? getRouteLeaves(value) : [];
+  });
+}
 
 test("editor redirects require an explicit acceptable editor media type", async (testContext) => {
   const page = await createBrowserPage(testContext);
@@ -40,8 +50,18 @@ for (const actor of ["anonymous", "user"]) {
     const page = await createBrowserPage(testContext, { admin: actor === "user" });
     if (actor === "user") await getDb().update(users, TEST_ADMIN_USER.id, { role: "user" });
     const destination = actor === "anonymous" ? "/login" : "/unauthorized";
+    for (const route of getRouteLeaves(routes.admin)) {
+      const path = route.href({ slug: "test-margarita" });
+      const response = await page.request.fetch(path, { method: route.method, maxRedirects: 0 });
+      expect(response.status()).toBe(302);
+      expect(response.headers().location).toBe(
+        actor === "anonymous" && route.method === "GET"
+          ? `/login?${new URLSearchParams({ returnTo: path })}`
+          : destination,
+      );
+      expect(response.headers()["cache-control"]).toBe("private, no-store");
+    }
     for (const path of [
-      "/admin/drinks",
       "/%61dmin",
       "/%61dmin/",
       "/ad%6Din/drinks",
@@ -57,7 +77,6 @@ for (const actor of ["anonymous", "user"]) {
       expect(response.headers()["cache-control"]).toBe("private, no-store");
     }
     for (const path of [
-      "/admin/drinks/test-margarita/delete",
       "/%61dmin/drinks/new",
       "/ad%6din/drinks/test-margarita/edit",
       "/%61dmin/drinks/test-margarita/delete",

@@ -1,8 +1,8 @@
 import { createController } from "remix/router";
 import { routes } from "#/app/routes.ts";
+import { requireAdmin } from "#/app/middleware/admin.ts";
 import { getDb } from "#/app/db/client.ts";
 import { createDrinksService } from "#/app/modules/drinks/drinks.ts";
-import { redirect } from "remix/response/redirect";
 import { parseSafe, object, string, enum_ } from "remix/data-schema";
 import { deleteAdminDrinkActionAdapter } from "#/app/web/admin-drink-write/route-adapter.ts";
 import { getClientEntryPreloads } from "#/app/assets.ts";
@@ -15,9 +15,9 @@ const toastSchema = object({
   message: string(),
 });
 export default createController(routes.admin.drinks, {
+  middleware: requireAdmin,
   actions: {
     async index(context) {
-      if (!context.auth.ok) return redirect(routes.auth.login.href());
       const drinksService = createDrinksService({ db: getDb() });
       const drinkSummaries = await drinksService.getAllDrinks();
       const toastResult = parseSafe(toastSchema, context.session.get("toast"));

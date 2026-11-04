@@ -1,18 +1,19 @@
+import { createRouter } from "remix/router";
 import { SetCookie } from "remix/headers/set-cookie";
 import type { User } from "#/app/db/schema.ts";
-import {
-  createIdentitySessionCookie,
-  createIdentitySessionStorage,
-} from "#/app/modules/identity/identity.ts";
+import { getIdentitySessionMiddleware } from "#/app/modules/identity/identity.ts";
 
-// Signs in as any user id by signing the same envelope the identity session middleware reads.
+// Signs in as any user id through the identity session middleware's own Set-Cookie.
 export async function getSessionCookieValue(userId: User["id"]): Promise<string> {
-  const storage = createIdentitySessionStorage();
-  const session = await storage.read(null);
-  session.set("userId", userId);
-  const storageValue = await storage.save(session);
-  if (storageValue === null) throw new Error("Expected session storage to return a cookie value");
-  const { value } = new SetCookie(await createIdentitySessionCookie().serialize(storageValue));
+  const router = createRouter({ middleware: [getIdentitySessionMiddleware()] });
+  router.get("/", (context) => {
+    context.session.set("userId", userId);
+    return new Response();
+  });
+  const response = await router.fetch(new Request("http://localhost/"));
+  const setCookieHeader = response.headers.get("set-cookie");
+  if (setCookieHeader === null) throw new Error("Expected the session middleware to set a cookie");
+  const { value } = new SetCookie(setCookieHeader);
   if (value === undefined) throw new Error("Expected a signed session cookie value");
   return value;
 }

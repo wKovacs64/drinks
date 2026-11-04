@@ -20,10 +20,5 @@ export interface IdentityService {
 
 export { createIdentityService } from "./identity-service.ts";
 export { initiateLogin, authenticate, logout } from "./identity-auth-flows.ts";
-export {
-  createIdentitySessionCookie,
-  createIdentitySessionStorage,
-  getIdentitySessionMiddleware,
-  sessionCookie,
-} from "./identity-session.ts";
+export { getIdentitySessionMiddleware, sessionCookie } from "./identity-session.ts";
 export { getIdentityAuthMiddleware } from "./identity-middleware.ts";

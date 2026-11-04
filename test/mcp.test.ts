@@ -12,7 +12,8 @@ import { cardResultSchema, searchResultSchema } from "#/app/integrations/mcp/pub
 import { server as requestMocks } from "#/test/server.ts";
 import { getDb } from "#/app/db/client.ts";
 import { drinks } from "#/app/db/schema.ts";
-import { getRawSessionCookieValue, sessionCookie } from "#/app/modules/identity/identity.ts";
+import { sessionCookie } from "#/app/modules/identity/identity.ts";
+import { getSessionCookieValue } from "#/test/session.ts";
 
 async function connect(testContext: TestContext, { admin = false } = {}) {
   await resetAndSeedDatabase();
@@ -23,7 +24,7 @@ async function connect(testContext: TestContext, { admin = false } = {}) {
   const client = new Client({ name: "drinks-test", version: "1.0.0" });
   testContext.after(() => client.close());
   const cookie = admin
-    ? `${sessionCookie.name}=${await getRawSessionCookieValue({ ...TEST_ADMIN_USER, name: "Test Admin", avatarUrl: null, role: "admin" })}`
+    ? `${sessionCookie.name}=${await getSessionCookieValue(TEST_ADMIN_USER.id)}`
     : undefined;
   await client.connect(
     new StreamableHTTPClientTransport(new URL("/mcp", server.baseUrl), {

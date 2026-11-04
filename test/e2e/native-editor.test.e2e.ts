@@ -109,3 +109,11 @@ test("soft navigation replaces an editor draft and its save endpoint", async (te
     "Correct mojito editor",
   );
 });
+
+test("native invalid edit of a removed Drink returns not found", async (testContext) => {
+  const page = await createBrowserPage(testContext, { admin: true, javaScriptEnabled: false });
+  const response = await page.request.post("/admin/drinks/missing-drink/edit", {
+    multipart: { title: "" },
+  });
+  expect(response.status()).toBe(404);
+});

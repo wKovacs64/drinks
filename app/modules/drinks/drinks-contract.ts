@@ -146,6 +146,5 @@ export interface DrinksService {
     /** Return only the exact title match when one exists. */
     preferExactTitle?: boolean;
   }): Promise<DrinkView[]>;
-  getNewDrinkEditor(): Promise<DrinkEditor>;
   findDrinkEditorBySlug(slug: string): Promise<DrinkEditor | null>;
 }

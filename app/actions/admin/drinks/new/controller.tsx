@@ -1,8 +1,7 @@
 import { createController } from "remix/router";
 import { routes } from "#/app/routes.ts";
 import { requireAdmin } from "#/app/middleware/admin.ts";
-import { getDb } from "#/app/db/client.ts";
-import { createDrinksService } from "#/app/modules/drinks/drinks.ts";
+import { newDrinkEditor } from "#/app/modules/drinks/drinks.ts";
 import { getClientEntryPreloads } from "#/app/assets.ts";
 import { DrinkForm } from "../public/drink-form.tsx";
 import { DrinkEditorPage } from "../editor-page.tsx";
@@ -13,11 +12,9 @@ export default createController(routes.admin.drinks.new, {
   middleware: requireAdmin,
   actions: {
     async index(context) {
-      const drinksService = createDrinksService({ db: getDb() });
-      const editor = await drinksService.getNewDrinkEditor();
       return context.render(
         <DrinkEditorPage
-          editor={editor}
+          editor={newDrinkEditor}
           user={context.auth.identity}
           action={routes.admin.drinks.new.action.href()}
           modulePreloads={await getClientEntryPreloads(DrinkForm)}
@@ -30,7 +27,7 @@ export default createController(routes.admin.drinks.new, {
         session: context.session,
         adminDrinksWriteService: createDrinkWriteService(),
         invalidEditor: {
-          load: () => createDrinksService({ db: getDb() }).getNewDrinkEditor(),
+          load: async () => newDrinkEditor,
           async render(editor, errors) {
             return context.render(
               <DrinkEditorPage

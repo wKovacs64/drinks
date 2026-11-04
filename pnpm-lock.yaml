@@ -187,9 +187,6 @@ importers:
       '@unpic/core':
         specifier: 1.0.3
         version: 1.0.3
-      lodash-es:
-        specifier: 4.18.1
-        version: 4.18.1
       marked:
         specifier: 18.1.2
         version: 18.1.2
@@ -215,9 +212,6 @@ importers:
       '@tailwindcss/cli':
         specifier: 4.3.3
         version: 4.3.3
-      '@types/lodash-es':
-        specifier: 4.17.12
-        version: 4.17.12
       '@types/node':
         specifier: 26.6.6
         version: 26.6.6
@@ -1877,12 +1871,6 @@ packages:
 
   '@types/istanbul-lib-coverage@2.0.6':
     resolution: {integrity: sha512-2QF/t/auWm0lsy8XtKVPG19v3sSOQlJe/YHZgfjb/KBBHOGSV+J2q/S671rcq9uTBrLAXmZpqJiaQbMT+zNU1w==}
-
-  '@types/lodash-es@4.17.12':
-    resolution: {integrity: sha512-0NgftHUcV4v34VhXm8QBSftKVXtbkBG3ViCjs6+eJ5a6y6Mi/jiFGPc1sC7QK+9BFhWrURE3EOggmWaSxL9OzQ==}
-
-  '@types/lodash@4.17.27':
-    resolution: {integrity: sha512-VenMRv/eKNrspX9v3H4dbmjsrnCOYdYBG3kxXKk3dG6X+urBGcj2Prww3xw1U5K4FV/mE4h5GbWd0szEKf+9ew==}
 
   '@types/ms@2.1.0':
     resolution: {integrity: sha512-GsCCIZDE/p3i96vtEqx+7dBUGXrc7zeSK3wwPHIaRThS+9OhWIXRqzs4d6k1SVU8g91DrNRWxWUGhp5KXQb2VA==}
@@ -4882,12 +4870,6 @@ snapshots:
   '@types/dom-navigation@1.0.7': {}
 
   '@types/istanbul-lib-coverage@2.0.6': {}
-
-  '@types/lodash-es@4.17.12':
-    dependencies:
-      '@types/lodash': 4.17.27
-
-  '@types/lodash@4.17.27': {}
 
   '@types/ms@2.1.0': {}
 

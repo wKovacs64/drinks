@@ -1,5 +1,5 @@
 import { enum_, object, string } from "remix/data-schema";
-import tagSlug from "lodash-es/kebabCase.js";
+import slugify from "@sindresorhus/slugify";
 export const drinkStatusValues = ["published", "unpublished"] as const;
 const trimmedString = string().transform((value) => value.trim());
 const integerString = (message: string) =>
@@ -29,9 +29,14 @@ export const drinkDraftSchema = object({
   ),
   tags: string()
     .transform((value) =>
-      [...new Set(value.split(",").map(tagSlug).filter(Boolean))].map((slug) =>
-        slug.replaceAll("-", " "),
-      ),
+      [
+        ...new Set(
+          value
+            .split(",")
+            .map((tag) => slugify(tag))
+            .filter(Boolean),
+        ),
+      ].map((slug) => slug.replaceAll("-", " ")),
     )
     .refine((value) => value.length > 0, "At least one tag is required"),
   notes: trimmedString.transform((value) => value || null),

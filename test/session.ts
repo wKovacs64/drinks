@@ -1,10 +1,9 @@
 import { createRouter } from "remix/router";
 import { SetCookie } from "remix/headers/set-cookie";
-import type { User } from "#/app/db/schema.ts";
-import { getIdentitySessionMiddleware } from "#/app/modules/identity/identity.ts";
+import { getIdentitySessionMiddleware, type SessionUser } from "#/app/modules/identity/identity.ts";
 
 // Signs in as any user id through the identity session middleware's own Set-Cookie.
-export async function getSessionCookieValue(userId: User["id"]): Promise<string> {
+export async function getSessionCookieValue(userId: SessionUser["id"]): Promise<string> {
   const router = createRouter({ middleware: [getIdentitySessionMiddleware()] });
   router.get("/", (context) => {
     context.session.set("userId", userId);

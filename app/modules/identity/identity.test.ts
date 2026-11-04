@@ -1,8 +1,10 @@
 import "#/test/setup.ts";
 import { beforeEach, describe, test } from "remix/test";
 import { expect } from "remix/assert";
+import { ValidationError } from "remix/data-schema";
+import { rawSql } from "remix/data-table";
 import { getDb } from "#/app/db/client.ts";
-import { users, writeUser } from "#/app/db/schema.ts";
+import { users } from "#/app/db/schema.ts";
 import { resetAndSeedDatabase } from "#/test/database.ts";
 import { createIdentityService } from "./identity.ts";
 
@@ -57,16 +59,13 @@ describe("createIdentityService", () => {
 
   test("clears missing profile fields without changing a regular User's access", async () => {
     const db = getDb();
-    await db.create(
-      users,
-      writeUser({
-        id: "test-user-id",
-        email: "user@test.com",
-        name: "Previous Name",
-        avatarUrl: "https://example.com/previous.png",
-        role: "user",
-      }),
-    );
+    await db.create(users, {
+      id: "test-user-id",
+      email: "user@test.com",
+      name: "Previous Name",
+      avatar_url: "https://example.com/previous.png",
+      role: "user",
+    });
     const service = createIdentityService({ db });
 
     const user = await service.admitUser({
@@ -105,6 +104,24 @@ describe("createIdentityService", () => {
     await db.update(users, "test-admin-id", { role: "admin" });
 
     expect((await service.getSessionUser({ userId: "test-admin-id" }))?.role).toBe("admin");
+  });
+
+  test("rejects a stored User role outside the known roles", async () => {
+    const db = getDb();
+    const service = createIdentityService({ db });
+    await db.exec(rawSql("UPDATE users SET role = 'superadmin' WHERE id = 'test-admin-id'"));
+
+    await expect(service.getSessionUser({ userId: "test-admin-id" })).rejects.toBeInstanceOf(
+      ValidationError,
+    );
+    await expect(
+      service.admitUser({
+        email: "admin@test.com",
+        emailVerified: true,
+        name: "Test Admin",
+        avatarUrl: undefined,
+      }),
+    ).rejects.toBeInstanceOf(ValidationError);
   });
 
   test("returns null on the next lookup after a User is deleted", async () => {

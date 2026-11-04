@@ -57,7 +57,7 @@ export const router = createRouter({
     adminDrinkEditorRedirects,
     protectAdmin,
   ],
-  defaultHandler: (context) => renderUnmatchedUrl(context.render),
+  defaultHandler: (context) => renderUnmatchedUrl(context.render, context.method),
 });
 export type AppContext = RouterContext<typeof router>;
 declare module "remix" {

@@ -33,6 +33,9 @@ test("an unmatched path is not found for every method", async (testContext) => {
     const response = await page.request.fetch("/unknown/deep/path", { method });
     expect(response.status()).toBe(404);
     expect(response.headers().allow).toBe(undefined);
+    expect(response.headers()["cache-control"]).toBe(
+      method === "HEAD" ? "public, max-age=30, s-maxage=60, must-revalidate" : "no-store",
+    );
   }
 });
 

@@ -33,6 +33,9 @@ When adding or moving files, follow Remix's project tour
 (`node_modules/remix/guides/01-start-here.md`)
 for framework organization.
 
+When module depth and idiomatic Remix pull in different directions, choose depth: keep a small
+interface and the logic behind it in one place, even where a Remix guide places it in the route.
+
 Keep server business behavior in deep modules. Create services per request with explicit boundary
 dependencies. Keep internal collaborators, such as search, markdown rendering, and image decoration,
 behind the module seam. Ask for capability-shaped read models rather than reshaping persistence rows

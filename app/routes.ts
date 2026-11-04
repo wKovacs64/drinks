@@ -24,5 +24,4 @@ export const routes = route({
   healthcheck: get("/_/healthcheck"),
   robots: get("/robots.txt"),
   manifest: get("/manifest.webmanifest"),
-  notFound: get("/*path"),
 });

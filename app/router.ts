@@ -10,6 +10,7 @@ import {
   getIdentityAuthMiddleware,
 } from "#/app/modules/identity/identity.ts";
 import controller from "./actions/controller.tsx";
+import { renderUnmatchedUrl } from "./actions/not-found-page.tsx";
 import { renderAssets } from "./assets.ts";
 import { routes } from "./routes.ts";
 import { adminDrinkEditorRedirects } from "#/app/web/admin-drink-write/editor-redirects.ts";
@@ -56,6 +57,7 @@ export const router = createRouter({
     adminDrinkEditorRedirects,
     protectAdmin,
   ],
+  defaultHandler: (context) => renderUnmatchedUrl(context.render, context.method),
 });
 export type AppContext = RouterContext<typeof router>;
 declare module "remix" {

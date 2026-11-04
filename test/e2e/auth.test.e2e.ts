@@ -62,6 +62,7 @@ for (const actor of ["anonymous", "user"]) {
       expect(response.headers()["cache-control"]).toBe("private, no-store");
     }
     for (const path of [
+      "/admin/unknown",
       "/%61dmin",
       "/%61dmin/",
       "/ad%6Din/drinks",
@@ -77,6 +78,7 @@ for (const actor of ["anonymous", "user"]) {
       expect(response.headers()["cache-control"]).toBe("private, no-store");
     }
     for (const path of [
+      "/admin/unknown",
       "/%61dmin/drinks/new",
       "/ad%6din/drinks/test-margarita/edit",
       "/%61dmin/drinks/test-margarita/delete",

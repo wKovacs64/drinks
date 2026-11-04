@@ -4,6 +4,23 @@ Review-time preferences for code and tests. [Architecture](docs/architecture.md)
 ownership and runtime contracts; [domain docs](docs/agents/domain.md) define vocabulary and accepted
 decisions. Formatting, lint, and type rules are enforced by the tools configured in this repository.
 
+## Non-negotiables
+
+Security, then performance, outrank every other standard here, including simplicity and idiomatic
+Remix. A change that regresses either is rejected on that alone; when the two conflict, security wins.
+
+- **Security:** admin access stays deny-by-default at the router; admin, auth, and session-bearing
+  responses never become publicly cacheable; uploads stay bounded; server source stays out of the
+  browser asset graph; session cookies stay signed, `httpOnly`, `SameSite=Lax`, and `Secure` in
+  production; document responses keep their security headers.
+- **Performance:** public pages hold their Core Web Vitals (LCP, INP, CLS) and TTFB. They stay
+  cacheable at Fastly with their current lifetimes and keys, the LCP image keeps its high-priority
+  preload, and client-module preloads wait until after paint.
+
+Prove it in the PR: cite the test that covers each affected property (`caching`, `auth`,
+`request-boundaries`, `module-loading`, and `image-behavior` under `test/e2e/`), or attach a
+before-and-after measurement when no test covers it.
+
 ## Code style
 
 - Use native subpath imports.
@@ -15,6 +32,9 @@ decisions. Formatting, lint, and type rules are enforced by the tools configured
 When adding or moving files, follow Remix's project tour
 (`node_modules/remix/guides/01-start-here.md`)
 for framework organization.
+
+When module depth and idiomatic Remix pull in different directions, choose depth: keep a small
+interface and the logic behind it in one place, even where a Remix guide places it in the route.
 
 Keep server business behavior in deep modules. Create services per request with explicit boundary
 dependencies. Keep internal collaborators, such as search, markdown rendering, and image decoration,

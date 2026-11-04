@@ -18,8 +18,8 @@ Remix. A change that regresses either is rejected on that alone; when the two co
   preload, and client-module preloads wait until after paint.
 
 Prove it in the PR: cite the test that covers each affected property (`caching`, `auth`,
-`request-boundaries`, `module-loading`, and `image-behavior` under `test/e2e/`), or attach a
-before-and-after measurement when no test covers it.
+`request-boundaries`, `module-loading`, `image-behavior`, and `security-headers` under
+`test/e2e/`), or attach a before-and-after measurement when no test covers it.
 
 ## Code style
 

@@ -15,15 +15,11 @@ import {
   drinkStatusValues,
   DrinkWriteNoticeCodes,
   type AdminDrinksWriteService,
-  type CreateAdminDrinkCommand,
-  type DeleteAdminDrinkCommand,
-  type DeleteAdminDrinkResult,
   type DrinkDraft,
+  type DrinkEditor,
   type DrinksService,
   type DrinkTagView,
   type DrinkWriteNotice,
-  type UpdateAdminDrinkCommand,
-  type UpdateAdminDrinkResult,
 } from "./drinks-contract.ts";
 
 type Db = ReturnType<typeof getDb>;
@@ -39,28 +35,21 @@ type DrinksWriteEffects = {
   purgeDrinkCache: (affectedPages: AffectedDrinkPages) => Promise<void>;
 };
 
+export const newDrinkEditor: DrinkEditor = {
+  mode: "create",
+  initialValues: {
+    title: "",
+    slug: "",
+    ingredients: "",
+    calories: "",
+    tags: "",
+    notes: "",
+    rank: "0",
+    status: "published",
+  },
+};
+
 export function createDrinksService(deps: { db: Db }): DrinksService {
-  return buildDrinksServiceReadMethods({ db: deps.db });
-}
-
-export function createAdminDrinksWriteService(deps: {
-  db: Db;
-  writeEffects: DrinksWriteEffects;
-}): AdminDrinksWriteService {
-  return {
-    async create(command) {
-      return createAdminDrink(deps.db, deps.writeEffects, command);
-    },
-    async update(command) {
-      return updateAdminDrink(deps.db, deps.writeEffects, command);
-    },
-    async delete(command) {
-      return deleteAdminDrink(deps.db, deps.writeEffects, command);
-    },
-  };
-}
-
-function buildDrinksServiceReadMethods(deps: { db: Db }): DrinksService {
   return {
     async getPublishedDrinks() {
       const publishedDrinks = (
@@ -181,21 +170,6 @@ function buildDrinksServiceReadMethods(deps: { db: Db }): DrinksService {
         : undefined;
       return withPlaceholderImages(exactTitleMatch ? [exactTitleMatch] : matchingDrinks);
     },
-    async getNewDrinkEditor() {
-      return {
-        mode: "create",
-        initialValues: {
-          title: "",
-          slug: "",
-          ingredients: "",
-          calories: "",
-          tags: "",
-          notes: "",
-          rank: "0",
-          status: "published",
-        },
-      };
-    },
     async findDrinkEditorBySlug(slug) {
       const drinkRow = await deps.db.findOne(drinks, { where: { slug } });
       const drink = drinkRow ? readDrink(drinkRow) : null;
@@ -223,122 +197,118 @@ function buildDrinksServiceReadMethods(deps: { db: Db }): DrinksService {
   };
 }
 
-async function deleteAdminDrink(
-  db: Db,
-  writeEffects: Pick<DrinksWriteEffects, "deleteImage" | "purgeDrinkCache">,
-  { slug }: DeleteAdminDrinkCommand,
-): Promise<DeleteAdminDrinkResult> {
-  const existingRow = await db.findOne(drinks, { where: { slug } });
-  const existingDrink = existingRow ? readDrink(existingRow) : null;
-
-  if (!existingDrink) {
-    return { kind: "notFound", slug };
-  }
-
-  await db.delete(drinks, existingDrink.id);
-
-  purgeSearchCache();
-  const notices = await retireDrinkImage(writeEffects, existingDrink.imageFileId);
-  notices.push(
-    ...(await refreshDrinkCache(writeEffects, {
-      slugs: [existingDrink.slug],
-      tags: existingDrink.tags,
-    })),
-  );
-
-  return { kind: "success", notices };
-}
-
-async function updateAdminDrink(
-  db: Db,
-  writeEffects: DrinksWriteEffects,
-  { slug, draft, imageBuffer }: UpdateAdminDrinkCommand,
-): Promise<UpdateAdminDrinkResult> {
-  const existingRow = await db.findOne(drinks, { where: { slug } });
-  const existingDrink = existingRow ? readDrink(existingRow) : null;
-
-  if (!existingDrink) {
-    return { kind: "notFound", slug };
-  }
-
-  const slugAvailability = await checkSlugAvailability(db, draft.slug, existingDrink.id);
-  if (!slugAvailability.available) {
-    return {
-      kind: "fieldError",
-      fieldErrors: { slug: ["Slug already exists"] },
-      formErrors: [],
-    };
-  }
-
-  const uploadedImage = imageBuffer
-    ? await writeEffects.uploadImage(imageBuffer, `${draft.slug}.jpg`)
-    : undefined;
-  const updatedDrink = await updateDrinkRow(db, existingDrink.id, {
-    ...draft,
-    imageUrl: uploadedImage?.url ?? existingDrink.imageUrl,
-    imageFileId: uploadedImage?.fileId ?? existingDrink.imageFileId,
-  }).catch(async (error: unknown) => {
-    if (uploadedImage) await compensateUploadedImage(writeEffects, uploadedImage.fileId);
-    throw error;
-  });
-
-  purgeSearchCache();
-  const notices = uploadedImage
-    ? await retireDrinkImage(writeEffects, existingDrink.imageFileId)
-    : [];
-  notices.push(
-    ...(await refreshDrinkCache(writeEffects, {
-      slugs: [...new Set([existingDrink.slug, updatedDrink.slug])],
-      tags: [...new Set([...existingDrink.tags, ...updatedDrink.tags])],
-    })),
-  );
-
+export function createAdminDrinksWriteService({
+  db,
+  writeEffects,
+}: {
+  db: Db;
+  writeEffects: DrinksWriteEffects;
+}): AdminDrinksWriteService {
   return {
-    kind: "success",
-    drinkSlug: updatedDrink.slug,
-    notices,
-  };
-}
+    async create({ draft, imageBuffer }) {
+      if (!imageBuffer) {
+        throw new Error("Image buffer is required when creating a drink");
+      }
 
-async function createAdminDrink(
-  db: Db,
-  writeEffects: DrinksWriteEffects,
-  { draft, imageBuffer }: CreateAdminDrinkCommand,
-) {
-  if (!imageBuffer) {
-    throw new Error("Image buffer is required when creating a drink");
-  }
+      const slugAvailability = await checkSlugAvailability(db, draft.slug);
+      if (!slugAvailability.available) {
+        return {
+          kind: "fieldError",
+          fieldErrors: { slug: ["Slug already exists"] },
+          formErrors: [],
+        };
+      }
 
-  const slugAvailability = await checkSlugAvailability(db, draft.slug);
-  if (!slugAvailability.available) {
-    return {
-      kind: "fieldError" as const,
-      fieldErrors: { slug: ["Slug already exists"] },
-      formErrors: [],
-    };
-  }
+      const uploadedImage = await writeEffects.uploadImage(imageBuffer, `${draft.slug}.jpg`);
 
-  const uploadedImage = await writeEffects.uploadImage(imageBuffer, `${draft.slug}.jpg`);
+      const createdDrink = await insertDrinkRow(db, {
+        ...draft,
+        imageUrl: uploadedImage.url,
+        imageFileId: uploadedImage.fileId,
+      }).catch(async (error: unknown) => {
+        await compensateUploadedImage(writeEffects, uploadedImage.fileId);
+        throw error;
+      });
 
-  const createdDrink = await insertDrinkRow(db, {
-    ...draft,
-    imageUrl: uploadedImage.url,
-    imageFileId: uploadedImage.fileId,
-  }).catch(async (error: unknown) => {
-    await compensateUploadedImage(writeEffects, uploadedImage.fileId);
-    throw error;
-  });
+      purgeSearchCache();
+      const notices = await refreshDrinkCache(writeEffects, {
+        slugs: [createdDrink.slug],
+        tags: createdDrink.tags,
+      });
 
-  purgeSearchCache();
-  const notices = await refreshDrinkCache(writeEffects, {
-    slugs: [createdDrink.slug],
-    tags: createdDrink.tags,
-  });
+      return {
+        kind: "success",
+        drinkSlug: createdDrink.slug,
+        notices,
+      };
+    },
+    async update({ slug, draft, imageBuffer }) {
+      const existingRow = await db.findOne(drinks, { where: { slug } });
+      const existingDrink = existingRow ? readDrink(existingRow) : null;
 
-  return {
-    kind: "success" as const,
-    drinkSlug: createdDrink.slug,
-    notices,
+      if (!existingDrink) {
+        return { kind: "notFound", slug };
+      }
+
+      const slugAvailability = await checkSlugAvailability(db, draft.slug, existingDrink.id);
+      if (!slugAvailability.available) {
+        return {
+          kind: "fieldError",
+          fieldErrors: { slug: ["Slug already exists"] },
+          formErrors: [],
+        };
+      }
+
+      const uploadedImage = imageBuffer
+        ? await writeEffects.uploadImage(imageBuffer, `${draft.slug}.jpg`)
+        : undefined;
+      const updatedDrink = await updateDrinkRow(db, existingDrink.id, {
+        ...draft,
+        imageUrl: uploadedImage?.url ?? existingDrink.imageUrl,
+        imageFileId: uploadedImage?.fileId ?? existingDrink.imageFileId,
+      }).catch(async (error: unknown) => {
+        if (uploadedImage) await compensateUploadedImage(writeEffects, uploadedImage.fileId);
+        throw error;
+      });
+
+      purgeSearchCache();
+      const notices = uploadedImage
+        ? await retireDrinkImage(writeEffects, existingDrink.imageFileId)
+        : [];
+      notices.push(
+        ...(await refreshDrinkCache(writeEffects, {
+          slugs: [...new Set([existingDrink.slug, updatedDrink.slug])],
+          tags: [...new Set([...existingDrink.tags, ...updatedDrink.tags])],
+        })),
+      );
+
+      return {
+        kind: "success",
+        drinkSlug: updatedDrink.slug,
+        notices,
+      };
+    },
+    async delete({ slug }) {
+      const existingRow = await db.findOne(drinks, { where: { slug } });
+      const existingDrink = existingRow ? readDrink(existingRow) : null;
+
+      if (!existingDrink) {
+        return { kind: "notFound", slug };
+      }
+
+      await db.delete(drinks, existingDrink.id);
+
+      purgeSearchCache();
+      const notices = await retireDrinkImage(writeEffects, existingDrink.imageFileId);
+      notices.push(
+        ...(await refreshDrinkCache(writeEffects, {
+          slugs: [existingDrink.slug],
+          tags: existingDrink.tags,
+        })),
+      );
+
+      return { kind: "success", notices };
+    },
   };
 }
 

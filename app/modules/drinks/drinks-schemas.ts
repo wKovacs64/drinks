@@ -3,8 +3,9 @@ import tagSlug from "lodash-es/kebabCase.js";
 export const drinkStatusValues = ["published", "unpublished"] as const;
 const trimmedString = string().transform((value) => value.trim());
 const integerString = (message: string) =>
-  string()
-    .transform((value) => Number.parseInt(value, 10))
+  trimmedString
+    .refine((value) => /^-?\d+$/.test(value), message)
+    .transform(Number)
     .refine(Number.isSafeInteger, message);
 export const drinkDraftSchema = object({
   title: trimmedString.refine((value) => value.length > 0, "Title is required"),

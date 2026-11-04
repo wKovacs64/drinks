@@ -882,4 +882,50 @@ describe("drinkDraftSchema", () => {
       expect(parseSafe(drinkDraftSchema, { ...validInput, ...invalidField }).success).toBe(false);
     }
   });
+
+  const validNumberInput = {
+    title: "Test",
+    slug: "test",
+    ingredients: "a",
+    calories: "100",
+    tags: "a",
+    notes: "",
+    rank: "0",
+    status: "published",
+  };
+
+  test("accepts whole numbers, trimming surrounding whitespace", () => {
+    for (const [input, expected] of [
+      ["42", 42],
+      ["0", 0],
+      [" 7 ", 7],
+    ] as const) {
+      const draft = parse(drinkDraftSchema, { ...validNumberInput, calories: input, rank: input });
+      expect(draft.calories).toBe(expected);
+      expect(draft.rank).toBe(expected);
+    }
+  });
+
+  test("accepts a negative rank but not negative calories", () => {
+    expect(parse(drinkDraftSchema, { ...validNumberInput, rank: "-3" }).rank).toBe(-3);
+
+    const result = parseSafe(drinkDraftSchema, { ...validNumberInput, calories: "-3" });
+    expect(result.success ? [] : result.issues.map((issue) => issue.message)).toEqual([
+      "Calories cannot be negative",
+    ]);
+  });
+
+  test("rejects number fields that are not whole numbers", () => {
+    for (const input of ["5abc", "1.9", "1e3", "", "abc", "9007199254740993"]) {
+      const result = parseSafe(drinkDraftSchema, {
+        ...validNumberInput,
+        calories: input,
+        rank: input,
+      });
+      expect(result.success ? [] : result.issues.map((issue) => issue.message)).toEqual([
+        "Calories must be a whole number",
+        "Rank must be a whole number",
+      ]);
+    }
+  });
 });

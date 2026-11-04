@@ -38,7 +38,3 @@ app.addEventListener("error", (event) => {
 });
 await app.ready();
 document.documentElement.dataset.remixReady = "true";
-if ("serviceWorker" in navigator)
-  void navigator.serviceWorker.register("/sw.js").catch((error) => {
-    console.error("Service worker registration failed", error);
-  });

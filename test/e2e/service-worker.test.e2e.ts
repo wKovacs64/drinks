@@ -2,50 +2,36 @@ import { test } from "remix/test";
 import { expect } from "remix/assert";
 import { createBrowserPage } from "#/test/e2e.ts";
 
-test("service worker activates and remains usable after a page reload", async (testContext) => {
+test("pages register no service worker", async (testContext) => {
   const page = await createBrowserPage(testContext);
-  const browserErrors: string[] = [];
-  const registrationErrors: string[] = [];
-  page.on("pageerror", (error) => browserErrors.push(error.message));
-  page.on("console", (message) => {
-    if (message.type() === "error" && message.text().includes("Service worker registration failed"))
-      registrationErrors.push(message.text());
-  });
   await page.goto("/");
-  await page.waitForFunction(() => navigator.serviceWorker.controller?.state === "activated");
-  expect(
-    await page.evaluate(async () => (await navigator.serviceWorker.ready).active?.scriptURL),
-  ).toBe(new URL("/sw.js", page.url()).href);
-  await page.reload();
   await page.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
-  expect(await page.evaluate(() => navigator.serviceWorker.controller?.state)).toBe("activated");
-  await page.getByRole("link", { name: "Test Margarita", exact: true }).click();
-  await page.getByText("A classic test margarita").waitFor();
-  expect(browserErrors).toEqual([]);
-  expect(registrationErrors).toEqual([]);
+  expect(
+    await page.evaluate(async () => (await navigator.serviceWorker.getRegistrations()).length),
+  ).toBe(0);
 });
 
-test("service worker registration failure is handled and search remains usable", async (testContext) => {
+test("retired service worker clears caches and unregisters itself", async (testContext) => {
   const page = await createBrowserPage(testContext);
-  const browserErrors: string[] = [];
-  const registrationFailure = Promise.withResolvers<void>();
-  page.on("pageerror", (error) => {
-    browserErrors.push(error.message);
-    registrationFailure.resolve();
+  const response = await page.request.get("/sw.js");
+  expect(response.status()).toBe(200);
+  expect(response.headers()["content-type"]).toMatch(/^text\/javascript\b/);
+  await page.goto("/");
+  const remaining = await page.evaluate(async () => {
+    await (await caches.open("document-cache-v4")).put("/", new Response("stale"));
+    const registration = await navigator.serviceWorker.register("/sw.js");
+    const worker = registration.installing;
+    if (!worker) throw new Error("Expected an installing service worker");
+    // Activation waits for the worker's activate handler; unregistering can end it as redundant.
+    await new Promise<void>((resolve) =>
+      worker.addEventListener("statechange", () => {
+        if (worker.state === "activated" || worker.state === "redundant") resolve();
+      }),
+    );
+    return {
+      registrations: (await navigator.serviceWorker.getRegistrations()).length,
+      caches: await caches.keys(),
+    };
   });
-  page.on("console", (message) => {
-    if (message.type() === "error" && message.text().includes("Service worker registration failed"))
-      registrationFailure.resolve();
-  });
-  await page.addInitScript(() => {
-    navigator.serviceWorker.register = () =>
-      Promise.reject(new DOMException("Service worker registration blocked", "SecurityError"));
-  });
-  await page.goto("/search");
-  await registrationFailure.promise;
-  expect(browserErrors).toEqual([]);
-  const input = page.getByRole("textbox", { name: "Search Term" });
-  await input.fill("tequila");
-  await input.press("Enter");
-  await page.getByRole("heading", { name: "Test Margarita", exact: true }).waitFor();
+  expect(remaining).toEqual({ registrations: 0, caches: [] });
 });

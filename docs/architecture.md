@@ -16,7 +16,7 @@ Server business behavior lives under `app/modules/<module>/`. The public entrypo
 Routes construct services and return framework responses. The Drinks module owns Drink write
 behavior, image lifecycle orchestration, cache purge orchestration, and transport-independent typed
 write outcomes. The admin write adapter owns the complete web translation, including submission
-validation, field errors, redirects, and toasts. Native form failures render the submitted editor
+validation, error messages, redirects, and toasts. Native form failures render the submitted editor
 with HTTP 400; enhanced submissions explicitly request the editor JSON media type.
 [ADR-0001](adr/0001-admin-drink-write-route-adapters.md) and [ADR-0002](adr/0002-admin-drink-write-route-adapter-owns-web-translation.md) record this seam.
 

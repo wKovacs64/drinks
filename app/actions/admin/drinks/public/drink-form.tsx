@@ -91,10 +91,7 @@ function DrinkEditorForm(handle: Handle<DrinkFormProps>) {
           else await navigate(result.location);
           return;
         case "invalid":
-          errors = [
-            ...result.formErrors,
-            ...Object.values(result.fieldErrors).flatMap((messages) => messages ?? []),
-          ];
+          errors = result.errors;
           break;
         case "notFound":
           errors = [result.message];

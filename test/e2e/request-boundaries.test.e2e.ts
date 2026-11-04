@@ -17,7 +17,7 @@ test("the editor preserves its existing per-image size limit", async (testContex
   });
   expect(response.status()).toBe(400);
   expect(await response.json()).toMatchObject({
-    fieldErrors: { imageFile: ["Image must be under 5MB"] },
+    errors: ["Image must be under 5MB"],
   });
 });
 
@@ -33,7 +33,7 @@ test("the editor bounds the complete multipart submission", async (testContext) 
   });
   expect(response.status()).toBe(400);
   expect(await response.json()).toMatchObject({
-    fieldErrors: { imageFile: ["Form submission is too large"] },
+    errors: ["Form submission is too large"],
   });
 });
 
@@ -45,7 +45,7 @@ test("the editor bounds the number of submitted fields", async (testContext) => 
   });
   expect(response.status()).toBe(400);
   expect(await response.json()).toMatchObject({
-    fieldErrors: { imageFile: ["Form submission contains too many fields"] },
+    errors: ["Form submission contains too many fields"],
   });
 });
 
@@ -69,7 +69,44 @@ test("the single-image editor rejects an additional uploaded file", async (testC
   });
   expect(response.status()).toBe(400);
   expect(await response.json()).toMatchObject({
-    fieldErrors: { imageFile: ["Upload only one image"] },
+    errors: ["Upload only one image"],
+  });
+});
+
+test("creating a Drink requires an image", async (testContext) => {
+  const pageAsAdmin = await createBrowserPage(testContext, { admin: true });
+  const response = await pageAsAdmin.request.post("/admin/drinks/new", {
+    headers: { Accept: EDITOR_RESPONSE_MEDIA_TYPE },
+    multipart: { title: "No Image" },
+  });
+  expect(response.status()).toBe(400);
+  expect(await response.json()).toEqual({ kind: "invalid", errors: ["Image is required"] });
+});
+
+test("the editor reports every invalid draft field", async (testContext) => {
+  const pageAsAdmin = await createBrowserPage(testContext, { admin: true });
+  const response = await pageAsAdmin.request.post("/admin/drinks/test-margarita/edit", {
+    headers: { Accept: EDITOR_RESPONSE_MEDIA_TYPE },
+    multipart: {
+      title: " ",
+      slug: "Not A Slug",
+      ingredients: "2 oz tequila",
+      calories: "-1",
+      tags: "tequila",
+      notes: "",
+      rank: "first",
+      status: "published",
+    },
+  });
+  expect(response.status()).toBe(400);
+  expect(await response.json()).toEqual({
+    kind: "invalid",
+    errors: [
+      "Title is required",
+      "Slug must be lowercase letters, numbers, and hyphens",
+      "Calories cannot be negative",
+      "Rank must be a whole number",
+    ],
   });
 });
 

@@ -3,8 +3,6 @@ import {
   boolean,
   literal,
   object,
-  optional,
-  record,
   string,
   variant,
   type InferOutput,
@@ -16,8 +14,7 @@ export const EDITOR_RESPONSE_MEDIA_TYPE = "application/vnd.drinks.editor+json";
 export const drinkEditorResponseSchema = variant("kind", {
   invalid: object({
     kind: literal("invalid"),
-    fieldErrors: record(string(), optional(array(string()))),
-    formErrors: array(string()),
+    errors: array(string()),
   }),
   notFound: object({ kind: literal("notFound"), message: string() }),
   navigate: object({ kind: literal("navigate"), location: string(), document: boolean() }),

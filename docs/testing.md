@@ -20,3 +20,5 @@ their expected `console.error` calls with `testContext.mock.method`, which resto
 each test. Keep unexpected errors visible.
 
 Wait for `document.documentElement.dataset.remixReady === "true"` before using hydrated controls.
+
+Performance budgets have their own harness; see [performance budgets](performance.md).

@@ -131,6 +131,41 @@ jobs:
       - name: 🛠 Build
         run: pnpm run build
 
+  perf:
+    name: 🚦 Lighthouse
+    runs-on: ubuntu-latest
+    # Lab metrics vary between runners; gate branches before merge, never deploys from main.
+    if: ${{ github.ref != 'refs/heads/main' }}
+    steps:
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v7
+
+      - name: 📦 Install pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: ⎔ Setup node
+        uses: actions/setup-node@v7
+        with:
+          cache: pnpm
+          node-version-file: ".nvmrc"
+
+      - name: 📥 Install deps
+        run: pnpm install
+
+      - name: 📥 Install Chromium
+        run: pnpm exec playwright install chromium --no-shell --with-deps
+
+      - name: 🚦 Lighthouse CI
+        run: pnpm run perf
+
+      - name: 📄 Upload reports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: lighthouse-reports
+          path: .lighthouseci/reports
+          retention-days: 7
+
   release:
     name: 🆕 Release
     runs-on: ubuntu-latest

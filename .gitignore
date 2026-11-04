@@ -253,3 +253,6 @@ $RECYCLE.BIN/
 /public/*
 !/public/.gitkeep
 /.playwright-mcp/
+
+# Lighthouse CI
+/.lighthouseci

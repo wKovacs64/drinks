@@ -1,7 +1,8 @@
 # Performance Budgets
 
 The `🚦 Lighthouse` CI job runs Lighthouse CI against the production server and fails when a public
-page exceeds its lab budget. Run it locally with:
+page exceeds its lab budget. It runs on every branch except `main`, so lab variance cannot block a
+deploy. Run it locally with:
 
 ```sh
 pnpm exec playwright install chromium --no-shell

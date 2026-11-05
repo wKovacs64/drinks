@@ -27,10 +27,13 @@ Browser source lives in owner-local `public/` directories, with shared browser u
 import in a browser graph must be allowed. Type-only imports are erased before serving browser code.
 Files use ordinary `.ts` and `.tsx` names; server isolation comes from the allowlist rather than a
 filename suffix. Browsers that pass an in-document multiple-import-map probe use native module
-loading; other browsers use Remix's compatibility loader. CSP permits `blob:` module scripts and
-`unsafe-eval` for the loader's WebAssembly parser and JavaScript string decoding. See the
-[loader's CSP requirements](https://docs.remix.run/multiple-import-maps-polyfill/#content-security-policy)
-and the [parser's CSP behavior](https://github.com/guybedford/es-module-lexer/blob/2.3.2/README.md#csp-asmjs-build).
+loading; other browsers use Remix's compatibility loader. Remix's CSP middleware issues a nonce per
+response; `script-src` allows only same-origin URLs and that nonce. Remix stamps its import maps
+and module preloads, Document stamps its authored scripts and preloads, and the loader's `blob:`
+modules inherit the nonce from the module graph. Fastly-cached public pages share one nonce until
+the cache entry expires or is purged. See the
+[CSP middleware](https://github.com/remix-run/remix/tree/remix%403.2.0/packages/csp-middleware#usage)
+and the [loader's CSP requirements](https://github.com/remix-run/remix/tree/remix%403.2.0/packages/multiple-import-maps-polyfill#content-security-policy).
 Deferred module hints begin after
 paint and yield between small batches. Static asset sources live under `app/assets/`; root `public/`
 is generated output and local uploads. Navigation uses native anchors. Gallery, navigation, and Tag

@@ -21,6 +21,8 @@ test("the card displays private recipe notes and opens summary and note links th
     name: "show_drinks",
     arguments: { slugs: ["test-margarita"], view: "recipe" },
   });
+  // Host the card outside the website document, whose nonce-based CSP the frame would inherit.
+  await page.goto("about:blank");
   await page.setViewportSize({ width: 390, height: 1000 });
   await page.setContent('<iframe title="Drink card" style="width:100%;border:0"></iframe>');
   await page.evaluate(

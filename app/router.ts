@@ -2,6 +2,7 @@ import { createRouter, type RouterContext } from "remix/router";
 import { render } from "remix/middleware/render";
 import { staticFiles } from "remix/middleware/static";
 import { cop } from "remix/middleware/cop";
+import { asyncContext } from "remix/middleware/async-context";
 import { compression } from "remix/middleware/compression";
 import { logger } from "remix/middleware/logger";
 import { isCompressibleMimeType } from "remix/mime";
@@ -17,6 +18,7 @@ import { adminDrinkEditorRedirects } from "#/app/web/admin-drink-write/editor-re
 import { routeErrorPages } from "#/app/web/error-pages/route-errors.tsx";
 import { protectAdmin } from "./middleware/admin.ts";
 import { responseHeaders } from "./middleware/response-headers.ts";
+import { contentSecurityPolicy } from "./middleware/content-security-policy.ts";
 import { mcp } from "#/app/integrations/mcp.ts";
 import drinksController from "./actions/drinks/controller.tsx";
 import tagsController from "./actions/tags/controller.tsx";
@@ -49,6 +51,9 @@ export const router = createRouter({
     mcp,
     cop(),
     staticFiles("./public", { index: false }),
+    // Document reads the CSP nonce through the request's async context.
+    asyncContext(),
+    contentSecurityPolicy,
     renderMiddleware,
     sessionMiddleware,
     authMiddleware,

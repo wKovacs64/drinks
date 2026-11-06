@@ -42,21 +42,11 @@ function SortArrow(
   };
 }
 
-const timestampFormatter = new Intl.DateTimeFormat("en-US", {
-  year: "numeric",
-  month: "short",
-  day: "numeric",
-  hour: "numeric",
-  minute: "2-digit",
-});
-
-function formatTimestamp(timestamp: string) {
-  return timestampFormatter.format(new Date(timestamp));
-}
-
-function DrinkRow(handle: Handle<{ drink: Drink }>) {
+function DrinkRow(
+  handle: Handle<{ drink: Drink; timestampFormatter: Intl.DateTimeFormat | undefined }>,
+) {
   return () => {
-    const { drink } = handle.props;
+    const { drink, timestampFormatter } = handle.props;
 
     return (
       <tr className="border-b border-zinc-800/50 hover:bg-zinc-800/30">
@@ -87,10 +77,14 @@ function DrinkRow(handle: Handle<{ drink: Drink }>) {
           </span>
         </td>
         <td className="py-3 pr-4 whitespace-nowrap text-zinc-400">
-          {formatTimestamp(drink.createdAt)}
+          <time dateTime={drink.createdAt}>
+            {timestampFormatter?.format(new Date(drink.createdAt))}
+          </time>
         </td>
         <td className="py-3 pr-4 whitespace-nowrap text-zinc-400">
-          {formatTimestamp(drink.updatedAt)}
+          <time dateTime={drink.updatedAt}>
+            {timestampFormatter?.format(new Date(drink.updatedAt))}
+          </time>
         </td>
         <td className="py-3 text-right whitespace-nowrap">
           <a href={drink.presentation.editHref} className="text-zinc-400 hover:text-amber-500">
@@ -121,6 +115,18 @@ export const AdminDrinksList = clientEntry(
   function AdminDrinksList(handle: Handle<{ drinks: Drink[] }>) {
     let filter = "";
     let sort: { key: SortableColumn; direction: "asc" | "desc" } | null = null;
+    // Only the browser knows the viewer's time zone, so timestamps render after hydration.
+    let timestampFormatter: Intl.DateTimeFormat | undefined;
+    handle.queueTask(() => {
+      timestampFormatter = new Intl.DateTimeFormat("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      });
+      void handle.update();
+    });
     function setFilter(value: string) {
       filter = value;
       void handle.update();
@@ -211,7 +217,7 @@ export const AdminDrinksList = clientEntry(
               </thead>
               <tbody>
                 {processed.map((drink) => (
-                  <DrinkRow key={drink.id} drink={drink} />
+                  <DrinkRow key={drink.id} drink={drink} timestampFormatter={timestampFormatter} />
                 ))}
               </tbody>
             </table>

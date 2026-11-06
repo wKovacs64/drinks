@@ -170,8 +170,8 @@ importers:
         specifier: 5.3.1
         version: 5.3.1
       '@imagekit/nodejs':
-        specifier: 7.13.0
-        version: 7.13.0
+        specifier: 7.14.0
+        version: 7.14.0
       '@modelcontextprotocol/ext-apps':
         specifier: 2.0.4
         version: 2.0.4(@modelcontextprotocol/client@2.4.0)(@modelcontextprotocol/core@2.4.0)(@modelcontextprotocol/server@2.4.0)(zod@4.6.7)
@@ -587,8 +587,8 @@ packages:
   '@formatjs/intl-localematcher@0.6.2':
     resolution: {integrity: sha512-XOMO2Hupl0wdd172Y06h6kLpBz6Dv+J4okPLl4LPtzbr8f66WbIoy4ev98EBuZ6ZK4h5ydTN6XneT4QVpD7cdA==}
 
-  '@imagekit/nodejs@7.13.0':
-    resolution: {integrity: sha512-JIYtZv/sd7VpmJKtEecSBzcWGklvfHF+W6tvRijlr0/X3akyqwl088fhn7pviXdI9u2WXgQK8KR8QYaRqnOYfA==}
+  '@imagekit/nodejs@7.14.0':
+    resolution: {integrity: sha512-WizcdkwioL32irhD2jHN0KKE59fqrgd9v4Rdzv8VgaDtMjH1lFbTacXKgD+OybEZC0rvXhxdfNNRq8RRBwr5DQ==}
 
   '@inquirer/ansi@2.0.10':
     resolution: {integrity: sha512-dwrc+1aqVZpHNkNDswXGtn1typ+Pxpo5FHZRyBw1le7onEJUkPUkYOY1FIFC1LvFMYUqqLuWBwElhAmencL7MQ==}
@@ -3757,7 +3757,7 @@ snapshots:
     dependencies:
       tslib: 2.9.1
 
-  '@imagekit/nodejs@7.13.0':
+  '@imagekit/nodejs@7.14.0':
     dependencies:
       standardwebhooks: 1.1.1
 

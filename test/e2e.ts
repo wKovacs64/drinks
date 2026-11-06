@@ -12,7 +12,7 @@ import { getSessionCookieValue } from "#/test/session.ts";
 
 export async function createBrowserPage(
   testContext: TestContext,
-  options: { admin?: boolean; javaScriptEnabled?: boolean } = {},
+  options: { admin?: boolean; javaScriptEnabled?: boolean; timezoneId?: string } = {},
 ) {
   await resetAndSeedDatabase();
   purgeSearchCache();
@@ -20,12 +20,16 @@ export async function createBrowserPage(
   // Playwright's request client runs in this worker too; let it reach the real test router.
   requestMocks.use(http.all(`${server.baseUrl}/*`, () => passthrough()));
   let page = await testContext.serve(server);
-  if (options.javaScriptEnabled === false) {
+  if (options.javaScriptEnabled === false || options.timezoneId) {
     const browser = page.context().browser();
-    if (!browser) throw new Error("Native form tests require a browser");
-    page = await browser.newPage({ baseURL: server.baseUrl, javaScriptEnabled: false });
-    const nativePage = page;
-    testContext.after(() => nativePage.close());
+    if (!browser) throw new Error("Custom page options require a browser");
+    page = await browser.newPage({
+      baseURL: server.baseUrl,
+      javaScriptEnabled: options.javaScriptEnabled,
+      timezoneId: options.timezoneId,
+    });
+    const customPage = page;
+    testContext.after(() => customPage.close());
   }
   if (options.admin) {
     await page.context().addCookies([

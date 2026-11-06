@@ -18,7 +18,7 @@ jobs:
   format:
     name: 🔤 Oxfmt
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 2
     steps:
       - name: ⬇️ Checkout repo
         uses: actions/checkout@v7
@@ -41,7 +41,7 @@ jobs:
   lint:
     name: 🐂 Oxlint
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 2
     steps:
       - name: ⬇️ Checkout repo
         uses: actions/checkout@v7
@@ -67,7 +67,7 @@ jobs:
   typecheck:
     name: ʦ TypeScript
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 2
     steps:
       - name: ⬇️ Checkout repo
         uses: actions/checkout@v7
@@ -90,7 +90,7 @@ jobs:
   test:
     name: 🩺 Remix tests
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 4
     steps:
       - name: ⬇️ Checkout repo
         uses: actions/checkout@v7
@@ -116,7 +116,7 @@ jobs:
   build:
     name: 👷‍♂️ Build
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 2
     steps:
       - name: ⬇️ Checkout repo
         uses: actions/checkout@v7
@@ -139,7 +139,7 @@ jobs:
   perf:
     name: 🚦 Lighthouse
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 6
     # Lab metrics vary between runners; gate branches before merge, never deploys from main.
     if: ${{ github.ref != 'refs/heads/main' }}
     steps:
@@ -175,7 +175,7 @@ jobs:
   release:
     name: 🆕 Release
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 2
     needs: [format, lint, typecheck, test, build]
     if: ${{ github.ref == 'refs/heads/main' }}
     outputs:
@@ -192,7 +192,7 @@ jobs:
   deploy-dev:
     name: 🚀 Deploy Dev
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 5
     needs: [release]
     # deploy to dev on push to main, skip when release-please creates a release
     if: github.ref == 'refs/heads/main' && needs.release.outputs.release_created != 'true'
@@ -217,7 +217,7 @@ jobs:
   deploy-prod:
     name: 🚀 Deploy Production
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 5
     needs: [release]
     if: ${{ needs.release.outputs.release_created == 'true' }}
     steps:

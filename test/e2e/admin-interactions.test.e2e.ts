@@ -490,10 +490,10 @@ test("a canceled toast gesture resumes its expiration", async (testContext) => {
   await page.mouse.up();
 });
 
-test("timestamps hydrate without a mismatch and then show the browser time zone", async (testContext) => {
+test("timestamps render in the browser time zone without a hydration mismatch", async (testContext) => {
   const pageAsAdmin = await createBrowserPage(testContext, {
     admin: true,
-    timezoneId: "America/Denver",
+    timezoneId: "Asia/Tokyo",
   });
   await getDb().updateMany(drinks, { created_at: 1738966440 }, { where: { slug: "test-mojito" } });
   const consoleErrors: string[] = [];
@@ -505,7 +505,7 @@ test("timestamps hydrate without a mismatch and then show the browser time zone"
   await pageAsAdmin
     .getByRole("row")
     .filter({ hasText: "Test Mojito" })
-    .getByRole("cell", { name: "Feb 7, 2025, 3:14 PM" })
+    .getByRole("cell", { name: "Feb 8, 2025, 7:14 AM" })
     .waitFor();
   expect(consoleErrors).toEqual([]);
 });

@@ -42,21 +42,9 @@ function SortArrow(
   };
 }
 
-// The server has no viewer time zone, so SSR and hydration render UTC; after hydration the
-// browser re-renders in its own zone. Formatting in the browser zone during hydration
-// mismatches the server HTML.
-function createTimestampFormatter(timeZone?: string) {
-  return new Intl.DateTimeFormat("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    timeZone,
-  });
-}
-
-function DrinkRow(handle: Handle<{ drink: Drink; timestampFormatter: Intl.DateTimeFormat }>) {
+function DrinkRow(
+  handle: Handle<{ drink: Drink; timestampFormatter: Intl.DateTimeFormat | undefined }>,
+) {
   return () => {
     const { drink, timestampFormatter } = handle.props;
 
@@ -89,10 +77,14 @@ function DrinkRow(handle: Handle<{ drink: Drink; timestampFormatter: Intl.DateTi
           </span>
         </td>
         <td className="py-3 pr-4 whitespace-nowrap text-zinc-400">
-          {timestampFormatter.format(new Date(drink.createdAt))}
+          <time dateTime={drink.createdAt}>
+            {timestampFormatter?.format(new Date(drink.createdAt))}
+          </time>
         </td>
         <td className="py-3 pr-4 whitespace-nowrap text-zinc-400">
-          {timestampFormatter.format(new Date(drink.updatedAt))}
+          <time dateTime={drink.updatedAt}>
+            {timestampFormatter?.format(new Date(drink.updatedAt))}
+          </time>
         </td>
         <td className="py-3 text-right whitespace-nowrap">
           <a href={drink.presentation.editHref} className="text-zinc-400 hover:text-amber-500">
@@ -123,9 +115,16 @@ export const AdminDrinksList = clientEntry(
   function AdminDrinksList(handle: Handle<{ drinks: Drink[] }>) {
     let filter = "";
     let sort: { key: SortableColumn; direction: "asc" | "desc" } | null = null;
-    let timestampFormatter = createTimestampFormatter("UTC");
+    // Only the browser knows the viewer's time zone, so timestamps render after hydration.
+    let timestampFormatter: Intl.DateTimeFormat | undefined;
     handle.queueTask(() => {
-      timestampFormatter = createTimestampFormatter();
+      timestampFormatter = new Intl.DateTimeFormat("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      });
       void handle.update();
     });
     function setFilter(value: string) {

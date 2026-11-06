@@ -4,8 +4,9 @@ import { rawSql } from "remix/data-table";
 import { getDb } from "#/app/db/client.ts";
 import { createBrowserPage } from "#/test/e2e.ts";
 
-const CONTENT_SECURITY_POLICY =
-  "base-uri 'none'; frame-ancestors 'none'; form-action 'self'; default-src 'self'; connect-src 'self' https://ik.imagekit.io/; img-src 'self' data: blob: https:; script-src 'self' blob: 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'";
+function contentSecurityPolicy(nonce: string) {
+  return `base-uri 'none'; frame-ancestors 'none'; form-action 'self'; default-src 'self'; connect-src 'self' https://ik.imagekit.io/; img-src 'self' data: blob: https:; script-src 'self' 'nonce-${nonce}'; style-src 'self' 'unsafe-inline'`;
+}
 
 function expectSecurityHeaders(headers: Record<string, string>) {
   expect(headers["x-content-type-options"]).toBe("nosniff");
@@ -14,7 +15,9 @@ function expectSecurityHeaders(headers: Record<string, string>) {
   expect(headers["permissions-policy"]).toBe(
     "geolocation=(), camera=(), microphone=(), payment=(), usb=()",
   );
-  expect(headers["content-security-policy"]).toBe(CONTENT_SECURITY_POLICY);
+  const nonce = /'nonce-([^']+)'/.exec(headers["content-security-policy"] ?? "")?.[1] ?? "";
+  expect(headers["content-security-policy"]).toBe(contentSecurityPolicy(nonce));
+  return nonce;
 }
 
 test("public, not-found, and signed-out responses carry security headers", async (testContext) => {
@@ -34,6 +37,22 @@ test("public, not-found, and signed-out responses carry security headers", async
     expectSecurityHeaders(response.headers());
     if (isPrivate) expect(response.headers()["cache-control"]).toBe("private, no-store");
   }
+});
+
+test("documents nonce their scripts with a fresh value per response", async (testContext) => {
+  const page = await createBrowserPage(testContext);
+  const nonces = new Set<string>();
+  for (let index = 0; index < 2; index++) {
+    const response = await page.request.get("/");
+    const nonce = expectSecurityHeaders(response.headers());
+    const html = await response.text();
+    expect(html).toContain(`type="importmap" nonce="${nonce}"`);
+    expect(html.match(/<script\b[^>]*>/g)?.every((tag) => tag.includes(`nonce="${nonce}"`))).toBe(
+      true,
+    );
+    nonces.add(nonce);
+  }
+  expect(nonces.size).toBe(2);
 });
 
 test("signed-in admin pages carry security headers", async (testContext) => {

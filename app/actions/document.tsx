@@ -1,6 +1,8 @@
 import { routes } from "#/app/routes.ts";
 import type { Handle, RemixNode } from "remix/component";
 import { ImportMap } from "remix/component/server";
+import { getContext } from "remix/middleware/async-context";
+import { getCspNonce } from "remix/middleware/csp";
 import {
   hmrClientHref,
   lightFontHref,
@@ -37,6 +39,7 @@ export function Document(
       modulePreloads = scriptEntry.preloads,
       deferModulePreloads = true,
     } = handle.props;
+    const nonce = getCspNonce(getContext());
     return (
       <html lang="en" className="m-0 min-h-screen p-0 leading-tight" data-commit={env.COMMIT_SHA}>
         <head>
@@ -88,9 +91,9 @@ export function Document(
           <ImportMap value={scriptEntry.importMap} />
           {!deferModulePreloads &&
             modulePreloads.map((href) => (
-              <link key={href} rel="modulepreload" href={href} fetchPriority="low" />
+              <link key={href} rel="modulepreload" href={href} fetchPriority="low" nonce={nonce} />
             ))}
-          {hmrClientHref && <script type="module" src={hmrClientHref}></script>}
+          {hmrClientHref && <script type="module" src={hmrClientHref} nonce={nonce}></script>}
         </head>
         <body className="relative flex min-h-screen flex-col font-sans font-light">
           {children}
@@ -98,13 +101,19 @@ export function Document(
             <>
               <template id="client-module-preloads">
                 {modulePreloads.map((href) => (
-                  <link key={href} rel="modulepreload" href={href} fetchPriority="low" />
+                  <link
+                    key={href}
+                    rel="modulepreload"
+                    href={href}
+                    fetchPriority="low"
+                    nonce={nonce}
+                  />
                 ))}
               </template>
-              <script type="module" src={preloadAfterPaintHref}></script>
+              <script type="module" src={preloadAfterPaintHref} nonce={nonce}></script>
             </>
           )}
-          <script type="module" src={scriptEntry.href}></script>
+          <script type="module" src={scriptEntry.href} nonce={nonce}></script>
         </body>
       </html>
     );

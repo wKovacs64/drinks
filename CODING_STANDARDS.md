@@ -20,7 +20,9 @@ Remix. A change that regresses either is rejected on that alone; when the two co
 Prove it in the PR: cite the test that covers each affected property (`caching`, `auth`,
 `request-boundaries`, `module-loading`, `image-behavior`, and `security-headers` under
 `test/e2e/`; the `🚦 Lighthouse` CI job, with budgets in [performance](docs/performance.md), for
-public-page performance), or attach a before-and-after measurement when no test covers it.
+public-page layout shift and script bytes), or attach a before-and-after measurement when no test
+covers it. CI only warns on LCP, TBT, and TTFB, so a change that could move them attaches
+before-and-after `pnpm perf` timings.
 
 ## Code style
 

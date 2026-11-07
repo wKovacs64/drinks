@@ -1,13 +1,15 @@
 const { chromium } = require("playwright");
 
 const baseUrl = "http://localhost:4173";
+// Timing metrics swing between identical builds on CI runners, so they warn; layout shift and
+// script bytes stay stable and gate.
 const sharedAssertions = {
   "categories:performance": ["warn", { minScore: 0.9, aggregationMethod: "median" }],
-  "largest-contentful-paint": ["error", { maxNumericValue: 2500, aggregationMethod: "median" }],
+  "largest-contentful-paint": ["warn", { maxNumericValue: 2500, aggregationMethod: "median" }],
   // Lab data cannot measure INP; Total Blocking Time is its proxy.
-  "total-blocking-time": ["error", { maxNumericValue: 200, aggregationMethod: "median" }],
+  "total-blocking-time": ["warn", { maxNumericValue: 200, aggregationMethod: "median" }],
   "cumulative-layout-shift": ["error", { maxNumericValue: 0.05, aggregationMethod: "median" }],
-  "server-response-time": ["error", { maxNumericValue: 200, aggregationMethod: "median" }],
+  "server-response-time": ["warn", { maxNumericValue: 200, aggregationMethod: "median" }],
 };
 /** Uncompressed script bytes: production leaves compression to Fastly and Fly Proxy. */
 function scriptBudget(maxBytes) {

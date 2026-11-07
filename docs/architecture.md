@@ -36,7 +36,8 @@ loading; other browsers use Remix's compatibility loader. Remix's CSP middleware
 response; `script-src` allows only same-origin URLs and that nonce. Remix stamps its import maps
 and module preloads, Document stamps its authored scripts and preloads, and the loader's `blob:`
 modules inherit the nonce from the module graph. Fastly-cached public pages share one nonce until
-the cache entry expires or is purged. See the
+the cache entry expires or is purged; [ADR-0003](adr/0003-cached-public-pages-share-a-csp-nonce.md)
+records why. See the
 [CSP middleware](https://github.com/remix-run/remix/tree/remix%403.2.0/packages/csp-middleware#usage)
 and the [loader's CSP requirements](https://github.com/remix-run/remix/tree/remix%403.2.0/packages/multiple-import-maps-polyfill#content-security-policy).
 Public pages keep module hints out of the

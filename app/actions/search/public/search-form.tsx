@@ -33,7 +33,8 @@ export const SearchForm = clientEntry(
         <form
           method="get"
           action={routes.search.index.href()}
-          data-rmx-target="search-results"
+          data-rmx-reset-scroll="manual"
+          data-rmx-reset-focus="manual"
           className="mb-8 flex h-12 bg-white"
         >
           <input

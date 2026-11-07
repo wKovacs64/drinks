@@ -25,15 +25,7 @@ app.addEventListener("error", (event) => {
     event.error instanceof Error &&
     /^Failed to resolve frame: 5\d{2}\b/.test(event.error.message)
   ) {
-    const destination = app.frames.top.src;
-    const searchFrame = app.frames.get("search-results");
-    window.location.assign(
-      searchFrame &&
-        new URL(destination, window.location.href).pathname ===
-          new URL(searchFrame.src, window.location.href).pathname
-        ? searchFrame.src
-        : destination,
-    );
+    window.location.assign(app.frames.top.src);
   }
 });
 await app.ready();

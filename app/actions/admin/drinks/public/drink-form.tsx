@@ -95,8 +95,9 @@ function DrinkEditorForm(handle: Handle<DrinkFormProps>) {
     // Browsers ignore requestSubmit while the original submit event is still dispatching.
     await new Promise((resolve) => setTimeout(resolve));
     if (handle.signal.aborted) return;
-    if (!image && !editor.imageUrl) {
-      imageRequired = true;
+    if (!image && !editor.imageUrl) imageRequired = true;
+    // Fields edited during the crop can fail validation, which cancels requestSubmit silently.
+    if (imageRequired || !form.reportValidity()) {
       isSubmitting = false;
       void handle.update();
       return;

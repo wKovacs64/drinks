@@ -142,10 +142,20 @@ test("create retries preserve the draft and crop, and each save uploads the curr
   await page.getByRole("button", { name: "Create Drink" }).click();
   await page.getByRole("button", { name: "Saving..." }).waitFor();
   expect(submissions).toEqual([]);
+  // A field invalidated while the crop encodes cancels the save and re-enables it.
+  await page.getByLabel("Title", { exact: true }).fill("");
   await page.evaluate(() => {
     const releaseCrop: unknown = Reflect.get(window, "releaseCrop");
     if (typeof releaseCrop === "function") releaseCrop();
   });
+  await page.getByRole("button", { name: "Create Drink" }).waitFor();
+  expect(await page.getByRole("button", { name: "Create Drink" }).isEnabled()).toBe(true);
+  expect(
+    await page.getByLabel("Title", { exact: true }).evaluate((input) => input.matches(":invalid")),
+  ).toBe(true);
+  expect(submissions).toEqual([]);
+  await page.getByLabel("Title", { exact: true }).fill("Retry With Image");
+  await page.getByRole("button", { name: "Create Drink" }).click();
   await page.waitForURL("/admin/drinks");
   await page.getByRole("cell", { name: "Retry With Image" }).waitFor();
   expect(submissions.length).toBe(1);

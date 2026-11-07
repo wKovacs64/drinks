@@ -34,15 +34,19 @@ modules inherit the nonce from the module graph. Fastly-cached public pages shar
 the cache entry expires or is purged. See the
 [CSP middleware](https://github.com/remix-run/remix/tree/remix%403.2.0/packages/csp-middleware#usage)
 and the [loader's CSP requirements](https://github.com/remix-run/remix/tree/remix%403.2.0/packages/multiple-import-maps-polyfill#content-security-policy).
-Deferred module hints begin after
-paint and yield between small batches. Static asset sources live under `app/assets/`; root `public/`
+Public pages keep module hints out of the
+LCP image preload's way: the render assets strip Remix's head preloads from public client entries,
+and Document defers the `entry.ts` graph, plus any graphs a page passes such as Search's client
+entries, until after paint, yielding between small batches. Admin client entries keep Remix's
+head preloads. Static asset sources live under `app/assets/`; root `public/`
 is generated output and local uploads. Navigation uses native anchors, and links and forms reload
 the top frame, so every page action returns a complete document. The search form keeps scroll
 position and focus across soft searches. See
 [whole-page navigation](https://github.com/remix-run/remix/blob/remix%403.2.0/packages/remix/guides/06-streaming-ui-with-frames.md#choose-per-region-frames-or-whole-page-navigation).
 Gallery, navigation, and Tag
 links use Remix's `data-rmx-prefetch="viewport"` for low-priority frame HTML and asset discovery,
-respecting Save-Data and slow connections. Card markup stays server-rendered without prefetch client
+respecting Save-Data and slow connections. The header Search link uses `data-rmx-prefetch="intent"`
+so asset discovery reads Search's deferred hints before a soft navigation. Card markup stays server-rendered without prefetch client
 entries. Remix owns script-entry caching and watch/HMR invalidation.
 See [Remix prefetching](https://github.com/remix-run/remix/blob/remix%403.1.0/packages/component/docs/frames.md#prefetching)
 and [asset caching](https://github.com/remix-run/remix/releases/tag/assets%401.0.1).

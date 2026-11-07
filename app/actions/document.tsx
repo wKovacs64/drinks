@@ -23,7 +23,6 @@ export function Document(
     socialDescription?: string;
     preloadImages?: ImagePreloadProps[];
     modulePreloads?: readonly string[];
-    deferModulePreloads?: boolean;
   }>,
 ) {
   return () => {
@@ -37,7 +36,6 @@ export function Document(
       socialDescription = "Craft Cocktail Gallery",
       preloadImages,
       modulePreloads = scriptEntry.preloads,
-      deferModulePreloads = true,
     } = handle.props;
     const nonce = getCspNonce(getContext());
     return (
@@ -89,15 +87,11 @@ export function Document(
             <ImagePreload key={image.src} {...image} />
           ))}
           <ImportMap value={scriptEntry.importMap} />
-          {!deferModulePreloads &&
-            modulePreloads.map((href) => (
-              <link key={href} rel="modulepreload" href={href} fetchPriority="low" nonce={nonce} />
-            ))}
           {hmrClientHref && <script type="module" src={hmrClientHref} nonce={nonce}></script>}
         </head>
         <body className="relative flex min-h-screen flex-col font-sans font-light">
           {children}
-          {deferModulePreloads && modulePreloads.length > 0 && (
+          {modulePreloads.length > 0 && (
             <>
               <template id="client-module-preloads">
                 {modulePreloads.map((href) => (

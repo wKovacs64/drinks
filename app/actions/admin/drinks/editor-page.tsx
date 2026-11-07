@@ -1,6 +1,5 @@
 import type { Handle } from "remix/component";
 import type { AppContext } from "#/app/router.ts";
-import { getClientEntryPreloads } from "#/app/assets.ts";
 import type { DrinkEditor } from "#/app/modules/drinks/drinks.ts";
 import type { SessionUser } from "#/app/modules/identity/identity.ts";
 import { Document } from "#/app/actions/document.tsx";
@@ -12,13 +11,7 @@ export async function renderDrinkEditor(
 ) {
   const { editor, user, action, errors } = input;
   return context.render(
-    <DrinkEditorPage
-      editor={editor}
-      user={user}
-      action={action}
-      modulePreloads={await getClientEntryPreloads(DrinkForm)}
-      errors={errors}
-    />,
+    <DrinkEditorPage editor={editor} user={user} action={action} errors={errors} />,
     errors ? { status: 400 } : undefined,
   );
 }
@@ -27,12 +20,11 @@ export function DrinkEditorPage(
     editor: DrinkEditor;
     user: SessionUser;
     action: string;
-    modulePreloads: readonly string[];
     errors?: string[];
   }>,
 ) {
   return () => {
-    const { editor, user, action, modulePreloads, errors } = handle.props;
+    const { editor, user, action, errors } = handle.props;
     return (
       <Document
         title={
@@ -40,8 +32,6 @@ export function DrinkEditorPage(
             ? "New Drink | drinks.fyi"
             : `Edit ${editor.initialValues.title} | drinks.fyi`
         }
-        modulePreloads={modulePreloads}
-        deferModulePreloads={false}
       >
         <AdminLayout user={user}>
           <div>

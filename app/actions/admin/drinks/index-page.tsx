@@ -13,11 +13,10 @@ export function AdminDrinksPage(
     drinkSummaries: AdminDrinkListItem[];
     user: SessionUser;
     toast?: ToastMessage;
-    modulePreloads: readonly string[];
   }>,
 ) {
   return () => {
-    const { drinkSummaries, user, toast, modulePreloads } = handle.props;
+    const { drinkSummaries, user, toast } = handle.props;
     const drinks = drinkSummaries.map((drink) => ({
       ...drink,
       createdAt: drink.createdAt.toISOString(),
@@ -39,11 +38,7 @@ export function AdminDrinksPage(
     }));
 
     return (
-      <Document
-        title="All Drinks | drinks.fyi"
-        modulePreloads={modulePreloads}
-        deferModulePreloads={false}
-      >
+      <Document title="All Drinks | drinks.fyi">
         <AdminLayout user={user} toast={toast}>
           <AdminDrinksList drinks={drinks} />
         </AdminLayout>

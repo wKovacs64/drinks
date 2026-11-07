@@ -16,6 +16,7 @@ test("navigation reuses the loaded stylesheet", async (testContext) => {
   await page.getByRole("link", { name: "Search", exact: true }).click();
   await page.waitForURL("/search");
   await page.getByRole("textbox", { name: "Search Term" }).waitFor();
+  await page.waitForFunction(() => document.title === "Search Drinks");
   expect(stylesheetRequests).toBe(0);
 });
 
@@ -50,18 +51,13 @@ test("search and deletion still work without browser JavaScript", async (testCon
   }
 });
 
-test("search document and fragment responses are separately cacheable and server rendered", async (testContext) => {
+test("search responds with one cacheable server-rendered document", async (testContext) => {
   const page = await createBrowserPage(testContext);
-  const documentResponse = await page.request.get("/search?q=tequila");
-  const fragmentResponse = await page.request.get("/search?q=tequila", {
-    headers: { "X-Remix-Target": "search-results" },
-  });
-  expect(documentResponse.headers()["vary"].toLowerCase()).toContain("x-remix-target");
-  expect(fragmentResponse.headers()["vary"].toLowerCase()).toContain("x-remix-target");
-  expect(await documentResponse.text()).toContain("<html");
-  expect(await documentResponse.text()).toContain("Test Margarita");
-  expect(await fragmentResponse.text()).not.toContain("<html");
-  expect(await fragmentResponse.text()).toContain("Test Margarita");
+  const response = await page.request.get("/search?q=tequila");
+  expect(response.headers()["vary"]?.toLowerCase()).not.toContain("x-remix-target");
+  const body = await response.text();
+  expect(body).toContain("<html");
+  expect(body).toContain("Test Margarita");
 });
 
 test("search focuses, shows pending feedback, finds drinks, and clears with Escape", async (testContext) => {
@@ -79,6 +75,7 @@ test("search focuses, shows pending feedback, finds drinks, and clears with Esca
   await page.getByText("Searching . . .", { exact: true }).waitFor();
   await page.getByRole("heading", { name: "Test Margarita" }).waitFor();
   expect(await page.getByRole("article").count()).toBe(1);
+  expect(await input.evaluate((element) => element === document.activeElement)).toBe(true);
   await input.press("Escape");
   expect(await input.inputValue()).toBe("");
   expect(await input.evaluate((element) => element === document.activeElement)).toBe(true);
@@ -118,16 +115,8 @@ test("search preserves results through repeated queries, empty results, and hist
   await page.getByRole("heading", { name: "Test Margarita", exact: true }).waitFor();
   await margaritaPrefetched.promise;
   const input = page.getByRole("textbox", { name: "Search Term" });
-  const responsePromise = page.waitForResponse(
-    (response) =>
-      new URL(response.url()).pathname === "/search" &&
-      new URL(response.url()).searchParams.get("q") === "mint",
-  );
   await input.fill("mint");
   await input.press("Enter");
-  const responseBody = await (await responsePromise).text();
-  expect(responseBody).not.toContain("<html");
-  expect(responseBody).not.toContain("<header");
   await page.getByRole("heading", { name: "Test Mojito", exact: true }).waitFor();
   await mojitoPrefetched.promise;
   expect(await page.getByRole("navigation").filter({ hasText: "mint" }).count()).toBe(1);
@@ -145,6 +134,24 @@ test("search preserves results through repeated queries, empty results, and hist
   await page.goForward();
   await page.getByRole("heading", { name: "Test Mojito", exact: true }).waitFor();
   expect(await input.inputValue()).toBe("mint");
+});
+
+test("search results stay visible while a result loads", async (testContext) => {
+  const page = await createBrowserPage(testContext);
+  const resultReleased = Promise.withResolvers<void>();
+  await page.route("**/test-margarita", async (route) => {
+    await resultReleased.promise;
+    await route.continue();
+  });
+  await page.goto("/search?q=tequila");
+  await page.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
+  const result = page.getByRole("link", { name: "Test Margarita", exact: true });
+  await result.click();
+  await page.waitForURL("/test-margarita");
+  expect(await result.isVisible()).toBe(true);
+  resultReleased.resolve();
+  await page.getByText("2 oz tequila", { exact: true }).waitFor();
+  await page.waitForFunction(() => document.title === "Test Margarita");
 });
 
 test("visible Drink links prefetch and retain navigation", async (testContext) => {

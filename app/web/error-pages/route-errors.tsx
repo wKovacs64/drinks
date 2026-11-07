@@ -27,7 +27,7 @@ export const routeErrorPages: Middleware = async (context, next) => {
           ? error.message
           : "Unknown Error";
     const exception = <Exception message={message} />;
-    const headers = { "Cache-Control": "no-store", Vary: "X-Remix-Target" };
+    const headers = { "Cache-Control": "no-store" };
     if (!isPublicPage) {
       const details =
         process.env.NODE_ENV === "production"
@@ -40,13 +40,6 @@ export const routeErrorPages: Middleware = async (context, next) => {
         headers,
       });
     }
-    return renderResponse(
-      context.request.headers.get("X-Remix-Target") === "search-results" ? (
-        exception
-      ) : (
-        <Document>{exception}</Document>
-      ),
-      { status: 500, headers },
-    );
+    return renderResponse(<Document>{exception}</Document>, { status: 500, headers });
   }
 };

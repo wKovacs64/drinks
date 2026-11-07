@@ -4,37 +4,6 @@ import { createBrowserPage } from "#/test/e2e.ts";
 import { getDb } from "#/app/db/client.ts";
 import { users } from "#/app/db/schema.ts";
 import { TEST_ADMIN_USER } from "#/test/database.ts";
-import { EDITOR_RESPONSE_MEDIA_TYPE } from "#/app/web/admin-drink-write/public/editor-response.ts";
-
-test("a missing Drink negotiates editor errors while native submissions keep HTML", async (testContext) => {
-  const page = await createBrowserPage(testContext, { admin: true });
-  for (const { accept, enhanced } of [
-    { accept: `text/html;q=0.5, ${EDITOR_RESPONSE_MEDIA_TYPE};q=0.8`, enhanced: true },
-    { accept: `${EDITOR_RESPONSE_MEDIA_TYPE};q=0, */*`, enhanced: false },
-    { accept: "text/html, */*;q=0.8", enhanced: false },
-  ]) {
-    const response = await page.request.post("/admin/drinks/missing/edit", {
-      headers: { Accept: accept },
-      multipart: {
-        title: "Missing Drink",
-        slug: "missing",
-        ingredients: "2 oz tequila",
-        calories: "200",
-        tags: "tequila",
-        notes: "",
-        rank: "0",
-        status: "published",
-      },
-    });
-    expect(response.status()).toBe(404);
-    if (enhanced) {
-      expect(await response.json()).toEqual({ kind: "notFound", message: "Drink not found" });
-    } else {
-      expect(response.headers()["content-type"]).toContain("text/html");
-      expect(await response.text()).toContain("<html");
-    }
-  }
-});
 
 describe("Edit Drink", () => {
   test("editing preserves values after duplicate-slug validation and succeeds on retry", async (testContext) => {
@@ -67,6 +36,7 @@ describe("Edit Drink", () => {
 
     // Updated drink should appear in list
     await pageAsAdmin.getByRole("cell", { name: "Updated Margarita" }).waitFor();
+    await pageAsAdmin.getByRole("status").filter({ hasText: "Drink updated!" }).waitFor();
   });
 });
 
@@ -85,7 +55,7 @@ test("an editor submission follows changed admin permissions", async (testContex
   expect(visitedAdminList).toEqual([]);
 });
 
-test("an editor with a lost session uses document navigation for native Google authentication", async (testContext) => {
+test("an editor with a lost session shows a sign-in page that uses document navigation", async (testContext) => {
   const page = await createBrowserPage(testContext, { admin: true });
   await page.goto("/admin/drinks/test-margarita/edit");
   await page.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
@@ -99,16 +69,20 @@ test("an editor with a lost session uses document navigation for native Google a
     oauthDestination.resolve(response.headers().location);
     await route.fulfill({ status: 200, contentType: "text/html", body: "<h1>Google sign in</h1>" });
   });
+  const submission = page.waitForResponse((response) => response.request().method() === "POST");
+  await page.getByRole("button", { name: "Update Drink" }).click();
+  expect((await submission).status()).toBe(401);
+  await page.getByRole("heading", { name: "Session Expired" }).waitFor();
   const loginRequest = page.waitForRequest(
     (request) => new URL(request.url()).pathname === "/login" && request.isNavigationRequest(),
   );
-  await page.getByRole("button", { name: "Update Drink" }).click();
+  await page.getByRole("link", { name: "Sign in" }).click();
   await loginRequest;
   await page.getByRole("heading", { name: "Google sign in" }).waitFor();
   expect(new URL(await oauthDestination.promise).hostname).toBe("accounts.google.com");
 });
 
-test("a Drink removed while editing shows the missing target and preserves text", async (testContext) => {
+test("a Drink removed while editing shows not found", async (testContext) => {
   const page = await createBrowserPage(testContext, { admin: true });
   await page.goto("/admin/drinks/test-margarita/edit");
   await page.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
@@ -121,8 +95,7 @@ test("a Drink removed while editing shows the missing target and preserves text"
   );
   await page.getByRole("button", { name: "Update Drink" }).click();
   expect((await submission).status()).toBe(404);
-  await page.getByRole("alert").filter({ hasText: "Drink not found" }).waitFor();
-  expect(await page.getByLabel("Title", { exact: true }).inputValue()).toBe("Unsaved Margarita");
+  await page.getByRole("heading", { name: "404 Not Found" }).waitFor();
   expect(new URL(page.url()).pathname).toBe("/admin/drinks/test-margarita/edit");
 });
 
@@ -130,36 +103,17 @@ test("the editor displays every error and can retry", async (testContext) => {
   const page = await createBrowserPage(testContext, { admin: true });
   await page.goto("/admin/drinks/test-margarita/edit");
   await page.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
-  await page.getByLabel("Title", { exact: true }).fill("Retry Margarita");
-  // Provide several messages at the browser HTTP seam to exercise the web contract's error list
-  // without inventing a domain rule.
-  await page.route("**/admin/drinks/test-margarita/edit", (route) =>
-    route.fulfill({
-      status: 400,
-      contentType: "application/json",
-      body: JSON.stringify({
-        kind: "invalid",
-        errors: [
-          "First form issue",
-          "Second form issue",
-          "First slug issue",
-          "Second slug issue",
-          "Title issue",
-        ],
-      }),
-    }),
-  );
+  await page.getByLabel("Title", { exact: true }).fill(" ");
+  await page.getByLabel("Slug", { exact: true }).fill("Not A Slug");
   await page.getByRole("button", { name: "Update Drink" }).click();
-  await page.getByRole("alert").filter({ hasText: "Second form issue" }).waitFor();
+  await page.getByRole("alert").filter({ hasText: "Title is required" }).waitFor();
   expect(await page.getByRole("alert").locator("li").allTextContents()).toEqual([
-    "First form issue",
-    "Second form issue",
-    "First slug issue",
-    "Second slug issue",
-    "Title issue",
+    "Title is required",
+    "Slug must be lowercase letters, numbers, and hyphens",
   ]);
-  expect(await page.getByLabel("Title", { exact: true }).inputValue()).toBe("Retry Margarita");
-  await page.unroute("**/admin/drinks/test-margarita/edit");
+  expect(await page.getByLabel("Slug", { exact: true }).inputValue()).toBe("Not A Slug");
+  await page.getByLabel("Title", { exact: true }).fill("Retry Margarita");
+  await page.getByLabel("Slug", { exact: true }).fill("test-margarita");
   await page.getByRole("button", { name: "Update Drink" }).click();
   await page.waitForURL("/admin/drinks");
   await page.getByRole("cell", { name: "Retry Margarita" }).waitFor();

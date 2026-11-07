@@ -122,7 +122,7 @@ test("a committed rename navigates with a warning after network purge failure", 
       response.request().method() === "POST" && response.url().endsWith("/test-margarita/edit"),
   );
   await page.getByRole("button", { name: "Update Drink" }).click();
-  expect((await submission).status()).toBe(200);
+  expect((await submission).status()).toBe(303);
   await page.waitForURL("/admin/drinks");
   await page.getByRole("cell", { name: "Committed Margarita", exact: true }).waitFor();
   const notification = page.getByRole("status");

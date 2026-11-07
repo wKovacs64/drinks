@@ -16,8 +16,6 @@ import {
   type UpdateAdminDrinkResult,
 } from "#/app/modules/drinks/drinks.ts";
 import { parseDrinkSubmission } from "./submission.ts";
-import type { DrinkEditorResponse } from "#/app/web/admin-drink-write/public/editor-response.ts";
-import { acceptsEditorResponse } from "./editor-request.ts";
 import { renderResponseError } from "#/app/web/error-pages/response-error.tsx";
 
 type AdminDrinkWriteActionAdapterInput = {
@@ -143,7 +141,7 @@ function translateUpdateResult(
       return invalidEditorResponse(input, fieldErrorMessages(result), formData);
 
     case "notFound":
-      return drinkNotFoundResponse(input.request);
+      return renderResponseError(404);
 
     default:
       return assertNever(result);
@@ -156,7 +154,7 @@ function translateDeleteResult(result: DeleteAdminDrinkResult, session: Session)
       return redirectToAdminDrinksWithToast(session, resolveWriteToast("deleted", result.notices));
 
     case "notFound":
-      return drinkNotFoundResponse();
+      return renderResponseError(404);
 
     default:
       return assertNever(result);
@@ -180,11 +178,8 @@ async function invalidEditorResponse(
   errors: string[],
   formData?: FormData,
 ) {
-  const data: DrinkEditorResponse = { kind: "invalid", errors };
-  if (acceptsEditorResponse(input.request)) return Response.json(data, { status: 400 });
-
   const editor = await input.invalidEditor.load();
-  if (!editor) return drinkNotFoundResponse(input.request);
+  if (!editor) return renderResponseError(404);
   const initialValues = { ...editor.initialValues };
   for (const name of [
     "title",
@@ -200,21 +195,18 @@ async function invalidEditorResponse(
   }
   const status = formData?.get("status");
   if (status === "published" || status === "unpublished") initialValues.status = status;
+  // The upload handler stores a sent file's name. Enhanced editors keep the selected image.
   const image = formData?.get("imageFile");
   const imageNotice =
-    typeof image === "string" && image ? ["Select the image again before saving."] : [];
+    typeof image === "string" && image && input.request.headers.get("X-Remix-Frame") !== "true"
+      ? ["Select the image again before saving."]
+      : [];
   return input.invalidEditor.render({ ...editor, initialValues }, [...errors, ...imageNotice]);
 }
 
 function redirectToAdminDrinksWithToast(session: Session, toast: ToastMessage): Response {
   session.flash("toast", toast);
   return redirect(routes.admin.drinks.index.href(), { status: 303 });
-}
-
-function drinkNotFoundResponse(request?: Request): Response {
-  if (!request || !acceptsEditorResponse(request)) return renderResponseError(404);
-  const data: DrinkEditorResponse = { kind: "notFound", message: "Drink not found" };
-  return Response.json(data, { status: 404 });
 }
 
 function resolveWriteToast(

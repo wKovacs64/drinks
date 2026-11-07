@@ -1,9 +1,4 @@
-import { clientEntry, navigate, on, type Handle } from "remix/component";
-import { parseSafe } from "remix/data-schema";
-import {
-  drinkEditorResponseSchema,
-  EDITOR_RESPONSE_MEDIA_TYPE,
-} from "#/app/web/admin-drink-write/public/editor-response.ts";
+import { clientEntry, on, ref, type Handle } from "remix/component";
 import slugify from "@sindresorhus/slugify";
 import type { DrinkEditor } from "#/app/modules/drinks/drinks.ts";
 import { ImageCrop } from "#/app/actions/admin/drinks/public/image-crop.tsx";
@@ -45,7 +40,41 @@ function DrinkEditorForm(handle: Handle<DrinkFormProps>) {
   let isSlugManuallyEdited = false;
   let slugValue = editor.initialValues.slug;
   let imageRequired = false;
-  let errors = handle.props.errors;
+  let saveFailed = false;
+  // The runtime can't await the crop, so the first submit waits for it and resubmits natively.
+  let isResubmitting = false;
+  handle.frame.addEventListener(
+    "reloadComplete",
+    () => {
+      if (!isSubmitting) return;
+      isSubmitting = false;
+      void handle.update();
+    },
+    { signal: handle.signal },
+  );
+  // A failed frame reload rejects the save's navigation after reloadComplete; superseded
+  // navigations abort.
+  let isNavigating = false;
+  const reportFailedSave = ref<HTMLFormElement>((_form, signal) => {
+    window.navigation?.addEventListener(
+      "navigatesuccess",
+      () => {
+        isNavigating = false;
+      },
+      { signal },
+    );
+    window.navigation?.addEventListener(
+      "navigateerror",
+      (event) => {
+        if (!isNavigating) return;
+        isNavigating = false;
+        if (event.error instanceof DOMException && event.error.name === "AbortError") return;
+        saveFailed = true;
+        void handle.update();
+      },
+      { signal },
+    );
+  });
   function setSlugValue(value: string) {
     slugValue = value;
     void handle.update();
@@ -53,71 +82,53 @@ function DrinkEditorForm(handle: Handle<DrinkFormProps>) {
   function setIsSlugManuallyEdited(value: boolean) {
     isSlugManuallyEdited = value;
   }
-  async function handleSubmit(
-    event: SubmitEvent & { currentTarget: HTMLFormElement },
-    signal: AbortSignal,
-  ) {
+  async function handleSubmit(event: SubmitEvent & { currentTarget: HTMLFormElement }) {
+    if (isResubmitting) return;
     event.preventDefault();
     if (isSubmitting) return;
     const form = event.currentTarget;
     imageRequired = false;
+    saveFailed = false;
     isSubmitting = true;
     void handle.update();
-    try {
-      const croppedBlob = await getCroppedImage?.();
-      if (signal.aborted) return;
-      if (!croppedBlob && !editor.imageUrl) {
-        imageRequired = true;
-        return;
-      }
-      const formData = new FormData(form);
-      if (croppedBlob) formData.set("imageFile", croppedBlob, "cropped.jpg");
-      const response = await fetch(action, {
-        method: "POST",
-        body: formData,
-        headers: { Accept: EDITOR_RESPONSE_MEDIA_TYPE },
-        redirect: "error",
-        signal,
-      });
-      if (signal.aborted) return;
-      const data: unknown = await response.json();
-      if (signal.aborted) return;
-      const parsedResponse = parseSafe(drinkEditorResponseSchema, data);
-      if (!parsedResponse.success) throw new Error("Unexpected Drink editor response");
-      const result = parsedResponse.value;
-      switch (result.kind) {
-        case "navigate":
-          if (result.document) window.location.assign(result.location);
-          else await navigate(result.location);
-          return;
-        case "invalid":
-          errors = result.errors;
-          break;
-        case "notFound":
-          errors = [result.message];
-          break;
-        default: {
-          const unexpectedResponse: never = result;
-          throw new Error(`Unexpected Drink editor response: ${String(unexpectedResponse)}`);
-        }
-      }
-    } catch {
-      if (!signal.aborted) errors = ["Unable to save drink. Please try again."];
-    } finally {
+    const image = (await getCroppedImage?.()) ?? null;
+    // Browsers ignore requestSubmit while the original submit event is still dispatching.
+    await new Promise((resolve) => setTimeout(resolve));
+    if (handle.signal.aborted) return;
+    if (!image && !editor.imageUrl) imageRequired = true;
+    // Fields edited during the crop can fail validation, which cancels requestSubmit silently.
+    if (imageRequired || !form.reportValidity()) {
       isSubmitting = false;
-      if (!handle.signal.aborted) await handle.update();
+      void handle.update();
+      return;
+    }
+    const imageInput = form.elements.namedItem("imageFile");
+    if (image && imageInput instanceof HTMLInputElement) {
+      const files = new DataTransfer();
+      files.items.add(new File([image], "cropped.jpg", { type: image.type }));
+      imageInput.files = files.files;
+    }
+    isNavigating = true;
+    isResubmitting = true;
+    try {
+      form.requestSubmit();
+    } finally {
+      isResubmitting = false;
     }
   }
   return () => {
+    const errors = saveFailed
+      ? ["Unable to save drink. Please try again."]
+      : (handle.props.errors ?? []);
     return (
       <form
         method="post"
         action={action}
         encType="multipart/form-data"
-        mix={on<HTMLFormElement, "submit">("submit", handleSubmit)}
+        mix={[reportFailedSave, on<HTMLFormElement, "submit">("submit", handleSubmit)]}
         className="space-y-6"
       >
-        {errors && errors.length > 0 ? (
+        {errors.length > 0 ? (
           <div
             role="alert"
             className="rounded border border-red-700 bg-red-950/50 px-4 py-3 text-red-300"

@@ -1,12 +1,10 @@
 import { test } from "remix/test";
 import { expect } from "remix/assert";
 import { createBrowserPage } from "#/test/e2e.ts";
-import { EDITOR_RESPONSE_MEDIA_TYPE } from "#/app/web/admin-drink-write/public/editor-response.ts";
 
 test("the editor preserves its existing per-image size limit", async (testContext) => {
   const pageAsAdmin = await createBrowserPage(testContext, { admin: true });
   const response = await pageAsAdmin.request.post("/admin/drinks/test-margarita/edit", {
-    headers: { Accept: EDITOR_RESPONSE_MEDIA_TYPE },
     multipart: {
       imageFile: {
         name: "large.jpg",
@@ -16,15 +14,12 @@ test("the editor preserves its existing per-image size limit", async (testContex
     },
   });
   expect(response.status()).toBe(400);
-  expect(await response.json()).toMatchObject({
-    errors: ["Image must be under 5MB"],
-  });
+  expect(await response.text()).toContain("<li>Image must be under 5MB</li>");
 });
 
 test("the editor bounds the complete multipart submission", async (testContext) => {
   const pageAsAdmin = await createBrowserPage(testContext, { admin: true });
   const response = await pageAsAdmin.request.post("/admin/drinks/test-margarita/edit", {
-    headers: { Accept: EDITOR_RESPONSE_MEDIA_TYPE },
     multipart: {
       title: "x".repeat(2 * 1024 * 1024),
       notes: "x".repeat(2 * 1024 * 1024),
@@ -32,27 +27,21 @@ test("the editor bounds the complete multipart submission", async (testContext) 
     },
   });
   expect(response.status()).toBe(400);
-  expect(await response.json()).toMatchObject({
-    errors: ["Form submission is too large"],
-  });
+  expect(await response.text()).toContain("<li>Form submission is too large</li>");
 });
 
 test("the editor bounds the number of submitted fields", async (testContext) => {
   const pageAsAdmin = await createBrowserPage(testContext, { admin: true });
   const response = await pageAsAdmin.request.post("/admin/drinks/test-margarita/edit", {
-    headers: { Accept: EDITOR_RESPONSE_MEDIA_TYPE },
     multipart: Object.fromEntries(Array.from({ length: 17 }, (_, index) => [`field${index}`, "x"])),
   });
   expect(response.status()).toBe(400);
-  expect(await response.json()).toMatchObject({
-    errors: ["Form submission contains too many fields"],
-  });
+  expect(await response.text()).toContain("<li>Form submission contains too many fields</li>");
 });
 
 test("the single-image editor rejects an additional uploaded file", async (testContext) => {
   const pageAsAdmin = await createBrowserPage(testContext, { admin: true });
   const response = await pageAsAdmin.request.post("/admin/drinks/test-margarita/edit", {
-    headers: { Accept: EDITOR_RESPONSE_MEDIA_TYPE },
     multipart: {
       title: "Test Margarita",
       slug: "test-margarita",
@@ -68,25 +57,21 @@ test("the single-image editor rejects an additional uploaded file", async (testC
     maxRedirects: 0,
   });
   expect(response.status()).toBe(400);
-  expect(await response.json()).toMatchObject({
-    errors: ["Upload only one image"],
-  });
+  expect(await response.text()).toContain("<li>Upload only one image</li>");
 });
 
 test("creating a Drink requires an image", async (testContext) => {
   const pageAsAdmin = await createBrowserPage(testContext, { admin: true });
   const response = await pageAsAdmin.request.post("/admin/drinks/new", {
-    headers: { Accept: EDITOR_RESPONSE_MEDIA_TYPE },
     multipart: { title: "No Image" },
   });
   expect(response.status()).toBe(400);
-  expect(await response.json()).toEqual({ kind: "invalid", errors: ["Image is required"] });
+  expect(await response.text()).toContain("<li>Image is required</li>");
 });
 
 test("the editor reports every invalid draft field", async (testContext) => {
   const pageAsAdmin = await createBrowserPage(testContext, { admin: true });
   const response = await pageAsAdmin.request.post("/admin/drinks/test-margarita/edit", {
-    headers: { Accept: EDITOR_RESPONSE_MEDIA_TYPE },
     multipart: {
       title: " ",
       slug: "Not A Slug",
@@ -99,15 +84,14 @@ test("the editor reports every invalid draft field", async (testContext) => {
     },
   });
   expect(response.status()).toBe(400);
-  expect(await response.json()).toEqual({
-    kind: "invalid",
-    errors: [
-      "Title is required",
-      "Slug must be lowercase letters, numbers, and hyphens",
-      "Calories cannot be negative",
-      "Rank must be a whole number",
-    ],
-  });
+  const html = await response.text();
+  for (const error of [
+    "Title is required",
+    "Slug must be lowercase letters, numbers, and hyphens",
+    "Calories cannot be negative",
+    "Rank must be a whole number",
+  ])
+    expect(html).toContain(`<li>${error}</li>`);
 });
 
 test("browser assets expose public source and the route map while keeping server source private", async (testContext) => {

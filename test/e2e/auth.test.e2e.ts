@@ -6,7 +6,6 @@ import { createBrowserPage } from "#/test/e2e.ts";
 import { getDb } from "#/app/db/client.ts";
 import { drinks, users } from "#/app/db/schema.ts";
 import { TEST_ADMIN_USER } from "#/test/database.ts";
-import { EDITOR_RESPONSE_MEDIA_TYPE } from "#/app/web/admin-drink-write/public/editor-response.ts";
 import { Route } from "remix/routes";
 import { routes } from "#/app/routes.ts";
 
@@ -18,30 +17,28 @@ function getRouteLeaves(routeMap: object): Route[] {
   });
 }
 
-test("editor redirects require an explicit acceptable editor media type", async (testContext) => {
+test("anonymous frame requests get a sign-in page instead of the cross-origin login redirect", async (testContext) => {
   const page = await createBrowserPage(testContext);
-  for (const { accept, enhanced } of [
-    { accept: `${EDITOR_RESPONSE_MEDIA_TYPE};q=0.8, text/html;q=0.5`, enhanced: true },
-    { accept: `${EDITOR_RESPONSE_MEDIA_TYPE};q=1`, enhanced: true },
-    { accept: `${EDITOR_RESPONSE_MEDIA_TYPE};q=0, */*`, enhanced: false },
-    { accept: "text/html, */*;q=0.8", enhanced: false },
-    { accept: "application/*", enhanced: false },
+  for (const { method, path, loginHref } of [
+    { method: "POST", path: "/%61dmin/drinks/test-margarita/%65dit", loginHref: "/login" },
+    {
+      method: "GET",
+      path: "/admin/drinks?q=sour",
+      loginHref: "/login?returnTo=%2Fadmin%2Fdrinks%3Fq%3Dsour",
+    },
   ]) {
-    const response = await page.request.post("/%61dmin/drinks/test-margarita/%65dit", {
-      headers: { Accept: accept },
+    const response = await page.request.fetch(path, {
+      method,
+      headers: { "X-Remix-Frame": "true" },
       maxRedirects: 0,
     });
-    expect(response.status()).toBe(enhanced ? 200 : 302);
+    expect(response.status()).toBe(401);
     expect(response.headers()["cache-control"]).toBe("private, no-store");
-    if (enhanced) {
-      expect(await response.json()).toEqual({
-        kind: "navigate",
-        location: "/login",
-        document: true,
-      });
-    } else {
-      expect(response.headers().location).toBe("/login");
-    }
+    const html = await response.text();
+    expect(html).toContain("Session Expired");
+    expect(html).toMatch(
+      new RegExp(`<a href="${loginHref.replaceAll("?", "\\?")}" data-rmx-document`),
+    );
   }
 });
 
@@ -90,15 +87,16 @@ for (const actor of ["anonymous", "user"]) {
     }
     for (const path of ["/%61dmin/%64rinks/%6Eew", "/ad%6din/drinks/test-margarita/%65dit"]) {
       const response = await page.request.post(path, {
-        headers: { Accept: EDITOR_RESPONSE_MEDIA_TYPE },
+        headers: { "X-Remix-Frame": "true" },
         maxRedirects: 0,
       });
-      expect(response.status()).toBe(200);
-      expect(await response.json()).toEqual({
-        kind: "navigate",
-        location: destination,
-        document: actor === "anonymous",
-      });
+      if (actor === "anonymous") {
+        expect(response.status()).toBe(401);
+        expect(await response.text()).toContain("Session Expired");
+      } else {
+        expect(response.status()).toBe(302);
+        expect(response.headers().location).toBe(destination);
+      }
       expect(response.headers()["cache-control"]).toBe("private, no-store");
     }
     expect(await getDb().query(drinks).count()).toBe(3);
@@ -114,7 +112,6 @@ test("admin can read and submit an encoded editor URL", async (testContext) => {
   expect(await response.text()).toContain("Update Drink");
   expect(response.headers()["cache-control"]).toBe("private, no-store");
   const submission = await page.request.post(path, {
-    headers: { Accept: EDITOR_RESPONSE_MEDIA_TYPE },
     multipart: {
       title: "Encoded Margarita",
       slug: "test-margarita",
@@ -127,12 +124,8 @@ test("admin can read and submit an encoded editor URL", async (testContext) => {
     },
     maxRedirects: 0,
   });
-  expect(submission.status()).toBe(200);
-  expect(await submission.json()).toEqual({
-    kind: "navigate",
-    location: "/admin/drinks",
-    document: false,
-  });
+  expect(submission.status()).toBe(303);
+  expect(submission.headers().location).toBe("/admin/drinks");
   expect(submission.headers()["cache-control"]).toBe("private, no-store");
   const drink = await getDb().query(drinks).where({ slug: "test-margarita" }).first();
   expect(drink?.title).toBe("Encoded Margarita");

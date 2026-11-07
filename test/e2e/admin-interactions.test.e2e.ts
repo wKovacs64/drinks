@@ -176,7 +176,7 @@ test("leaving the editor cancels its pending submission", async (testContext) =>
     const nativeFetch = window.fetch;
     window.fetch = (...arguments_: Parameters<typeof fetch>) => {
       const options = arguments_[1];
-      if (options?.method !== "POST" || !(options.body instanceof FormData))
+      if (options?.method?.toUpperCase() !== "POST" || !(options.body instanceof FormData))
         return nativeFetch(...arguments_);
       const recordState: unknown = Reflect.get(window, "recordSubmissionState");
       if (typeof recordState === "function") void recordState("pending");

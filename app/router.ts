@@ -14,7 +14,6 @@ import controller from "./actions/controller.tsx";
 import { renderUnmatchedUrl } from "./actions/not-found-page.tsx";
 import { renderAssets } from "./assets.ts";
 import { routes } from "./routes.ts";
-import { adminDrinkEditorRedirects } from "#/app/web/admin-drink-write/editor-redirects.ts";
 import { routeErrorPages } from "#/app/web/error-pages/route-errors.tsx";
 import { protectAdmin } from "./middleware/admin.ts";
 import { responseHeaders } from "./middleware/response-headers.ts";
@@ -59,7 +58,6 @@ export const router = createRouter({
     authMiddleware,
     responseHeaders,
     routeErrorPages,
-    adminDrinkEditorRedirects,
     protectAdmin,
   ],
   defaultHandler: (context) => renderUnmatchedUrl(context.render, context.method),

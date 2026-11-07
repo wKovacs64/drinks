@@ -16,8 +16,13 @@ Server business behavior lives under `app/modules/<module>/`. The public entrypo
 Routes construct services and return framework responses. The Drinks module owns Drink write
 behavior, image lifecycle orchestration, cache purge orchestration, and transport-independent typed
 write outcomes. The admin write adapter owns the complete web translation, including submission
-validation, error messages, redirects, and toasts. Native form failures render the submitted editor
-with HTTP 400; enhanced submissions explicitly request the editor JSON media type.
+validation, error messages, redirects, and toasts. Failed submissions render the submitted editor
+with HTTP 400. With the browser runtime, the editor awaits its crop, puts it on the image input, and
+resubmits as a frame navigation, so the client entry keeps its draft and selected image across a
+400; the adapter omits the reselect-image notice for frame requests. Frame requests that fail the
+admin session check get a 401 sign-in page instead of the login redirect, because the frame resolver
+fetches same-origin only and cannot follow the hop to Google; its link uses document navigation.
+See [Remix forms](https://github.com/remix-run/remix/blob/remix%403.2.0/packages/remix/guides/09-forms-and-mutations.md#add-pending-feedback).
 [ADR-0001](adr/0001-admin-drink-write-route-adapters.md) and [ADR-0002](adr/0002-admin-drink-write-route-adapter-owns-web-translation.md) record this seam.
 
 ## Browser and assets

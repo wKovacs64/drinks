@@ -32,7 +32,8 @@ export const assets = createAssetServer({
   files: { extensions: [".woff2", ".jpg"] },
   onError: (error) => console.error("Remix asset compilation failed", error),
 });
-export const scriptEntry = await assets.getScriptEntry("app/actions/public/entry.ts");
+const scriptEntrySourceId = "app/actions/public/entry.ts";
+export const scriptEntry = await assets.getScriptEntry(scriptEntrySourceId);
 export const stylesheetHref = await assets.getHref("public/app.css");
 export const lightFontHref = await assets.getHref(
   "public/fonts/source-sans-3-latin-300-normal.woff2",
@@ -40,19 +41,24 @@ export const lightFontHref = await assets.getHref(
 export const preloadAfterPaintHref = await assets.getHref(
   "app/actions/public/preload-after-paint.ts",
 );
+const adminSourceUrl = new URL("actions/admin/", import.meta.url).href;
 export const renderAssets: Pick<typeof assets, "getScriptEntry"> = {
   async getScriptEntry(sourceId) {
     const entry = await assets.getScriptEntry(sourceId);
-    // Document schedules low-priority hints after paint; native module URLs and maps stay intact.
-    return { ...entry, preloads: [] };
+    // Admin keeps Remix's eager head preloads. Public pages pass their hints to Document,
+    // which schedules them after paint; native module URLs and maps stay intact.
+    return sourceId.startsWith(adminSourceUrl) ? entry : { ...entry, preloads: [] };
   },
 };
 
-export async function getClientEntryPreloads(entry: Pick<EntryComponent, "$entryId">) {
-  const hashIndex = entry.$entryId.lastIndexOf("#");
-  const sourceId = hashIndex === -1 ? entry.$entryId : entry.$entryId.slice(0, hashIndex);
-  const clientEntry = await assets.getScriptEntry(sourceId);
-  return [...new Set([...scriptEntry.preloads, ...clientEntry.preloads])];
+export function getModulePreloads(...entries: Pick<EntryComponent, "$entryId">[]) {
+  return assets.getPreloads([
+    scriptEntrySourceId,
+    ...entries.map(({ $entryId }) => {
+      const hashIndex = $entryId.lastIndexOf("#");
+      return hashIndex === -1 ? $entryId : $entryId.slice(0, hashIndex);
+    }),
+  ]);
 }
 
 export async function fetchHmrEvents(request: Request): Promise<Response | undefined> {

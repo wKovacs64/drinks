@@ -5,8 +5,13 @@ import { createDrinksService } from "#/app/modules/drinks/drinks.ts";
 import { publicHeaders } from "#/app/web/gallery-cache.ts";
 import { SearchPage } from "./page.tsx";
 import { SearchForm } from "./public/search-form.tsx";
-import { getClientEntryPreloads } from "#/app/assets.ts";
-if (process.env.NODE_ENV === "production") await getClientEntryPreloads(SearchForm);
+import { SearchStatus } from "./public/search-status.tsx";
+import { getModulePreloads } from "#/app/assets.ts";
+// Production compiles these graphs once at boot; development recomputes them so edits stay fresh.
+const productionModulePreloads =
+  process.env.NODE_ENV === "production"
+    ? await getModulePreloads(SearchForm, SearchStatus)
+    : undefined;
 export default createController(routes.search, {
   actions: {
     async index(context) {
@@ -17,7 +22,12 @@ export default createController(routes.search, {
         ...publicHeaders,
         "Surrogate-Key": query ? "search all" : "all",
       };
-      return context.render(<SearchPage query={query} drinks={drinks} />, { headers });
+      const modulePreloads =
+        productionModulePreloads ?? (await getModulePreloads(SearchForm, SearchStatus));
+      return context.render(
+        <SearchPage query={query} drinks={drinks} modulePreloads={modulePreloads} />,
+        { headers },
+      );
     },
   },
 });

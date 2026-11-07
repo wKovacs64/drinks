@@ -11,7 +11,7 @@ export function Header() {
           <h1 className="text-3xl font-light">
             <HeaderLink href={routes.home.href()}>drinks.fyi</HeaderLink>
           </h1>
-          <HeaderLink href={routes.search.index.href()}>
+          <HeaderLink href={routes.search.index.href()} data-rmx-prefetch="intent">
             <span className="sr-only">Search</span>
             <Icon name="ic-baseline-search" aria-hidden size={32} />
           </HeaderLink>

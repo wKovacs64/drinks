@@ -1,7 +1,8 @@
 # Performance Budgets
 
-The `🚦 Lighthouse` CI job runs Lighthouse CI against the production server and fails when a public
-page exceeds its lab budget. It runs on every branch except `main`, so lab variance cannot block a
+The `🚦 Lighthouse` CI job runs Lighthouse CI against the production server. It fails when a public
+page exceeds its layout shift or script budget and only warns on timing budgets, which vary between
+identical builds on CI runners. It runs on every branch except `main`, so lab variance cannot block a
 deploy. Run it locally with:
 
 ```sh
@@ -17,10 +18,10 @@ them as the `lighthouse-reports` artifact.
 
 | Metric                                  | Budget                        | Level |
 | --------------------------------------- | ----------------------------- | ----- |
-| Largest Contentful Paint                | 2500 ms                       | error |
-| Total Blocking Time (lab proxy for INP) | 200 ms                        | error |
+| Largest Contentful Paint                | 2500 ms                       | warn  |
+| Total Blocking Time (lab proxy for INP) | 200 ms                        | warn  |
 | Cumulative Layout Shift                 | 0.05                          | error |
-| Server response time (TTFB)             | 200 ms                        | error |
+| Server response time (TTFB)             | 200 ms                        | warn  |
 | Script bytes, uncompressed              | 180 KiB; 220 KiB on `/search` | error |
 | Performance score                       | 90                            | warn  |
 

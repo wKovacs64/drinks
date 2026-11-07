@@ -55,7 +55,7 @@ describe("Create New Drink", () => {
   });
 });
 
-test("create retries preserve text, selected image, and crop after validation and network failure", async (testContext) => {
+test("create retries preserve the draft and crop, and each save uploads the current crop", async (testContext) => {
   const page = await createBrowserPage(testContext, { admin: true });
   await page.goto("/admin/drinks/new");
   await page.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
@@ -72,16 +72,11 @@ test("create retries preserve text, selected image, and crop after validation an
     name: "Use the arrow keys to move the crop selection area",
   });
   await selection.waitFor();
-  await page
-    .getByRole("button", {
-      name: "Use the arrow keys to move the south east drag handle to change the crop selection area",
-    })
-    .focus();
-  await page
-    .getByRole("button", {
-      name: "Use the arrow keys to move the south east drag handle to change the crop selection area",
-    })
-    .press("Shift+ArrowLeft");
+  const cropHandle = page.getByRole("button", {
+    name: "Use the arrow keys to move the south east drag handle to change the crop selection area",
+  });
+  await cropHandle.focus();
+  await cropHandle.press("Shift+ArrowLeft");
   await page.getByLabel("Notes (markdown)").focus();
   const cropStyle = await selection.getAttribute("style");
   const previewSource = await page.getByAltText("Crop preview").getAttribute("src");
@@ -96,13 +91,16 @@ test("create retries preserve text, selected image, and crop after validation an
         const digest = await crypto.subtle.digest("SHA-256", await imageFile.arrayBuffer());
         const recordImage: unknown = Reflect.get(window, "recordUploadedImage");
         if (typeof recordImage === "function")
-          await recordImage(Array.from(new Uint8Array(digest)).join(","));
+          await recordImage(
+            `${imageFile.name} ${imageFile.type} ${Array.from(new Uint8Array(digest)).join(",")}`,
+          );
       }
       return nativeFetch(...arguments_);
     };
   });
   await page.getByRole("button", { name: "Create Drink" }).click();
   await page.getByRole("alert").filter({ hasText: "Slug already exists" }).waitFor();
+  expect(await page.getByText("Select the image again before saving.").count()).toBe(0);
   expect(await page.getByLabel("Title", { exact: true }).inputValue()).toBe("Retry With Image");
   expect(await page.getByLabel("Ingredients (one per line)").inputValue()).toBe(
     "1 oz gin\n2 oz tonic",
@@ -123,10 +121,38 @@ test("create retries preserve text, selected image, and crop after validation an
   expect(await selection.getAttribute("style")).toBe(cropStyle);
   expect(await page.getByAltText("Crop preview").getAttribute("src")).toBe(previewSource);
   await page.unroute("**/admin/drinks/new");
+
+  await cropHandle.press("Shift+ArrowLeft");
+  // Hold the crop's encoding so the save is observably waiting on it.
+  await page.evaluate(() => {
+    const nativeToBlob = HTMLCanvasElement.prototype.toBlob;
+    const cropRelease = Promise.withResolvers<void>();
+    Reflect.set(window, "releaseCrop", cropRelease.resolve);
+    HTMLCanvasElement.prototype.toBlob = function (
+      this: HTMLCanvasElement,
+      ...arguments_: Parameters<HTMLCanvasElement["toBlob"]>
+    ) {
+      void cropRelease.promise.then(() => nativeToBlob.apply(this, arguments_));
+    };
+  });
+  const submissions: string[] = [];
+  page.on("request", (request) => {
+    if (request.method() === "POST") submissions.push(request.url());
+  });
   await page.getByRole("button", { name: "Create Drink" }).click();
+  await page.getByRole("button", { name: "Saving..." }).waitFor();
+  expect(submissions).toEqual([]);
+  await page.evaluate(() => {
+    const releaseCrop: unknown = Reflect.get(window, "releaseCrop");
+    if (typeof releaseCrop === "function") releaseCrop();
+  });
   await page.waitForURL("/admin/drinks");
   await page.getByRole("cell", { name: "Retry With Image" }).waitFor();
+  expect(submissions.length).toBe(1);
   expect(uploadedImages.length).toBe(3);
-  expect(new Set(uploadedImages).size).toBe(1);
+  for (const image of uploadedImages)
+    expect(image.startsWith("cropped.jpg image/jpeg ")).toBe(true);
+  expect(uploadedImages[1]).toBe(uploadedImages[0]);
+  expect(uploadedImages[2]).not.toBe(uploadedImages[1]);
   await page.getByRole("status").filter({ hasText: "Drink created!" }).waitFor();
 });

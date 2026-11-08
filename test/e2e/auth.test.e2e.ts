@@ -190,6 +190,27 @@ describe("Authentication", () => {
   });
 });
 
+test("login-failed Try again uses document navigation to Google", async (testContext) => {
+  const page = await createBrowserPage(testContext);
+  await page.goto(routes.auth.failed.href());
+  await page.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
+  // Browser interception matches the first URL in a redirect chain, so intercept /login.
+  const oauthDestination = Promise.withResolvers<string>();
+  await page.route("**/login", async (route) => {
+    const response = await route.fetch({ maxRedirects: 0 });
+    expect(response.status()).toBe(302);
+    oauthDestination.resolve(response.headers().location);
+    await route.fulfill({ status: 200, contentType: "text/html", body: "<h1>Google sign in</h1>" });
+  });
+  const loginRequest = page.waitForRequest(
+    (request) => new URL(request.url()).pathname === "/login" && request.isNavigationRequest(),
+  );
+  await page.getByRole("link", { name: "Try again" }).click();
+  await loginRequest;
+  await page.getByRole("heading", { name: "Google sign in" }).waitFor();
+  expect(new URL(await oauthDestination.promise).hostname).toBe("accounts.google.com");
+});
+
 test("admin permissions are checked from the database on every request", async (testContext) => {
   const pageAsAdmin = await createBrowserPage(testContext, { admin: true });
   await pageAsAdmin.goto("/admin/drinks");

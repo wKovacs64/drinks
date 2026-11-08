@@ -1,5 +1,31 @@
 # Changelog
 
+## [5.2.0](https://github.com/wKovacs64/drinks/compare/v5.1.0...v5.2.0) (2026-11-08)
+
+
+### Features
+
+* **admin:** save Drink editor through Remix form navigation ([#448](https://github.com/wKovacs64/drinks/issues/448)) ([2f536ec](https://github.com/wKovacs64/drinks/commit/2f536eccaace3bb79a5abe47c292db0e824d2104))
+* nonce-based CSP via Remix 3.2.0 csp middleware ([#439](https://github.com/wKovacs64/drinks/issues/439)) ([e1b2d13](https://github.com/wKovacs64/drinks/commit/e1b2d13ee733d859d22e9b2fdf508442fdeaeef7))
+* send Strict-Transport-Security header ([#441](https://github.com/wKovacs64/drinks/issues/441)) ([7d3a723](https://github.com/wKovacs64/drinks/commit/7d3a7230cec61af13d80c2de30cad75b6637d0f3))
+
+
+### Bug Fixes
+
+* **auth:** use document navigation for login-failed Try again ([#452](https://github.com/wKovacs64/drinks/issues/452)) ([9cecbb5](https://github.com/wKovacs64/drinks/commit/9cecbb52f36eebec8db2ff730955a22873d2b090))
+* carry the post-login Return-to URL as a query param ([841d351](https://github.com/wKovacs64/drinks/commit/841d3513d0b35d05b63ad6d0a289421eeecff14b))
+* format admin timestamps only in the browser ([#444](https://github.com/wKovacs64/drinks/issues/444)) ([4531f20](https://github.com/wKovacs64/drinks/commit/4531f20e20318dc1f77e704a265e42794fc4fa1e))
+* reject non-integer input in Drink draft number fields ([1c52488](https://github.com/wKovacs64/drinks/commit/1c52488a2094a9d03aeaee7128d20945faef30fb))
+* render unmatched URLs through the router's defaultHandler ([880d6f4](https://github.com/wKovacs64/drinks/commit/880d6f48b742a65db26d1978b20d3b3208afee7c))
+
+
+### Performance Improvements
+
+* defer /search client-entry hints, keep Remix head preloads on admin ([#449](https://github.com/wKovacs64/drinks/issues/449)) ([7c07734](https://github.com/wKovacs64/drinks/commit/7c07734156db9db3199f6049ead36794e0966b17)), closes [#416](https://github.com/wKovacs64/drinks/issues/416)
+* reuse ImageKit preconnect, markdown renderer, parallel MCP reads ([c452113](https://github.com/wKovacs64/drinks/commit/c45211335566f8efe727d9b586b4ca03e14ae946))
+* stop registering the retired service worker ([f62de3d](https://github.com/wKovacs64/drinks/commit/f62de3d5a73438b55f50a004f063b12f2533139a))
+* validate environment variables once at module load ([ca6a48e](https://github.com/wKovacs64/drinks/commit/ca6a48e12c1aa8273080c4d86e81675bbbfc08da))
+
 ## [5.1.0](https://github.com/wKovacs64/drinks/compare/v5.0.0...v5.1.0) (2026-10-24)
 
 

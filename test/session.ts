@@ -7,12 +7,16 @@ export async function getSessionCookieValue(userId: SessionUser["id"]): Promise<
   const router = createRouter({ middleware: [getIdentitySessionMiddleware()] });
   router.get("/", (context) => {
     context.session.set("userId", userId);
+
     return new Response();
   });
   const response = await router.fetch(new Request("http://localhost/"));
   const setCookieHeader = response.headers.get("set-cookie");
+
   if (setCookieHeader === null) throw new Error("Expected the session middleware to set a cookie");
   const { value } = new SetCookie(setCookieHeader);
+
   if (value === undefined) throw new Error("Expected a signed session cookie value");
+
   return value;
 }

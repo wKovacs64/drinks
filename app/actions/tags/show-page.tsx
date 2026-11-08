@@ -9,6 +9,7 @@ import { getGalleryImagePreloads } from "#/app/ui/drinks/image-preload.tsx";
 export function TagPage(handle: Handle<{ taggedDrinks: DrinksByTagSlug }>) {
   return () => {
     const { taggedDrinks } = handle.props;
+
     return (
       <Document
         title={`Drinks with ${taggedDrinks.tag.displayName}`}

@@ -7,6 +7,7 @@ export function isImageKitUrl(source: string): boolean {
 
 export function imagekitTransformer(source: string | URL, operations: ImageKitOperations): string {
   const sourceUrl = source.toString();
+
   return isImageKitUrl(sourceUrl) ? transform(sourceUrl, operations) : sourceUrl;
 }
 

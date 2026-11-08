@@ -1,6 +1,8 @@
+// oxlint-disable-next-line typescript/no-require-imports, typescript/no-unsafe-call -- LHCI loads its config with require(), so this file stays CommonJS; type-aware lint has no Node types for `require` here.
 const { chromium } = require("playwright");
 
 const baseUrl = "http://localhost:4173";
+
 // Timing metrics swing between identical builds on CI runners, so they warn; layout shift and
 // script bytes stay stable and gate.
 const sharedAssertions = {
@@ -11,7 +13,11 @@ const sharedAssertions = {
   "cumulative-layout-shift": ["error", { maxNumericValue: 0.05, aggregationMethod: "median" }],
   "server-response-time": ["warn", { maxNumericValue: 200, aggregationMethod: "median" }],
 };
-/** Uncompressed script bytes: production leaves compression to Fastly and Fly Proxy. */
+
+/**
+ * Uncompressed script bytes: production leaves compression to Fastly and Fly Proxy.
+ * @param {number} maxBytes
+ */
 function scriptBudget(maxBytes) {
   return ["error", { maxNumericValue: maxBytes, aggregationMethod: "median" }];
 }

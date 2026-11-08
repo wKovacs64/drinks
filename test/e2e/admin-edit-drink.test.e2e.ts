@@ -73,9 +73,11 @@ test("an editor with a lost session shows a sign-in page that uses document navi
   await page.getByRole("button", { name: "Update Drink" }).click();
   expect((await submission).status()).toBe(401);
   await page.getByRole("heading", { name: "Session Expired" }).waitFor();
+
   const loginRequest = page.waitForRequest(
     (request) => new URL(request.url()).pathname === "/login" && request.isNavigationRequest(),
   );
+
   await page.getByRole("link", { name: "Sign in" }).click();
   await loginRequest;
   await page.getByRole("heading", { name: "Google sign in" }).waitFor();
@@ -89,10 +91,12 @@ test("a Drink removed while editing shows not found", async (testContext) => {
   await page.getByLabel("Title", { exact: true }).fill("Unsaved Margarita");
   const deletion = await page.request.post("/admin/drinks/test-margarita/delete");
   expect(deletion.ok()).toBe(true);
+
   const submission = page.waitForResponse(
     (response) =>
       response.request().method() === "POST" && response.url().endsWith("/test-margarita/edit"),
   );
+
   await page.getByRole("button", { name: "Update Drink" }).click();
   expect((await submission).status()).toBe(404);
   await page.getByRole("heading", { name: "404 Not Found" }).waitFor();

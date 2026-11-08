@@ -28,6 +28,7 @@ const annotations = {
 export const mcpHandler = createMcpHandler(({ requestInfo }) => {
   if (!requestInfo) throw new Error("MCP requires an HTTP request");
   const origin = new URL(requestInfo.url).origin;
+
   const toSummary = (drink: DrinkView) => ({
     title: drink.title,
     slug: drink.slug,
@@ -36,6 +37,7 @@ export const mcpHandler = createMcpHandler(({ requestInfo }) => {
     imageUrl: new URL(drink.image.url, origin).href,
     sourceUrl: new URL(routes.drinks.show.href({ slug: drink.slug }), origin).href,
   });
+
   const server = new McpServer(
     { name: "drinks.fyi", version: "1.0.0" },
     {
@@ -43,6 +45,7 @@ export const mcpHandler = createMcpHandler(({ requestInfo }) => {
         "Search discovers Drink references without displaying cards. Call show_drinks once with the final selected slugs: use view recipe for preparation requests, or view summary for drink searches and selections. For broad searches, display every returned slug in result order unless the user requests a subset. Do not display a summary before a recipe for the same request. Drink cards are the complete response. Recipe details are delivered privately to the card, not to you. End the response after displaying cards. Do not add text, images, recipe previews, other sources or follow-up questions. Do not invent missing recipe details.",
     },
   );
+
   const drinks = createDrinksService({ db: getDb() });
   registerAppResource(server, "Drink card", cardUri, {}, async () => ({
     contents: [
@@ -76,13 +79,15 @@ export const mcpHandler = createMcpHandler(({ requestInfo }) => {
     async ({ query }) => {
       const results = await drinks.searchPublishedDrinks({ query, preferExactTitle: true });
       const structuredContent = { drinks: results.map(({ slug }) => ({ slug })) };
+
       return {
         content: [
           {
             type: "text",
-            text: results.length
-              ? "Matching Drink references found. No cards have been displayed. Call show_drinks once with all returned slugs in result order unless the user requests a subset, using recipe for preparation requests or summary otherwise."
-              : "No matching drinks.fyi recipes found.",
+            text:
+              results.length > 0
+                ? "Matching Drink references found. No cards have been displayed. Call show_drinks once with all returned slugs in result order unless the user requests a subset, using recipe for preparation requests or summary otherwise."
+                : "No matching drinks.fyi recipes found.",
           },
         ],
         structuredContent,
@@ -110,15 +115,18 @@ export const mcpHandler = createMcpHandler(({ requestInfo }) => {
       const results = await Promise.all(
         slugs.map((slug) => drinks.getDrinkBySlug({ slug, viewerRole: "user" })),
       );
+
       const recipes: z.infer<typeof cardResultSchema>["drinks"] = [];
+
       for (const result of results) {
         if (!result)
           return { isError: true, content: [{ type: "text", text: "Drink not found." }] };
-        recipes.push({
-          ...toSummary(result.drink),
-          ...(view === "recipe" ? { notes: result.drink.notes } : {}),
-        });
+        const recipe: (typeof recipes)[number] = toSummary(result.drink);
+
+        if (view === "recipe") recipe.notes = result.drink.notes;
+        recipes.push(recipe);
       }
+
       return {
         content: [
           {
@@ -131,6 +139,7 @@ export const mcpHandler = createMcpHandler(({ requestInfo }) => {
       };
     },
   );
+
   return server;
 });
 
@@ -140,6 +149,7 @@ const mcpMatcher = createMatcher("/mcp");
 export const mcp: Middleware = async (context, next) => {
   if (mcpMatcher.match(context.url) === null) return next();
   const request = context.request;
+
   const rejected =
     hostHeaderValidationResponse(request, [
       "drinks.fyi",
@@ -149,8 +159,10 @@ export const mcp: Middleware = async (context, next) => {
       "127.0.0.1",
       "[::1]",
     ]) ?? originValidationResponse(request, [context.url.hostname]);
+
   const response = rejected ?? (await mcpHandler.fetch(request));
   response.headers.set("Cache-Control", "no-store");
   response.headers.set("X-Content-Type-Options", "nosniff");
+
   return response;
 };

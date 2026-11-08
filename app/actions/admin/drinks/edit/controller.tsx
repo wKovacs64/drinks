@@ -3,17 +3,20 @@ import { routes } from "#/app/routes.ts";
 import { requireAdmin } from "#/app/middleware/admin.ts";
 import { getDb } from "#/app/db/client.ts";
 import { createDrinksService } from "#/app/modules/drinks/drinks.ts";
-import { renderDrinkEditor } from "../editor-page.tsx";
-import { createDrinkWriteService } from "../write-service.ts";
+import { renderDrinkEditor } from "#/app/actions/admin/drinks/editor-page.tsx";
+import { createDrinkWriteService } from "#/app/actions/admin/drinks/write-service.ts";
 import { ResponseErrorDocument } from "#/app/ui/core/response-error-document.tsx";
 import { updateAdminDrinkActionAdapter } from "#/app/web/admin-drink-write/route-adapter.ts";
+
 export default createController(routes.admin.drinks.edit, {
   middleware: requireAdmin,
   actions: {
     async index(context) {
       const drinksService = createDrinksService({ db: getDb() });
       const editor = await drinksService.findDrinkEditorBySlug(context.params.slug);
+
       if (!editor) return context.render(<ResponseErrorDocument status={404} />, { status: 404 });
+
       return renderDrinkEditor(context, {
         editor,
         user: context.auth.identity,

@@ -17,10 +17,12 @@ test("retired service worker clears caches and unregisters itself", async (testC
   expect(response.status()).toBe(200);
   expect(response.headers()["content-type"]).toMatch(/^text\/javascript\b/);
   await page.goto("/");
+
   const remaining = await page.evaluate(async () => {
     await (await caches.open("document-cache-v4")).put("/", new Response("stale"));
     const registration = await navigator.serviceWorker.register("/sw.js");
     const worker = registration.installing;
+
     if (!worker) throw new Error("Expected an installing service worker");
     // Activation waits for the worker's activate handler; unregistering can end it as redundant.
     await new Promise<void>((resolve) =>
@@ -28,10 +30,12 @@ test("retired service worker clears caches and unregisters itself", async (testC
         if (worker.state === "activated" || worker.state === "redundant") resolve();
       }),
     );
+
     return {
       registrations: (await navigator.serviceWorker.getRegistrations()).length,
       caches: await caches.keys(),
     };
   });
+
   expect(remaining).toEqual({ registrations: 0, caches: [] });
 });

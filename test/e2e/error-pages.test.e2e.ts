@@ -5,9 +5,11 @@ import { getDb } from "#/app/db/client.ts";
 import { createBrowserPage } from "#/test/e2e.ts";
 
 function captureRouteErrors(testContext: TestContext) {
-  const logError = testContext.mock.method(console, "error", () => {});
+  const logError = testContext.mock.method(console, "error", () => undefined);
+
   return (errorType: typeof SyntaxError | typeof DataTableDatabaseError) => {
     expect(logError).toHaveBeenCalled();
+
     for (const call of logError.mock.calls) {
       expect(call.arguments.length).toBe(2);
       expect(call.arguments[0]).toBe("Route failed");
@@ -29,6 +31,7 @@ test("an unmatched path keeps the gallery navigation around its not-found messag
 
 test("an unmatched path is not found for every method", async (testContext) => {
   const page = await createBrowserPage(testContext);
+
   for (const method of ["HEAD", "POST", "DELETE"]) {
     const response = await page.request.fetch("/unknown/deep/path", { method });
     expect(response.status()).toBe(404);
@@ -71,6 +74,7 @@ test("an admin route failure displays the asset-independent server error documen
   await getDb().exec(
     rawSql("UPDATE drinks SET created_at = 9999999999999999 WHERE slug = 'test-margarita'"),
   );
+
   for (const path of ["/admin/drinks", "/%61dmin/%64rinks"]) {
     const response = await page.goto(path);
     expect(response?.status()).toBe(500);
@@ -78,6 +82,7 @@ test("an admin route failure displays the asset-independent server error documen
     await page.getByRole("heading", { name: "Server error", exact: true }).waitFor();
     expect(await page.locator("header").count()).toBe(0);
   }
+
   expectLoggedError(DataTableDatabaseError);
 });
 

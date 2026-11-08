@@ -6,6 +6,7 @@ import { assets } from "#/app/assets.ts";
 for (const singleImportMap of [false, true]) {
   test(`Search hydrates after navigation (${singleImportMap ? "single import map" : "native import maps"})`, async (context) => {
     const page = await createBrowserPage(context);
+
     if (singleImportMap) {
       await page.route("**/features*.js", async (route) => {
         // Supply the capability result an older browser's isolated probe returns.
@@ -26,13 +27,17 @@ for (const singleImportMap of [false, true]) {
             node.type = "application/json";
             appendChild.call(this, node);
             node.type = "importmap";
+
             return node;
           }
+
           appendChild.call(this, node);
+
           return node;
         };
       });
     }
+
     await page.goto("/");
     await page.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
     await page.getByRole("link", { name: "Search", exact: true }).click();
@@ -52,9 +57,11 @@ async function getModulePreloads(
   path: string,
 ) {
   const html = await (await page.request.get(path)).text();
+
   return page.evaluate((documentHtml) => {
     const parsed = new DOMParser().parseFromString(documentHtml, "text/html");
     const template = parsed.getElementById("client-module-preloads");
+
     const [head, deferred] = [
       parsed.head,
       template instanceof HTMLTemplateElement ? template.content : undefined,
@@ -64,6 +71,7 @@ async function getModulePreloads(
         framework: link.hasAttribute("data-rmx-module-preload"),
       })),
     );
+
     return { head, deferred };
   }, html);
 }
@@ -73,6 +81,7 @@ test("Search defers module hints for its client entries", async (testContext) =>
   const preloads = await getModulePreloads(page, "/search");
   expect(preloads.head).toEqual([]);
   const deferredHrefs = preloads.deferred.map(({ href }) => href);
+
   for (const sourcePath of [
     "app/actions/public/entry.ts",
     "app/actions/search/public/search-form.tsx",
@@ -88,6 +97,7 @@ test("Admin pages carry Remix module hints for their client entries", async (tes
   await page.request.post("/admin/drinks/test-mojito/delete", { maxRedirects: 0 });
   const preloads = await getModulePreloads(page, "/admin/drinks");
   const headHrefs = preloads.head.filter(({ framework }) => framework).map(({ href }) => href);
+
   for (const sourcePath of [
     "app/actions/admin/public/toast.tsx",
     "app/actions/admin/drinks/public/admin-drinks-list.tsx",

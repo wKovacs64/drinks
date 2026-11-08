@@ -1,12 +1,15 @@
 import { enum_, object, string } from "remix/data-schema";
 import slugify from "@sindresorhus/slugify";
+
 export const drinkStatusValues = ["published", "unpublished"] as const;
 const trimmedString = string().transform((value) => value.trim());
+
 const integerString = (message: string) =>
   trimmedString
     .refine((value) => /^-?\d+$/.test(value), message)
     .transform(Number)
     .refine(Number.isSafeInteger, message);
+
 export const drinkDraftSchema = object({
   title: trimmedString.refine((value) => value.length > 0, "Title is required"),
   slug: trimmedString

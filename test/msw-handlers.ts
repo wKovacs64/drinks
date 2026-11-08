@@ -15,7 +15,11 @@ export const handlers = [
     uploadCounter++;
     const formData = await request.formData();
     const fileNameValue = formData.get("fileName");
-    const fileName = typeof fileNameValue === "string" ? fileNameValue : `upload-${uploadCounter}`;
+
+    const fileName =
+      fileNameValue === null || fileNameValue instanceof File
+        ? `upload-${uploadCounter}`
+        : fileNameValue;
 
     return HttpResponse.json({
       fileId: `test-fileId-${uploadCounter}`,

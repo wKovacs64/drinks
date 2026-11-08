@@ -9,6 +9,7 @@ import { TagLink } from "#/app/ui/tags/tag-link.tsx";
 export function TagsPage(handle: Handle<{ tags: DrinkTagView[] }>) {
   return () => {
     const { tags } = handle.props;
+
     return (
       <Document title="Ingredient Tags" description="Discover drinks by ingredient">
         <Gallery

@@ -31,23 +31,27 @@ export const Toast = clientEntry(
     let started = 0;
     let timeout: ReturnType<typeof setTimeout> | undefined;
     let pointerStart: { x: number; y: number } | undefined;
+
     function dismiss() {
       if (!visible) return;
       clearTimeout(timeout);
       visible = false;
       void handle.update();
     }
+
     function pause() {
       if (!visible) return;
       clearTimeout(timeout);
       remaining = Math.max(0, remaining - (Date.now() - started));
     }
+
     function resume() {
       if (!visible) return;
       clearTimeout(timeout);
       started = Date.now();
       timeout = setTimeout(dismiss, remaining);
     }
+
     const initialize = ref((element, signal) => {
       if (element instanceof HTMLElement) toastElement = element;
       resume();
@@ -70,6 +74,7 @@ export const Toast = clientEntry(
         { once: true },
       );
     });
+
     return () => {
       if (notificationId !== handle.props.notificationId) {
         notificationId = handle.props.notificationId;
@@ -80,6 +85,7 @@ export const Toast = clientEntry(
           if (!signal.aborted && toastElement) resume();
         });
       }
+
       return visible ? (
         <section
           key="toast"

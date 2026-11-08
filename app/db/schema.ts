@@ -12,6 +12,7 @@ export const users = table({
     updated_at: c.integer().defaultSql("unixepoch()"),
   },
 });
+
 export const drinks = table({
   name: "drinks",
   columns: {

@@ -15,17 +15,20 @@ test("deletion follows the native redirect and retains sorting and filtering", a
     document.querySelector("tbody tr")?.textContent?.includes("Test Mojito"),
   );
   page.on("dialog", (dialog) => dialog.accept());
+
   const deletionResponsePromise = page.waitForResponse(
     (response) =>
       new URL(response.url()).pathname === "/admin/drinks/test-old-fashioned/delete" &&
       response.request().method() === "POST",
   );
+
   const listResponsePromise = page.waitForResponse(
     (response) =>
       new URL(response.url()).pathname === "/admin/drinks" &&
       response.request().method() === "GET" &&
       response.request().headers()["x-remix-target"] !== "admin-drinks",
   );
+
   await page
     .getByRole("row")
     .filter({ hasText: "Test Old Fashioned" })
@@ -64,6 +67,7 @@ test("admin filter excludes recipe fields and timestamps and Escape restores the
   await pageAsAdmin.goto("/admin/drinks");
   await pageAsAdmin.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
   const filter = pageAsAdmin.getByRole("textbox", { name: "Filter drinks" });
+
   for (const excludedValue of ["citrus", "2025-01-02"]) {
     await filter.fill("Test");
     await pageAsAdmin.waitForFunction(() => document.querySelectorAll("tbody tr").length === 3);
@@ -75,6 +79,7 @@ test("admin filter excludes recipe fields and timestamps and Escape restores the
     );
     expect(await pageAsAdmin.locator("tbody tr").count()).toBe(0);
   }
+
   await filter.fill("MARGARITA");
   await pageAsAdmin.waitForFunction(() => document.querySelectorAll("tbody tr").length === 1);
   expect(await pageAsAdmin.locator("tbody tr td:first-child").allTextContents()).toEqual([
@@ -83,6 +88,7 @@ test("admin filter excludes recipe fields and timestamps and Escape restores the
   await filter.press("Escape");
   await pageAsAdmin.waitForFunction(() => {
     const filterInput = document.querySelector('input[aria-label="Filter drinks"]');
+
     return (
       filterInput instanceof HTMLInputElement &&
       filterInput.value === "" &&
@@ -99,17 +105,20 @@ test("sorting cycles ascending, descending, and the original order", async (test
   await pageAsAdmin.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
   const titles = pageAsAdmin.locator("tbody tr td:first-child");
   const initialOrder = await titles.allTextContents();
+
   const waitForTitleOrder = (expectedTitles: string[]) =>
     pageAsAdmin.waitForFunction((expectedOrder) => {
       const actualTitles = Array.from(
         document.querySelectorAll("tbody tr td:first-child"),
         (cell) => cell.textContent,
       );
+
       return (
         actualTitles.length === expectedOrder.length &&
         actualTitles.every((title, index) => title === expectedOrder[index])
       );
     }, expectedTitles);
+
   const sort = pageAsAdmin.getByRole("button", { name: "Calories" });
   await sort.click();
   await waitForTitleOrder(["Test Mojito", "Test Old Fashioned", "Test Margarita"]);
@@ -136,6 +145,7 @@ test("automatic slug stops changing after a manual edit", async (testContext) =>
   await pageAsAdmin.getByLabel("Title", { exact: true }).fill("Café & Whiskey Sour");
   await pageAsAdmin.waitForFunction(() => {
     const slugInput = document.querySelector('input[name="slug"]');
+
     return slugInput instanceof HTMLInputElement && slugInput.value === "cafe-and-whiskey-sour";
   });
   expect(await pageAsAdmin.getByLabel("Slug", { exact: true }).inputValue()).toBe(
@@ -147,6 +157,7 @@ test("automatic slug stops changing after a manual edit", async (testContext) =>
   await pageAsAdmin.getByRole("radio", { name: "Unpublished", exact: true }).check();
   await pageAsAdmin.waitForFunction(() => {
     const statusInput = document.querySelector('input[name="status"]:checked');
+
     return statusInput instanceof HTMLInputElement && statusInput.value === "unpublished";
   });
   expect(await pageAsAdmin.locator('input[name="status"]:checked').inputValue()).toBe(
@@ -166,23 +177,31 @@ test("leaving the editor cancels its pending submission", async (testContext) =>
   const pageAsAdmin = await createBrowserPage(testContext, { admin: true });
   await pageAsAdmin.goto("/admin/drinks/test-margarita/edit");
   await pageAsAdmin.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
-  const submissionStarted = Promise.withResolvers<void>();
-  const submissionAborted = Promise.withResolvers<void>();
+  const submissionStarted: PromiseWithResolvers<void> = Promise.withResolvers();
+  const submissionAborted: PromiseWithResolvers<void> = Promise.withResolvers();
   await pageAsAdmin.exposeFunction("recordSubmissionState", (state: string) => {
     if (state === "pending") submissionStarted.resolve();
+
     if (state === "aborted") submissionAborted.resolve();
   });
   await pageAsAdmin.evaluate(() => {
     const nativeFetch = window.fetch;
     window.fetch = (...arguments_: Parameters<typeof fetch>) => {
       const options = arguments_[1];
+
       if (options?.method?.toUpperCase() !== "POST" || !(options.body instanceof FormData))
         return nativeFetch(...arguments_);
-      const recordState: unknown = Reflect.get(window, "recordSubmissionState");
-      if (typeof recordState === "function") void recordState("pending");
+
+      // SAFETY: page.exposeFunction above installs recordSubmissionState on window.
+      const { recordSubmissionState } = window as Window & {
+        recordSubmissionState?: (state: string) => Promise<void>;
+      };
+
+      void recordSubmissionState?.("pending");
+
       return new Promise<Response>((_, reject) => {
         options.signal?.addEventListener("abort", () => {
-          if (typeof recordState === "function") void recordState("aborted");
+          void recordSubmissionState?.("aborted");
           reject(new DOMException("Submission aborted", "AbortError"));
         });
       });
@@ -204,12 +223,16 @@ for (const gesture of ["draw", "move", "resize"]) {
     const filePicker = page.locator('input[type="file"]');
     await filePicker.setInputFiles("app/assets/images/background-768.jpg");
     const preview = page.getByAltText("Crop preview");
+
     const selection = page.getByRole("group", {
       name: "Use the arrow keys to move the crop selection area",
     });
+
     await selection.waitFor();
+
     if (gesture === "resize") {
       const imageBounds = await preview.boundingBox();
+
       if (!imageBounds) throw new Error("Crop preview has no bounds");
       await page.mouse.move(imageBounds.x + 2, imageBounds.y + 2);
       await page.mouse.down();
@@ -219,9 +242,11 @@ for (const gesture of ["draw", "move", "resize"]) {
         const crop = document.querySelector(
           '[role="group"][aria-label="Use the arrow keys to move the crop selection area"]',
         );
+
         return crop !== null && getComputedStyle(crop).width === "68px";
       });
     }
+
     const target =
       gesture === "draw"
         ? preview.locator("..")
@@ -230,6 +255,7 @@ for (const gesture of ["draw", "move", "resize"]) {
           : page.getByRole("button", {
               name: "Use the arrow keys to move the south east drag handle to change the crop selection area",
             });
+
     // Retain the old target to prove queued movement cannot change the replacement crop.
     const moveOldTarget = await target.evaluateHandle((element) => {
       let start: PointerEvent | undefined;
@@ -240,6 +266,7 @@ for (const gesture of ["draw", "move", "resize"]) {
         },
         { once: true },
       );
+
       return () => {
         if (!start) throw new Error("Crop gesture did not start");
         element.dispatchEvent(
@@ -251,7 +278,9 @@ for (const gesture of ["draw", "move", "resize"]) {
         );
       };
     });
+
     const bounds = await target.boundingBox();
+
     if (!bounds) throw new Error("Crop gesture target has no bounds");
     await page.mouse.move(
       bounds.x + (gesture === "draw" ? 2 : bounds.width / 2),
@@ -297,23 +326,31 @@ for (const corner of ["north west", "north east", "south east", "south west"]) {
     await page.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
     await page.locator('input[type="file"]').setInputFiles("app/assets/images/background-768.jpg");
     const preview = page.getByAltText("Crop preview");
+
     const selection = page.getByRole("group", {
       name: "Use the arrow keys to move the crop selection area",
     });
+
     await selection.waitFor();
     const imageBounds = await preview.boundingBox();
+
     if (!imageBounds) throw new Error("Crop image has no bounds");
+
     const imageSize = await preview.evaluate((element) => {
       if (!(element instanceof HTMLImageElement)) throw new Error("Crop preview is not an image");
+
       return { width: element.width, height: element.height };
     });
+
     const waitForSize = (size: number) =>
       page.waitForFunction((expectedSize) => {
         const element = document.querySelector(
           '[role="group"][aria-label="Use the arrow keys to move the crop selection area"]',
         );
+
         return element !== null && parseFloat(getComputedStyle(element).width) === expectedSize;
       }, size);
+
     await page.mouse.move(imageBounds.x + 2, imageBounds.y + 2);
     await page.mouse.down();
     await page.mouse.move(imageBounds.x + 70, imageBounds.y + 70, { steps: 4 });
@@ -322,22 +359,29 @@ for (const corner of ["north west", "north east", "south east", "south west"]) {
 
     const west = corner.includes("west"),
       north = corner.includes("north");
+
     const dragHandle = page.getByRole("button", {
       name: `Use the arrow keys to move the ${corner} drag handle to change the crop selection area`,
     });
+
     const drag = async (delta: number) => {
       const bounds = await dragHandle.boundingBox();
+
       if (!bounds) throw new Error("Crop handle has no bounds");
+
       const x = bounds.x + bounds.width / 2,
         y = bounds.y + bounds.height / 2;
+
       await page.mouse.move(x, y);
       await page.mouse.down();
       await page.mouse.move(x + delta, y, { steps: 4 });
       await page.mouse.up();
     };
+
     const assertSelection = async (size: number) => {
       await waitForSize(size);
       const bounds = await selection.boundingBox();
+
       if (!bounds) throw new Error("Crop selection has no bounds");
       expect(bounds.width).toBe(size);
       expect(bounds.height).toBe(size);
@@ -349,15 +393,19 @@ for (const corner of ["north west", "north east", "south east", "south west"]) {
     await assertSelection(58);
     await dragHandle.press(west ? "Shift+ArrowRight" : "Shift+ArrowLeft");
     await assertSelection(48);
+
     const maximumSize = Math.min(
       west ? 70 : imageSize.width - 2,
       north ? 70 : imageSize.height - 2,
     );
+
     await drag(west ? -1000 : 1000);
     await assertSelection(maximumSize);
+
     for (let step = 0; step < 4; step++) {
       await dragHandle.press(west ? "Control+ArrowRight" : "Control+ArrowLeft");
     }
+
     await assertSelection(1);
   });
 }
@@ -371,11 +419,14 @@ test("image crop supports drawing and keyboard movement and uploads a square JPE
     .setInputFiles("app/assets/images/background-768.jpg");
   const preview = pageAsAdmin.getByAltText("Crop preview");
   await preview.waitFor();
+
   const selection = pageAsAdmin.getByRole("group", {
     name: "Use the arrow keys to move the crop selection area",
   });
+
   await selection.waitFor();
   const bounds = await preview.boundingBox();
+
   if (!bounds) throw new Error("Crop image has no bounds");
   await pageAsAdmin.mouse.move(bounds.x + 2, bounds.y + 2);
   await pageAsAdmin.mouse.down();
@@ -385,6 +436,7 @@ test("image crop supports drawing and keyboard movement and uploads a square JPE
     const selectionElement = document.querySelector(
       '[role="group"][aria-label="Use the arrow keys to move the crop selection area"]',
     );
+
     return (
       selectionElement !== null &&
       getComputedStyle(selectionElement).getPropertyValue("width") === "68px"
@@ -402,6 +454,7 @@ test("image crop supports drawing and keyboard movement and uploads a square JPE
     const selectionElement = document.querySelector(
       '[role="group"][aria-label="Use the arrow keys to move the crop selection area"]',
     );
+
     return (
       selectionElement !== null &&
       getComputedStyle(selectionElement).getPropertyValue("left") === "3px"
@@ -427,6 +480,7 @@ test("image crop supports drawing and keyboard movement and uploads a square JPE
     const selectionElement = document.querySelector(
       '[role="group"][aria-label="Use the arrow keys to move the crop selection area"]',
     );
+
     return (
       selectionElement !== null &&
       getComputedStyle(selectionElement).getPropertyValue("width") === "69px"
@@ -450,13 +504,27 @@ test("image crop supports drawing and keyboard movement and uploads a square JPE
     window.fetch = async (...arguments_: Parameters<typeof fetch>) => {
       const body = arguments_[1]?.body;
       const imageFile = body instanceof FormData ? body.get("imageFile") : undefined;
+
       if (imageFile instanceof File) {
         const image = await createImageBitmap(imageFile);
-        const recordImage: unknown = Reflect.get(window, "recordCroppedImage");
-        if (typeof recordImage === "function")
-          await recordImage({ width: image.width, height: image.height, type: imageFile.type });
+
+        // SAFETY: page.exposeFunction above installs recordCroppedImage on window.
+        const { recordCroppedImage } = window as Window & {
+          recordCroppedImage?: (image: {
+            width: number;
+            height: number;
+            type: string;
+          }) => Promise<void>;
+        };
+
+        await recordCroppedImage?.({
+          width: image.width,
+          height: image.height,
+          type: imageFile.type,
+        });
         image.close();
       }
+
       return nativeFetch(...arguments_);
     };
   });
@@ -479,6 +547,7 @@ test("a canceled toast gesture resumes its expiration", async (testContext) => {
   const notification = page.getByRole("status").filter({ hasText: "Drink updated!" });
   await notification.waitFor();
   const bounds = await notification.boundingBox();
+
   if (!bounds) throw new Error("Notification must be visible");
   await page.mouse.move(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
   await page.mouse.down();
@@ -495,6 +564,7 @@ test("timestamps render in the browser time zone without a hydration mismatch", 
     admin: true,
     timezoneId: "Asia/Tokyo",
   });
+
   await getDb().updateMany(drinks, { created_at: 1738966440 }, { where: { slug: "test-mojito" } });
   const consoleErrors: string[] = [];
   pageAsAdmin.on("console", (message) => {

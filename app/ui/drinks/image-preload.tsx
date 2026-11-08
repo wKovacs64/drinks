@@ -17,7 +17,9 @@ export function getGalleryImagePreloads(drinks: DrinkView[]): ImagePreloadProps[
 export function ImagePreload(handle: Handle<ImagePreloadProps>) {
   return () => {
     const { src, layout, media } = handle.props;
+
     if (!isImageKitUrl(src)) return null;
+
     const { srcset, sizes } = transformBaseSourceProps({
       src,
       width: 1280,
@@ -27,10 +29,12 @@ export function ImagePreload(handle: Handle<ImagePreloadProps>) {
       type: "image/avif",
       transformer: imagekitTransformer,
     });
+
     const responsiveAttributes = {
       imageSrcSet: srcset ?? undefined,
       imageSizes: sizes ?? undefined,
     };
+
     return (
       <link
         rel="preload"

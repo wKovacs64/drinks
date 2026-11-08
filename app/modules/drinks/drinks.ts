@@ -11,6 +11,7 @@ import { purgeSearchCache, searchDrinks } from "./drinks-search.ts";
 import { toDrinkTagViews } from "./drinks-tags.ts";
 
 export { purgeSearchCache };
+
 import {
   DrinkWriteNoticeCodes,
   type AdminDrinksWriteService,
@@ -91,6 +92,7 @@ export function createDrinksService(deps: { db: Db }): DrinksService {
       const publishedDrinks = (
         await deps.db.findMany(drinks, { where: { status: "published" } })
       ).map(toDrink);
+
       return toDrinkTagViews(publishedDrinks.flatMap((drink) => drink.tags)).toSorted(
         (left, right) => left.displayName.localeCompare(right.displayName),
       );
@@ -107,6 +109,7 @@ export function createDrinksService(deps: { db: Db }): DrinksService {
       }
 
       const [enhancedDrink] = await withPlaceholderImages([drink]);
+
       const renderedNotes = enhancedDrink.notes
         ? markdownToHtml(enhancedDrink.notes)
         : enhancedDrink.notes;
@@ -131,16 +134,18 @@ export function createDrinksService(deps: { db: Db }): DrinksService {
       ).map(toDrink);
 
       let resolvedTag: DrinkTagView | null = null;
-      const matchingDrinks = publishedDrinks.filter((drink) => {
+      const matchingDrinks: typeof publishedDrinks = [];
+
+      for (const drink of publishedDrinks) {
         const matchingTag = toDrinkTagViews(drink.tags).find((tag) => tag.slug === tagSlug);
 
         if (!matchingTag) {
-          return false;
+          continue;
         }
 
         resolvedTag ??= matchingTag;
-        return true;
-      });
+        matchingDrinks.push(drink);
+      }
 
       if (!resolvedTag || matchingDrinks.length === 0) {
         return null;
@@ -157,9 +162,11 @@ export function createDrinksService(deps: { db: Db }): DrinksService {
       }
 
       const matchingDrinks = await searchDrinks(deps.db, query);
+
       const exactTitleMatch = preferExactTitle
         ? matchingDrinks.find((drink) => drink.title.toLowerCase() === query.trim().toLowerCase())
         : undefined;
+
       return withPlaceholderImages(exactTitleMatch ? [exactTitleMatch] : matchingDrinks);
     },
     async findDrinkEditorBySlug(slug) {
@@ -197,11 +204,8 @@ export function createAdminDrinksWriteService({
 }): AdminDrinksWriteService {
   return {
     async create({ draft, imageBuffer }) {
-      if (!imageBuffer) {
-        throw new Error("Image buffer is required when creating a drink");
-      }
-
       const slugAvailability = await checkSlugAvailability(db, draft.slug);
+
       if (!slugAvailability.available) {
         return {
           kind: "fieldError",
@@ -216,12 +220,13 @@ export function createAdminDrinksWriteService({
         ...draft,
         imageUrl: uploadedImage.url,
         imageFileId: uploadedImage.fileId,
-      }).catch(async (error: unknown) => {
+      }).catch(async (cause: unknown) => {
         await compensateUploadedImage(writeEffects, uploadedImage.fileId);
-        throw error;
+        throw cause;
       });
 
       purgeSearchCache();
+
       const notices = await refreshDrinkCache(writeEffects, {
         slugs: [createdDrink.slug],
         tags: createdDrink.tags,
@@ -241,6 +246,7 @@ export function createAdminDrinksWriteService({
       }
 
       const slugAvailability = await checkSlugAvailability(db, draft.slug, existingDrink.id);
+
       if (!slugAvailability.available) {
         return {
           kind: "fieldError",
@@ -252,19 +258,22 @@ export function createAdminDrinksWriteService({
       const uploadedImage = imageBuffer
         ? await writeEffects.uploadImage(imageBuffer, `${draft.slug}.jpg`)
         : undefined;
+
       const updatedDrink = await updateDrinkRow(db, existingDrink.id, {
         ...draft,
         imageUrl: uploadedImage?.url ?? existingDrink.imageUrl,
         imageFileId: uploadedImage?.fileId ?? existingDrink.imageFileId,
-      }).catch(async (error: unknown) => {
+      }).catch(async (cause: unknown) => {
         if (uploadedImage) await compensateUploadedImage(writeEffects, uploadedImage.fileId);
-        throw error;
+        throw cause;
       });
 
       purgeSearchCache();
+
       const notices = uploadedImage
         ? await retireDrinkImage(writeEffects, existingDrink.imageFileId)
         : [];
+
       notices.push(
         ...(await refreshDrinkCache(writeEffects, {
           slugs: [...new Set([existingDrink.slug, updatedDrink.slug])],
@@ -318,6 +327,7 @@ async function retireDrinkImage(
 ): Promise<DrinkWriteNotice[]> {
   try {
     await writeEffects.deleteImage(fileId);
+
     return [];
   } catch (error) {
     return [
@@ -335,6 +345,7 @@ async function refreshDrinkCache(
 ): Promise<DrinkWriteNotice[]> {
   try {
     await writeEffects.purgeDrinkCache(affectedPages);
+
     return [];
   } catch (error) {
     return [
@@ -360,6 +371,7 @@ async function checkSlugAvailability(
 
 async function findDrinkBySlug(db: Db, slug: string) {
   const row = await db.findOne(drinks, { where: { slug } });
+
   return row ? toDrink(row) : null;
 }
 

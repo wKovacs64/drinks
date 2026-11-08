@@ -9,6 +9,7 @@ async function showDeletionNotification(testContext: TestContext) {
   await page.goto("/admin/drinks");
   await page.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
   await page.getByRole("status").filter({ hasText: "Drink deleted!" }).waitFor();
+
   return page;
 }
 
@@ -41,6 +42,7 @@ test("a notification can be dismissed with a swipe", async (testContext) => {
   const page = await showDeletionNotification(testContext);
   const notification = page.getByRole("status");
   const bounds = await notification.boundingBox();
+
   if (!bounds) throw new Error("Notification has no bounds");
   await page.mouse.move(bounds.x + 20, bounds.y + 20);
   await page.mouse.down();

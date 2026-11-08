@@ -72,6 +72,7 @@ async function withRejectedDrinkWrite(
     rawSql(`CREATE TRIGGER reject_drink_write BEFORE ${operation} ON drinks
     BEGIN SELECT RAISE(ABORT, 'forced persistence failure'); END`),
   );
+
   try {
     await run();
   } finally {
@@ -85,6 +86,7 @@ describe("createDrinksService", () => {
     requestMocks.use(
       http.get("https://ik.imagekit.io/performance/reused-placeholder.jpg", () => {
         imageRequests++;
+
         return new HttpResponse(new Uint8Array([1, 2, 3]), {
           headers: { "Content-Type": "image/webp" },
         });
@@ -96,10 +98,12 @@ describe("createDrinksService", () => {
       { where: { slug: "test-margarita" } },
     );
     const service = createReadOnlyService();
+
     const [first, concurrent] = await Promise.all([
       service.getDrinkBySlug({ slug: "test-margarita", viewerRole: "user" }),
       service.getDrinkBySlug({ slug: "test-margarita", viewerRole: "user" }),
     ]);
+
     const repeated = await service.getDrinkBySlug({ slug: "test-margarita", viewerRole: "user" });
     expect(first?.drink.image.blurDataUrl).toBe("data:image/webp;base64,AQID");
     expect(concurrent?.drink.image.blurDataUrl).toBe(first?.drink.image.blurDataUrl);
@@ -119,6 +123,7 @@ describe("createDrinksService", () => {
       ),
     );
     const service = createReadOnlyService();
+
     for (const [version, expectedPlaceholder] of [
       ["1", "AQ=="],
       ["2", "Ag=="],
@@ -140,6 +145,7 @@ describe("createDrinksService", () => {
     requestMocks.use(
       http.get("https://ik.imagekit.io/performance/retried-placeholder.jpg", () => {
         imageRequests++;
+
         return imageRequests === 1
           ? new HttpResponse(null, { status: 503 })
           : new HttpResponse(new Uint8Array([1]), { headers: { "Content-Type": "image/webp" } });
@@ -195,10 +201,12 @@ describe("createDrinksService", () => {
     expect(drinkForViewer?.drink.notes).toContain("<p>A classic test margarita</p>");
     await setDrinkStatus("test-margarita", "unpublished");
     expect(await service.getDrinkBySlug({ slug: "test-margarita", viewerRole: "user" })).toBeNull();
+
     const adminDrink = await service.getDrinkBySlug({
       slug: "test-margarita",
       viewerRole: "admin",
     });
+
     expect(adminDrink).toMatchObject({
       visibility: "private",
       drink: { slug: "test-margarita", notes: drinkForViewer?.drink.notes },
@@ -271,10 +279,12 @@ describe("createDrinksService", () => {
       { displayName: "rum", slug: "rum" },
       { displayName: "tequila", slug: "tequila" },
     ]);
+
     const drinkForViewer = await service.getDrinkBySlug({
       slug: "test-margarita",
       viewerRole: "user",
     });
+
     expect(drinkForViewer?.drink.tags).toEqual([
       { displayName: "tequila", slug: "tequila" },
       { displayName: "bright citrus", slug: "bright-citrus" },
@@ -297,6 +307,7 @@ describe("createDrinksService", () => {
       { displayName: "tequila", slug: "tequila" },
       { displayName: "citrus", slug: "citrus" },
     ]);
+
     for (const query of ["", "xyznonexistent123"]) {
       expect(await service.searchPublishedDrinks({ query })).toEqual([]);
     }
@@ -342,7 +353,9 @@ describe("createAdminDrinksWriteService", () => {
       url: "https://ik.imagekit.io/test/drinks/test-cocktail.jpg",
       fileId: "new-file-id",
     }));
+
     const purgeDrinkCache = mock.fn<DrinksWriteEffects["purgeDrinkCache"]>(async () => undefined);
+
     const service = testAdminDrinksWriteService({
       writeEffects: {
         uploadImage,
@@ -419,6 +432,7 @@ describe("createAdminDrinksWriteService", () => {
         status: "published",
       },
     });
+
     const notFoundResult = await adminWriteService.update({
       slug: "missing-drink",
       draft: {
@@ -444,6 +458,7 @@ describe("createAdminDrinksWriteService", () => {
   test("deletes through the transport-agnostic admin write boundary", async () => {
     const deleteImage = mock.fn<DrinksWriteEffects["deleteImage"]>(async () => undefined);
     const purgeDrinkCache = mock.fn<DrinksWriteEffects["purgeDrinkCache"]>(async () => undefined);
+
     const adminWriteService = createAdminDrinksWriteService({
       db: getDb(),
       writeEffects: {
@@ -469,6 +484,7 @@ describe("createAdminDrinksWriteService", () => {
   test("returns a typed not-found outcome when admin delete cannot find a drink", async () => {
     const deleteImage = mock.fn<DrinksWriteEffects["deleteImage"]>(async () => undefined);
     const purgeDrinkCache = mock.fn<DrinksWriteEffects["purgeDrinkCache"]>(async () => undefined);
+
     const adminWriteService = createAdminDrinksWriteService({
       db: getDb(),
       writeEffects: {
@@ -581,25 +597,29 @@ describe("createAdminDrinksWriteService", () => {
 
   for (const cleanupFails of [false, true]) {
     test(`compensates an upload after failed create and preserves the persistence error${cleanupFails ? " if cleanup fails" : ""}`, async (testContext) => {
-      const logError = testContext.mock.method(console, "error", () => {});
+      const logError = testContext.mock.method(console, "error", () => undefined);
       const cleanupError = new Error("compensation unavailable");
       const originalEditor = await getExistingDrinkEditor("test-margarita");
       const storedImages = new Set<string>();
       const purgeDrinkCache = mock.fn<DrinksWriteEffects["purgeDrinkCache"]>();
+
       const deleteImage = mock.fn<DrinksWriteEffects["deleteImage"]>(async (fileId) => {
         if (cleanupFails) throw cleanupError;
         storedImages.delete(fileId);
       });
+
       const service = testAdminDrinksWriteService({
         writeEffects: {
           uploadImage: async () => {
             storedImages.add("new-image");
+
             return { url: "data:image/png;base64,AQ==", fileId: "new-image" };
           },
           deleteImage,
           purgeDrinkCache,
         },
       });
+
       await withRejectedDrinkWrite("INSERT", async () => {
         await expect(
           service.create({
@@ -615,7 +635,7 @@ describe("createAdminDrinksWriteService", () => {
       expect([...storedImages]).toEqual(cleanupFails ? ["new-image"] : []);
       expect(deleteImage).toHaveBeenCalledWith("new-image");
       expect(purgeDrinkCache).not.toHaveBeenCalled();
-      expect(logError.mock.calls.map((call) => call.arguments)).toEqual(
+      expect(logError.mock.calls.map((call): unknown[] => call.arguments)).toEqual(
         cleanupFails
           ? [["Failed to clean up uploaded image after persistence failure:", cleanupError]]
           : [],
@@ -627,6 +647,7 @@ describe("createAdminDrinksWriteService", () => {
     const originalEditor = await getExistingDrinkEditor("test-margarita");
     const storedImages = new Set(["seed-fileId-1"]);
     const purgeDrinkCache = mock.fn<DrinksWriteEffects["purgeDrinkCache"]>();
+
     const service = testAdminDrinksWriteService({
       writeEffects: {
         deleteImage: async (fileId) => {
@@ -635,6 +656,7 @@ describe("createAdminDrinksWriteService", () => {
         purgeDrinkCache,
       },
     });
+
     await withRejectedDrinkWrite("DELETE", async () => {
       await expect(service.delete({ slug: "test-margarita" })).rejects.toThrow(
         "Database execution failed",
@@ -647,25 +669,30 @@ describe("createAdminDrinksWriteService", () => {
 
   for (const cleanupFails of [false, true]) {
     test(`retains the referenced image and compensates the upload when update persistence fails${cleanupFails ? " even if compensation fails" : ""}`, async (testContext) => {
-      const logError = testContext.mock.method(console, "error", () => {});
+      const logError = testContext.mock.method(console, "error", () => undefined);
       const cleanupError = new Error("compensation unavailable");
       const originalEditor = await getExistingDrinkEditor("test-margarita");
       const storedImages = new Set(["seed-fileId-1"]);
+
       const deleteImage = mock.fn<DrinksWriteEffects["deleteImage"]>(async (fileId) => {
         if (cleanupFails) throw cleanupError;
         storedImages.delete(fileId);
       });
+
       const purgeDrinkCache = mock.fn<DrinksWriteEffects["purgeDrinkCache"]>();
+
       const service = testAdminDrinksWriteService({
         writeEffects: {
           uploadImage: async () => {
             storedImages.add("replacement-image");
+
             return { url: "data:image/png;base64,AQ==", fileId: "replacement-image" };
           },
           deleteImage,
           purgeDrinkCache,
         },
       });
+
       await withRejectedDrinkWrite("UPDATE", async () => {
         await expect(
           service.update({
@@ -684,7 +711,7 @@ describe("createAdminDrinksWriteService", () => {
       );
       expect(deleteImage).toHaveBeenCalledWith("replacement-image");
       expect(purgeDrinkCache).not.toHaveBeenCalled();
-      expect(logError.mock.calls.map((call) => call.arguments)).toEqual(
+      expect(logError.mock.calls.map((call): unknown[] => call.arguments)).toEqual(
         cleanupFails
           ? [["Failed to clean up uploaded image after persistence failure:", cleanupError]]
           : [],
@@ -696,6 +723,7 @@ describe("createAdminDrinksWriteService", () => {
     const purgeDrinkCache = mock.fn<DrinksWriteEffects["purgeDrinkCache"]>(async () => {
       throw new Error("cache unavailable");
     });
+
     const service = testAdminDrinksWriteService({
       writeEffects: {
         deleteImage: async () => {
@@ -704,6 +732,7 @@ describe("createAdminDrinksWriteService", () => {
         purgeDrinkCache,
       },
     });
+
     expect(await service.delete({ slug: "test-margarita" })).toEqual({
       kind: "success",
       notices: [
@@ -721,6 +750,7 @@ describe("createAdminDrinksWriteService", () => {
   test("returns a committed delete with a cache notice and fresh search when purge fails", async () => {
     const readService = createReadOnlyService();
     expect((await readService.searchPublishedDrinks({ query: "margarita" })).length).toBe(1);
+
     const service = testAdminDrinksWriteService({
       writeEffects: {
         purgeDrinkCache: async () => {
@@ -740,6 +770,7 @@ describe("createAdminDrinksWriteService", () => {
   test("returns a committed create with a cache notice and fresh search when purge fails", async () => {
     const readService = createReadOnlyService();
     expect(await readService.searchPublishedDrinks({ query: "negroni" })).toEqual([]);
+
     const service = testAdminDrinksWriteService({
       writeEffects: {
         uploadImage: async () => ({ url: "data:image/png;base64,AQ==", fileId: "new-image" }),
@@ -748,6 +779,7 @@ describe("createAdminDrinksWriteService", () => {
         },
       },
     });
+
     const result = await service.create({
       draft: {
         title: "Committed Negroni",
@@ -778,9 +810,11 @@ describe("createAdminDrinksWriteService", () => {
   test("returns the saved slug and fresh search when purge fails after a rename", async () => {
     const readService = createReadOnlyService();
     await readService.searchPublishedDrinks({ query: "margarita" });
+
     const purgeDrinkCache = mock.fn<DrinksWriteEffects["purgeDrinkCache"]>(async () => {
       throw new Error("cache unavailable");
     });
+
     const service = testAdminDrinksWriteService({ writeEffects: { purgeDrinkCache } });
 
     const result = await service.update({
@@ -821,6 +855,7 @@ describe("createAdminDrinksWriteService", () => {
       const purgeDrinkCache = mock.fn<DrinksWriteEffects["purgeDrinkCache"]>(async () => {
         if (purgeFails) throw new Error("cache unavailable");
       });
+
       const service = testAdminDrinksWriteService({
         writeEffects: {
           uploadImage: mock.fn<DrinksWriteEffects["uploadImage"]>(async () => ({
@@ -906,6 +941,7 @@ describe("drinkDraftSchema", () => {
       rank: "0",
       status: "published",
     };
+
     for (const invalidField of [{ slug: "INVALID SLUG!!!" }, { title: "" }]) {
       expect(parseSafe(drinkDraftSchema, { ...validInput, ...invalidField }).success).toBe(false);
     }
@@ -950,6 +986,7 @@ describe("drinkDraftSchema", () => {
         calories: input,
         rank: input,
       });
+
       expect(result.success ? [] : result.issues.map((issue) => issue.message)).toEqual([
         "Calories must be a whole number",
         "Rank must be a whole number",

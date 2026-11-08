@@ -3,6 +3,7 @@ import type { Handle, RemixNode } from "remix/component";
 import type { SessionUser } from "#/app/modules/identity/identity.ts";
 import type { ToastMessage } from "#/app/core/toast.ts";
 import { Toast } from "#/app/actions/admin/public/toast.tsx";
+
 export function AdminLayout(
   handle: Handle<{ user: SessionUser; children: RemixNode; toast?: ToastMessage }>,
 ) {

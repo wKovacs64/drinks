@@ -1,11 +1,13 @@
 import { routes } from "#/app/routes.ts";
 import { clientEntry, ref, type Handle } from "remix/component";
 import { Icon } from "#/app/ui/icons/public/icon.tsx";
+
 export const SearchForm = clientEntry(
   import.meta.url,
   function SearchForm(handle: Handle<{ initialSearchTerm: string }>) {
     let searchInput: HTMLInputElement | undefined;
     let previousSearchTerm = handle.props.initialSearchTerm;
+
     const initializeSearchInput = ref((element, signal) => {
       if (!(element instanceof HTMLInputElement)) return;
       searchInput = element;
@@ -21,6 +23,7 @@ export const SearchForm = clientEntry(
         { signal },
       );
     });
+
     return () => {
       if (previousSearchTerm !== handle.props.initialSearchTerm) {
         previousSearchTerm = handle.props.initialSearchTerm;
@@ -29,6 +32,7 @@ export const SearchForm = clientEntry(
           if (!signal.aborted && searchInput) searchInput.value = searchTerm;
         });
       }
+
       return (
         <form
           method="get"

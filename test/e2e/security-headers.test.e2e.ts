@@ -18,11 +18,13 @@ function expectSecurityHeaders(headers: Record<string, string>) {
   );
   const nonce = /'nonce-([^']+)'/.exec(headers["content-security-policy"] ?? "")?.[1] ?? "";
   expect(headers["content-security-policy"]).toBe(contentSecurityPolicy(nonce));
+
   return nonce;
 }
 
 test("public, not-found, and signed-out responses carry security headers", async (testContext) => {
   const page = await createBrowserPage(testContext);
+
   const cases = [
     { path: "/", status: 200 },
     { path: "/test-margarita", status: 200 },
@@ -32,17 +34,20 @@ test("public, not-found, and signed-out responses carry security headers", async
     { path: "/admin/drinks", status: 302, private: true },
     { path: "/login", status: 302, private: true },
   ];
+
   for (const { path, status, private: isPrivate } of cases) {
     const response = await page.request.get(path, { maxRedirects: 0 });
     expect(response.status()).toBe(status);
     expectSecurityHeaders(response.headers());
-    if (isPrivate) expect(response.headers()["cache-control"]).toBe("private, no-store");
+
+    if (isPrivate === true) expect(response.headers()["cache-control"]).toBe("private, no-store");
   }
 });
 
 test("documents nonce their scripts with a fresh value per response", async (testContext) => {
   const page = await createBrowserPage(testContext);
   const nonces = new Set<string>();
+
   for (let index = 0; index < 2; index++) {
     const response = await page.request.get("/");
     const nonce = expectSecurityHeaders(response.headers());
@@ -53,6 +58,7 @@ test("documents nonce their scripts with a fresh value per response", async (tes
     );
     nonces.add(nonce);
   }
+
   expect(nonces.size).toBe(2);
 });
 
@@ -66,7 +72,7 @@ test("signed-in admin pages carry security headers", async (testContext) => {
 
 test("route failure pages carry security headers", async (testContext) => {
   const page = await createBrowserPage(testContext);
-  const logError = testContext.mock.method(console, "error", () => {});
+  const logError = testContext.mock.method(console, "error", () => undefined);
   await getDb().exec(
     rawSql("UPDATE drinks SET ingredients = 'invalid-json' WHERE slug = 'test-margarita'"),
   );

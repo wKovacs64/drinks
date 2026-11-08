@@ -2,6 +2,7 @@ import { routes } from "#/app/routes.ts";
 import { clientEntry, on, type Handle, type RemixNode } from "remix/component";
 import { classes } from "#/app/core/public/strings.ts";
 import type { AdminDrinkListItem } from "#/app/modules/drinks/drinks.ts";
+
 type Drink = Omit<AdminDrinkListItem, "createdAt" | "updatedAt"> & {
   createdAt: string;
   updatedAt: string;
@@ -25,6 +26,19 @@ const SORTABLE_COLUMNS: { key: SortableColumn; label: string; align?: "right" }[
   { key: "updatedAt", label: "Updated" },
 ];
 
+function compareDrinks(a: Drink, b: Drink, key: SortableColumn) {
+  switch (key) {
+    case "createdAt":
+    case "updatedAt":
+      return Date.parse(a[key]) - Date.parse(b[key]);
+    case "calories":
+    case "rank":
+      return a[key] - b[key];
+    default:
+      return a[key].localeCompare(b[key]);
+  }
+}
+
 function SortArrow(
   handle: Handle<{
     columnKey: string;
@@ -34,6 +48,7 @@ function SortArrow(
   return () => {
     const { columnKey, sort } = handle.props;
     const isActive = sort !== null && sort.key === columnKey;
+
     return (
       <span className={classes("ml-1", !isActive && "invisible")}>
         {isActive && sort.direction === "desc" ? "↓" : "↑"}
@@ -127,10 +142,12 @@ export const AdminDrinksList = clientEntry(
       });
       void handle.update();
     });
+
     function setFilter(value: string) {
       filter = value;
       void handle.update();
     }
+
     function handleSort(key: SortableColumn) {
       sort =
         sort?.key !== key
@@ -140,25 +157,23 @@ export const AdminDrinksList = clientEntry(
             : null;
       void handle.update();
     }
+
     return () => {
       const { drinks } = handle.props;
       const filterLower = filter.toLowerCase();
+
       const filtered = drinks.filter((drink) =>
         [drink.id, drink.title, drink.slug, drink.imageUrl, drink.status].some((value) =>
           value.toLowerCase().includes(filterLower),
         ),
       );
+
       const currentSort = sort;
+
       const processed = currentSort
         ? filtered.toSorted((a, b) => {
-            const left = a[currentSort.key],
-              right = b[currentSort.key];
-            const numeric = currentSort.key === "createdAt" || currentSort.key === "updatedAt";
-            const comparison = numeric
-              ? Date.parse(String(left)) - Date.parse(String(right))
-              : typeof left === "number" && typeof right === "number"
-                ? left - right
-                : String(left).localeCompare(String(right));
+            const comparison = compareDrinks(a, b, currentSort.key);
+
             return currentSort.direction === "asc" ? comparison : -comparison;
           })
         : filtered;

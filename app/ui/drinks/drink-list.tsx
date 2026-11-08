@@ -7,6 +7,7 @@ import { DrinkSummary } from "./drink-summary.tsx";
 export function DrinkList(handle: Handle<{ drinks: DrinkView[] }>) {
   return () => {
     const { drinks } = handle.props;
+
     return (
       <div className="grid gap-4 sm:gap-8 lg:grid-cols-2 xl:grid-cols-3">
         {drinks.map((drink, index) => (

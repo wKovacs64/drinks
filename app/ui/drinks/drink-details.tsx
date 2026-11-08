@@ -7,6 +7,7 @@ import { TagLink } from "#/app/ui/tags/tag-link.tsx";
 export function DrinkDetails(handle: Handle<{ drink: DrinkView }>) {
   return () => {
     const { drink } = handle.props;
+
     return (
       <section className="bg-gray-100 p-8 text-xl leading-tight xl:leading-snug">
         {drink.notes ? (
@@ -15,22 +16,20 @@ export function DrinkDetails(handle: Handle<{ drink: DrinkView }>) {
             innerHTML={unsafeHTML(drink.notes)}
           />
         ) : null}
-        {drink.tags ? (
-          <div className="flex flex-wrap border-t border-dotted border-t-stone-300 pt-4 lg:justify-end">
-            {drink.tags.map((tag) => (
-              <TagLink
-                className="mt-4 mr-4 ml-0 leading-tight lg:mr-0 lg:ml-4"
-                aria-label={`Find all drinks containing ${tag.displayName}`}
-                href={routes.tags.show.href({ tag: tag.slug })}
-                key={tag.slug}
-              >
-                <Tag className="p-2 text-sm leading-tight font-normal lg:text-base lg:leading-tight lg:font-light">
-                  {tag.displayName}
-                </Tag>
-              </TagLink>
-            ))}
-          </div>
-        ) : null}
+        <div className="flex flex-wrap border-t border-dotted border-t-stone-300 pt-4 lg:justify-end">
+          {drink.tags.map((tag) => (
+            <TagLink
+              className="mt-4 mr-4 ml-0 leading-tight lg:mr-0 lg:ml-4"
+              aria-label={`Find all drinks containing ${tag.displayName}`}
+              href={routes.tags.show.href({ tag: tag.slug })}
+              key={tag.slug}
+            >
+              <Tag className="p-2 text-sm leading-tight font-normal lg:text-base lg:leading-tight lg:font-light">
+                {tag.displayName}
+              </Tag>
+            </TagLink>
+          ))}
+        </div>
       </section>
     );
   };

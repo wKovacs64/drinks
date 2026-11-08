@@ -31,11 +31,14 @@ function resizeCrop(
 ): Crop {
   const west = direction.includes("w"),
     north = direction.includes("n");
+
   const maximum = Math.min(
     west ? crop.x + crop.size : bounds.width - crop.x,
     north ? crop.y + crop.size : bounds.height - crop.y,
   );
+
   const size = Math.max(1, Math.min(maximum, crop.size + delta));
+
   return {
     size,
     x: west ? crop.x + crop.size - size : crop.x,
@@ -54,12 +57,15 @@ export function ImageCrop(
   let crop: Crop | undefined;
   let imageElement: HTMLImageElement | undefined;
   let fileInput: HTMLInputElement | undefined;
+
   const initializeFileInput = ref<HTMLInputElement>((element, signal) => {
     fileInput = element;
+
     if (!isInteractive) {
       isInteractive = true;
       void handle.update();
     }
+
     signal.addEventListener(
       "abort",
       () => {
@@ -68,6 +74,7 @@ export function ImageCrop(
       { once: true },
     );
   });
+
   let previousImageWidth = 0;
   let previousImageHeight = 0;
   const cropMaskId = `crop-mask-${crypto.randomUUID()}`;
@@ -85,6 +92,7 @@ export function ImageCrop(
     const scale = image.naturalWidth / image.width;
     canvas.width = canvas.height = crop.size * scale;
     const context = canvas.getContext("2d");
+
     if (!context) return null;
     context.drawImage(
       image,
@@ -97,8 +105,10 @@ export function ImageCrop(
       canvas.width,
       canvas.height,
     );
+
     return new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.9));
   });
+
   function initializeCrop() {
     if (!imageElement) return;
     previousImageWidth = imageElement.width;
@@ -107,6 +117,7 @@ export function ImageCrop(
     crop = { x: (imageElement.width - size) / 2, y: (imageElement.height - size) / 2, size };
     void handle.update();
   }
+
   function beginDrag(
     event: PointerEvent & { currentTarget: Element },
     signal: AbortSignal,
@@ -118,14 +129,19 @@ export function ImageCrop(
     const element = event.currentTarget;
     element.setPointerCapture(event.pointerId);
     const startingCrop = { ...crop };
+
     const startingX = event.clientX,
       startingY = event.clientY;
+
     const width = imageElement.width,
       height = imageElement.height;
+
     function move(moveEvent: PointerEvent) {
       if (moveEvent.pointerId !== event.pointerId) return;
+
       const deltaX = moveEvent.clientX - startingX,
         deltaY = moveEvent.clientY - startingY;
+
       if (!direction) {
         crop = {
           ...startingCrop,
@@ -135,12 +151,16 @@ export function ImageCrop(
       } else {
         const west = direction.includes("w"),
           north = direction.includes("n");
+
         const delta =
           direction.includes("e") || west ? deltaX * (west ? -1 : 1) : deltaY * (north ? -1 : 1);
+
         crop = resizeCrop(startingCrop, { width, height }, direction, delta);
       }
+
       void handle.update();
     }
+
     const controller = new AbortController();
     const gestureSignal = AbortSignal.any([signal, controller.signal]);
     element.addEventListener(
@@ -159,17 +179,21 @@ export function ImageCrop(
       signal: gestureSignal,
     });
   }
+
   function resizeWithKeyboard(event: KeyboardEvent, direction: string) {
     if (!crop || !imageElement || !event.key.startsWith("Arrow")) return;
     event.preventDefault();
     event.stopPropagation();
+
     const west = direction.includes("w"),
       north = direction.includes("n");
+
     const step = (navigator.platform.includes("Mac") ? event.metaKey : event.ctrlKey)
       ? 100
       : event.shiftKey
         ? 10
         : 1;
+
     const delta =
       event.key === "ArrowLeft"
         ? west
@@ -186,9 +210,11 @@ export function ImageCrop(
             : north
               ? -step
               : step;
+
     crop = resizeCrop(crop, imageElement, direction, delta);
     void handle.update();
   }
+
   function beginDraw(event: PointerEvent & { currentTarget: Element }, signal: AbortSignal) {
     if (!imageElement || event.button !== 0) return;
     event.preventDefault();
@@ -205,10 +231,12 @@ export function ImageCrop(
         if (!(moveEvent instanceof PointerEvent) || moveEvent.pointerId !== event.pointerId) return;
         const deltaX = moveEvent.clientX - bounds.left - startingX;
         const deltaY = moveEvent.clientY - bounds.top - startingY;
+
         const maximum = Math.min(
           deltaX < 0 ? startingX : bounds.width - startingX,
           deltaY < 0 ? startingY : bounds.height - startingY,
         );
+
         const size = Math.max(1, Math.min(Math.abs(deltaX), maximum));
         crop = {
           size,
@@ -228,6 +256,7 @@ export function ImageCrop(
       signal: gestureSignal,
     });
   }
+
   return () => {
     const filePicker = (
       <input
@@ -241,8 +270,10 @@ export function ImageCrop(
           initializeFileInput,
           on<HTMLInputElement, "change">("change", async (event) => {
             const file = event.currentTarget.files?.[0];
+
             if (!file) return;
             crop = undefined;
+
             if (imageSource) URL.revokeObjectURL(imageSource);
             imageSource = URL.createObjectURL(file);
             await handle.update();
@@ -250,6 +281,7 @@ export function ImageCrop(
         ]}
       />
     );
+
     const changeButton = (
       <button
         type="button"
@@ -257,6 +289,7 @@ export function ImageCrop(
           if (imageSource) URL.revokeObjectURL(imageSource);
           imageSource = "";
           crop = undefined;
+
           if (fileInput) fileInput.value = "";
           void handle.update();
         })}
@@ -265,6 +298,7 @@ export function ImageCrop(
         Change image
       </button>
     );
+
     if (imageSource)
       return (
         <div className="space-y-3">
@@ -286,15 +320,19 @@ export function ImageCrop(
                     ref((element, signal) => {
                       if (!(element instanceof HTMLImageElement)) return;
                       imageElement = element;
-                      if (element.complete && element.naturalWidth && !crop) initializeCrop();
+
+                      if (element.complete && element.naturalWidth > 0 && !crop) initializeCrop();
+
                       const observer = new ResizeObserver(() => {
                         const width = element.width,
                           height = element.height;
-                        if (!width || !height) return;
+
+                        if (width === 0 || height === 0) return;
+
                         if (
                           crop &&
-                          previousImageWidth &&
-                          previousImageHeight &&
+                          previousImageWidth !== 0 &&
+                          previousImageHeight !== 0 &&
                           (width !== previousImageWidth || height !== previousImageHeight)
                         ) {
                           const size = Math.min(
@@ -302,6 +340,7 @@ export function ImageCrop(
                             width,
                             height,
                           );
+
                           crop = {
                             size,
                             x: Math.min(width - size, (crop.x * width) / previousImageWidth),
@@ -309,9 +348,11 @@ export function ImageCrop(
                           };
                           void handle.update();
                         }
+
                         previousImageWidth = width;
                         previousImageHeight = height;
                       });
+
                       observer.observe(element);
                       signal.addEventListener("abort", () => observer.disconnect(), { once: true });
                     }),
@@ -367,6 +408,7 @@ export function ImageCrop(
                     }),
                     on("keydown", (event) => {
                       if (!(event instanceof KeyboardEvent) || !crop || !imageElement) return;
+
                       const amount = (
                         navigator.platform.includes("Mac") ? event.metaKey : event.ctrlKey
                       )
@@ -374,6 +416,7 @@ export function ImageCrop(
                         : event.shiftKey
                           ? 10
                           : 1;
+
                       if (event.key.startsWith("Arrow")) {
                         event.preventDefault();
                         crop.x = Math.max(
@@ -432,6 +475,7 @@ export function ImageCrop(
           {changeButton}
         </div>
       );
+
     if (handle.props.existingImageUrl)
       return (
         <div className="space-y-3">
@@ -456,6 +500,7 @@ export function ImageCrop(
           </div>
         </div>
       );
+
     return (
       <div className="space-y-3">
         {filePicker}

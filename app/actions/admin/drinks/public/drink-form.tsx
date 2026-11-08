@@ -2,6 +2,7 @@ import { clientEntry, on, ref, type Handle } from "remix/component";
 import slugify from "@sindresorhus/slugify";
 import type { DrinkEditor } from "#/app/modules/drinks/drinks.ts";
 import { ImageCrop } from "#/app/actions/admin/drinks/public/image-crop.tsx";
+
 const STATUS_OPTIONS: {
   value: DrinkEditor["initialValues"]["status"];
   label: string;
@@ -55,6 +56,7 @@ function DrinkEditorForm(handle: Handle<DrinkFormProps>) {
   // A failed frame reload rejects the save's navigation after reloadComplete; superseded
   // navigations abort.
   let isNavigating = false;
+
   const reportFailedSave = ref<HTMLFormElement>((_form, signal) => {
     window.navigation?.addEventListener(
       "navigatesuccess",
@@ -68,6 +70,7 @@ function DrinkEditorForm(handle: Handle<DrinkFormProps>) {
       (event) => {
         if (!isNavigating) return;
         isNavigating = false;
+
         if (event.error instanceof DOMException && event.error.name === "AbortError") return;
         saveFailed = true;
         void handle.update();
@@ -75,16 +78,20 @@ function DrinkEditorForm(handle: Handle<DrinkFormProps>) {
       { signal },
     );
   });
+
   function setSlugValue(value: string) {
     slugValue = value;
     void handle.update();
   }
+
   function setIsSlugManuallyEdited(value: boolean) {
     isSlugManuallyEdited = value;
   }
+
   async function handleSubmit(event: SubmitEvent & { currentTarget: HTMLFormElement }) {
     if (isResubmitting) return;
     event.preventDefault();
+
     if (isSubmitting) return;
     const form = event.currentTarget;
     imageRequired = false;
@@ -94,32 +101,42 @@ function DrinkEditorForm(handle: Handle<DrinkFormProps>) {
     const image = (await getCroppedImage?.()) ?? null;
     // Browsers ignore requestSubmit while the original submit event is still dispatching.
     await new Promise((resolve) => setTimeout(resolve));
+
     if (handle.signal.aborted) return;
+
     if (!image && !editor.imageUrl) imageRequired = true;
+
     // Fields edited during the crop can fail validation, which cancels requestSubmit silently.
     if (imageRequired || !form.reportValidity()) {
       isSubmitting = false;
       void handle.update();
+
       return;
     }
+
     const imageInput = form.elements.namedItem("imageFile");
+
     if (image && imageInput instanceof HTMLInputElement) {
       const files = new DataTransfer();
       files.items.add(new File([image], "cropped.jpg", { type: image.type }));
       imageInput.files = files.files;
     }
+
     isNavigating = true;
     isResubmitting = true;
+
     try {
       form.requestSubmit();
     } finally {
       isResubmitting = false;
     }
   }
+
   return () => {
     const errors = saveFailed
       ? ["Unable to save drink. Please try again."]
       : (handle.props.errors ?? []);
+
     return (
       <form
         method="post"

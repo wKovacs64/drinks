@@ -54,6 +54,7 @@ export async function createAdminDrinkActionAdapter(input: AdminDrinkEditorAdapt
   }
 
   const draftResult = parseDrinkDraft(submission.formData);
+
   if (!draftResult.success) {
     return invalidEditorResponse(
       input,
@@ -88,6 +89,7 @@ export async function updateAdminDrinkActionAdapter(
   }
 
   const draftResult = parseDrinkDraft(submission.formData);
+
   if (!draftResult.success) {
     return invalidEditorResponse(
       input,
@@ -163,6 +165,7 @@ function translateDeleteResult(result: DeleteAdminDrinkResult, session: Session)
 
 function parseDrinkDraft(formData: FormData) {
   const formResult = parseSafe(drinkFormSchema, formData);
+
   return formResult.success ? parseSafe(drinkDraftSchema, formResult.value) : formResult;
 }
 
@@ -179,8 +182,10 @@ async function invalidEditorResponse(
   formData?: FormData,
 ) {
   const editor = await input.invalidEditor.load();
+
   if (!editor) return renderResponseError(404);
   const initialValues = { ...editor.initialValues };
+
   for (const name of [
     "title",
     "slug",
@@ -190,22 +195,28 @@ async function invalidEditorResponse(
     "notes",
     "rank",
   ] as const) {
-    const value = formData?.get(name);
-    if (typeof value === "string") initialValues[name] = value;
+    const value = parseSafe(string(), formData?.get(name));
+
+    if (value.success) initialValues[name] = value.value;
   }
+
   const status = formData?.get("status");
+
   if (status === "published" || status === "unpublished") initialValues.status = status;
   // The upload handler stores a sent file's name. Enhanced editors keep the selected image.
-  const image = formData?.get("imageFile");
+  const image = parseSafe(string(), formData?.get("imageFile"));
+
   const imageNotice =
-    typeof image === "string" && image && input.request.headers.get("X-Remix-Frame") !== "true"
+    image.success && image.value && input.request.headers.get("X-Remix-Frame") !== "true"
       ? ["Select the image again before saving."]
       : [];
+
   return input.invalidEditor.render({ ...editor, initialValues }, [...errors, ...imageNotice]);
 }
 
 function redirectToAdminDrinksWithToast(session: Session, toast: ToastMessage): Response {
   session.flash("toast", toast);
+
   return redirect(routes.admin.drinks.index.href(), { status: 303 });
 }
 

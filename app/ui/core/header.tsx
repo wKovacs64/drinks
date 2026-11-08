@@ -24,6 +24,7 @@ export function Header() {
 function HeaderLink(handle: Handle<Props<"a">>) {
   return () => {
     const { children, ...props } = handle.props;
+
     return (
       <a {...props} className="drinks-focusable hover:text-zinc-100 focus:text-zinc-100">
         {children}

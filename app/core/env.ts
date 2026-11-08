@@ -1,5 +1,7 @@
 import { defaulted, enum_, object, optional, parseSafe, string } from "remix/data-schema";
+
 const requiredString = () => string().refine((value) => value.length > 0, "Required");
+
 const envSchema = object({
   COMMIT_SHA: defaulted(requiredString(), "unknown"),
   DEPLOYMENT_ENV: defaulted(requiredString(), "preview"),
@@ -17,9 +19,12 @@ const envSchema = object({
   FASTLY_SERVICE_ID: optional(string()),
   FASTLY_PURGE_API_KEY: optional(string()),
 });
+
 const envResult = parseSafe(envSchema, process.env);
+
 if (!envResult.success)
   throw new Error(
     `Missing or invalid environment variables: ${envResult.issues.map((issue) => issue.path?.filter((segment): segment is string | number => typeof segment === "string" || typeof segment === "number").join(".")).join(", ")}`,
   );
+
 export const env = envResult.value;

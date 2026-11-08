@@ -3,6 +3,7 @@
 export const supportsMultipleImportMaps = (async () => {
   const script = document.createElement("script");
   let url: string | undefined;
+
   try {
     url = URL.createObjectURL(new Blob([""], { type: "text/javascript" }));
     const specifier = `remix-import-map-probe:${url}`;
@@ -11,12 +12,14 @@ export const supportsMultipleImportMaps = (async () => {
     script.text = JSON.stringify({ imports: { [specifier]: url } });
     document.head.appendChild(script);
     await import(specifier);
+
     return true;
   } catch {
     // Unsupported maps or a blocked probe retain Remix's compatibility loader.
     return false;
   } finally {
     script.remove();
+
     if (url) URL.revokeObjectURL(url);
   }
 })();

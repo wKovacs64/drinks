@@ -8,6 +8,7 @@ import { NoDrinksFound } from "#/app/actions/search/no-drinks-found.tsx";
 export function SearchResults(handle: Handle<{ query: string; drinks: DrinkView[] }>) {
   return () => {
     const { query, drinks } = handle.props;
+
     return (
       <div>
         <SearchStatus />

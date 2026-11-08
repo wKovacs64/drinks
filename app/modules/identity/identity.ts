@@ -12,15 +12,17 @@ export type SessionUser = {
 };
 
 export interface IdentityService {
-  admitUser(input: {
+  admitUser: (input: {
     email: string | undefined;
     emailVerified: boolean | undefined;
     name: string | undefined;
     avatarUrl: string | undefined;
-  }): Promise<SessionUser | null>;
-  getSessionUser(input: { userId: UserRow["id"] }): Promise<SessionUser | null>;
+  }) => Promise<SessionUser | null>;
+  getSessionUser: (input: { userId: UserRow["id"] }) => Promise<SessionUser | null>;
 }
 
 export { createIdentityService } from "./identity-service.ts";
+
 export { getIdentitySessionMiddleware, sessionCookie } from "./identity-session.ts";
+
 export { getIdentityAuthMiddleware } from "./identity-middleware.ts";

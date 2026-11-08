@@ -24,8 +24,10 @@ test("search and deletion still work without browser JavaScript", async (testCon
   const page = await createBrowserPage(testContext, { admin: true });
   await page.goto("/admin/drinks");
   const browser = page.context().browser();
+
   if (!browser) throw new Error("Missing test browser");
   const context = await browser.newContext({ javaScriptEnabled: false });
+
   try {
     await context.addCookies(await page.context().cookies());
     const noScriptPage = await context.newPage();
@@ -100,8 +102,8 @@ test("tags and drink details retain their navigation and contents", async (testC
 
 test("search preserves results through repeated queries, empty results, and history", async (testContext) => {
   const page = await createBrowserPage(testContext);
-  const margaritaPrefetched = Promise.withResolvers<void>();
-  const mojitoPrefetched = Promise.withResolvers<void>();
+  const margaritaPrefetched: PromiseWithResolvers<void> = Promise.withResolvers();
+  const mojitoPrefetched: PromiseWithResolvers<void> = Promise.withResolvers();
   await page.route("**/test-margarita", async (route) => {
     margaritaPrefetched.resolve();
     await route.continue();
@@ -138,7 +140,7 @@ test("search preserves results through repeated queries, empty results, and hist
 
 test("search results stay visible while a result loads", async (testContext) => {
   const page = await createBrowserPage(testContext);
-  const resultReleased = Promise.withResolvers<void>();
+  const resultReleased: PromiseWithResolvers<void> = Promise.withResolvers();
   await page.route("**/test-margarita", async (route) => {
     await resultReleased.promise;
     await route.continue();
@@ -161,9 +163,11 @@ test("visible Drink links prefetch and retain navigation", async (testContext) =
   page.on("request", (request) => {
     requestedPaths.add(new URL(request.url()).pathname);
   });
+
   const firstPrefetched = page.waitForRequest(
     (request) => new URL(request.url()).pathname === "/test-margarita",
   );
+
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
   await firstPrefetched;
@@ -173,6 +177,7 @@ test("visible Drink links prefetch and retain navigation", async (testContext) =
   const nextPrefetched = page.waitForRequest(
     (request) => new URL(request.url()).pathname === "/test-mojito",
   );
+
   await page.getByRole("link", { name: "Test Mojito", exact: true }).scrollIntoViewIfNeeded();
   await nextPrefetched;
   expect(requestedPaths.has("/test-old-fashioned")).toBe(false);
@@ -180,6 +185,7 @@ test("visible Drink links prefetch and retain navigation", async (testContext) =
   const lastPrefetched = page.waitForRequest(
     (request) => new URL(request.url()).pathname === "/test-old-fashioned",
   );
+
   const lastCard = page.getByRole("link", { name: "Test Old Fashioned", exact: true });
   await lastCard.scrollIntoViewIfNeeded();
   await lastPrefetched;

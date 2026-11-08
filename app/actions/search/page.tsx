@@ -7,11 +7,13 @@ import { Breadcrumbs } from "#/app/ui/navigation/breadcrumbs.tsx";
 import { SearchForm } from "./public/search-form.tsx";
 import { SearchResults } from "./search-results.tsx";
 import { getGalleryImagePreloads } from "#/app/ui/drinks/image-preload.tsx";
+
 export function SearchPage(
   handle: Handle<{ query: string; drinks: DrinkView[]; modulePreloads: readonly string[] }>,
 ) {
   return () => {
     const { query, drinks, modulePreloads } = handle.props;
+
     return (
       <Document
         title="Search Drinks"

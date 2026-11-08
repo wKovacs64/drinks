@@ -1,7 +1,9 @@
 import type { Middleware } from "remix/router";
 import { isAdminUrl, isAuthUrl } from "#/app/web/route-matching.ts";
+
 export const responseHeaders: Middleware = async (context, next) => {
   const response = await next();
+
   if (isAdminUrl(context.url) || isAuthUrl(context.url))
     response.headers.set("Cache-Control", "private, no-store");
   response.headers.set("X-Content-Type-Options", "nosniff");
@@ -12,5 +14,6 @@ export const responseHeaders: Middleware = async (context, next) => {
     "Permissions-Policy",
     "geolocation=(), camera=(), microphone=(), payment=(), usb=()",
   );
+
   return response;
 };

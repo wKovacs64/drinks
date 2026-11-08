@@ -2,7 +2,9 @@ import type { Handle, RemixNode } from "remix/component";
 import { Nav } from "./nav.tsx";
 import { NavLink } from "./nav-link.tsx";
 import { NavDivider } from "./nav-divider.tsx";
+
 export type Breadcrumb = { title: RemixNode; href?: string };
+
 export function Breadcrumbs(handle: Handle<{ breadcrumbs: Breadcrumb[] }>) {
   return () => (
     <Nav>

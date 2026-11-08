@@ -4,7 +4,7 @@ import { Document } from "#/app/actions/document.tsx";
 import type { AdminDrinkListItem } from "#/app/modules/drinks/drinks.ts";
 import type { SessionUser } from "#/app/modules/identity/identity.ts";
 import type { ToastMessage } from "#/app/core/toast.ts";
-import { AdminLayout } from "../layout.tsx";
+import { AdminLayout } from "#/app/actions/admin/layout.tsx";
 import { AdminDrinksList } from "./public/admin-drinks-list.tsx";
 import { Image } from "#/app/ui/images/public/image.tsx";
 
@@ -17,6 +17,7 @@ export function AdminDrinksPage(
 ) {
   return () => {
     const { drinkSummaries, user, toast } = handle.props;
+
     const drinks = drinkSummaries.map((drink) => ({
       ...drink,
       createdAt: drink.createdAt.toISOString(),

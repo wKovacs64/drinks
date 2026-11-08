@@ -5,6 +5,12 @@ import { getDb } from "#/app/db/client.ts";
 import { drinks } from "#/app/db/schema.ts";
 import { cardHtml } from "#/app/integrations/mcp/card-resource.ts";
 import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/client";
+import type {
+  McpUiInitializedNotification,
+  McpUiInitializeRequest,
+  McpUiOpenLinkRequest,
+  McpUiSizeChangedNotification,
+} from "@modelcontextprotocol/ext-apps";
 
 // Exercise the built card through the MCP Apps messages a host sends and receives.
 test("the card displays private recipe notes and opens summary and note links through the host", async (testContext) => {
@@ -15,12 +21,15 @@ test("the card displays private recipe notes and opens summary and note links th
   });
   await page.goto("/");
   const client = new Client({ name: "card-test", version: "1.0.0" });
+  // oxlint-disable-next-line typescript/no-misused-promises -- remix/test types `after` as `() => void`, but its cleanup awaits each callback.
   testContext.after(() => client.close());
   await client.connect(new StreamableHTTPClientTransport(new URL("/mcp", page.url())));
+
   const result = await client.callTool({
     name: "show_drinks",
     arguments: { slugs: ["test-margarita"], view: "recipe" },
   });
+
   // Host the card outside the website document, whose nonce-based CSP the frame would inherit.
   await page.goto("about:blank");
   await page.setViewportSize({ width: 390, height: 1000 });
@@ -28,10 +37,20 @@ test("the card displays private recipe notes and opens summary and note links th
   await page.evaluate(
     ({ html, toolResult }) => {
       const iframe = document.querySelector("iframe");
+
       if (!iframe) throw new Error("Missing card frame");
       window.addEventListener("message", (event) => {
         if (event.source !== iframe.contentWindow) return;
-        const message = event.data;
+
+        // SAFETY: the card frame (checked above) posts flat MCP Apps JSON-RPC messages. Branches below
+        // read fields only after matching one of these methods; other messages fall through.
+        const message = event.data as (
+          | McpUiInitializeRequest
+          | McpUiInitializedNotification
+          | McpUiOpenLinkRequest
+          | McpUiSizeChangedNotification
+        ) & { id?: string | number };
+
         if (message.method === "ui/initialize") {
           iframe.contentWindow?.postMessage(
             {

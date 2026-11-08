@@ -10,8 +10,10 @@ function getSurrogateKeyForCanonicalTag(tag: string) {
 
 async function purgeFastlyCache(surrogateKeys: string[]): Promise<void> {
   if (env.NODE_ENV === "development") return;
+
   if (!env.FASTLY_SERVICE_ID || !env.FASTLY_PURGE_API_KEY) {
     console.log("Fastly not configured, skipping cache purge");
+
     return;
   }
 
@@ -43,5 +45,6 @@ export async function purgeDrinkCache(affectedPages: {
     "tags",
     ...affectedPages.tags.map(getSurrogateKeyForCanonicalTag),
   ];
+
   await purgeFastlyCache(keys);
 }

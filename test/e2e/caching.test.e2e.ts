@@ -6,6 +6,7 @@ import { server as requestMocks } from "#/test/server.ts";
 
 test("public pages retain their original cache lifetimes and Fastly keys", async (testContext) => {
   const page = await createBrowserPage(testContext, { admin: true });
+
   const cases = [
     ["/", "all index"],
     ["/search", "all"],
@@ -14,6 +15,7 @@ test("public pages retain their original cache lifetimes and Fastly keys", async
     ["/tags/citrus", "all tags citrus"],
     ["/test-margarita", "all test-margarita"],
   ];
+
   for (const [path, surrogateKeys] of cases) {
     const response = await page.request.get(path);
     expect(response.status()).toBe(200);
@@ -27,6 +29,7 @@ test("public pages retain their original cache lifetimes and Fastly keys", async
 
 test("missing drinks, tags, and routes retain short-lived caching", async (testContext) => {
   const page = await createBrowserPage(testContext);
+
   for (const path of [
     "/missing-drink",
     "/tags/missing-tag",
@@ -45,6 +48,7 @@ test("missing drinks, tags, and routes retain short-lived caching", async (testC
 
 test("admin pages and authentication responses cannot be cached", async (testContext) => {
   const page = await createBrowserPage(testContext, { admin: true });
+
   for (const path of [
     "/admin",
     "/admin/drinks",
@@ -63,6 +67,7 @@ test("admin pages and authentication responses cannot be cached", async (testCon
     expect(response.headers()["cache-control"]).toBe("private, no-store");
     expect(response.headers()["surrogate-key"]).toBe(undefined);
   }
+
   for (const path of ["/logout", "/%6Cogout"]) {
     const logoutResponse = await page.request.post(path, { maxRedirects: 0 });
     expect(logoutResponse.status()).toBe(302);
@@ -76,9 +81,11 @@ test("editing a drink purges the existing public route cache keys", async (testC
   requestMocks.use(
     http.post("https://api.fastly.com/service/test-fastly-service-id/purge", ({ request }) => {
       purgedKeys.push(request.headers.get("Surrogate-Key") ?? "");
+
       return HttpResponse.json({ status: "ok" });
     }),
   );
+
   const response = await page.request.post("/admin/drinks/test-margarita/edit", {
     multipart: {
       title: "Renamed Margarita",
@@ -92,6 +99,7 @@ test("editing a drink purges the existing public route cache keys", async (testC
     },
     maxRedirects: 0,
   });
+
   expect(response.status()).toBe(303);
   expect(response.headers()["cache-control"]).toBe("private, no-store");
   expect(purgedKeys).toEqual([
@@ -117,10 +125,12 @@ test("a committed rename navigates with a warning after network purge failure", 
   await page.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
   await page.getByLabel("Title", { exact: true }).fill("Committed Margarita");
   await page.getByLabel("Slug", { exact: true }).fill("committed-margarita");
+
   const submission = page.waitForResponse(
     (response) =>
       response.request().method() === "POST" && response.url().endsWith("/test-margarita/edit"),
   );
+
   await page.getByRole("button", { name: "Update Drink" }).click();
   expect((await submission).status()).toBe(303);
   await page.waitForURL("/admin/drinks");

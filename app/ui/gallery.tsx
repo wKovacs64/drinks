@@ -3,6 +3,7 @@ import { Header } from "./core/header.tsx";
 import { Footer } from "./core/footer.tsx";
 import { SkipNavLink } from "./core/skip-nav-link.tsx";
 import { Breadcrumbs, type Breadcrumb } from "./navigation/breadcrumbs.tsx";
+
 export function Gallery(handle: Handle<{ children: RemixNode; breadcrumbs?: Breadcrumb[] }>) {
   return () => (
     <div className="flex min-h-screen flex-col bg-neutral-800 bg-[url('./images/background-768.jpg')] bg-cover bg-fixed bg-center bg-no-repeat lg:bg-[url('./images/background-2078.jpg')]">

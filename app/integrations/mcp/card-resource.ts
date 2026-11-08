@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 export const cardUri = "ui://drinks/card-v6.html";
 const script = readFileSync("public/mcp-card.js", "utf8");
 let styles = readFileSync("public/app.css", "utf8");
+
 // Inline fonts keep the sandbox independent of website asset CORS and relative URLs.
 for (const weight of [300, 400]) {
   const filename = `source-sans-3-latin-${weight}-normal.woff2`;

@@ -9,6 +9,7 @@ export const SearchStatus = clientEntry(import.meta.url, function SearchStatus(h
     "reloadStart",
     () => {
       const destination = new URL(handle.frame.src, window.location.href);
+
       // Leaving search keeps the results visible until the next page arrives.
       if (destination.pathname !== routes.search.index.href()) return;
       pendingQuery = destination.searchParams.get("q") ?? "";
@@ -24,6 +25,7 @@ export const SearchStatus = clientEntry(import.meta.url, function SearchStatus(h
     },
     { signal: handle.signal },
   );
+
   return () => {
     return (
       <div className="peer" data-search-pending={pendingQuery !== undefined ? "true" : undefined}>

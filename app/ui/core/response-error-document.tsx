@@ -3,18 +3,21 @@ import { routes } from "#/app/routes.ts";
 
 // These fallbacks render without the application stylesheet.
 const errorHeadingStyles = css({ fontSize: "24px" });
+
 const errorDetailsStyles = css({
   padding: "2rem",
   background: "hsla(10, 50%, 50%, 0.1)",
   color: "red",
   overflow: "auto",
 });
+
 const errorDocumentStyles = css({ fontFamily: "system-ui, sans-serif", padding: "2rem" });
 
 export function ResponseErrorDocument(handle: Handle<{ status: number; statusText?: string }>) {
   return () => {
     const { status, statusText } = handle.props;
     const title = `${status} ${statusText ?? (status === 404 ? "Not Found" : "Request failed")}`;
+
     return (
       <RootErrorDocument title={title}>
         <h1 mix={errorHeadingStyles}>{title}</h1>

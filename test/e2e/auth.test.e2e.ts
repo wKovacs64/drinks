@@ -6,19 +6,18 @@ import { createBrowserPage } from "#/test/e2e.ts";
 import { getDb } from "#/app/db/client.ts";
 import { drinks, users } from "#/app/db/schema.ts";
 import { TEST_ADMIN_USER } from "#/test/database.ts";
-import { Route } from "remix/routes";
+import { Route, type RouteMap } from "remix/routes";
 import { routes } from "#/app/routes.ts";
 
-function getRouteLeaves(routeMap: object): Route[] {
-  const values: unknown[] = Object.values(routeMap);
-  return values.flatMap((value) => {
-    if (value instanceof Route) return [value];
-    return typeof value === "object" && value !== null ? getRouteLeaves(value) : [];
-  });
+function getRouteLeaves(routeMap: RouteMap): Route[] {
+  return Object.values(routeMap).flatMap((value) =>
+    value instanceof Route ? [value] : getRouteLeaves(value),
+  );
 }
 
 test("anonymous frame requests get a sign-in page instead of the cross-origin login redirect", async (testContext) => {
   const page = await createBrowserPage(testContext);
+
   for (const { method, path, loginHref } of [
     { method: "POST", path: "/%61dmin/drinks/test-margarita/%65dit", loginHref: "/login" },
     {
@@ -32,6 +31,7 @@ test("anonymous frame requests get a sign-in page instead of the cross-origin lo
       headers: { "X-Remix-Frame": "true" },
       maxRedirects: 0,
     });
+
     expect(response.status()).toBe(401);
     expect(response.headers()["cache-control"]).toBe("private, no-store");
     const html = await response.text();
@@ -45,8 +45,10 @@ test("anonymous frame requests get a sign-in page instead of the cross-origin lo
 for (const actor of ["anonymous", "user"]) {
   test(`${actor} cannot read or write ordinary or encoded admin URLs`, async (testContext) => {
     const page = await createBrowserPage(testContext, { admin: actor === "user" });
+
     if (actor === "user") await getDb().update(users, TEST_ADMIN_USER.id, { role: "user" });
     const destination = actor === "anonymous" ? "/login" : "/unauthorized";
+
     for (const route of getRouteLeaves(routes.admin)) {
       const path = route.href({ slug: "test-margarita" });
       const response = await page.request.fetch(path, { method: route.method, maxRedirects: 0 });
@@ -58,6 +60,7 @@ for (const actor of ["anonymous", "user"]) {
       );
       expect(response.headers()["cache-control"]).toBe("private, no-store");
     }
+
     for (const path of [
       "/admin/unknown",
       "/%61dmin",
@@ -74,6 +77,7 @@ for (const actor of ["anonymous", "user"]) {
       );
       expect(response.headers()["cache-control"]).toBe("private, no-store");
     }
+
     for (const path of [
       "/admin/unknown",
       "/%61dmin/drinks/new",
@@ -85,11 +89,13 @@ for (const actor of ["anonymous", "user"]) {
       expect(response.headers().location).toBe(destination);
       expect(response.headers()["cache-control"]).toBe("private, no-store");
     }
+
     for (const path of ["/%61dmin/%64rinks/%6Eew", "/ad%6din/drinks/test-margarita/%65dit"]) {
       const response = await page.request.post(path, {
         headers: { "X-Remix-Frame": "true" },
         maxRedirects: 0,
       });
+
       if (actor === "anonymous") {
         expect(response.status()).toBe(401);
         expect(await response.text()).toContain("Session Expired");
@@ -97,8 +103,10 @@ for (const actor of ["anonymous", "user"]) {
         expect(response.status()).toBe(302);
         expect(response.headers().location).toBe(destination);
       }
+
       expect(response.headers()["cache-control"]).toBe("private, no-store");
     }
+
     expect(await getDb().query(drinks).count()).toBe(3);
     expect((await page.request.get("/test-margarita")).status()).toBe(200);
   });
@@ -111,6 +119,7 @@ test("admin can read and submit an encoded editor URL", async (testContext) => {
   expect(response.status()).toBe(200);
   expect(await response.text()).toContain("Update Drink");
   expect(response.headers()["cache-control"]).toBe("private, no-store");
+
   const submission = await page.request.post(path, {
     multipart: {
       title: "Encoded Margarita",
@@ -124,6 +133,7 @@ test("admin can read and submit an encoded editor URL", async (testContext) => {
     },
     maxRedirects: 0,
   });
+
   expect(submission.status()).toBe(303);
   expect(submission.headers().location).toBe("/admin/drinks");
   expect(submission.headers()["cache-control"]).toBe("private, no-store");
@@ -151,7 +161,7 @@ describe("Authentication", () => {
   test("Google sign-in follows only same-origin Return-to URLs", async (testContext) => {
     const page = await createBrowserPage(testContext);
     // Cookie session storage warns when sign-in regenerates the session ID.
-    const logWarning = testContext.mock.method(console, "warn", () => {});
+    const logWarning = testContext.mock.method(console, "warn", () => undefined);
     requestMocks.use(
       http.post("https://oauth2.googleapis.com/token", () =>
         HttpResponse.json({ access_token: "test-access-token", token_type: "Bearer" }),
@@ -165,15 +175,20 @@ describe("Authentication", () => {
         }),
       ),
     );
+
     async function signIn(loginPath: string) {
       const login = await page.request.get(loginPath, { maxRedirects: 0 });
       const state = new URL(login.headers().location).searchParams.get("state");
+
       if (!state) throw new Error("Google authorization URL is missing state");
+
       const callback = await page.request.get(
         `/auth/google/callback?${new URLSearchParams({ code: "test-code", state })}`,
         { maxRedirects: 0 },
       );
+
       expect(callback.status()).toBe(302);
+
       return callback.headers().location;
     }
 
@@ -181,9 +196,11 @@ describe("Authentication", () => {
     const loginPath = adminVisit.headers().location;
     expect(loginPath).toBe("/login?returnTo=%2Fadmin%2Fdrinks%3Fq%3Dsour");
     expect(await signIn(loginPath)).toBe("/admin/drinks?q=sour");
+
     for (const returnTo of ["https://evil.example", "//evil.example", "/\\evil.example"]) {
       expect(await signIn(`/login?${new URLSearchParams({ returnTo })}`)).toBe("/");
     }
+
     for (const call of logWarning.mock.calls) {
       expect(String(call.arguments[0])).toContain("was regenerated");
     }
@@ -202,9 +219,11 @@ test("login-failed Try again uses document navigation to Google", async (testCon
     oauthDestination.resolve(response.headers().location);
     await route.fulfill({ status: 200, contentType: "text/html", body: "<h1>Google sign in</h1>" });
   });
+
   const loginRequest = page.waitForRequest(
     (request) => new URL(request.url()).pathname === "/login" && request.isNavigationRequest(),
   );
+
   await page.getByRole("link", { name: "Try again" }).click();
   await loginRequest;
   await page.getByRole("heading", { name: "Google sign in" }).waitFor();
@@ -220,9 +239,11 @@ test("admin permissions are checked from the database on every request", async (
   expect(response.status()).toBe(302);
   expect(response.headers().location).toBe("/unauthorized");
   expect(response.headers()["cache-control"]).toBe("private, no-store");
+
   const mutation = await pageAsAdmin.request.post("/admin/drinks/test-margarita/delete", {
     maxRedirects: 0,
   });
+
   expect(mutation.status()).toBe(302);
   expect(mutation.headers().location).toBe("/unauthorized");
   expect(mutation.headers()["cache-control"]).toBe("private, no-store");
@@ -232,17 +253,21 @@ test("admin permissions are checked from the database on every request", async (
 
 test("admin submissions reject cross-origin and cross-site browser provenance", async (testContext) => {
   const pageAsAdmin = await createBrowserPage(testContext, { admin: true });
+
   const provenanceHeaders: Record<string, string>[] = [
     { Origin: "https://another.example" },
     { "Sec-Fetch-Site": "cross-site" },
   ];
+
   for (const headers of provenanceHeaders) {
     const response = await pageAsAdmin.request.post("/admin/drinks/test-margarita/delete", {
       headers,
       maxRedirects: 0,
     });
+
     expect(response.status()).toBe(403);
   }
+
   const drink = await pageAsAdmin.request.get("/test-margarita");
   expect(drink.status()).toBe(200);
 });

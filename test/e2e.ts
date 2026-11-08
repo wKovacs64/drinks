@@ -16,12 +16,14 @@ export async function createBrowserPage(
 ) {
   await resetAndSeedDatabase();
   purgeSearchCache();
-  const server = await createTestServer(router.fetch);
+  const server = await createTestServer((request) => router.fetch(request));
   // Playwright's request client runs in this worker too; let it reach the real test router.
   requestMocks.use(http.all(`${server.baseUrl}/*`, () => passthrough()));
   let page = await testContext.serve(server);
+
   if (options.javaScriptEnabled === false || options.timezoneId) {
     const browser = page.context().browser();
+
     if (!browser) throw new Error("Custom page options require a browser");
     page = await browser.newPage({
       baseURL: server.baseUrl,
@@ -29,9 +31,11 @@ export async function createBrowserPage(
       timezoneId: options.timezoneId,
     });
     const customPage = page;
+    // oxlint-disable-next-line typescript/no-misused-promises -- remix/test types `after` as `() => void`, but its cleanup awaits each callback.
     testContext.after(() => customPage.close());
   }
-  if (options.admin) {
+
+  if (options.admin === true) {
     await page.context().addCookies([
       {
         name: sessionCookie.name,
@@ -40,5 +44,6 @@ export async function createBrowserPage(
       },
     ]);
   }
+
   return page;
 }

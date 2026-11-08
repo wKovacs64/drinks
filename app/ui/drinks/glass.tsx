@@ -9,6 +9,7 @@ export function Glass(
 ) {
   return () => {
     const { children, className } = handle.props;
+
     return (
       <article
         className={classes(

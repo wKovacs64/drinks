@@ -27,18 +27,21 @@ import adminController from "./actions/admin/controller.ts";
 import adminDrinksController from "./actions/admin/drinks/controller.tsx";
 import newDrinkController from "./actions/admin/drinks/new/controller.tsx";
 import editDrinkController from "./actions/admin/drinks/edit/controller.tsx";
+
 const renderMiddleware = render({
   assets: renderAssets,
   onError: (error) => console.error("Remix rendering failed", error),
 });
+
 const sessionMiddleware = getIdentitySessionMiddleware();
 const authMiddleware = getIdentityAuthMiddleware();
+
 export const router = createRouter({
   middleware: [
     logger({
       format: "%method %pathname %status %duration ms",
       colors: false,
-      log: process.env.NODE_ENV === "test" ? () => {} : undefined,
+      log: process.env.NODE_ENV === "test" ? () => undefined : undefined,
     }),
     // The original origin deliberately leaves compression to Fastly and Fly Proxy.
     process.env.NODE_ENV === "production"
@@ -62,18 +65,29 @@ export const router = createRouter({
   ],
   defaultHandler: (context) => renderUnmatchedUrl(context.render, context.method),
 });
+
 export type AppContext = RouterContext<typeof router>;
+
 declare module "remix" {
   interface RouterTypes {
     context: AppContext;
   }
 }
+
 router.map(routes, controller);
+
 router.map(routes.drinks, drinksController);
+
 router.map(routes.tags, tagsController);
+
 router.map(routes.search, searchController);
+
 router.map(routes.auth, authController);
+
 router.map(routes.admin, adminController);
+
 router.map(routes.admin.drinks, adminDrinksController);
+
 router.map(routes.admin.drinks.new, newDrinkController);
+
 router.map(routes.admin.drinks.edit, editDrinkController);

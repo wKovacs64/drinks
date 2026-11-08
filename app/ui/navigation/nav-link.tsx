@@ -8,6 +8,7 @@ export function NavLink(
 ) {
   return () => {
     const { children, href } = handle.props;
+
     return (
       <a
         className="drinks-focusable border-b border-dotted pb-1 transition hover:border-solid focus:border-solid"

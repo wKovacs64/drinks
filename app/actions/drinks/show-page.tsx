@@ -11,6 +11,7 @@ import { imageUrl } from "#/app/core/public/images.ts";
 export function DrinkPage(handle: Handle<{ drink: DrinkView }>) {
   return () => {
     const { drink } = handle.props;
+
     return (
       <Document
         title={drink.title}

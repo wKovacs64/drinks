@@ -58,7 +58,7 @@
     "@tailwindcss/cli": "4.3.4",
     "@types/node": "26.6.6",
     "@wkovacs64/add-icon": "1.2.2",
-    "@wkovacs64/oxlint-config": "0.4.0",
+    "@wkovacs64/oxlint-config": "0.5.0",
     "esbuild": "0.28.2",
     "msw": "3.0.3",
     "oxfmt": "0.76.0",

@@ -18,16 +18,20 @@ export const routeErrorPages: Middleware = async (context, next) => {
   } catch (error) {
     if (context.request.signal.aborted) throw error;
     const renderResponse = context.get(Renderer);
+
     if (!isRenderFunction(renderResponse)) throw error;
     console.error("Route failed", error);
+
     const message =
       process.env.NODE_ENV === "production"
         ? "Unexpected Server Error"
         : error instanceof Error
           ? error.message
           : "Unknown Error";
+
     const exception = <Exception message={message} />;
     const headers = { "Cache-Control": "no-store" };
+
     if (!isPublicPage) {
       const details =
         process.env.NODE_ENV === "production"
@@ -35,11 +39,13 @@ export const routeErrorPages: Middleware = async (context, next) => {
           : error instanceof Error
             ? (error.stack ?? error.message)
             : "Unknown Error";
+
       return renderResponse(<ApplicationErrorDocument details={details} />, {
         status: 500,
         headers,
       });
     }
+
     return renderResponse(<Document>{exception}</Document>, { status: 500, headers });
   }
 };

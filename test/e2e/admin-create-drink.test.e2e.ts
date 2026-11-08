@@ -33,6 +33,7 @@ describe("Create New Drink", () => {
       "iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVQYV2P8/5+hnoEIwDiqEF8oAABkvQMRzBOz/QAAAABJRU5ErkJggg==",
       "base64",
     );
+
     await pageAsAdmin.locator('input[type="file"]').setInputFiles({
       name: "test.png",
       mimeType: "image/png",
@@ -68,13 +69,17 @@ test("create retries preserve the draft and crop, and each save uploads the curr
   await page.getByLabel("Rank").fill("7");
   await page.getByRole("radio", { name: "Unpublished", exact: true }).check();
   await page.locator('input[type="file"]').setInputFiles("app/assets/images/background-768.jpg");
+
   const selection = page.getByRole("group", {
     name: "Use the arrow keys to move the crop selection area",
   });
+
   await selection.waitFor();
+
   const cropHandle = page.getByRole("button", {
     name: "Use the arrow keys to move the south east drag handle to change the crop selection area",
   });
+
   await cropHandle.focus();
   await cropHandle.press("Shift+ArrowLeft");
   await page.getByLabel("Notes (markdown)").focus();
@@ -87,14 +92,20 @@ test("create retries preserve the draft and crop, and each save uploads the curr
     window.fetch = async (...arguments_: Parameters<typeof fetch>) => {
       const body = arguments_[1]?.body;
       const imageFile = body instanceof FormData ? body.get("imageFile") : undefined;
+
       if (imageFile instanceof File) {
         const digest = await crypto.subtle.digest("SHA-256", await imageFile.arrayBuffer());
-        const recordImage: unknown = Reflect.get(window, "recordUploadedImage");
-        if (typeof recordImage === "function")
-          await recordImage(
-            `${imageFile.name} ${imageFile.type} ${Array.from(new Uint8Array(digest)).join(",")}`,
-          );
+
+        // SAFETY: page.exposeFunction above installs recordUploadedImage on window.
+        const { recordUploadedImage } = window as Window & {
+          recordUploadedImage?: (summary: string) => Promise<void>;
+        };
+
+        await recordUploadedImage?.(
+          `${imageFile.name} ${imageFile.type} ${Array.from(new Uint8Array(digest)).join(",")}`,
+        );
       }
+
       return nativeFetch(...arguments_);
     };
   });
@@ -126,7 +137,7 @@ test("create retries preserve the draft and crop, and each save uploads the curr
   // Hold the crop's encoding so the save is observably waiting on it.
   await page.evaluate(() => {
     const nativeToBlob = HTMLCanvasElement.prototype.toBlob;
-    const cropRelease = Promise.withResolvers<void>();
+    const cropRelease: PromiseWithResolvers<void> = Promise.withResolvers();
     Reflect.set(window, "releaseCrop", cropRelease.resolve);
     HTMLCanvasElement.prototype.toBlob = function (
       this: HTMLCanvasElement,
@@ -145,8 +156,9 @@ test("create retries preserve the draft and crop, and each save uploads the curr
   // A field invalidated while the crop encodes cancels the save and re-enables it.
   await page.getByLabel("Title", { exact: true }).fill("");
   await page.evaluate(() => {
-    const releaseCrop: unknown = Reflect.get(window, "releaseCrop");
-    if (typeof releaseCrop === "function") releaseCrop();
+    // SAFETY: the evaluate that holds the crop's encoding sets window.releaseCrop to a resolver.
+    const { releaseCrop } = window as Window & { releaseCrop?: () => void };
+    releaseCrop?.();
   });
   await page.getByRole("button", { name: "Create Drink" }).waitFor();
   expect(await page.getByRole("button", { name: "Create Drink" }).isEnabled()).toBe(true);
@@ -160,6 +172,7 @@ test("create retries preserve the draft and crop, and each save uploads the curr
   await page.getByRole("cell", { name: "Retry With Image" }).waitFor();
   expect(submissions.length).toBe(1);
   expect(uploadedImages.length).toBe(3);
+
   for (const image of uploadedImages)
     expect(image.startsWith("cropped.jpg image/jpeg ")).toBe(true);
   expect(uploadedImages[1]).toBe(uploadedImages[0]);

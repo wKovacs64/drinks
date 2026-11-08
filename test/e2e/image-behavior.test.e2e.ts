@@ -45,6 +45,7 @@ test("hosted images preserve format fallbacks and responsive selection at twice 
     .locator("tbody tr")
     .filter({ has: pageAsAdmin.getByRole("link", { name: "Test Margarita", exact: true }) })
     .locator("img");
+
   expect(await thumbnail.getAttribute("decoding")).toBe("async");
   expect(await thumbnail.getAttribute("loading")).toBe("lazy");
   expect(await thumbnail.getAttribute("srcset")).toMatch(/32w,[\s\S]*64w$/);
@@ -79,17 +80,25 @@ test("hosted images preserve format fallbacks and responsive selection at twice 
     await sources.nth(0).getAttribute("srcset"),
   );
   expect(await preload.getAttribute("imagesizes")).toBe(await image.getAttribute("sizes"));
+
   for (const width of [390, 768, 1024, 1280, 1440]) {
     await pageAsAdmin.setViewportSize({ width, height: 900 });
     await pageAsAdmin.waitForFunction(
       (element) => {
-        if (!(element instanceof HTMLImageElement) || !element.complete || !element.naturalWidth)
+        if (
+          !(element instanceof HTMLImageElement) ||
+          !element.complete ||
+          element.naturalWidth === 0
+        )
           return false;
+
         const transformations =
           new URL(element.currentSrc).searchParams.get("tr")?.split(",") ?? [];
+
         const selectedWidth = Number(
           transformations.find((value) => value.startsWith("w-"))?.slice(2),
         );
+
         return (
           transformations.includes("f-avif") &&
           selectedWidth >= element.getBoundingClientRect().width * window.devicePixelRatio
@@ -113,10 +122,10 @@ test("hosted images preserve format fallbacks and responsive selection at twice 
       element instanceof HTMLImageElement &&
       element.complete &&
       element.naturalWidth > 0 &&
-      !new URL(element.currentSrc).searchParams
+      new URL(element.currentSrc).searchParams
         .get("tr")
         ?.split(",")
-        .some((value) => value.startsWith("f-")),
+        .some((value) => value.startsWith("f-")) !== true,
     await image.elementHandle(),
   );
 

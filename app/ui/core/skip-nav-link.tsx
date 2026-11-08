@@ -1,7 +1,9 @@
 import type { Handle } from "remix/component";
+
 export function SkipNavLink(handle: Handle<{ contentId: string }>) {
   return () => {
     const { contentId } = handle.props;
+
     return (
       <a
         href={`#${contentId}`}

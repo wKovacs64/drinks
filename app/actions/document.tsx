@@ -12,6 +12,7 @@ import {
 } from "#/app/assets.ts";
 import { env } from "#/app/core/env.ts";
 import { ImagePreload, type ImagePreloadProps } from "#/app/ui/drinks/image-preload.tsx";
+
 export function Document(
   handle: Handle<{
     children: RemixNode;
@@ -37,7 +38,9 @@ export function Document(
       preloadImages,
       modulePreloads = scriptEntry.preloads,
     } = handle.props;
+
     const nonce = getCspNonce(getContext());
+
     return (
       <html lang="en" className="m-0 min-h-screen p-0 leading-tight" data-commit={env.COMMIT_SHA}>
         <head>
@@ -73,7 +76,7 @@ export function Document(
             data-rmx-key={stylesheetHref}
             data-rmx-preserve-dom
           />
-          {preloadImages?.some((image) => image.layout === "gallery") && (
+          {preloadImages?.some((image) => image.layout === "gallery") === true && (
             <link
               rel="preload"
               as="font"

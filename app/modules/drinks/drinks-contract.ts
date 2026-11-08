@@ -125,9 +125,9 @@ export type DeleteAdminDrinkResult = DeleteAdminDrinkSuccessResult | AdminDrinkW
 export type CreateAdminDrinkResult = AdminDrinkWriteSuccessResult | AdminDrinkWriteFieldErrorResult;
 
 export interface AdminDrinksWriteService {
-  create(command: CreateAdminDrinkCommand): Promise<CreateAdminDrinkResult>;
-  update(command: UpdateAdminDrinkCommand): Promise<UpdateAdminDrinkResult>;
-  delete(command: DeleteAdminDrinkCommand): Promise<DeleteAdminDrinkResult>;
+  create: (command: CreateAdminDrinkCommand) => Promise<CreateAdminDrinkResult>;
+  update: (command: UpdateAdminDrinkCommand) => Promise<UpdateAdminDrinkResult>;
+  delete: (command: DeleteAdminDrinkCommand) => Promise<DeleteAdminDrinkResult>;
 }
 
 export type DrinksByTagSlug = {
@@ -136,15 +136,18 @@ export type DrinksByTagSlug = {
 };
 
 export interface DrinksService {
-  getPublishedDrinks(): Promise<DrinkView[]>;
-  getAllDrinks(): Promise<AdminDrinkListItem[]>;
-  getDrinkBySlug(input: { slug: string; viewerRole: ViewerRole }): Promise<DrinkForViewer | null>;
-  getDrinksByTagSlug(input: { tagSlug: string }): Promise<DrinksByTagSlug | null>;
-  getAllTags(): Promise<DrinkTagView[]>;
-  searchPublishedDrinks(input: {
+  getPublishedDrinks: () => Promise<DrinkView[]>;
+  getAllDrinks: () => Promise<AdminDrinkListItem[]>;
+  getDrinkBySlug: (input: {
+    slug: string;
+    viewerRole: ViewerRole;
+  }) => Promise<DrinkForViewer | null>;
+  getDrinksByTagSlug: (input: { tagSlug: string }) => Promise<DrinksByTagSlug | null>;
+  getAllTags: () => Promise<DrinkTagView[]>;
+  searchPublishedDrinks: (input: {
     query: string;
     /** Return only the exact title match when one exists. */
     preferExactTitle?: boolean;
-  }): Promise<DrinkView[]>;
-  findDrinkEditorBySlug(slug: string): Promise<DrinkEditor | null>;
+  }) => Promise<DrinkView[]>;
+  findDrinkEditorBySlug: (slug: string) => Promise<DrinkEditor | null>;
 }

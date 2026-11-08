@@ -20,6 +20,7 @@ export function DrinkSummary(handle: Handle<DrinkSummaryProps>) {
     const { breakpoints, sizes } = imagePresets[variant];
     const compact = variant === "compact";
     const detail = variant === "detail";
+
     const imageProps = {
       src: drink.image.url,
       background: drink.image.blurDataUrl,
@@ -42,7 +43,6 @@ export function DrinkSummary(handle: Handle<DrinkSummaryProps>) {
           className={classes(
             "m-0 flex-1",
             compact && "relative aspect-square @min-lg:w-2/5 @min-lg:flex-none",
-            !drink.image && "bg-stone-900",
           )}
         >
           <picture className={compact ? "absolute inset-0" : "aspect-square"}>
@@ -83,7 +83,7 @@ export function DrinkSummary(handle: Handle<DrinkSummaryProps>) {
               ))}
             </ul>
             <div className={classes("text-end", detail && "text-xl")}>
-              {drink.calories ? <span>{drink.calories} cal</span> : ""}
+              {drink.calories !== 0 ? <span>{drink.calories} cal</span> : ""}
             </div>
           </div>
         </div>

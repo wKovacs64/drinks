@@ -33,10 +33,12 @@ export async function parseDrinkSubmission(request: Request): Promise<DrinkSubmi
       buffer: Buffer.from(await fileUpload.bytes()),
       contentType: fileUpload.type,
     };
+
     return fileUpload.name;
   }
 
   let formData: FormData;
+
   try {
     formData = await parseFormData(
       request,
@@ -53,12 +55,17 @@ export async function parseDrinkSubmission(request: Request): Promise<DrinkSubmi
     // Limit errors are thrown directly rather than wrapped in FormDataParseError.
     // See node_modules/remix/src/form-data-parser/README.md
     if (error instanceof MaxFileSizeExceededError) return invalid("Image must be under 5MB");
+
     if (error instanceof MaxFilesExceededError) return invalid("Upload only one image");
+
     if (error instanceof MaxTotalSizeExceededError) return invalid("Form submission is too large");
+
     if (error instanceof MaxPartsExceededError)
       return invalid("Form submission contains too many fields");
+
     if (error instanceof MaxHeaderSizeExceededError)
       return invalid("Image upload metadata is too large");
+
     if (error instanceof FormDataParseError) return invalid("Failed to process image upload");
     throw error;
   }

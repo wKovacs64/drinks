@@ -4,20 +4,26 @@ import { DrinkSummary } from "#/app/ui/drinks/drink-summary.tsx";
 import { cardResultSchema } from "#/app/integrations/mcp/public/recipe.ts";
 
 const container = document.getElementById("card");
+
 if (!container) throw new Error("Missing Drink card container");
+
 const root = createRoot(container);
+
 const app = new App(
   { name: "drinks.fyi", version: "1.0.0" },
   {},
   { strict: true, autoResize: true },
 );
 
-app.ontoolresult = (result) => {
+app.addEventListener("toolresult", (result) => {
   const parsed = cardResultSchema.safeParse(result["_meta"]);
-  if (result.isError || !parsed.success) {
+
+  if (result.isError === true || !parsed.success) {
     root.render(null);
+
     return;
   }
+
   root.render(
     parsed.data.drinks.map((drink, index) => (
       <article
@@ -25,14 +31,18 @@ app.ontoolresult = (result) => {
         className="border-burnt-orange text-maroon border-4 border-double bg-gray-100 wrap-break-word"
         mix={on("click", async (event) => {
           const link = event.target instanceof Element ? event.target.closest("a[href]") : null;
+
           if (!(link instanceof HTMLAnchorElement)) return;
           const href = link.getAttribute("href");
+
           if (href === null) return;
           event.preventDefault();
+
           const navigation = await app.openLink({
             url: new URL(href, drink.sourceUrl).href,
           });
-          if (navigation.isError) console.error("Host declined Drink link");
+
+          if (navigation.isError === true) console.error("Host declined Drink link");
         })}
       >
         <a
@@ -57,9 +67,12 @@ app.ontoolresult = (result) => {
       </article>
     )),
   );
-};
+});
+
 app.onteardown = async () => {
   root.dispose();
+
   return {};
 };
+
 await app.connect();

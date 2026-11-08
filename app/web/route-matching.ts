@@ -7,7 +7,9 @@ const adminMatchers = [
   createMatcher(routes.admin.index.pattern),
   createMatcher(joinPatterns(routes.admin.index.pattern, "/*path")),
 ];
+
 const authMatchers = Object.values(routes.auth).map((route) => createMatcher(route.pattern));
+
 const resourceMatchers = [
   createMatcher(routes.assets.pattern),
   createMatcher("/_/*path"),

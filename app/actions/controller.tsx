@@ -7,15 +7,19 @@ import { assets, fetchHmrEvents } from "#/app/assets.ts";
 import { env } from "#/app/core/env.ts";
 import { publicHeaders } from "#/app/web/gallery-cache.ts";
 import { HomePage } from "./home-page.tsx";
+
 export default createController(routes, {
   actions: {
     async assets(context) {
       const hmrEvents = await fetchHmrEvents(context.request);
+
       if (hmrEvents) return hmrEvents;
+
       return (await assets.fetch(context.request)) ?? new Response("Not Found", { status: 404 });
     },
     async healthcheck() {
       await getDb().exec(rawSql("SELECT 1"));
+
       return new Response("ok");
     },
 
@@ -65,6 +69,7 @@ export default createController(routes, {
     async home(context) {
       const drinksService = createDrinksService({ db: getDb() });
       const drinks = await drinksService.getPublishedDrinks();
+
       return context.render(<HomePage drinks={drinks} />, {
         headers: { ...publicHeaders, "Surrogate-Key": "all index" },
       });

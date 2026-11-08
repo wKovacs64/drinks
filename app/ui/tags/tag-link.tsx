@@ -5,6 +5,7 @@ import { classes } from "#/app/core/public/strings.ts";
 export function TagLink(handle: Handle<Omit<Props<"a">, "href" | "role"> & { href: string }>) {
   return () => {
     const { className, children, ...props } = handle.props;
+
     return (
       <a
         className={classes(

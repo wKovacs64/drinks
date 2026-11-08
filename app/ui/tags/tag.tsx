@@ -9,6 +9,7 @@ export function Tag(
 ) {
   return () => {
     const { children, className } = handle.props;
+
     return (
       <div className={classes("min-w-[4rem] text-center lowercase", className)}>{children}</div>
     );

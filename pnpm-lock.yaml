@@ -179,8 +179,8 @@ importers:
         specifier: 2.4.0
         version: 2.4.0
       '@remix-run/ui':
-        specifier: 0.13.0
-        version: 0.13.0
+        specifier: 0.13.1
+        version: 0.13.1
       '@sindresorhus/slugify':
         specifier: 4.0.0
         version: 4.0.0
@@ -1871,8 +1871,8 @@ packages:
       playwright:
         optional: true
 
-  '@remix-run/ui@0.13.0':
-    resolution: {integrity: sha512-8N47y0CPtinGTnA6pbCoT51BJpRjkKqBkHd6MYBlhrtWCrX/bKe5VNktt4oyGF0vOecyvbgI6odkem83lt4Isg==}
+  '@remix-run/ui@0.13.1':
+    resolution: {integrity: sha512-FbjoQqz20HqWAxLvacKu/a1437At0Ul468wN9uANTm6ae8HdneM3QsbPLg3mjPq/xX4tz1GHjQS1BMwe5rI9DA==}
 
   '@sentry/bundler-plugins@11.11.0':
     resolution: {integrity: sha512-et1v8V74ARNOSQ+k4VG7PRiNJl2APGAzlRCiUt42izw8yD+X+E4oCe7wwHjohmv3zufvD1VntHDptSC0/9ChQw==}
@@ -4791,7 +4791,7 @@ snapshots:
       - '@emnapi/core'
       - '@emnapi/runtime'
 
-  '@remix-run/ui@0.13.0':
+  '@remix-run/ui@0.13.1':
     dependencies:
       '@remix-run/component': 1.2.0
 

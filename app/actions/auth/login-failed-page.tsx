@@ -13,6 +13,7 @@ export function LoginFailedPage() {
             <p className="text-zinc-400">Unable to authenticate. Please try again.</p>
             <a
               href={routes.auth.login.href()}
+              data-rmx-document
               className="mt-2 rounded bg-amber-600 px-4 py-2 font-medium text-zinc-950 hover:bg-amber-500"
             >
               Try again

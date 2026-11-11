@@ -16,14 +16,19 @@ type Drink = Omit<AdminDrinkListItem, "createdAt" | "updatedAt"> & {
 
 type SortableColumn = "title" | "slug" | "calories" | "rank" | "status" | "createdAt" | "updatedAt";
 
-/** `null` keeps the server's order. Directions match `aria-sort` values. */
-type DrinkSort = { key: SortableColumn; direction: "ascending" | "descending" } | null;
+/** Unsorted keeps the server's order. Directions match `aria-sort` values. */
+type DrinkSort =
+  | { status: "unsorted" }
+  | { status: "sorted"; key: SortableColumn; direction: "ascending" | "descending" };
 
 /** Each column cycles through ascending, descending, and the server's order. */
 function nextSort(sort: DrinkSort, key: SortableColumn): DrinkSort {
-  if (sort?.key !== key) return { key, direction: "ascending" };
+  if (sort.status === "unsorted" || sort.key !== key)
+    return { status: "sorted", key, direction: "ascending" };
 
-  return sort.direction === "ascending" ? { key, direction: "descending" } : null;
+  return sort.direction === "ascending"
+    ? { status: "sorted", key, direction: "descending" }
+    : { status: "unsorted" };
 }
 
 const SORTABLE_COLUMNS: { key: SortableColumn; label: string; align?: "right" }[] = [
@@ -133,7 +138,7 @@ export const AdminDrinksList = clientEntry(
   import.meta.url,
   function AdminDrinksList(handle: Handle<{ drinks: Drink[] }>) {
     let filter = "";
-    let sort: DrinkSort = null;
+    let sort: DrinkSort = { status: "unsorted" };
     // Only the browser knows the viewer's time zone, so timestamps render after hydration.
     let timestampFormatter: Intl.DateTimeFormat | undefined;
     handle.queueTask(() => {
@@ -169,13 +174,14 @@ export const AdminDrinksList = clientEntry(
 
       const currentSort = sort;
 
-      const processed = currentSort
-        ? filtered.toSorted((a, b) => {
-            const comparison = compareDrinks(a, b, currentSort.key);
+      const processed =
+        currentSort.status === "sorted"
+          ? filtered.toSorted((a, b) => {
+              const comparison = compareDrinks(a, b, currentSort.key);
 
-            return currentSort.direction === "ascending" ? comparison : -comparison;
-          })
-        : filtered;
+              return currentSort.direction === "ascending" ? comparison : -comparison;
+            })
+          : filtered;
 
       return (
         <div>
@@ -215,7 +221,10 @@ export const AdminDrinksList = clientEntry(
               <thead>
                 <tr className="border-b border-zinc-800 text-left text-sm tracking-wider text-zinc-500 uppercase">
                   {SORTABLE_COLUMNS.map((column) => {
-                    const direction = sort?.key === column.key ? sort.direction : undefined;
+                    const direction =
+                      sort.status === "sorted" && sort.key === column.key
+                        ? sort.direction
+                        : undefined;
 
                     return (
                       <th key={column.key} aria-sort={direction} className="pr-4 pb-3 font-medium">

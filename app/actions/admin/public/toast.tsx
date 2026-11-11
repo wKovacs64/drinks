@@ -86,8 +86,10 @@ export const Toast = clientEntry(
     return () => {
       if (notificationId !== handle.props.notificationId) {
         notificationId = handle.props.notificationId;
+
+        // A replacement keeps an in-progress swipe with its press hold; a new toast element starts clean.
+        if (timer.status === "dismissed") swipeStart = undefined;
         timer = transitionToastTimer(timer, { type: "restart", now: Date.now() });
-        swipeStart = undefined;
         handle.queueTask((signal) => {
           if (!signal.aborted) scheduleExpiry();
         });

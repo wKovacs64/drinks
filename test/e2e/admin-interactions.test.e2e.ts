@@ -542,26 +542,6 @@ test("image crop supports drawing and keyboard movement and uploads a square JPE
   expect(await pageAsAdmin.getByRole("status").innerText()).toContain("Drink updated!");
 });
 
-test("a canceled toast gesture resumes its expiration", async (testContext) => {
-  const page = await createBrowserPage(testContext, { admin: true });
-  await page.goto("/admin/drinks/test-margarita/edit");
-  await page.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
-  await page.clock.install();
-  await page.getByRole("button", { name: "Update Drink" }).click();
-  const notification = page.getByRole("status").filter({ hasText: "Drink updated!" });
-  await notification.waitFor();
-  await notification.hover();
-  await page.mouse.down();
-  await page.clock.runFor(5000);
-  expect(await notification.getAttribute("data-state")).toBe("paused");
-  // A canceled gesture ignores its pointerup, so only pointercancel can release the press.
-  await notification.dispatchEvent("pointercancel", { pointerId: 1, pointerType: "mouse" });
-  await page.mouse.up();
-  await page.mouse.move(0, 0);
-  await page.clock.runFor(4500);
-  await notification.waitFor({ state: "hidden" });
-});
-
 test("timestamps render in the browser time zone without a hydration mismatch", async (testContext) => {
   const pageAsAdmin = await createBrowserPage(testContext, {
     admin: true,

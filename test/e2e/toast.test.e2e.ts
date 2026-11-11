@@ -66,3 +66,18 @@ test("clicking a notification keeps its remaining time", async (testContext) => 
   await notification.waitFor({ state: "hidden" });
   expect(await notification.count()).toBe(0);
 });
+
+test("a canceled toast gesture resumes its expiration", async (testContext) => {
+  const page = await showDeletionNotification(testContext);
+  const notification = page.getByRole("status");
+  await notification.hover();
+  await page.mouse.down();
+  await page.clock.runFor(5000);
+  expect(await notification.getAttribute("data-state")).toBe("paused");
+  // A canceled gesture ignores its pointerup, so only pointercancel can release the press.
+  await notification.dispatchEvent("pointercancel", { pointerId: 1, pointerType: "mouse" });
+  await page.mouse.up();
+  await page.mouse.move(0, 0);
+  await page.clock.runFor(4500);
+  await notification.waitFor({ state: "hidden" });
+});

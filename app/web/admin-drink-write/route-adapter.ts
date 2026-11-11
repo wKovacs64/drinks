@@ -3,6 +3,7 @@ import { redirect } from "remix/response/redirect";
 import type { Session } from "remix/session";
 import { parseSafe, string } from "remix/data-schema";
 import { field, object } from "remix/data-schema/form-data";
+import { assertNever } from "#/app/core/assert-never.ts";
 import type { ToastMessage } from "#/app/core/toast.ts";
 import {
   drinkDraftSchema,
@@ -243,8 +244,4 @@ function resolveWriteNoticeMessage(notice: DrinkWriteNotice): string {
     default:
       return assertNever(notice.code);
   }
-}
-
-function assertNever(value: never): never {
-  throw new Error(`Unexpected Admin Drink Write Route Adapter value: ${String(value)}`);
 }

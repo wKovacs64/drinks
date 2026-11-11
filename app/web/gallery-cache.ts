@@ -1,3 +1,5 @@
+import { assertNever } from "#/app/core/assert-never.ts";
+
 type GalleryPage =
   | { page: "home" }
   | { page: "search"; query: string }
@@ -30,10 +32,6 @@ export function galleryPageHeaders(page: GalleryPage) {
     default:
       return assertNever(page);
   }
-}
-
-function assertNever(value: never): never {
-  throw new Error(`Unexpected gallery page: ${JSON.stringify(value)}`);
 }
 
 function publicPageHeaders(...pageKeys: string[]) {

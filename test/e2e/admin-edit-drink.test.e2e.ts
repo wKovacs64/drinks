@@ -122,3 +122,20 @@ test("the editor displays every error and can retry", async (testContext) => {
   await page.waitForURL("/admin/drinks");
   await page.getByRole("cell", { name: "Retry Margarita" }).waitFor();
 });
+
+test("a save that cannot reach the server reports the failure and can retry", async (testContext) => {
+  const page = await createBrowserPage(testContext, { admin: true });
+  await page.goto("/admin/drinks/test-margarita/edit");
+  await page.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
+  await page.route("**/admin/drinks/test-margarita/edit", (route) =>
+    route.request().method() === "POST" ? route.abort() : route.fallback(),
+  );
+  const saveButton = page.getByRole("button", { name: "Update Drink" });
+  await saveButton.click();
+  await page.getByRole("alert").filter({ hasText: "Unable to save drink." }).waitFor();
+  expect(await saveButton.isEnabled()).toBe(true);
+  await page.unrouteAll();
+  await saveButton.click();
+  await page.waitForURL("/admin/drinks");
+  await page.getByRole("status").filter({ hasText: "Drink updated!" }).waitFor();
+});

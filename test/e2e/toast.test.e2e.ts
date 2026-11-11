@@ -19,7 +19,7 @@ test("a notification pauses while hovered and expires after leaving", async (tes
   await page.clock.runFor(1000);
   await notification.hover();
   await page.clock.runFor(5000);
-  expect(await notification.count()).toBe(1);
+  expect(await notification.getAttribute("data-state")).toBe("paused");
   await page.mouse.move(0, 0);
   await page.clock.runFor(4000);
   await notification.waitFor({ state: "hidden" });
@@ -32,7 +32,7 @@ test("Alt+T focuses a notification and Escape dismisses it", async (testContext)
   await page.keyboard.press("Alt+t");
   expect(await notification.evaluate((element) => document.activeElement === element)).toBe(true);
   await page.clock.runFor(5000);
-  expect(await notification.count()).toBe(1);
+  expect(await notification.getAttribute("data-state")).toBe("paused");
   await page.keyboard.press("Escape");
   await notification.waitFor({ state: "hidden" });
   expect(await notification.count()).toBe(0);
@@ -48,6 +48,21 @@ test("a notification can be dismissed with a swipe", async (testContext) => {
   await page.mouse.down();
   await page.mouse.move(bounds.x + 70, bounds.y + 20);
   await page.mouse.up();
+  await notification.waitFor({ state: "hidden" });
+  expect(await notification.count()).toBe(0);
+});
+
+test("clicking a notification keeps its remaining time", async (testContext) => {
+  const page = await showDeletionNotification(testContext);
+  const notification = page.getByRole("status");
+  await page.clock.runFor(3000);
+  await notification.click();
+  await page.clock.runFor(5000);
+  expect(await notification.getAttribute("data-state")).toBe("paused");
+  await page.mouse.move(0, 0);
+  await page.clock.runFor(500);
+  expect(await notification.getAttribute("data-state")).toBe("running");
+  await page.clock.runFor(1000);
   await notification.waitFor({ state: "hidden" });
   expect(await notification.count()).toBe(0);
 });

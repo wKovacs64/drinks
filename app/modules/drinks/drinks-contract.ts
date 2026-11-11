@@ -27,20 +27,21 @@ export { drinkDraftSchema, drinkStatusValues };
 
 export type DrinkDraft = InferOutput<typeof drinkDraftSchema>;
 
-export type DrinkEditor = {
-  mode: "create" | "edit";
-  imageUrl?: string;
-  initialValues: {
-    title: string;
-    slug: string;
-    ingredients: string;
-    calories: string;
-    tags: string;
-    notes: string;
-    rank: string;
-    status: DrinkStatus;
-  };
+type DrinkEditorValues = {
+  title: string;
+  slug: string;
+  ingredients: string;
+  calories: string;
+  tags: string;
+  notes: string;
+  rank: string;
+  status: DrinkStatus;
 };
+
+/** A new Drink has no image until one is uploaded; an existing Drink always has one. */
+export type DrinkEditor =
+  | { mode: "create"; initialValues: DrinkEditorValues }
+  | { mode: "edit"; imageUrl: string; initialValues: DrinkEditorValues };
 
 export type DrinkWriteNoticeCode = "oldImageCleanupFailed" | "cacheRefreshFailed";
 

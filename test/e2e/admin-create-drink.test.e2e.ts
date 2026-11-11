@@ -181,3 +181,22 @@ test("create retries preserve the draft and crop, and each save uploads the curr
   expect(uploadedImages[2]).not.toBe(uploadedImages[1]);
   await page.getByRole("status").filter({ hasText: "Drink created!" }).waitFor();
 });
+
+test("creating without an image asks for one without sending the form", async (testContext) => {
+  const page = await createBrowserPage(testContext, { admin: true });
+  await page.goto("/admin/drinks/new");
+  await page.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
+  await page.getByLabel("Title", { exact: true }).fill("Imageless");
+  await page.getByLabel("Ingredients (one per line)").fill("1 oz gin");
+  await page.getByLabel("Calories").fill("100");
+  await page.getByLabel("Tags (comma-separated)").fill("gin");
+  let posted = false;
+  page.on("request", (request) => {
+    if (request.method() === "POST") posted = true;
+  });
+  const createButton = page.getByRole("button", { name: "Create Drink" });
+  await createButton.click();
+  await page.getByText("Image is required").waitFor();
+  expect(await createButton.isEnabled()).toBe(true);
+  expect(posted).toBe(false);
+});

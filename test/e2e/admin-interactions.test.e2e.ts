@@ -120,15 +120,19 @@ test("sorting cycles ascending, descending, and the original order", async (test
     }, expectedTitles);
 
   const sort = pageAsAdmin.getByRole("button", { name: "Calories" });
+  const header = pageAsAdmin.getByRole("columnheader", { name: "Calories" });
   await sort.click();
   await waitForTitleOrder(["Test Mojito", "Test Old Fashioned", "Test Margarita"]);
   expect(await titles.first().innerText()).toContain("Test Mojito");
+  expect(await header.getAttribute("aria-sort")).toBe("ascending");
   await sort.click();
   await waitForTitleOrder(["Test Margarita", "Test Old Fashioned", "Test Mojito"]);
   expect(await titles.first().innerText()).toContain("Test Margarita");
+  expect(await header.getAttribute("aria-sort")).toBe("descending");
   await sort.click();
   await waitForTitleOrder(initialOrder);
   expect(await titles.allTextContents()).toEqual(initialOrder);
+  expect(await header.getAttribute("aria-sort")).toBe(null);
 });
 
 test("automatic slug stops changing after a manual edit", async (testContext) => {
@@ -546,17 +550,16 @@ test("a canceled toast gesture resumes its expiration", async (testContext) => {
   await page.getByRole("button", { name: "Update Drink" }).click();
   const notification = page.getByRole("status").filter({ hasText: "Drink updated!" });
   await notification.waitFor();
-  const bounds = await notification.boundingBox();
-
-  if (!bounds) throw new Error("Notification must be visible");
-  await page.mouse.move(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+  await notification.hover();
   await page.mouse.down();
   await page.clock.runFor(5000);
-  expect(await notification.isVisible()).toBe(true);
+  expect(await notification.getAttribute("data-state")).toBe("paused");
+  // A canceled gesture ignores its pointerup, so only pointercancel can release the press.
   await notification.dispatchEvent("pointercancel", { pointerId: 1, pointerType: "mouse" });
+  await page.mouse.up();
+  await page.mouse.move(0, 0);
   await page.clock.runFor(4500);
   await notification.waitFor({ state: "hidden" });
-  await page.mouse.up();
 });
 
 test("timestamps render in the browser time zone without a hydration mismatch", async (testContext) => {

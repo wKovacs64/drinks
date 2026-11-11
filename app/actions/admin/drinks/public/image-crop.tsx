@@ -23,12 +23,15 @@ const cropHandlePositions = {
 
 type Crop = { x: number; y: number; size: number };
 
-function resizeCrop(
-  crop: Crop,
-  bounds: { width: number; height: number },
-  direction: string,
-  delta: number,
-): Crop {
+type Size = { width: number; height: number };
+
+/** The chosen file, from its object URL through a crop sized to the displayed image. */
+type CropSelection =
+  | { status: "empty" }
+  | { status: "loading"; objectUrl: string }
+  | { status: "ready"; objectUrl: string; crop: Crop; displayedSize: Size };
+
+function resizeCrop(crop: Crop, bounds: Size, direction: string, delta: number): Crop {
   const west = direction.includes("w"),
     north = direction.includes("n");
 
@@ -46,6 +49,18 @@ function resizeCrop(
   };
 }
 
+function moveCrop(crop: Crop, bounds: Size, deltaX: number, deltaY: number): Crop {
+  return {
+    size: crop.size,
+    x: Math.max(0, Math.min(bounds.width - crop.size, crop.x + deltaX)),
+    y: Math.max(0, Math.min(bounds.height - crop.size, crop.y + deltaY)),
+  };
+}
+
+function getObjectUrl(selection: CropSelection) {
+  return selection.status === "empty" ? undefined : selection.objectUrl;
+}
+
 export function ImageCrop(
   handle: Handle<{
     existingImageUrl?: string;
@@ -53,8 +68,7 @@ export function ImageCrop(
   }>,
 ) {
   let isInteractive = false;
-  let imageSource = "";
-  let crop: Crop | undefined;
+  let selection: CropSelection = { status: "empty" };
   let imageElement: HTMLImageElement | undefined;
   let fileInput: HTMLInputElement | undefined;
 
@@ -75,18 +89,33 @@ export function ImageCrop(
     );
   });
 
-  let previousImageWidth = 0;
-  let previousImageHeight = 0;
   const cropMaskId = `crop-mask-${crypto.randomUUID()}`;
+
+  function select(next: CropSelection) {
+    if (selection.status !== "empty" && selection.objectUrl !== getObjectUrl(next)) {
+      URL.revokeObjectURL(selection.objectUrl);
+    }
+
+    selection = next;
+    void handle.update();
+  }
+
+  function setCrop(crop: Crop) {
+    if (selection.status !== "ready") return;
+    selection = { ...selection, crop };
+    void handle.update();
+  }
+
   handle.signal.addEventListener(
     "abort",
     () => {
-      if (imageSource) URL.revokeObjectURL(imageSource);
+      if (selection.status !== "empty") URL.revokeObjectURL(selection.objectUrl);
     },
     { once: true },
   );
   handle.props.onCropReady(async () => {
-    if (!imageElement || !crop) return null;
+    if (!imageElement || selection.status !== "ready") return null;
+    const { crop } = selection;
     const image = imageElement;
     const canvas = document.createElement("canvas");
     const scale = image.naturalWidth / image.width;
@@ -110,12 +139,16 @@ export function ImageCrop(
   });
 
   function initializeCrop() {
-    if (!imageElement) return;
-    previousImageWidth = imageElement.width;
-    previousImageHeight = imageElement.height;
-    const size = Math.min(imageElement.width * 0.9, imageElement.height);
-    crop = { x: (imageElement.width - size) / 2, y: (imageElement.height - size) / 2, size };
-    void handle.update();
+    if (!imageElement || selection.status === "empty") return;
+    const { width, height } = imageElement;
+    const size = Math.min(width * 0.9, height);
+
+    select({
+      status: "ready",
+      objectUrl: selection.objectUrl,
+      crop: { x: (width - size) / 2, y: (height - size) / 2, size },
+      displayedSize: { width, height },
+    });
   }
 
   function beginDrag(
@@ -123,12 +156,12 @@ export function ImageCrop(
     signal: AbortSignal,
     direction?: string,
   ) {
-    if (!imageElement || !crop) return;
+    if (!imageElement || selection.status !== "ready") return;
     event.preventDefault();
     event.stopPropagation();
     const element = event.currentTarget;
     element.setPointerCapture(event.pointerId);
-    const startingCrop = { ...crop };
+    const startingCrop = selection.crop;
 
     const startingX = event.clientX,
       startingY = event.clientY;
@@ -143,22 +176,18 @@ export function ImageCrop(
         deltaY = moveEvent.clientY - startingY;
 
       if (!direction) {
-        crop = {
-          ...startingCrop,
-          x: Math.max(0, Math.min(width - startingCrop.size, startingCrop.x + deltaX)),
-          y: Math.max(0, Math.min(height - startingCrop.size, startingCrop.y + deltaY)),
-        };
-      } else {
-        const west = direction.includes("w"),
-          north = direction.includes("n");
+        setCrop(moveCrop(startingCrop, { width, height }, deltaX, deltaY));
 
-        const delta =
-          direction.includes("e") || west ? deltaX * (west ? -1 : 1) : deltaY * (north ? -1 : 1);
-
-        crop = resizeCrop(startingCrop, { width, height }, direction, delta);
+        return;
       }
 
-      void handle.update();
+      const west = direction.includes("w"),
+        north = direction.includes("n");
+
+      const delta =
+        direction.includes("e") || west ? deltaX * (west ? -1 : 1) : deltaY * (north ? -1 : 1);
+
+      setCrop(resizeCrop(startingCrop, { width, height }, direction, delta));
     }
 
     const controller = new AbortController();
@@ -181,7 +210,7 @@ export function ImageCrop(
   }
 
   function resizeWithKeyboard(event: KeyboardEvent, direction: string) {
-    if (!crop || !imageElement || !event.key.startsWith("Arrow")) return;
+    if (selection.status !== "ready" || !imageElement || !event.key.startsWith("Arrow")) return;
     event.preventDefault();
     event.stopPropagation();
 
@@ -211,12 +240,11 @@ export function ImageCrop(
               ? -step
               : step;
 
-    crop = resizeCrop(crop, imageElement, direction, delta);
-    void handle.update();
+    setCrop(resizeCrop(selection.crop, imageElement, direction, delta));
   }
 
   function beginDraw(event: PointerEvent & { currentTarget: Element }, signal: AbortSignal) {
-    if (!imageElement || event.button !== 0) return;
+    if (!imageElement || selection.status !== "ready" || event.button !== 0) return;
     event.preventDefault();
     const element = event.currentTarget;
     element.setPointerCapture(event.pointerId);
@@ -238,12 +266,11 @@ export function ImageCrop(
         );
 
         const size = Math.max(1, Math.min(Math.abs(deltaX), maximum));
-        crop = {
+        setCrop({
           size,
           x: deltaX < 0 ? startingX - size : startingX,
           y: deltaY < 0 ? startingY - size : startingY,
-        };
-        void handle.update();
+        });
       },
       { signal: gestureSignal },
     );
@@ -268,15 +295,11 @@ export function ImageCrop(
         className={isInteractive ? "hidden" : "block w-full text-zinc-300"}
         mix={[
           initializeFileInput,
-          on<HTMLInputElement, "change">("change", async (event) => {
+          on<HTMLInputElement, "change">("change", (event) => {
             const file = event.currentTarget.files?.[0];
 
             if (!file) return;
-            crop = undefined;
-
-            if (imageSource) URL.revokeObjectURL(imageSource);
-            imageSource = URL.createObjectURL(file);
-            await handle.update();
+            select({ status: "loading", objectUrl: URL.createObjectURL(file) });
           }),
         ]}
       />
@@ -286,12 +309,8 @@ export function ImageCrop(
       <button
         type="button"
         mix={on("click", () => {
-          if (imageSource) URL.revokeObjectURL(imageSource);
-          imageSource = "";
-          crop = undefined;
-
           if (fileInput) fileInput.value = "";
-          void handle.update();
+          select({ status: "empty" });
         })}
         className="rounded border border-zinc-700 px-3 py-1.5 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200"
       >
@@ -299,7 +318,9 @@ export function ImageCrop(
       </button>
     );
 
-    if (imageSource)
+    if (selection.status !== "empty") {
+      const crop = selection.status === "ready" ? selection.crop : undefined;
+
       return (
         <div className="space-y-3">
           {filePicker}
@@ -314,43 +335,43 @@ export function ImageCrop(
                 <img
                   alt="Crop preview"
                   className="block max-h-[inherit] max-w-full touch-none"
-                  src={imageSource}
+                  src={selection.objectUrl}
                   draggable={false}
                   mix={[
                     ref((element, signal) => {
                       if (!(element instanceof HTMLImageElement)) return;
                       imageElement = element;
 
-                      if (element.complete && element.naturalWidth > 0 && !crop) initializeCrop();
+                      if (
+                        element.complete &&
+                        element.naturalWidth > 0 &&
+                        selection.status === "loading"
+                      )
+                        initializeCrop();
 
                       const observer = new ResizeObserver(() => {
                         const width = element.width,
                           height = element.height;
 
-                        if (width === 0 || height === 0) return;
+                        if (width === 0 || height === 0 || selection.status !== "ready") return;
+                        const previous = selection.displayedSize;
 
-                        if (
-                          crop &&
-                          previousImageWidth !== 0 &&
-                          previousImageHeight !== 0 &&
-                          (width !== previousImageWidth || height !== previousImageHeight)
-                        ) {
-                          const size = Math.min(
-                            (crop.size * width) / previousImageWidth,
-                            width,
-                            height,
-                          );
+                        if (width === previous.width && height === previous.height) return;
+                        const scale = width / previous.width;
+                        const size = Math.min(selection.crop.size * scale, width, height);
 
-                          crop = {
+                        select({
+                          ...selection,
+                          crop: {
                             size,
-                            x: Math.min(width - size, (crop.x * width) / previousImageWidth),
-                            y: Math.min(height - size, (crop.y * height) / previousImageHeight),
-                          };
-                          void handle.update();
-                        }
-
-                        previousImageWidth = width;
-                        previousImageHeight = height;
+                            x: Math.min(width - size, selection.crop.x * scale),
+                            y: Math.min(
+                              height - size,
+                              (selection.crop.y * height) / previous.height,
+                            ),
+                          },
+                          displayedSize: { width, height },
+                        });
                       });
 
                       observer.observe(element);
@@ -407,7 +428,13 @@ export function ImageCrop(
                       if (event instanceof PointerEvent) beginDrag(event, signal);
                     }),
                     on("keydown", (event) => {
-                      if (!(event instanceof KeyboardEvent) || !crop || !imageElement) return;
+                      if (
+                        !(event instanceof KeyboardEvent) ||
+                        selection.status !== "ready" ||
+                        !imageElement ||
+                        !event.key.startsWith("Arrow")
+                      )
+                        return;
 
                       const amount = (
                         navigator.platform.includes("Mac") ? event.metaKey : event.ctrlKey
@@ -417,34 +444,23 @@ export function ImageCrop(
                           ? 10
                           : 1;
 
-                      if (event.key.startsWith("Arrow")) {
-                        event.preventDefault();
-                        crop.x = Math.max(
-                          0,
-                          Math.min(
-                            imageElement.width - crop.size,
-                            crop.x +
-                              (event.key === "ArrowRight"
-                                ? amount
-                                : event.key === "ArrowLeft"
-                                  ? -amount
-                                  : 0),
-                          ),
-                        );
-                        crop.y = Math.max(
-                          0,
-                          Math.min(
-                            imageElement.height - crop.size,
-                            crop.y +
-                              (event.key === "ArrowDown"
-                                ? amount
-                                : event.key === "ArrowUp"
-                                  ? -amount
-                                  : 0),
-                          ),
-                        );
-                        void handle.update();
-                      }
+                      event.preventDefault();
+                      setCrop(
+                        moveCrop(
+                          selection.crop,
+                          imageElement,
+                          event.key === "ArrowRight"
+                            ? amount
+                            : event.key === "ArrowLeft"
+                              ? -amount
+                              : 0,
+                          event.key === "ArrowDown"
+                            ? amount
+                            : event.key === "ArrowUp"
+                              ? -amount
+                              : 0,
+                        ),
+                      );
                     }),
                   ]}
                 >
@@ -475,6 +491,7 @@ export function ImageCrop(
           {changeButton}
         </div>
       );
+    }
 
     if (handle.props.existingImageUrl)
       return (

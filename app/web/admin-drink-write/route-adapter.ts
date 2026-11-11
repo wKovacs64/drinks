@@ -3,7 +3,7 @@ import { redirect } from "remix/response/redirect";
 import type { Session } from "remix/session";
 import { parseSafe, string } from "remix/data-schema";
 import { field, object } from "remix/data-schema/form-data";
-import { assertNever } from "#/app/core/assert-never.ts";
+import { assertNever } from "#/app/core/public/assert-never.ts";
 import type { ToastMessage } from "#/app/core/toast.ts";
 import {
   drinkDraftSchema,

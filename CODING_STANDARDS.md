@@ -54,6 +54,12 @@ failures bubble to the request boundary.
 Colocate browser source under `public/` beside its narrowest owner; shared browser utilities belong
 under `app/core/public/`.
 
+Model interaction state with more than two states as a discriminated union on `status`, not
+parallel booleans. When transitions depend on event order or time, put them in a pure
+`transition(state, event)` module beside the component and unit-test it, as `toast-timer.ts` and
+`drink-form-submission.ts` do. Expose state that tests or agents must observe through ARIA
+(`aria-sort`, `aria-busy`) or `data-state`.
+
 Prefer Tailwind utilities for presentation and Remix's `css` mixin for styles utilities cannot express.
 Reserve global CSS for fonts, theme tokens, and shared base/utility rules.
 

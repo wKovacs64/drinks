@@ -1,6 +1,12 @@
 import { clientEntry, on, ref, type Handle } from "remix/component";
 import { animateEntrance, animateExit } from "@remix-run/ui/animation";
 import type { ToastMessage } from "#/app/core/toast.ts";
+import {
+  startToastTimer,
+  transitionToastTimer,
+  type ToastHold,
+  type ToastTimerEvent,
+} from "./toast-timer.ts";
 
 const toastColors = {
   success: "bg-[hsl(143_85%_96%)] border-[hsl(145_92%_87%)] text-[hsl(140_100%_27%)]",
@@ -26,35 +32,37 @@ export const Toast = clientEntry(
   function Toast(handle: Handle<ToastMessage & { notificationId: string }>) {
     let notificationId = handle.props.notificationId;
     let toastElement: HTMLElement | undefined;
-    let visible = true;
-    let remaining = 4000;
-    let started = 0;
-    let timeout: ReturnType<typeof setTimeout> | undefined;
-    let pointerStart: { x: number; y: number } | undefined;
+    let timer = startToastTimer(Date.now());
+    let expiry: ReturnType<typeof setTimeout> | undefined;
+    let swipeStart: { x: number; y: number } | undefined;
 
-    function dismiss() {
-      if (!visible) return;
-      clearTimeout(timeout);
-      visible = false;
+    function send(event: ToastTimerEvent) {
+      const previous = timer;
+      timer = transitionToastTimer(timer, event);
+
+      if (timer === previous) return;
+      scheduleExpiry();
       void handle.update();
     }
 
-    function pause() {
-      if (!visible) return;
-      clearTimeout(timeout);
-      remaining = Math.max(0, remaining - (Date.now() - started));
+    function scheduleExpiry() {
+      clearTimeout(expiry);
+
+      if (timer.status === "running" && toastElement)
+        expiry = setTimeout(() => send({ type: "dismiss" }), timer.remainingMs);
     }
 
-    function resume() {
-      if (!visible) return;
-      clearTimeout(timeout);
-      started = Date.now();
-      timeout = setTimeout(dismiss, remaining);
+    function hold(type: ToastHold) {
+      send({ type: "hold", hold: type, now: Date.now() });
+    }
+
+    function release(type: ToastHold) {
+      send({ type: "release", hold: type, now: Date.now() });
     }
 
     const initialize = ref((element, signal) => {
       if (element instanceof HTMLElement) toastElement = element;
-      resume();
+      scheduleExpiry();
       window.addEventListener(
         "keydown",
         (event) => {
@@ -69,7 +77,7 @@ export const Toast = clientEntry(
         "abort",
         () => {
           toastElement = undefined;
-          clearTimeout(timeout);
+          clearTimeout(expiry);
         },
         { once: true },
       );
@@ -78,15 +86,14 @@ export const Toast = clientEntry(
     return () => {
       if (notificationId !== handle.props.notificationId) {
         notificationId = handle.props.notificationId;
-        visible = true;
-        remaining = 4000;
-        pointerStart = undefined;
+        timer = transitionToastTimer(timer, { type: "restart", now: Date.now() });
+        swipeStart = undefined;
         handle.queueTask((signal) => {
-          if (!signal.aborted && toastElement) resume();
+          if (!signal.aborted) scheduleExpiry();
         });
       }
 
-      return visible ? (
+      return timer.status !== "dismissed" ? (
         <section
           key="toast"
           aria-label="Notifications"
@@ -95,38 +102,43 @@ export const Toast = clientEntry(
           // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- Alt+T focuses notifications; focus pauses expiry and Escape dismisses them.
           tabIndex={0}
           data-kind={handle.props.kind}
+          data-state={timer.status}
           mix={[
             animateEntrance(toastAnimation),
             animateExit(toastAnimation),
             initialize,
-            on("pointerenter", pause),
-            on("pointerleave", resume),
-            on("focus", pause),
-            on("blur", resume),
+            on("pointerenter", () => hold("hover")),
+            on("pointerleave", () => release("hover")),
+            // Keyboard focus holds the toast; focus from a mouse press does not outlast the press.
+            on("focus", (event) => {
+              if (event.currentTarget.matches(":focus-visible")) hold("focus");
+            }),
+            on("blur", () => release("focus")),
             on("keydown", (event) => {
-              if (event instanceof KeyboardEvent && event.key === "Escape") dismiss();
+              if (event instanceof KeyboardEvent && event.key === "Escape")
+                send({ type: "dismiss" });
             }),
             on("pointerdown", (event) => {
               if (event instanceof PointerEvent) {
-                pointerStart = { x: event.clientX, y: event.clientY };
+                swipeStart = { x: event.clientX, y: event.clientY };
                 event.currentTarget.setPointerCapture(event.pointerId);
-                pause();
+                hold("press");
               }
             }),
             on("pointercancel", () => {
-              pointerStart = undefined;
-              resume();
+              swipeStart = undefined;
+              release("press");
             }),
             on("pointerup", (event) => {
-              if (event instanceof PointerEvent && pointerStart) {
-                if (
-                  Math.abs(event.clientX - pointerStart.x) > 45 ||
-                  event.clientY - pointerStart.y > 45
-                )
-                  dismiss();
-                else resume();
-                pointerStart = undefined;
-              }
+              if (!(event instanceof PointerEvent) || !swipeStart) return;
+
+              const swiped =
+                Math.abs(event.clientX - swipeStart.x) > 45 || event.clientY - swipeStart.y > 45;
+
+              swipeStart = undefined;
+
+              if (swiped) send({ type: "dismiss" });
+              else release("press");
             }),
           ]}
         >

@@ -16,6 +16,16 @@ type Drink = Omit<AdminDrinkListItem, "createdAt" | "updatedAt"> & {
 
 type SortableColumn = "title" | "slug" | "calories" | "rank" | "status" | "createdAt" | "updatedAt";
 
+/** `null` keeps the server's order. Directions match `aria-sort` values. */
+type DrinkSort = { key: SortableColumn; direction: "ascending" | "descending" } | null;
+
+/** Each column cycles through ascending, descending, and the server's order. */
+function nextSort(sort: DrinkSort, key: SortableColumn): DrinkSort {
+  if (sort?.key !== key) return { key, direction: "ascending" };
+
+  return sort.direction === "ascending" ? { key, direction: "descending" } : null;
+}
+
 const SORTABLE_COLUMNS: { key: SortableColumn; label: string; align?: "right" }[] = [
   { key: "title", label: "Title" },
   { key: "slug", label: "Slug" },
@@ -39,19 +49,13 @@ function compareDrinks(a: Drink, b: Drink, key: SortableColumn) {
   }
 }
 
-function SortArrow(
-  handle: Handle<{
-    columnKey: string;
-    sort: { key: string; direction: "asc" | "desc" } | null;
-  }>,
-) {
+function SortArrow(handle: Handle<{ direction: "ascending" | "descending" | undefined }>) {
   return () => {
-    const { columnKey, sort } = handle.props;
-    const isActive = sort !== null && sort.key === columnKey;
+    const { direction } = handle.props;
 
     return (
-      <span className={classes("ml-1", !isActive && "invisible")}>
-        {isActive && sort.direction === "desc" ? "↓" : "↑"}
+      <span aria-hidden className={classes("ml-1", !direction && "invisible")}>
+        {direction === "descending" ? "↓" : "↑"}
       </span>
     );
   };
@@ -129,7 +133,7 @@ export const AdminDrinksList = clientEntry(
   import.meta.url,
   function AdminDrinksList(handle: Handle<{ drinks: Drink[] }>) {
     let filter = "";
-    let sort: { key: SortableColumn; direction: "asc" | "desc" } | null = null;
+    let sort: DrinkSort = null;
     // Only the browser knows the viewer's time zone, so timestamps render after hydration.
     let timestampFormatter: Intl.DateTimeFormat | undefined;
     handle.queueTask(() => {
@@ -149,12 +153,7 @@ export const AdminDrinksList = clientEntry(
     }
 
     function handleSort(key: SortableColumn) {
-      sort =
-        sort?.key !== key
-          ? { key, direction: "asc" }
-          : sort.direction === "asc"
-            ? { key, direction: "desc" }
-            : null;
+      sort = nextSort(sort, key);
       void handle.update();
     }
 
@@ -174,7 +173,7 @@ export const AdminDrinksList = clientEntry(
         ? filtered.toSorted((a, b) => {
             const comparison = compareDrinks(a, b, currentSort.key);
 
-            return currentSort.direction === "asc" ? comparison : -comparison;
+            return currentSort.direction === "ascending" ? comparison : -comparison;
           })
         : filtered;
 
@@ -215,18 +214,22 @@ export const AdminDrinksList = clientEntry(
             <table className="w-full min-w-max">
               <thead>
                 <tr className="border-b border-zinc-800 text-left text-sm tracking-wider text-zinc-500 uppercase">
-                  {SORTABLE_COLUMNS.map((column) => (
-                    <th key={column.key} className="pr-4 pb-3 font-medium">
-                      <button
-                        type="button"
-                        mix={on("click", () => handleSort(column.key))}
-                        className="cursor-pointer hover:text-zinc-300"
-                      >
-                        {column.label}
-                        <SortArrow columnKey={column.key} sort={sort} />
-                      </button>
-                    </th>
-                  ))}
+                  {SORTABLE_COLUMNS.map((column) => {
+                    const direction = sort?.key === column.key ? sort.direction : undefined;
+
+                    return (
+                      <th key={column.key} aria-sort={direction} className="pr-4 pb-3 font-medium">
+                        <button
+                          type="button"
+                          mix={on("click", () => handleSort(column.key))}
+                          className="cursor-pointer hover:text-zinc-300"
+                        >
+                          {column.label}
+                          <SortArrow direction={direction} />
+                        </button>
+                      </th>
+                    );
+                  })}
                   <th className="pb-3 text-right font-medium">Actions</th>
                 </tr>
               </thead>

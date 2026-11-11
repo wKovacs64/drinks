@@ -1,43 +1,32 @@
-import "#/test/setup.ts";
 import { test, type TestContext } from "remix/test";
 import { expect } from "remix/assert";
-import { createTestServer } from "remix/node-fetch-server/test";
 import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/client";
 import { z } from "zod";
-import { http } from "msw/http";
-import { passthrough } from "msw/utils/passthrough";
-import { router } from "#/app/router.ts";
-import { resetAndSeedDatabase, TEST_ADMIN_USER } from "#/test/database.ts";
-import { createDrinksService, purgeSearchCache } from "#/app/modules/drinks/drinks.ts";
+import { startSeededApp } from "#/test/seeded-app.ts";
+import { createDrinksService } from "#/app/modules/drinks/drinks.ts";
 import { cardResultSchema, searchResultSchema } from "#/app/integrations/mcp/public/recipe.ts";
-import { server as requestMocks } from "#/test/server.ts";
 import { getDb } from "#/app/db/client.ts";
 import { drinks } from "#/app/db/schema.ts";
-import { sessionCookie } from "#/app/modules/identity/identity.ts";
-import { getSessionCookieValue } from "#/test/session.ts";
 
 async function connect(testContext: TestContext, { admin = false } = {}) {
-  await resetAndSeedDatabase();
-  purgeSearchCache();
-  const server = await createTestServer(router.fetch);
-  // oxlint-disable-next-line typescript/no-misused-promises -- remix/test types `after` as `() => void`, but its cleanup awaits each callback.
-  testContext.after(() => server.close());
-  requestMocks.use(http.all(`${server.baseUrl}/*`, () => passthrough()));
+  const app = await startSeededApp({ admin });
   const client = new Client({ name: "drinks-test", version: "1.0.0" });
   // oxlint-disable-next-line typescript/no-misused-promises -- remix/test types `after` as `() => void`, but its cleanup awaits each callback.
   testContext.after(() => client.close());
+  // oxlint-disable-next-line typescript/no-misused-promises -- remix/test types `after` as `() => void`, but its cleanup awaits each callback.
+  testContext.after(() => app.close());
 
-  const cookie = admin
-    ? `${sessionCookie.name}=${await getSessionCookieValue(TEST_ADMIN_USER.id)}`
+  const cookie = app.adminSessionCookie
+    ? `${app.adminSessionCookie.name}=${app.adminSessionCookie.value}`
     : undefined;
 
   await client.connect(
-    new StreamableHTTPClientTransport(new URL("/mcp", server.baseUrl), {
+    new StreamableHTTPClientTransport(new URL("/mcp", app.baseUrl), {
       requestInit: { headers: cookie ? { Cookie: cookie } : {} },
     }),
   );
 
-  return { client, baseUrl: server.baseUrl, cookie };
+  return { client, baseUrl: app.baseUrl, cookie };
 }
 
 test("public MCP clients discover read-only Drink tools and retrieve the associated card resource", async (testContext) => {

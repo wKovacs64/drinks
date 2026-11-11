@@ -27,7 +27,6 @@ export default createController(routes.admin.drinks, {
     },
     deleteDrink(context) {
       return deleteAdminDrinkActionAdapter({
-        request: context.request,
         session: context.session,
         slug: context.params.slug,
         adminDrinksWriteService: createDrinkWriteService(),

@@ -17,7 +17,8 @@ construction and toast behavior belong in the adapter.
 Splitting web translation between a Drink-specific adapter and a generic action helper makes one
 **Admin Drink Write Path** outcome depend on multiple response interpreters. Keeping submission
 validation, typed outcome translation, redirects, and toasts in the same adapter gives callers a
-single web seam and preserves every error message without converting them to thrown errors.
+single web seam and keeps every error message in one place without converting outcomes to thrown
+errors.
 
 ## Decision
 
@@ -28,7 +29,7 @@ updates, and deletes:
 - `drinkDraftSchema` validation for create/update form values
 - calls to `AdminDrinksWriteService`
 - complete typed outcome translation
-- full error message preservation
+- every error message, for submission validation and typed outcomes
 - not-found responses for missing update/delete targets
 - redirects to the admin drinks list
 - success and warning toasts

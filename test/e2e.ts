@@ -1,32 +1,19 @@
-import "#/test/setup.ts";
-import { createTestServer } from "remix/node-fetch-server/test";
 import type { TestContext } from "remix/test";
-import { http } from "msw/http";
-import { passthrough } from "msw/utils/passthrough";
-import { router } from "#/app/router.ts";
-import { resetAndSeedDatabase, TEST_ADMIN_USER } from "#/test/database.ts";
-import { sessionCookie } from "#/app/modules/identity/identity.ts";
-import { purgeSearchCache } from "#/app/modules/drinks/drinks.ts";
-import { server as requestMocks } from "#/test/server.ts";
-import { getSessionCookieValue } from "#/test/session.ts";
+import { startSeededApp } from "#/test/seeded-app.ts";
 
 export async function createBrowserPage(
   testContext: TestContext,
   options: { admin?: boolean; javaScriptEnabled?: boolean; timezoneId?: string } = {},
 ) {
-  await resetAndSeedDatabase();
-  purgeSearchCache();
-  const server = await createTestServer((request) => router.fetch(request));
-  // Playwright's request client runs in this worker too; let it reach the real test router.
-  requestMocks.use(http.all(`${server.baseUrl}/*`, () => passthrough()));
-  let page = await testContext.serve(server);
+  const app = await startSeededApp({ admin: options.admin });
+  let page = await testContext.serve(app);
 
   if (options.javaScriptEnabled === false || options.timezoneId) {
     const browser = page.context().browser();
 
     if (!browser) throw new Error("Custom page options require a browser");
     page = await browser.newPage({
-      baseURL: server.baseUrl,
+      baseURL: app.baseUrl,
       javaScriptEnabled: options.javaScriptEnabled,
       timezoneId: options.timezoneId,
     });
@@ -35,15 +22,8 @@ export async function createBrowserPage(
     testContext.after(() => customPage.close());
   }
 
-  if (options.admin === true) {
-    await page.context().addCookies([
-      {
-        name: sessionCookie.name,
-        value: await getSessionCookieValue(TEST_ADMIN_USER.id),
-        url: server.baseUrl,
-      },
-    ]);
-  }
+  if (app.adminSessionCookie)
+    await page.context().addCookies([{ ...app.adminSessionCookie, url: app.baseUrl }]);
 
   return page;
 }

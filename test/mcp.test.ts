@@ -1,43 +1,31 @@
-import "#/test/setup.ts";
 import { test, type TestContext } from "remix/test";
 import { expect } from "remix/assert";
-import { createTestServer } from "remix/node-fetch-server/test";
 import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/client";
 import { z } from "zod";
-import { http } from "msw/http";
-import { passthrough } from "msw/utils/passthrough";
-import { router } from "#/app/router.ts";
-import { resetAndSeedDatabase, TEST_ADMIN_USER } from "#/test/database.ts";
-import { createDrinksService, purgeSearchCache } from "#/app/modules/drinks/drinks.ts";
+import { startSeededApp } from "#/test/seeded-app.ts";
 import { cardResultSchema, searchResultSchema } from "#/app/integrations/mcp/public/recipe.ts";
-import { server as requestMocks } from "#/test/server.ts";
 import { getDb } from "#/app/db/client.ts";
 import { drinks } from "#/app/db/schema.ts";
-import { sessionCookie } from "#/app/modules/identity/identity.ts";
-import { getSessionCookieValue } from "#/test/session.ts";
 
 async function connect(testContext: TestContext, { admin = false } = {}) {
-  await resetAndSeedDatabase();
-  purgeSearchCache();
-  const server = await createTestServer(router.fetch);
-  // oxlint-disable-next-line typescript/no-misused-promises -- remix/test types `after` as `() => void`, but its cleanup awaits each callback.
-  testContext.after(() => server.close());
-  requestMocks.use(http.all(`${server.baseUrl}/*`, () => passthrough()));
+  const app = await startSeededApp({ admin });
   const client = new Client({ name: "drinks-test", version: "1.0.0" });
   // oxlint-disable-next-line typescript/no-misused-promises -- remix/test types `after` as `() => void`, but its cleanup awaits each callback.
   testContext.after(() => client.close());
+  // oxlint-disable-next-line typescript/no-misused-promises -- remix/test types `after` as `() => void`, but its cleanup awaits each callback.
+  testContext.after(() => app.close());
 
-  const cookie = admin
-    ? `${sessionCookie.name}=${await getSessionCookieValue(TEST_ADMIN_USER.id)}`
+  const cookie = app.adminSessionCookie
+    ? `${app.adminSessionCookie.name}=${app.adminSessionCookie.value}`
     : undefined;
 
   await client.connect(
-    new StreamableHTTPClientTransport(new URL("/mcp", server.baseUrl), {
+    new StreamableHTTPClientTransport(new URL("/mcp", app.baseUrl), {
       requestInit: { headers: cookie ? { Cookie: cookie } : {} },
     }),
   );
 
-  return { client, baseUrl: server.baseUrl, cookie };
+  return { client, baseUrl: app.baseUrl, cookie };
 }
 
 test("public MCP clients discover read-only Drink tools and retrieve the associated card resource", async (testContext) => {
@@ -144,7 +132,7 @@ test("displaying multiple summaries preserves selected order and omits preparati
 });
 
 test("MCP exact titles return only that Drink while partial, ingredient and website searches stay broad", async (testContext) => {
-  const { client } = await connect(testContext);
+  const { client, baseUrl } = await connect(testContext);
   const db = getDb();
   await db.update(drinks, "test-drink-3", { title: "Old Fashioned" });
   await db.update(drinks, "test-drink-2", {
@@ -164,27 +152,13 @@ test("MCP exact titles return only that Drink while partial, ingredient and webs
   for (const query of ["fashioned", "bourbon"])
     expect((await search(query)).toSorted()).toEqual(["test-mojito", "test-old-fashioned"]);
 
-  const websiteResults = await createDrinksService({ db }).searchPublishedDrinks({
-    query: "old fashioned",
-  });
+  const websiteSearch = await fetch(`${baseUrl}/search?q=old+fashioned`);
+  expect(websiteSearch.status).toBe(200);
+  const html = await websiteSearch.text();
 
-  expect(websiteResults.map((drink) => drink.slug).toSorted()).toEqual([
-    "test-mojito",
-    "test-old-fashioned",
-  ]);
-});
-
-test("unmatched searches return an empty result", async (testContext) => {
-  const { client } = await connect(testContext);
-
-  const search = await client.callTool({
-    name: "search_drinks",
-    arguments: { query: "xyznonexistent" },
-  });
-
-  expect(search.structuredContent).toEqual({ drinks: [] });
-  expect(search["_meta"]?.drinks).toBeUndefined();
-  expect(search.isError).not.toBe(true);
+  expect(
+    Array.from(html.matchAll(/href="\/(test-[a-z0-9-]+)"/g), ([, slug]) => slug).toSorted(),
+  ).toEqual(["test-mojito", "test-old-fashioned"]);
 });
 
 test("invalid MCP inputs are errors", async (testContext) => {
@@ -223,6 +197,7 @@ for (const admin of [false, true]) {
       arguments: { query: "tequila" },
     });
 
+    expect(search.isError).not.toBe(true);
     expect(search.structuredContent).toEqual({ drinks: [] });
     expect(search["_meta"]?.drinks).toBeUndefined();
 

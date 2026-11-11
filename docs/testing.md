@@ -6,9 +6,14 @@ Install the test browser once:
 pnpm exec playwright install chromium --only-shell
 ```
 
-Import `test/setup.ts` in new suites, directly or through the browser helper, so migrations and MSW's
+Import `test/setup.ts` in new suites, directly or through a harness helper, so migrations and MSW's
 lifecycle run in the test worker. MSW intercepts worker requests; use browser request interception for
 browser-originated network fixtures.
+
+`startSeededApp` in `test/seeded-app.ts` resets and seeds the database, purges the search cache,
+serves the real router over HTTP, and optionally returns an Admin session cookie. Browser tests get a
+page on it from `createBrowserPage` in `test/e2e.ts`; tests that need no browser request its
+`baseUrl` directly, as `test/mcp.test.ts` does, and register its `close` with `testContext.after`.
 
 Test files run in up to four forked workers with separate in-memory SQLite databases and MSW
 handlers. Each E2E file also gets its own browser. Tests within a file run sequentially so database

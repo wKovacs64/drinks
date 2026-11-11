@@ -2,7 +2,7 @@ import { createController } from "remix/router";
 import { routes } from "#/app/routes.ts";
 import { getDb } from "#/app/db/client.ts";
 import { createDrinksService } from "#/app/modules/drinks/drinks.ts";
-import { publicHeaders } from "#/app/web/gallery-cache.ts";
+import { galleryPageHeaders } from "#/app/web/gallery-cache.ts";
 import { SearchPage } from "./page.tsx";
 import { SearchForm } from "./public/search-form.tsx";
 import { SearchStatus } from "./public/search-status.tsx";
@@ -21,17 +21,12 @@ export default createController(routes.search, {
       const query = context.url.searchParams.get("q") ?? "";
       const drinks = await drinksService.searchPublishedDrinks({ query });
 
-      const headers = {
-        ...publicHeaders,
-        "Surrogate-Key": query ? "search all" : "all",
-      };
-
       const modulePreloads =
         productionModulePreloads ?? (await getModulePreloads(SearchForm, SearchStatus));
 
       return context.render(
         <SearchPage query={query} drinks={drinks} modulePreloads={modulePreloads} />,
-        { headers },
+        { headers: galleryPageHeaders({ page: "search", query }) },
       );
     },
   },

@@ -5,7 +5,7 @@ import { createDrinksService } from "#/app/modules/drinks/drinks.ts";
 import { rawSql } from "remix/data-table";
 import { assets, fetchHmrEvents } from "#/app/assets.ts";
 import { env } from "#/app/core/env.ts";
-import { publicHeaders } from "#/app/web/gallery-cache.ts";
+import { galleryPageHeaders } from "#/app/web/gallery-cache.ts";
 import { HomePage } from "./home-page.tsx";
 
 export default createController(routes, {
@@ -71,7 +71,7 @@ export default createController(routes, {
       const drinks = await drinksService.getPublishedDrinks();
 
       return context.render(<HomePage drinks={drinks} />, {
-        headers: { ...publicHeaders, "Surrogate-Key": "all index" },
+        headers: galleryPageHeaders({ page: "home" }),
       });
     },
   },

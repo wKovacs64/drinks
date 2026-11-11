@@ -27,8 +27,8 @@ type Db = ReturnType<typeof getDb>;
 type StoredDrinkDraft = DrinkDraft & { imageUrl: string; imageFileId: string };
 
 type AffectedDrinkPages = {
-  slugs: string[];
-  tags: string[];
+  drinkSlugs: string[];
+  tagSlugs: string[];
 };
 
 type DrinksWriteEffects = {
@@ -228,8 +228,8 @@ export function createAdminDrinksWriteService({
       purgeSearchCache();
 
       const notices = await refreshDrinkCache(writeEffects, {
-        slugs: [createdDrink.slug],
-        tags: createdDrink.tags,
+        drinkSlugs: [createdDrink.slug],
+        tagSlugs: toDrinkTagViews(createdDrink.tags).map((tag) => tag.slug),
       });
 
       return {
@@ -276,8 +276,10 @@ export function createAdminDrinksWriteService({
 
       notices.push(
         ...(await refreshDrinkCache(writeEffects, {
-          slugs: [...new Set([existingDrink.slug, updatedDrink.slug])],
-          tags: [...new Set([...existingDrink.tags, ...updatedDrink.tags])],
+          drinkSlugs: [...new Set([existingDrink.slug, updatedDrink.slug])],
+          tagSlugs: toDrinkTagViews([...existingDrink.tags, ...updatedDrink.tags]).map(
+            (tag) => tag.slug,
+          ),
         })),
       );
 
@@ -300,8 +302,8 @@ export function createAdminDrinksWriteService({
       const notices = await retireDrinkImage(writeEffects, existingDrink.imageFileId);
       notices.push(
         ...(await refreshDrinkCache(writeEffects, {
-          slugs: [existingDrink.slug],
-          tags: existingDrink.tags,
+          drinkSlugs: [existingDrink.slug],
+          tagSlugs: toDrinkTagViews(existingDrink.tags).map((tag) => tag.slug),
         })),
       );
 

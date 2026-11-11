@@ -82,3 +82,17 @@ A committed Drink write counts as success even if old-image cleanup or a public-
 Report these follow-up failures as warnings so an admin is not invited to repeat an already-completed
 write. Remote effects stay outside database transactions; before persistence succeeds, a failure
 must preserve the original error even if compensating cleanup also fails.
+
+## Public page caching
+
+`app/web/gallery-cache.ts` owns the Fastly surrogate-key vocabulary in both directions. Gallery
+controllers get response headers from `galleryPageHeaders`: every public page carries `all` plus
+its own key (`index`, `search` for a non-empty query, `tags`, the Tag slug, or the Drink slug).
+An Unpublished drink shown to an Admin gets `private, no-store` and no key. The Admin Drink Write
+Path's composition root turns the affected Drink slugs and Tag slugs into keys with `purgeKeysFor`:
+`index`, `search`, `tags`, each affected Drink slug, and the Tag slugs of the Drink's old and new
+Tags. The Drinks module derives those Tag slugs from stored Tags. A write adds no `all` key of its
+own; CI purges `all` on deploy. Drink slugs, Tag slugs, and the fixed keys (`all`, `index`,
+`search`, `tags`) share one namespace, so a slug equal to another key over-purges and never leaves
+a page stale.
+`app/integrations/fastly.ts` is transport only: it sends a list of keys to Fastly's purge API.

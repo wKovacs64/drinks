@@ -2,7 +2,7 @@ import { createController } from "remix/router";
 import { routes } from "#/app/routes.ts";
 import { getDb } from "#/app/db/client.ts";
 import { createDrinksService } from "#/app/modules/drinks/drinks.ts";
-import { publicHeaders, notFoundHeaders } from "#/app/web/gallery-cache.ts";
+import { galleryPageHeaders, notFoundHeaders } from "#/app/web/gallery-cache.ts";
 import { TagsPage } from "./index-page.tsx";
 import { TagPage } from "./show-page.tsx";
 import { NotFoundPage } from "#/app/actions/not-found-page.tsx";
@@ -14,10 +14,7 @@ export default createController(routes.tags, {
       const tags = await drinksService.getAllTags();
 
       return context.render(<TagsPage tags={tags} />, {
-        headers: {
-          ...publicHeaders,
-          "Surrogate-Key": `all tags ${tags.map((tag) => tag.slug).join(" ")}`,
-        },
+        headers: galleryPageHeaders({ page: "tags" }),
       });
     },
     async show(context) {
@@ -28,7 +25,7 @@ export default createController(routes.tags, {
         return context.render(<NotFoundPage />, { status: 404, headers: notFoundHeaders });
 
       return context.render(<TagPage taggedDrinks={taggedDrinks} />, {
-        headers: { ...publicHeaders, "Surrogate-Key": `all tags ${taggedDrinks.tag.slug}` },
+        headers: galleryPageHeaders({ page: "tag", tagSlug: taggedDrinks.tag.slug }),
       });
     },
   },

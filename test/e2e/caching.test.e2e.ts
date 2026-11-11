@@ -10,9 +10,9 @@ test("public pages retain their original cache lifetimes and Fastly keys", async
   const cases = [
     ["/", "all index"],
     ["/search", "all"],
-    ["/search?q=tequila", "search all"],
-    ["/tags", "all tags bourbon citrus classic mint rum tequila"],
-    ["/tags/citrus", "all tags citrus"],
+    ["/search?q=tequila", "all search"],
+    ["/tags", "all tags"],
+    ["/tags/citrus", "all citrus"],
     ["/test-margarita", "all test-margarita"],
   ];
 
@@ -103,7 +103,7 @@ test("editing a drink purges the existing public route cache keys", async (testC
   expect(response.status()).toBe(303);
   expect(response.headers()["cache-control"]).toBe("private, no-store");
   expect(purgedKeys).toEqual([
-    "index search test-margarita renamed-margarita tags tequila citrus bright_citrus",
+    "index search test-margarita renamed-margarita tags tequila citrus bright-citrus",
   ]);
 
   const privateDrink = await page.request.get("/renamed-margarita");

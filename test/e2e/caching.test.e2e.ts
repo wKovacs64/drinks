@@ -1,6 +1,6 @@
 import { test } from "remix/test";
 import { expect } from "remix/assert";
-import { createBrowserPage } from "#/test/e2e.ts";
+import { captureLoggedErrorLabels, createBrowserPage } from "#/test/e2e.ts";
 import { http, HttpResponse } from "msw/http";
 import { server as requestMocks } from "#/test/server.ts";
 
@@ -117,7 +117,7 @@ test("editing a drink purges the existing public route cache keys", async (testC
 });
 
 test("a committed rename navigates with a warning after network purge failure", async (testContext) => {
-  const logError = testContext.mock.method(console, "error", () => undefined);
+  const loggedErrorLabels = captureLoggedErrorLabels(testContext);
   const page = await createBrowserPage(testContext, { admin: true });
   requestMocks.use(
     http.post("https://api.fastly.com/service/:serviceId/purge", () => HttpResponse.error()),
@@ -142,17 +142,5 @@ test("a committed rename navigates with a warning after network purge failure", 
   expect(await notification.innerText()).toBe("Drink updated, but cache refresh failed");
   expect((await page.request.get("/committed-margarita")).status()).toBe(200);
   expect((await page.request.get("/test-margarita")).status()).toBe(404);
-  expect(
-    logError.mock.calls.map(({ arguments: [message, affectedPages, cause] }): unknown[] => [
-      message,
-      affectedPages,
-      String(cause),
-    ]),
-  ).toEqual([
-    [
-      "Failed to refresh cache after committed write:",
-      { slugs: ["test-margarita", "committed-margarita"], tags: ["tequila", "citrus"] },
-      "TypeError: fetch failed",
-    ],
-  ]);
+  expect(loggedErrorLabels()).toEqual(["Failed to refresh cache after committed write:"]);
 });

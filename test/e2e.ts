@@ -47,3 +47,9 @@ export async function createBrowserPage(
 
   return page;
 }
+
+export function captureLoggedErrorLabels(testContext: TestContext) {
+  const logError = testContext.mock.method(console, "error", () => undefined);
+
+  return () => logError.mock.calls.map((call) => String(call.arguments[0]));
+}

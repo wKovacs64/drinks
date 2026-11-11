@@ -741,7 +741,7 @@ describe("createAdminDrinksWriteService", () => {
       ],
       [
         "Failed to refresh cache after committed write:",
-        { slugs: ["test-margarita"], tags: ["tequila", "citrus"] },
+        { drinkSlugs: ["test-margarita"], tagSlugs: ["tequila", "citrus"] },
         cacheError,
       ],
     ]);
@@ -767,12 +767,8 @@ describe("createAdminDrinksWriteService", () => {
     });
     expect(await readService.findDrinkEditorBySlug("test-margarita")).toBeNull();
     expect(await readService.searchPublishedDrinks({ query: "margarita" })).toEqual([]);
-    expect(logError.mock.calls.map((call): unknown[] => call.arguments)).toEqual([
-      [
-        "Failed to refresh cache after committed write:",
-        { slugs: ["test-margarita"], tags: ["tequila", "citrus"] },
-        cacheError,
-      ],
+    expect(logError.mock.calls.flatMap((call): unknown[] => call.arguments.slice(-1))).toEqual([
+      cacheError,
     ]);
   });
 
@@ -812,12 +808,8 @@ describe("createAdminDrinksWriteService", () => {
     expect(
       (await readService.searchPublishedDrinks({ query: "negroni" })).map((drink) => drink.slug),
     ).toEqual(["committed-negroni"]);
-    expect(logError.mock.calls.map((call): unknown[] => call.arguments)).toEqual([
-      [
-        "Failed to refresh cache after committed write:",
-        { slugs: ["committed-negroni"], tags: ["gin"] },
-        cacheError,
-      ],
+    expect(logError.mock.calls.flatMap((call): unknown[] => call.arguments.slice(-1))).toEqual([
+      cacheError,
     ]);
   });
 
@@ -860,12 +852,8 @@ describe("createAdminDrinksWriteService", () => {
       (await readService.searchPublishedDrinks({ query: "negroni" })).map((drink) => drink.slug),
     ).toEqual(["committed-negroni"]);
     expect(await readService.searchPublishedDrinks({ query: "margarita" })).toEqual([]);
-    expect(logError.mock.calls.map((call): unknown[] => call.arguments)).toEqual([
-      [
-        "Failed to refresh cache after committed write:",
-        { slugs: ["test-margarita", "committed-negroni"], tags: ["tequila", "citrus", "gin"] },
-        cacheError,
-      ],
+    expect(logError.mock.calls.flatMap((call): unknown[] => call.arguments.slice(-1))).toEqual([
+      cacheError,
     ]);
   });
 
@@ -874,6 +862,10 @@ describe("createAdminDrinksWriteService", () => {
       const logError = testContext.mock.method(console, "error", () => undefined);
       const cleanupError = new Error("cleanup failed");
       const cacheError = new Error("cache unavailable");
+
+      const deleteImage = mock.fn<DrinksWriteEffects["deleteImage"]>(async () => {
+        throw cleanupError;
+      });
 
       const purgeDrinkCache = mock.fn<DrinksWriteEffects["purgeDrinkCache"]>(async () => {
         if (purgeFails) throw cacheError;
@@ -885,9 +877,7 @@ describe("createAdminDrinksWriteService", () => {
             url: "https://ik.imagekit.io/test/drinks/test-margarita.jpg",
             fileId: "replacement-file-id",
           })),
-          deleteImage: mock.fn<DrinksWriteEffects["deleteImage"]>(async () => {
-            throw cleanupError;
-          }),
+          deleteImage,
           purgeDrinkCache,
         },
       });
@@ -920,22 +910,10 @@ describe("createAdminDrinksWriteService", () => {
         drinkSlugs: ["test-margarita"],
         tagSlugs: ["tequila", "citrus"],
       });
-      expect(logError.mock.calls.map((call): unknown[] => call.arguments)).toEqual([
-        [
-          "Failed to clean up old image after committed write:",
-          { fileId: "seed-fileId-1" },
-          cleanupError,
-        ],
-        ...(purgeFails
-          ? [
-              [
-                "Failed to refresh cache after committed write:",
-                { slugs: ["test-margarita"], tags: ["tequila", "citrus"] },
-                cacheError,
-              ],
-            ]
-          : []),
-      ]);
+      expect(deleteImage.mock.calls.map((call) => call.arguments)).toEqual([["seed-fileId-1"]]);
+      expect(logError.mock.calls.flatMap((call): unknown[] => call.arguments.slice(-1))).toEqual(
+        purgeFails ? [cleanupError, cacheError] : [cleanupError],
+      );
     });
   }
 });

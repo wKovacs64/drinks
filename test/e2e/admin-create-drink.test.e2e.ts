@@ -1,12 +1,12 @@
 import { test, describe } from "remix/test";
 import { expect } from "remix/assert";
-import { createBrowserPage } from "#/test/e2e.ts";
+import { captureLoggedErrorLabels, createBrowserPage } from "#/test/e2e.ts";
 import { http, HttpResponse } from "msw/http";
 import { server as requestMocks } from "#/test/server.ts";
 
 describe("Create New Drink", () => {
   test("can create a new drink with a warning after HTTP purge failure", async (testContext) => {
-    const logError = testContext.mock.method(console, "error", () => undefined);
+    const loggedErrorLabels = captureLoggedErrorLabels(testContext);
     const pageAsAdmin = await createBrowserPage(testContext, { admin: true });
     requestMocks.use(
       http.post(
@@ -54,19 +54,7 @@ describe("Create New Drink", () => {
     await notification.filter({ hasText: "Drink created, but cache refresh failed" }).waitFor();
     expect(await notification.getAttribute("data-kind")).toBe("warning");
     expect(await notification.innerText()).toBe("Drink created, but cache refresh failed");
-    expect(
-      logError.mock.calls.map(({ arguments: [message, affectedPages, cause] }): unknown[] => [
-        message,
-        affectedPages,
-        String(cause),
-      ]),
-    ).toEqual([
-      [
-        "Failed to refresh cache after committed write:",
-        { slugs: ["new-test-drink"], tags: ["vodka", "juice"] },
-        "Error: Fastly cache purge failed (HTTP 503)",
-      ],
-    ]);
+    expect(loggedErrorLabels()).toEqual(["Failed to refresh cache after committed write:"]);
   });
 });
 

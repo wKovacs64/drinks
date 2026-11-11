@@ -1,6 +1,7 @@
 import { test, describe } from "remix/test";
 import { expect } from "remix/assert";
-import { createBrowserPage } from "#/test/e2e.ts";
+import type { Route } from "playwright";
+import { createBrowserPage, freezeClockOnRedirect } from "#/test/e2e.ts";
 import { getDb } from "#/app/db/client.ts";
 import { users } from "#/app/db/schema.ts";
 import { TEST_ADMIN_USER } from "#/test/database.ts";
@@ -8,6 +9,7 @@ import { TEST_ADMIN_USER } from "#/test/database.ts";
 describe("Edit Drink", () => {
   test("editing preserves values after duplicate-slug validation and succeeds on retry", async (testContext) => {
     const pageAsAdmin = await createBrowserPage(testContext, { admin: true });
+    await freezeClockOnRedirect(pageAsAdmin);
     await pageAsAdmin.goto("/admin/drinks/test-margarita/edit");
     await pageAsAdmin.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
 
@@ -121,4 +123,26 @@ test("the editor displays every error and can retry", async (testContext) => {
   await page.getByRole("button", { name: "Update Drink" }).click();
   await page.waitForURL("/admin/drinks");
   await page.getByRole("cell", { name: "Retry Margarita" }).waitFor();
+});
+
+const saveUrl = "**/admin/drinks/test-margarita/edit";
+
+function abortSave(route: Route) {
+  return route.request().method() === "POST" ? route.abort() : route.fallback();
+}
+
+test("a save that cannot reach the server reports the failure and can retry", async (testContext) => {
+  const page = await createBrowserPage(testContext, { admin: true });
+  await freezeClockOnRedirect(page);
+  await page.goto("/admin/drinks/test-margarita/edit");
+  await page.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
+  await page.route(saveUrl, abortSave);
+  const saveButton = page.getByRole("button", { name: "Update Drink" });
+  await saveButton.click();
+  await page.getByRole("alert").filter({ hasText: "Unable to save drink." }).waitFor();
+  expect(await saveButton.isEnabled()).toBe(true);
+  await page.unroute(saveUrl, abortSave);
+  await saveButton.click();
+  await page.waitForURL("/admin/drinks");
+  await page.getByRole("status").filter({ hasText: "Drink updated!" }).waitFor();
 });

@@ -880,7 +880,10 @@ describe("createAdminDrinksWriteService", () => {
       });
 
       const editor = await getExistingDrinkEditor("test-margarita");
-      expect(editor.imageUrl).toBe("https://ik.imagekit.io/test/drinks/test-margarita.jpg");
+      expect(editor).toMatchObject({
+        mode: "edit",
+        imageUrl: "https://ik.imagekit.io/test/drinks/test-margarita.jpg",
+      });
       expect(purgeDrinkCache).toHaveBeenCalledWith({
         drinkSlugs: ["test-margarita"],
         tagSlugs: ["tequila", "citrus"],

@@ -1,4 +1,4 @@
-import { assertNever } from "#/app/core/assert-never.ts";
+import { assertNever } from "#/app/core/public/assert-never.ts";
 
 type GalleryPage =
   | { page: "home" }

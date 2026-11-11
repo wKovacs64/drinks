@@ -16,6 +16,21 @@ type Drink = Omit<AdminDrinkListItem, "createdAt" | "updatedAt"> & {
 
 type SortableColumn = "title" | "slug" | "calories" | "rank" | "status" | "createdAt" | "updatedAt";
 
+/** Unsorted keeps the server's order. Directions match `aria-sort` values. */
+type DrinkSort =
+  | { status: "unsorted" }
+  | { status: "sorted"; key: SortableColumn; direction: "ascending" | "descending" };
+
+/** Each column cycles through ascending, descending, and the server's order. */
+function nextSort(sort: DrinkSort, key: SortableColumn): DrinkSort {
+  if (sort.status === "unsorted" || sort.key !== key)
+    return { status: "sorted", key, direction: "ascending" };
+
+  return sort.direction === "ascending"
+    ? { status: "sorted", key, direction: "descending" }
+    : { status: "unsorted" };
+}
+
 const SORTABLE_COLUMNS: { key: SortableColumn; label: string; align?: "right" }[] = [
   { key: "title", label: "Title" },
   { key: "slug", label: "Slug" },
@@ -39,19 +54,13 @@ function compareDrinks(a: Drink, b: Drink, key: SortableColumn) {
   }
 }
 
-function SortArrow(
-  handle: Handle<{
-    columnKey: string;
-    sort: { key: string; direction: "asc" | "desc" } | null;
-  }>,
-) {
+function SortArrow(handle: Handle<{ direction: "ascending" | "descending" | undefined }>) {
   return () => {
-    const { columnKey, sort } = handle.props;
-    const isActive = sort !== null && sort.key === columnKey;
+    const { direction } = handle.props;
 
     return (
-      <span className={classes("ml-1", !isActive && "invisible")}>
-        {isActive && sort.direction === "desc" ? "↓" : "↑"}
+      <span aria-hidden className={classes("ml-1", !direction && "invisible")}>
+        {direction === "descending" ? "↓" : "↑"}
       </span>
     );
   };
@@ -129,7 +138,7 @@ export const AdminDrinksList = clientEntry(
   import.meta.url,
   function AdminDrinksList(handle: Handle<{ drinks: Drink[] }>) {
     let filter = "";
-    let sort: { key: SortableColumn; direction: "asc" | "desc" } | null = null;
+    let sort: DrinkSort = { status: "unsorted" };
     // Only the browser knows the viewer's time zone, so timestamps render after hydration.
     let timestampFormatter: Intl.DateTimeFormat | undefined;
     handle.queueTask(() => {
@@ -149,12 +158,7 @@ export const AdminDrinksList = clientEntry(
     }
 
     function handleSort(key: SortableColumn) {
-      sort =
-        sort?.key !== key
-          ? { key, direction: "asc" }
-          : sort.direction === "asc"
-            ? { key, direction: "desc" }
-            : null;
+      sort = nextSort(sort, key);
       void handle.update();
     }
 
@@ -170,13 +174,14 @@ export const AdminDrinksList = clientEntry(
 
       const currentSort = sort;
 
-      const processed = currentSort
-        ? filtered.toSorted((a, b) => {
-            const comparison = compareDrinks(a, b, currentSort.key);
+      const processed =
+        currentSort.status === "sorted"
+          ? filtered.toSorted((a, b) => {
+              const comparison = compareDrinks(a, b, currentSort.key);
 
-            return currentSort.direction === "asc" ? comparison : -comparison;
-          })
-        : filtered;
+              return currentSort.direction === "ascending" ? comparison : -comparison;
+            })
+          : filtered;
 
       return (
         <div>
@@ -215,18 +220,25 @@ export const AdminDrinksList = clientEntry(
             <table className="w-full min-w-max">
               <thead>
                 <tr className="border-b border-zinc-800 text-left text-sm tracking-wider text-zinc-500 uppercase">
-                  {SORTABLE_COLUMNS.map((column) => (
-                    <th key={column.key} className="pr-4 pb-3 font-medium">
-                      <button
-                        type="button"
-                        mix={on("click", () => handleSort(column.key))}
-                        className="cursor-pointer hover:text-zinc-300"
-                      >
-                        {column.label}
-                        <SortArrow columnKey={column.key} sort={sort} />
-                      </button>
-                    </th>
-                  ))}
+                  {SORTABLE_COLUMNS.map((column) => {
+                    const direction =
+                      sort.status === "sorted" && sort.key === column.key
+                        ? sort.direction
+                        : undefined;
+
+                    return (
+                      <th key={column.key} aria-sort={direction} className="pr-4 pb-3 font-medium">
+                        <button
+                          type="button"
+                          mix={on("click", () => handleSort(column.key))}
+                          className="cursor-pointer hover:text-zinc-300"
+                        >
+                          {column.label}
+                          <SortArrow direction={direction} />
+                        </button>
+                      </th>
+                    );
+                  })}
                   <th className="pb-3 text-right font-medium">Actions</th>
                 </tr>
               </thead>

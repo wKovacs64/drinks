@@ -1,6 +1,6 @@
 import { test, describe } from "remix/test";
 import { expect } from "remix/assert";
-import { captureLoggedErrorLabels, createBrowserPage } from "#/test/e2e.ts";
+import { captureLoggedErrorLabels, createBrowserPage, freezeClockOnRedirect } from "#/test/e2e.ts";
 import { http, HttpResponse } from "msw/http";
 import { server as requestMocks } from "#/test/server.ts";
 
@@ -8,6 +8,7 @@ describe("Create New Drink", () => {
   test("can create a new drink with a warning after HTTP purge failure", async (testContext) => {
     const loggedErrorLabels = captureLoggedErrorLabels(testContext);
     const pageAsAdmin = await createBrowserPage(testContext, { admin: true });
+    await freezeClockOnRedirect(pageAsAdmin);
     requestMocks.use(
       http.post(
         "https://api.fastly.com/service/:serviceId/purge",
@@ -60,6 +61,7 @@ describe("Create New Drink", () => {
 
 test("create retries preserve the draft and crop, and each save uploads the current crop", async (testContext) => {
   const page = await createBrowserPage(testContext, { admin: true });
+  await freezeClockOnRedirect(page);
   await page.goto("/admin/drinks/new");
   await page.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
   await page.getByLabel("Title", { exact: true }).fill("Retry With Image");
@@ -180,4 +182,23 @@ test("create retries preserve the draft and crop, and each save uploads the curr
   expect(uploadedImages[1]).toBe(uploadedImages[0]);
   expect(uploadedImages[2]).not.toBe(uploadedImages[1]);
   await page.getByRole("status").filter({ hasText: "Drink created!" }).waitFor();
+});
+
+test("creating without an image asks for one without sending the form", async (testContext) => {
+  const page = await createBrowserPage(testContext, { admin: true });
+  await page.goto("/admin/drinks/new");
+  await page.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
+  await page.getByLabel("Title", { exact: true }).fill("Imageless");
+  await page.getByLabel("Ingredients (one per line)").fill("1 oz gin");
+  await page.getByLabel("Calories").fill("100");
+  await page.getByLabel("Tags (comma-separated)").fill("gin");
+  let posted = false;
+  page.on("request", (request) => {
+    if (request.method() === "POST") posted = true;
+  });
+  const createButton = page.getByRole("button", { name: "Create Drink" });
+  await createButton.click();
+  await page.getByText("Image is required").waitFor();
+  expect(await createButton.isEnabled()).toBe(true);
+  expect(posted).toBe(false);
 });

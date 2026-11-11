@@ -2,6 +2,12 @@ import { clientEntry, on, ref, type Handle } from "remix/component";
 import slugify from "@sindresorhus/slugify";
 import type { DrinkEditor } from "#/app/modules/drinks/drinks.ts";
 import { ImageCrop } from "#/app/actions/admin/drinks/public/image-crop.tsx";
+import {
+  idleSubmission,
+  isSubmissionBusy,
+  transitionDrinkFormSubmission,
+  type DrinkFormSubmissionEvent,
+} from "#/app/actions/admin/drinks/public/drink-form-submission.ts";
 
 const STATUS_OPTIONS: {
   value: DrinkEditor["initialValues"]["status"];
@@ -22,6 +28,8 @@ const STATUS_OPTIONS: {
 
 type DrinkFormProps = { editor: DrinkEditor; action: string; errors?: string[] };
 
+type SlugField = { source: "title" | "manual"; value: string };
+
 export const DrinkForm = clientEntry(
   import.meta.url,
   function DrinkForm(handle: Handle<DrinkFormProps>) {
@@ -36,80 +44,69 @@ export const DrinkForm = clientEntry(
 
 function DrinkEditorForm(handle: Handle<DrinkFormProps>) {
   const { editor, action } = handle.props;
-  let isSubmitting = false;
+  let submission = idleSubmission;
   let getCroppedImage: (() => Promise<Blob | null>) | undefined;
-  let isSlugManuallyEdited = false;
-  let slugValue = editor.initialValues.slug;
-  let imageRequired = false;
-  let saveFailed = false;
-  // The runtime can't await the crop, so the first submit waits for it and resubmits natively.
-  let isResubmitting = false;
-  handle.frame.addEventListener(
-    "reloadComplete",
-    () => {
-      if (!isSubmitting) return;
-      isSubmitting = false;
-      void handle.update();
-    },
-    { signal: handle.signal },
-  );
-  // A failed frame reload rejects the save's navigation after reloadComplete; superseded
-  // navigations abort.
-  let isNavigating = false;
 
-  const reportFailedSave = ref<HTMLFormElement>((_form, signal) => {
+  // A new Drink's slug follows its title until the slug is edited.
+  let slug: SlugField = {
+    source: editor.mode === "create" ? "title" : "manual",
+    value: editor.initialValues.slug,
+  };
+
+  function send(event: DrinkFormSubmissionEvent) {
+    const previous = submission;
+    submission = transitionDrinkFormSubmission(submission, event);
+
+    if (submission !== previous) void handle.update();
+  }
+
+  handle.frame.addEventListener("reloadComplete", () => send({ type: "reloaded" }), {
+    signal: handle.signal,
+  });
+
+  const observeSaveNavigation = ref<HTMLFormElement>((_form, signal) => {
     window.navigation?.addEventListener(
       "navigatesuccess",
-      () => {
-        isNavigating = false;
-      },
+      () => send({ type: "navigated", outcome: "succeeded" }),
       { signal },
     );
     window.navigation?.addEventListener(
       "navigateerror",
       (event) => {
-        if (!isNavigating) return;
-        isNavigating = false;
-
-        if (event.error instanceof DOMException && event.error.name === "AbortError") return;
-        saveFailed = true;
-        void handle.update();
+        const aborted = event.error instanceof DOMException && event.error.name === "AbortError";
+        send({ type: "navigated", outcome: aborted ? "aborted" : "failed" });
       },
       { signal },
     );
   });
 
-  function setSlugValue(value: string) {
-    slugValue = value;
+  function setSlug(value: SlugField) {
+    slug = value;
     void handle.update();
-  }
-
-  function setIsSlugManuallyEdited(value: boolean) {
-    isSlugManuallyEdited = value;
   }
 
   async function handleSubmit(event: SubmitEvent & { currentTarget: HTMLFormElement }) {
-    if (isResubmitting) return;
+    if (submission.status === "resubmitting") return;
     event.preventDefault();
 
-    if (isSubmitting) return;
+    if (isSubmissionBusy(submission)) return;
     const form = event.currentTarget;
-    imageRequired = false;
-    saveFailed = false;
-    isSubmitting = true;
-    void handle.update();
+    send({ type: "submit" });
     const image = (await getCroppedImage?.()) ?? null;
     // Browsers ignore requestSubmit while the original submit event is still dispatching.
     await new Promise((resolve) => setTimeout(resolve));
 
     if (handle.signal.aborted) return;
 
-    if (!image && !editor.imageUrl) imageRequired = true;
+    if (!image && editor.mode === "create") {
+      send({ type: "cropped", outcome: "imageRequired" });
+
+      return;
+    }
 
     // Fields edited during the crop can fail validation, which cancels requestSubmit silently.
-    if (imageRequired || !form.reportValidity()) {
-      isSubmitting = false;
-      void handle.update();
+    if (!form.reportValidity()) {
+      send({ type: "cropped", outcome: "invalid" });
 
       return;
     }
@@ -122,27 +119,30 @@ function DrinkEditorForm(handle: Handle<DrinkFormProps>) {
       imageInput.files = files.files;
     }
 
-    isNavigating = true;
-    isResubmitting = true;
+    send({ type: "cropped", outcome: "ready" });
 
     try {
       form.requestSubmit();
     } finally {
-      isResubmitting = false;
+      send({ type: "resubmitted" });
     }
   }
 
   return () => {
-    const errors = saveFailed
-      ? ["Unable to save drink. Please try again."]
-      : (handle.props.errors ?? []);
+    const errors =
+      submission.status === "failed" && submission.reason === "saveFailed"
+        ? ["Unable to save drink. Please try again."]
+        : (handle.props.errors ?? []);
+
+    const isBusy = isSubmissionBusy(submission);
 
     return (
       <form
         method="post"
         action={action}
         encType="multipart/form-data"
-        mix={[reportFailedSave, on<HTMLFormElement, "submit">("submit", handleSubmit)]}
+        aria-busy={isBusy ? "true" : undefined}
+        mix={[observeSaveNavigation, on<HTMLFormElement, "submit">("submit", handleSubmit)]}
         className="space-y-6"
       >
         {errors.length > 0 ? (
@@ -173,8 +173,8 @@ function DrinkEditorForm(handle: Handle<DrinkFormProps>) {
             defaultValue={editor.initialValues.title}
             required
             mix={on<HTMLInputElement, "input">("input", (event) => {
-              if (editor.mode === "create" && !isSlugManuallyEdited) {
-                setSlugValue(slugify(event.currentTarget.value));
+              if (slug.source === "title") {
+                setSlug({ source: "title", value: slugify(event.currentTarget.value) });
               }
             })}
             className="mt-2 block w-full rounded-sm border border-zinc-700 bg-zinc-800 px-3 py-2 text-zinc-200 placeholder-zinc-600 focus:border-amber-600 focus:ring-1 focus:ring-amber-600 focus:outline-none"
@@ -192,11 +192,10 @@ function DrinkEditorForm(handle: Handle<DrinkFormProps>) {
             type="text"
             name="slug"
             id="slug"
-            value={slugValue}
+            value={slug.value}
             required
             mix={on<HTMLInputElement, "input">("input", (event) => {
-              setIsSlugManuallyEdited(true);
-              setSlugValue(event.currentTarget.value);
+              setSlug({ source: "manual", value: event.currentTarget.value });
             })}
             className="mt-2 block w-full rounded-sm border border-zinc-700 bg-zinc-800 px-3 py-2 text-zinc-200 placeholder-zinc-600 focus:border-amber-600 focus:ring-1 focus:ring-amber-600 focus:outline-none"
           />
@@ -208,13 +207,15 @@ function DrinkEditorForm(handle: Handle<DrinkFormProps>) {
           </span>
           <div className="mt-2">
             <ImageCrop
-              existingImageUrl={editor.imageUrl}
+              existingImageUrl={editor.mode === "edit" ? editor.imageUrl : undefined}
               onCropReady={(getImage) => {
                 getCroppedImage = getImage;
               }}
             />
           </div>
-          {imageRequired ? <p className="mt-1 text-red-400">Image is required</p> : null}
+          {submission.status === "failed" && submission.reason === "imageRequired" ? (
+            <p className="mt-1 text-red-400">Image is required</p>
+          ) : null}
         </div>
 
         <div>
@@ -328,10 +329,10 @@ function DrinkEditorForm(handle: Handle<DrinkFormProps>) {
         <div className="flex gap-4">
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isBusy}
             className="rounded bg-amber-600 px-4 py-2 font-medium text-zinc-950 hover:bg-amber-500 disabled:opacity-50"
           >
-            {isSubmitting ? "Saving..." : editor.mode === "edit" ? "Update Drink" : "Create Drink"}
+            {isBusy ? "Saving..." : editor.mode === "edit" ? "Update Drink" : "Create Drink"}
           </button>
         </div>
       </form>

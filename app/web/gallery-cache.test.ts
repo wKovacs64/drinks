@@ -44,18 +44,15 @@ test("every page a Drink write affects carries a key that write purges", () => {
   ] as const;
 
   for (const page of affectedPages) {
-    const headers = galleryPageHeaders(page);
+    const pageKeys = new Headers(galleryPageHeaders(page)).get("Surrogate-Key")?.split(" ");
 
-    const pageKeys =
-      "Surrogate-Key" in headers
-        ? headers["Surrogate-Key"].split(" ").filter((surrogateKey) => surrogateKey !== "all")
-        : [];
-
-    expect(pageKeys.some((pageKey) => purgeKeys.includes(pageKey))).toBe(true);
+    expect(pageKeys?.some((pageKey) => pageKey !== "all" && purgeKeys.includes(pageKey))).toBe(
+      true,
+    );
   }
 });
 
-test("a Drink write purges its pages and Tag pages but never `all`", () => {
+test("a Drink write purges home, search, the tags index, its Drink pages, and its Tag pages", () => {
   expect(
     purgeKeysFor({
       slugs: ["test-margarita", "renamed-margarita"],

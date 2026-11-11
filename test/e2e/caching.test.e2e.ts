@@ -4,7 +4,7 @@ import { createBrowserPage } from "#/test/e2e.ts";
 import { http, HttpResponse } from "msw/http";
 import { server as requestMocks } from "#/test/server.ts";
 
-test("public pages retain their original cache lifetimes and Fastly keys", async (testContext) => {
+test("public pages carry their cache lifetimes and Fastly keys", async (testContext) => {
   const page = await createBrowserPage(testContext, { admin: true });
 
   const cases = [

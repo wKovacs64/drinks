@@ -18,7 +18,7 @@ export function galleryPageHeaders(page: GalleryPage) {
     case "home":
       return publicPageHeaders("index");
     case "search":
-      return publicPageHeaders(page.query ? "search" : undefined);
+      return page.query ? publicPageHeaders("search") : publicPageHeaders();
     case "tags":
       return publicPageHeaders("tags");
     case "tag":
@@ -36,16 +36,17 @@ function assertNever(value: never): never {
   throw new Error(`Unexpected gallery page: ${JSON.stringify(value)}`);
 }
 
-function publicPageHeaders(pageKey: string | undefined) {
+function publicPageHeaders(...pageKeys: string[]) {
   return {
     "Cache-Control": publicCacheControl,
-    "Surrogate-Key": pageKey ? `all ${pageKey}` : "all",
+    "Surrogate-Key": ["all", ...pageKeys].join(" "),
   };
 }
 
 /**
  * Keys for the pages a Drink write affects: home, search, the tags index, the Drink pages, and the
- * Tag pages. `all` is excluded; it is only purged on deploy.
+ * Tag pages. `all` is not one of the fixed keys here; the deploy purges it. Slugs share a namespace
+ * with each other and with the fixed keys, so a slug equal to another key over-purges.
  */
 export function purgeKeysFor(affectedPages: { slugs: string[]; tagSlugs: string[] }) {
   return ["index", "search", ...affectedPages.slugs, "tags", ...affectedPages.tagSlugs];

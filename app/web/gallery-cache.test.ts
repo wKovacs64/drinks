@@ -4,7 +4,7 @@ import { galleryPageHeaders, purgeKeysFor } from "./gallery-cache.ts";
 
 test("every page a Drink write affects carries a key that write purges", () => {
   const purgeKeys = purgeKeysFor({
-    slugs: ["test-margarita", "renamed-margarita"],
+    drinkSlugs: ["test-margarita", "renamed-margarita"],
     tagSlugs: ["tequila", "bright-citrus"],
   });
 

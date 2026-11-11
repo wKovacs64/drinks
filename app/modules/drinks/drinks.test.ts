@@ -386,7 +386,7 @@ describe("createAdminDrinksWriteService", () => {
     });
     expect(uploadImage).toHaveBeenCalledWith(Buffer.from("fake-image"), "test-cocktail.jpg");
     expect(purgeDrinkCache).toHaveBeenCalledWith({
-      slugs: ["test-cocktail"],
+      drinkSlugs: ["test-cocktail"],
       tagSlugs: ["gin", "refreshing"],
     });
 
@@ -473,7 +473,7 @@ describe("createAdminDrinksWriteService", () => {
     expect(result).toEqual({ kind: "success", notices: [] });
     expect(deleteImage).toHaveBeenCalledWith("seed-fileId-1");
     expect(purgeDrinkCache).toHaveBeenCalledWith({
-      slugs: ["test-margarita"],
+      drinkSlugs: ["test-margarita"],
       tagSlugs: ["tequila", "citrus"],
     });
     await expect(
@@ -570,7 +570,7 @@ describe("createAdminDrinksWriteService", () => {
     expect(uploadImage).not.toHaveBeenCalled();
     expect(deleteImage).not.toHaveBeenCalled();
     expect(purgeDrinkCache).toHaveBeenCalledWith({
-      slugs: ["test-margarita", "updated-margarita"],
+      drinkSlugs: ["test-margarita", "updated-margarita"],
       tagSlugs: ["tequila", "citrus", "updated"],
     });
 
@@ -742,7 +742,7 @@ describe("createAdminDrinksWriteService", () => {
     });
     expect(await createReadOnlyService().findDrinkEditorBySlug("test-margarita")).toBeNull();
     expect(purgeDrinkCache).toHaveBeenCalledWith({
-      slugs: ["test-margarita"],
+      drinkSlugs: ["test-margarita"],
       tagSlugs: ["tequila", "citrus"],
     });
   });
@@ -837,7 +837,7 @@ describe("createAdminDrinksWriteService", () => {
       notices: [{ code: "cacheRefreshFailed", message: "cache unavailable" }],
     });
     expect(purgeDrinkCache).toHaveBeenCalledWith({
-      slugs: ["test-margarita", "committed-negroni"],
+      drinkSlugs: ["test-margarita", "committed-negroni"],
       tagSlugs: ["tequila", "citrus", "gin"],
     });
     expect(await readService.findDrinkEditorBySlug("test-margarita")).toBeNull();
@@ -898,7 +898,7 @@ describe("createAdminDrinksWriteService", () => {
       const editor = await getExistingDrinkEditor("test-margarita");
       expect(editor.imageUrl).toBe("https://ik.imagekit.io/test/drinks/test-margarita.jpg");
       expect(purgeDrinkCache).toHaveBeenCalledWith({
-        slugs: ["test-margarita"],
+        drinkSlugs: ["test-margarita"],
         tagSlugs: ["tequila", "citrus"],
       });
     });

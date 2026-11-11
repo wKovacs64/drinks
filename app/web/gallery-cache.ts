@@ -48,6 +48,6 @@ function publicPageHeaders(...pageKeys: string[]) {
  * Tag pages. `all` is not one of the fixed keys here; the deploy purges it. Slugs share a namespace
  * with each other and with the fixed keys, so a slug equal to another key over-purges.
  */
-export function purgeKeysFor(affectedPages: { slugs: string[]; tagSlugs: string[] }) {
-  return ["index", "search", ...affectedPages.slugs, "tags", ...affectedPages.tagSlugs];
+export function purgeKeysFor(affectedPages: { drinkSlugs: string[]; tagSlugs: string[] }) {
+  return ["index", "search", ...affectedPages.drinkSlugs, "tags", ...affectedPages.tagSlugs];
 }

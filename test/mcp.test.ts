@@ -153,10 +153,11 @@ test("MCP exact titles return only that Drink while partial, ingredient and webs
     expect((await search(query)).toSorted()).toEqual(["test-mojito", "test-old-fashioned"]);
 
   const websiteSearch = await fetch(`${baseUrl}/search?q=old+fashioned`);
+  expect(websiteSearch.status).toBe(200);
   const html = await websiteSearch.text();
 
   expect(
-    Array.from(html.matchAll(/href="\/(test-[a-z-]+)"/g), ([, slug]) => slug).toSorted(),
+    Array.from(html.matchAll(/href="\/(test-[a-z0-9-]+)"/g), ([, slug]) => slug).toSorted(),
   ).toEqual(["test-mojito", "test-old-fashioned"]);
 });
 

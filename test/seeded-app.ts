@@ -19,8 +19,14 @@ import { getSessionCookieValue } from "#/test/session.ts";
  */
 export async function startSeededApp(options: { admin?: boolean } = {}) {
   await resetAndSeedDatabase();
-  // The search index outlives a database reset.
+  // The search cache outlives a database reset.
   purgeSearchCache();
+
+  const adminSessionCookie =
+    options.admin === true
+      ? { name: sessionCookie.name, value: await getSessionCookieValue(TEST_ADMIN_USER.id) }
+      : undefined;
+
   const server = createServer(createRequestListener((request) => router.fetch(request)));
   server.listen(0, "127.0.0.1");
   await once(server, "listening");
@@ -37,12 +43,10 @@ export async function startSeededApp(options: { admin?: boolean } = {}) {
           if (error) reject(error);
           else resolve();
         });
-        // A submission rejected mid-body keeps its socket open for seconds; don't wait for it.
+        // A submission rejected mid-body keeps its socket open for seconds, and `server.close` alone
+        // waits for it. Remix's `createTestServer` exposes no way to drop it.
         server.closeAllConnections();
       }),
-    adminSessionCookie:
-      options.admin === true
-        ? { name: sessionCookie.name, value: await getSessionCookieValue(TEST_ADMIN_USER.id) }
-        : undefined,
+    adminSessionCookie,
   };
 }

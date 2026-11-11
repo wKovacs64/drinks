@@ -1,5 +1,5 @@
 import "#/test/setup.ts";
-import { beforeEach, describe, mock, test } from "remix/test";
+import { beforeEach, describe, mock, test, type TestContext } from "remix/test";
 import { expect } from "remix/assert";
 import { parse, parseSafe, ValidationError } from "remix/data-schema";
 import { DataTableDatabaseError, rawSql } from "remix/data-table";
@@ -21,6 +21,12 @@ type TestDrinksServiceOverrides = {
   db?: ReturnType<typeof getDb>;
   writeEffects?: Partial<DrinksWriteEffects>;
 };
+
+function captureLoggedCauses(testContext: TestContext) {
+  const logError = testContext.mock.method(console, "error", () => undefined);
+
+  return () => logError.mock.calls.flatMap((call): unknown[] => call.arguments.slice(-1));
+}
 
 function testAdminDrinksWriteService(overrides: TestDrinksServiceOverrides = {}) {
   const defaultWriteEffects = {
@@ -494,15 +500,9 @@ describe("createAdminDrinksWriteService", () => {
     expect(purgeDrinkCache).not.toHaveBeenCalled();
   });
 
-  test("returns a slug-taken outcome when creating a Drink with a duplicate slug", async () => {
-    const service = testAdminDrinksWriteService({
-      writeEffects: {
-        uploadImage: mock.fn<DrinksWriteEffects["uploadImage"]>(async () => ({
-          url: "https://ik.imagekit.io/test/drinks/test-margarita.jpg",
-          fileId: "new-file-id",
-        })),
-      },
-    });
+  test("returns a slug-taken outcome without uploading when creating a Drink with a duplicate slug", async () => {
+    const uploadImage = mock.fn<DrinksWriteEffects["uploadImage"]>();
+    const service = testAdminDrinksWriteService({ writeEffects: { uploadImage } });
 
     await expect(
       service.create({
@@ -519,6 +519,7 @@ describe("createAdminDrinksWriteService", () => {
         imageBuffer: Buffer.from("fake-image"),
       }),
     ).resolves.toEqual({ kind: "slugTaken" });
+    expect(uploadImage).not.toHaveBeenCalled();
   });
 
   test("renames and updates a Drink without replacing its image", async () => {
@@ -706,10 +707,12 @@ describe("createAdminDrinksWriteService", () => {
     });
   }
 
-  test("returns both notices, logs both causes, and still purges after committed delete image cleanup fails", async (testContext) => {
+  test("returns both notices, logs both causes, purges, and serves fresh search after committed delete image cleanup and purge fail", async (testContext) => {
     const logError = testContext.mock.method(console, "error", () => undefined);
     const cleanupError = new Error("cleanup unavailable");
     const cacheError = new Error("cache unavailable");
+    const readService = createReadOnlyService();
+    expect((await readService.searchPublishedDrinks({ query: "margarita" })).length).toBe(1);
 
     const purgeDrinkCache = mock.fn<DrinksWriteEffects["purgeDrinkCache"]>(async () => {
       throw cacheError;
@@ -728,7 +731,8 @@ describe("createAdminDrinksWriteService", () => {
       kind: "success",
       notices: ["oldImageCleanupFailed", "cacheRefreshFailed"],
     });
-    expect(await createReadOnlyService().findDrinkEditorBySlug("test-margarita")).toBeNull();
+    expect(await readService.findDrinkEditorBySlug("test-margarita")).toBeNull();
+    expect(await readService.searchPublishedDrinks({ query: "margarita" })).toEqual([]);
     expect(purgeDrinkCache).toHaveBeenCalledWith({
       drinkSlugs: ["test-margarita"],
       tagSlugs: ["tequila", "citrus"],
@@ -747,33 +751,8 @@ describe("createAdminDrinksWriteService", () => {
     ]);
   });
 
-  test("returns a committed delete with a cache notice, logged cause, and fresh search when purge fails", async (testContext) => {
-    const logError = testContext.mock.method(console, "error", () => undefined);
-    const cacheError = new Error("cache unavailable");
-    const readService = createReadOnlyService();
-    expect((await readService.searchPublishedDrinks({ query: "margarita" })).length).toBe(1);
-
-    const service = testAdminDrinksWriteService({
-      writeEffects: {
-        purgeDrinkCache: async () => {
-          throw cacheError;
-        },
-      },
-    });
-
-    expect(await service.delete({ slug: "test-margarita" })).toEqual({
-      kind: "success",
-      notices: ["cacheRefreshFailed"],
-    });
-    expect(await readService.findDrinkEditorBySlug("test-margarita")).toBeNull();
-    expect(await readService.searchPublishedDrinks({ query: "margarita" })).toEqual([]);
-    expect(logError.mock.calls.flatMap((call): unknown[] => call.arguments.slice(-1))).toEqual([
-      cacheError,
-    ]);
-  });
-
   test("returns a committed create with a cache notice, logged cause, and fresh search when purge fails", async (testContext) => {
-    const logError = testContext.mock.method(console, "error", () => undefined);
+    const loggedCauses = captureLoggedCauses(testContext);
     const cacheError = new Error("cache unavailable");
     const readService = createReadOnlyService();
     expect(await readService.searchPublishedDrinks({ query: "negroni" })).toEqual([]);
@@ -808,13 +787,11 @@ describe("createAdminDrinksWriteService", () => {
     expect(
       (await readService.searchPublishedDrinks({ query: "negroni" })).map((drink) => drink.slug),
     ).toEqual(["committed-negroni"]);
-    expect(logError.mock.calls.flatMap((call): unknown[] => call.arguments.slice(-1))).toEqual([
-      cacheError,
-    ]);
+    expect(loggedCauses()).toEqual([cacheError]);
   });
 
   test("returns a cache notice, logs the cause, and serves fresh search when purge fails after a rename", async (testContext) => {
-    const logError = testContext.mock.method(console, "error", () => undefined);
+    const loggedCauses = captureLoggedCauses(testContext);
     const cacheError = new Error("cache unavailable");
     const readService = createReadOnlyService();
     await readService.searchPublishedDrinks({ query: "margarita" });
@@ -852,14 +829,12 @@ describe("createAdminDrinksWriteService", () => {
       (await readService.searchPublishedDrinks({ query: "negroni" })).map((drink) => drink.slug),
     ).toEqual(["committed-negroni"]);
     expect(await readService.searchPublishedDrinks({ query: "margarita" })).toEqual([]);
-    expect(logError.mock.calls.flatMap((call): unknown[] => call.arguments.slice(-1))).toEqual([
-      cacheError,
-    ]);
+    expect(loggedCauses()).toEqual([cacheError]);
   });
 
   for (const purgeFails of [false, true]) {
     test(`returns all notices, logs their causes, and still purges after committed update image cleanup fails${purgeFails ? " with purge failure" : ""}`, async (testContext) => {
-      const logError = testContext.mock.method(console, "error", () => undefined);
+      const loggedCauses = captureLoggedCauses(testContext);
       const cleanupError = new Error("cleanup failed");
       const cacheError = new Error("cache unavailable");
 
@@ -911,9 +886,7 @@ describe("createAdminDrinksWriteService", () => {
         tagSlugs: ["tequila", "citrus"],
       });
       expect(deleteImage.mock.calls.map((call) => call.arguments)).toEqual([["seed-fileId-1"]]);
-      expect(logError.mock.calls.flatMap((call): unknown[] => call.arguments.slice(-1))).toEqual(
-        purgeFails ? [cleanupError, cacheError] : [cleanupError],
-      );
+      expect(loggedCauses()).toEqual(purgeFails ? [cleanupError, cacheError] : [cleanupError]);
     });
   }
 });

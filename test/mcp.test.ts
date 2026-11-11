@@ -3,7 +3,6 @@ import { expect } from "remix/assert";
 import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/client";
 import { z } from "zod";
 import { startSeededApp } from "#/test/seeded-app.ts";
-import { createDrinksService } from "#/app/modules/drinks/drinks.ts";
 import { cardResultSchema, searchResultSchema } from "#/app/integrations/mcp/public/recipe.ts";
 import { getDb } from "#/app/db/client.ts";
 import { drinks } from "#/app/db/schema.ts";
@@ -133,7 +132,7 @@ test("displaying multiple summaries preserves selected order and omits preparati
 });
 
 test("MCP exact titles return only that Drink while partial, ingredient and website searches stay broad", async (testContext) => {
-  const { client } = await connect(testContext);
+  const { client, baseUrl } = await connect(testContext);
   const db = getDb();
   await db.update(drinks, "test-drink-3", { title: "Old Fashioned" });
   await db.update(drinks, "test-drink-2", {
@@ -153,27 +152,12 @@ test("MCP exact titles return only that Drink while partial, ingredient and webs
   for (const query of ["fashioned", "bourbon"])
     expect((await search(query)).toSorted()).toEqual(["test-mojito", "test-old-fashioned"]);
 
-  const websiteResults = await createDrinksService({ db }).searchPublishedDrinks({
-    query: "old fashioned",
-  });
+  const websiteSearch = await fetch(`${baseUrl}/search?q=old+fashioned`);
+  const html = await websiteSearch.text();
 
-  expect(websiteResults.map((drink) => drink.slug).toSorted()).toEqual([
-    "test-mojito",
-    "test-old-fashioned",
-  ]);
-});
-
-test("unmatched searches return an empty result", async (testContext) => {
-  const { client } = await connect(testContext);
-
-  const search = await client.callTool({
-    name: "search_drinks",
-    arguments: { query: "xyznonexistent" },
-  });
-
-  expect(search.structuredContent).toEqual({ drinks: [] });
-  expect(search["_meta"]?.drinks).toBeUndefined();
-  expect(search.isError).not.toBe(true);
+  expect(
+    Array.from(html.matchAll(/href="\/(test-[a-z-]+)"/g), ([, slug]) => slug).toSorted(),
+  ).toEqual(["test-mojito", "test-old-fashioned"]);
 });
 
 test("invalid MCP inputs are errors", async (testContext) => {
@@ -212,6 +196,7 @@ for (const admin of [false, true]) {
       arguments: { query: "tequila" },
     });
 
+    expect(search.isError).not.toBe(true);
     expect(search.structuredContent).toEqual({ drinks: [] });
     expect(search["_meta"]?.drinks).toBeUndefined();
 

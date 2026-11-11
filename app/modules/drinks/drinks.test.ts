@@ -1,5 +1,5 @@
 import "#/test/setup.ts";
-import { beforeEach, describe, mock, test } from "remix/test";
+import { beforeEach, describe, mock, test, type TestContext } from "remix/test";
 import { expect } from "remix/assert";
 import { parse, parseSafe, ValidationError } from "remix/data-schema";
 import { DataTableDatabaseError, rawSql } from "remix/data-table";
@@ -10,7 +10,6 @@ import { drinks } from "#/app/db/schema.ts";
 import { resetAndSeedDatabase } from "#/test/database.ts";
 import {
   drinkDraftSchema,
-  DrinkWriteNoticeCodes,
   createAdminDrinksWriteService,
   createDrinksService,
   purgeSearchCache,
@@ -22,6 +21,12 @@ type TestDrinksServiceOverrides = {
   db?: ReturnType<typeof getDb>;
   writeEffects?: Partial<DrinksWriteEffects>;
 };
+
+function captureLoggedCauses(testContext: TestContext) {
+  const logError = testContext.mock.method(console, "error", () => undefined);
+
+  return () => logError.mock.calls.flatMap((call): unknown[] => call.arguments.slice(-1));
+}
 
 function testAdminDrinksWriteService(overrides: TestDrinksServiceOverrides = {}) {
   const defaultWriteEffects = {
@@ -381,7 +386,6 @@ describe("createAdminDrinksWriteService", () => {
 
     expect(result).toEqual({
       kind: "success",
-      drinkSlug: "test-cocktail",
       notices: [],
     });
     expect(uploadImage).toHaveBeenCalledWith(Buffer.from("fake-image"), "test-cocktail.jpg");
@@ -394,7 +398,6 @@ describe("createAdminDrinksWriteService", () => {
 
     expect(editor).toEqual({
       mode: "edit",
-      drinkSlug: "test-cocktail",
       imageUrl: "https://ik.imagekit.io/test/drinks/test-cocktail.jpg",
       initialValues: {
         title: "Test Cocktail",
@@ -447,12 +450,8 @@ describe("createAdminDrinksWriteService", () => {
       },
     });
 
-    expect(duplicateResult).toEqual({
-      kind: "fieldError",
-      fieldErrors: { slug: ["Slug already exists"] },
-      formErrors: [],
-    });
-    expect(notFoundResult).toEqual({ kind: "notFound", slug: "missing-drink" });
+    expect(duplicateResult).toEqual({ kind: "slugTaken" });
+    expect(notFoundResult).toEqual({ kind: "notFound" });
   });
 
   test("deletes through the transport-agnostic admin write boundary", async () => {
@@ -496,20 +495,14 @@ describe("createAdminDrinksWriteService", () => {
 
     const result = await adminWriteService.delete({ slug: "missing-drink" });
 
-    expect(result).toEqual({ kind: "notFound", slug: "missing-drink" });
+    expect(result).toEqual({ kind: "notFound" });
     expect(deleteImage).not.toHaveBeenCalled();
     expect(purgeDrinkCache).not.toHaveBeenCalled();
   });
 
-  test("returns typed slug error when creating with a duplicate slug", async () => {
-    const service = testAdminDrinksWriteService({
-      writeEffects: {
-        uploadImage: mock.fn<DrinksWriteEffects["uploadImage"]>(async () => ({
-          url: "https://ik.imagekit.io/test/drinks/test-margarita.jpg",
-          fileId: "new-file-id",
-        })),
-      },
-    });
+  test("returns a slug-taken outcome without uploading when creating a Drink with a duplicate slug", async () => {
+    const uploadImage = mock.fn<DrinksWriteEffects["uploadImage"]>();
+    const service = testAdminDrinksWriteService({ writeEffects: { uploadImage } });
 
     await expect(
       service.create({
@@ -525,11 +518,8 @@ describe("createAdminDrinksWriteService", () => {
         },
         imageBuffer: Buffer.from("fake-image"),
       }),
-    ).resolves.toEqual({
-      kind: "fieldError",
-      fieldErrors: { slug: ["Slug already exists"] },
-      formErrors: [],
-    });
+    ).resolves.toEqual({ kind: "slugTaken" });
+    expect(uploadImage).not.toHaveBeenCalled();
   });
 
   test("renames and updates a Drink without replacing its image", async () => {
@@ -563,7 +553,6 @@ describe("createAdminDrinksWriteService", () => {
 
     expect(result).toEqual({
       kind: "success",
-      drinkSlug: "updated-margarita",
       notices: [],
     });
 
@@ -579,7 +568,6 @@ describe("createAdminDrinksWriteService", () => {
 
     expect(editor).toEqual({
       mode: "edit",
-      drinkSlug: "updated-margarita",
       imageUrl:
         "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
       initialValues: {
@@ -719,15 +707,21 @@ describe("createAdminDrinksWriteService", () => {
     });
   }
 
-  test("returns both notices and still purges after committed delete image cleanup fails", async () => {
+  test("returns both notices, logs both causes, purges, and serves fresh search after committed delete image cleanup and purge fail", async (testContext) => {
+    const logError = testContext.mock.method(console, "error", () => undefined);
+    const cleanupError = new Error("cleanup unavailable");
+    const cacheError = new Error("cache unavailable");
+    const readService = createReadOnlyService();
+    expect((await readService.searchPublishedDrinks({ query: "margarita" })).length).toBe(1);
+
     const purgeDrinkCache = mock.fn<DrinksWriteEffects["purgeDrinkCache"]>(async () => {
-      throw new Error("cache unavailable");
+      throw cacheError;
     });
 
     const service = testAdminDrinksWriteService({
       writeEffects: {
         deleteImage: async () => {
-          throw new Error("cleanup unavailable");
+          throw cleanupError;
         },
         purgeDrinkCache,
       },
@@ -735,39 +729,31 @@ describe("createAdminDrinksWriteService", () => {
 
     expect(await service.delete({ slug: "test-margarita" })).toEqual({
       kind: "success",
-      notices: [
-        { code: "oldImageCleanupFailed", message: "cleanup unavailable" },
-        { code: "cacheRefreshFailed", message: "cache unavailable" },
-      ],
+      notices: ["oldImageCleanupFailed", "cacheRefreshFailed"],
     });
-    expect(await createReadOnlyService().findDrinkEditorBySlug("test-margarita")).toBeNull();
+    expect(await readService.findDrinkEditorBySlug("test-margarita")).toBeNull();
+    expect(await readService.searchPublishedDrinks({ query: "margarita" })).toEqual([]);
     expect(purgeDrinkCache).toHaveBeenCalledWith({
       drinkSlugs: ["test-margarita"],
       tagSlugs: ["tequila", "citrus"],
     });
+    expect(logError.mock.calls.map((call): unknown[] => call.arguments)).toEqual([
+      [
+        "Failed to clean up old image after committed write:",
+        { fileId: "seed-fileId-1" },
+        cleanupError,
+      ],
+      [
+        "Failed to refresh cache after committed write:",
+        { drinkSlugs: ["test-margarita"], tagSlugs: ["tequila", "citrus"] },
+        cacheError,
+      ],
+    ]);
   });
 
-  test("returns a committed delete with a cache notice and fresh search when purge fails", async () => {
-    const readService = createReadOnlyService();
-    expect((await readService.searchPublishedDrinks({ query: "margarita" })).length).toBe(1);
-
-    const service = testAdminDrinksWriteService({
-      writeEffects: {
-        purgeDrinkCache: async () => {
-          throw new Error("cache unavailable");
-        },
-      },
-    });
-
-    expect(await service.delete({ slug: "test-margarita" })).toEqual({
-      kind: "success",
-      notices: [{ code: "cacheRefreshFailed", message: "cache unavailable" }],
-    });
-    expect(await readService.findDrinkEditorBySlug("test-margarita")).toBeNull();
-    expect(await readService.searchPublishedDrinks({ query: "margarita" })).toEqual([]);
-  });
-
-  test("returns a committed create with a cache notice and fresh search when purge fails", async () => {
+  test("returns a committed create with a cache notice, logged cause, and fresh search when purge fails", async (testContext) => {
+    const loggedCauses = captureLoggedCauses(testContext);
+    const cacheError = new Error("cache unavailable");
     const readService = createReadOnlyService();
     expect(await readService.searchPublishedDrinks({ query: "negroni" })).toEqual([]);
 
@@ -775,7 +761,7 @@ describe("createAdminDrinksWriteService", () => {
       writeEffects: {
         uploadImage: async () => ({ url: "data:image/png;base64,AQ==", fileId: "new-image" }),
         purgeDrinkCache: async () => {
-          throw new Error("cache unavailable");
+          throw cacheError;
         },
       },
     });
@@ -794,25 +780,24 @@ describe("createAdminDrinksWriteService", () => {
       imageBuffer: Buffer.from("new-image"),
     });
 
-    expect(result).toEqual({
-      kind: "success",
-      drinkSlug: "committed-negroni",
-      notices: [{ code: "cacheRefreshFailed", message: "cache unavailable" }],
-    });
+    expect(result).toEqual({ kind: "success", notices: ["cacheRefreshFailed"] });
     expect((await getExistingDrinkEditor("committed-negroni")).initialValues.title).toBe(
       "Committed Negroni",
     );
     expect(
       (await readService.searchPublishedDrinks({ query: "negroni" })).map((drink) => drink.slug),
     ).toEqual(["committed-negroni"]);
+    expect(loggedCauses()).toEqual([cacheError]);
   });
 
-  test("returns the saved slug and fresh search when purge fails after a rename", async () => {
+  test("returns a cache notice, logs the cause, and serves fresh search when purge fails after a rename", async (testContext) => {
+    const loggedCauses = captureLoggedCauses(testContext);
+    const cacheError = new Error("cache unavailable");
     const readService = createReadOnlyService();
     await readService.searchPublishedDrinks({ query: "margarita" });
 
     const purgeDrinkCache = mock.fn<DrinksWriteEffects["purgeDrinkCache"]>(async () => {
-      throw new Error("cache unavailable");
+      throw cacheError;
     });
 
     const service = testAdminDrinksWriteService({ writeEffects: { purgeDrinkCache } });
@@ -831,11 +816,7 @@ describe("createAdminDrinksWriteService", () => {
       },
     });
 
-    expect(result).toEqual({
-      kind: "success",
-      drinkSlug: "committed-negroni",
-      notices: [{ code: "cacheRefreshFailed", message: "cache unavailable" }],
-    });
+    expect(result).toEqual({ kind: "success", notices: ["cacheRefreshFailed"] });
     expect(purgeDrinkCache).toHaveBeenCalledWith({
       drinkSlugs: ["test-margarita", "committed-negroni"],
       tagSlugs: ["tequila", "citrus", "gin"],
@@ -848,12 +829,21 @@ describe("createAdminDrinksWriteService", () => {
       (await readService.searchPublishedDrinks({ query: "negroni" })).map((drink) => drink.slug),
     ).toEqual(["committed-negroni"]);
     expect(await readService.searchPublishedDrinks({ query: "margarita" })).toEqual([]);
+    expect(loggedCauses()).toEqual([cacheError]);
   });
 
   for (const purgeFails of [false, true]) {
-    test(`returns all notices and still purges after committed update image cleanup fails${purgeFails ? " with purge failure" : ""}`, async () => {
+    test(`returns all notices, logs their causes, and still purges after committed update image cleanup fails${purgeFails ? " with purge failure" : ""}`, async (testContext) => {
+      const loggedCauses = captureLoggedCauses(testContext);
+      const cleanupError = new Error("cleanup failed");
+      const cacheError = new Error("cache unavailable");
+
+      const deleteImage = mock.fn<DrinksWriteEffects["deleteImage"]>(async () => {
+        throw cleanupError;
+      });
+
       const purgeDrinkCache = mock.fn<DrinksWriteEffects["purgeDrinkCache"]>(async () => {
-        if (purgeFails) throw new Error("cache unavailable");
+        if (purgeFails) throw cacheError;
       });
 
       const service = testAdminDrinksWriteService({
@@ -862,9 +852,7 @@ describe("createAdminDrinksWriteService", () => {
             url: "https://ik.imagekit.io/test/drinks/test-margarita.jpg",
             fileId: "replacement-file-id",
           })),
-          deleteImage: mock.fn<DrinksWriteEffects["deleteImage"]>(async () => {
-            throw new Error("cleanup failed");
-          }),
+          deleteImage,
           purgeDrinkCache,
         },
       });
@@ -886,13 +874,9 @@ describe("createAdminDrinksWriteService", () => {
 
       expect(result).toEqual({
         kind: "success",
-        drinkSlug: "test-margarita",
-        notices: [
-          { code: DrinkWriteNoticeCodes.oldImageCleanupFailed, message: "cleanup failed" },
-          ...(purgeFails
-            ? [{ code: DrinkWriteNoticeCodes.cacheRefreshFailed, message: "cache unavailable" }]
-            : []),
-        ],
+        notices: purgeFails
+          ? ["oldImageCleanupFailed", "cacheRefreshFailed"]
+          : ["oldImageCleanupFailed"],
       });
 
       const editor = await getExistingDrinkEditor("test-margarita");
@@ -901,6 +885,8 @@ describe("createAdminDrinksWriteService", () => {
         drinkSlugs: ["test-margarita"],
         tagSlugs: ["tequila", "citrus"],
       });
+      expect(deleteImage.mock.calls.map((call) => call.arguments)).toEqual([["seed-fileId-1"]]);
+      expect(loggedCauses()).toEqual(purgeFails ? [cleanupError, cacheError] : [cleanupError]);
     });
   }
 });

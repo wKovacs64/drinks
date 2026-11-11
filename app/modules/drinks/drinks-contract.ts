@@ -29,7 +29,6 @@ export type DrinkDraft = InferOutput<typeof drinkDraftSchema>;
 
 export type DrinkEditor = {
   mode: "create" | "edit";
-  drinkSlug?: string;
   imageUrl?: string;
   initialValues: {
     title: string;
@@ -43,27 +42,11 @@ export type DrinkEditor = {
   };
 };
 
-export const DrinkWriteNoticeCodes = {
-  oldImageCleanupFailed: "oldImageCleanupFailed",
-  cacheRefreshFailed: "cacheRefreshFailed",
-} as const;
+export type DrinkWriteNoticeCode = "oldImageCleanupFailed" | "cacheRefreshFailed";
 
-export type DrinkWriteNoticeCode =
-  (typeof DrinkWriteNoticeCodes)[keyof typeof DrinkWriteNoticeCodes];
+type ViewerRole = "user" | "admin";
 
-export type DrinkWriteNotice = {
-  code: DrinkWriteNoticeCode;
-  message: string;
-};
-
-type SaveDrinkResult = {
-  drinkSlug: string;
-  notices: DrinkWriteNotice[];
-};
-
-export type ViewerRole = "user" | "admin";
-
-export type DrinkForViewer = {
+type DrinkForViewer = {
   visibility: "public" | "private";
   drink: DrinkView;
 };
@@ -80,49 +63,42 @@ export type AdminDrinkListItem = {
   updatedAt: Date;
 };
 
-export type CreateAdminDrinkCommand = {
+type CreateAdminDrinkCommand = {
   draft: DrinkDraft;
   imageBuffer: Buffer;
 };
 
-export type UpdateAdminDrinkCommand = {
+type UpdateAdminDrinkCommand = {
   slug: string;
   draft: DrinkDraft;
   imageBuffer?: Buffer;
 };
 
-export type DeleteAdminDrinkCommand = {
+type DeleteAdminDrinkCommand = {
   slug: string;
 };
 
-export type AdminDrinkWriteSuccessResult = SaveDrinkResult & {
+type AdminDrinkWriteSuccessResult = {
   kind: "success";
+  notices: DrinkWriteNoticeCode[];
 };
 
-export type AdminDrinkWriteFieldErrorResult = {
-  kind: "fieldError";
-  fieldErrors: Record<string, string[] | undefined>;
-  formErrors: string[];
+type AdminDrinkWriteSlugTakenResult = {
+  kind: "slugTaken";
 };
 
-export type AdminDrinkWriteNotFoundResult = {
+type AdminDrinkWriteNotFoundResult = {
   kind: "notFound";
-  slug: string;
 };
 
 export type UpdateAdminDrinkResult =
   | AdminDrinkWriteSuccessResult
-  | AdminDrinkWriteFieldErrorResult
+  | AdminDrinkWriteSlugTakenResult
   | AdminDrinkWriteNotFoundResult;
 
-export type DeleteAdminDrinkSuccessResult = {
-  kind: "success";
-  notices: DrinkWriteNotice[];
-};
+export type DeleteAdminDrinkResult = AdminDrinkWriteSuccessResult | AdminDrinkWriteNotFoundResult;
 
-export type DeleteAdminDrinkResult = DeleteAdminDrinkSuccessResult | AdminDrinkWriteNotFoundResult;
-
-export type CreateAdminDrinkResult = AdminDrinkWriteSuccessResult | AdminDrinkWriteFieldErrorResult;
+export type CreateAdminDrinkResult = AdminDrinkWriteSuccessResult | AdminDrinkWriteSlugTakenResult;
 
 export interface AdminDrinksWriteService {
   create: (command: CreateAdminDrinkCommand) => Promise<CreateAdminDrinkResult>;

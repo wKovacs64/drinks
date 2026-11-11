@@ -7,25 +7,23 @@ import { assertNever } from "#/app/core/assert-never.ts";
 import type { ToastMessage } from "#/app/core/toast.ts";
 import {
   drinkDraftSchema,
-  DrinkWriteNoticeCodes,
   type AdminDrinksWriteService,
-  type AdminDrinkWriteFieldErrorResult,
   type CreateAdminDrinkResult,
   type DeleteAdminDrinkResult,
   type DrinkEditor,
-  type DrinkWriteNotice,
+  type DrinkWriteNoticeCode,
   type UpdateAdminDrinkResult,
 } from "#/app/modules/drinks/drinks.ts";
 import { parseDrinkSubmission } from "./submission.ts";
 import { renderResponseError } from "#/app/web/error-pages/response-error.tsx";
 
 type AdminDrinkWriteActionAdapterInput = {
-  request: Request;
   session: Session;
   adminDrinksWriteService: AdminDrinksWriteService;
 };
 
 type AdminDrinkEditorAdapterInput = AdminDrinkWriteActionAdapterInput & {
+  request: Request;
   invalidEditor: {
     load: () => Promise<DrinkEditor | null>;
     render: (editor: DrinkEditor, errors: string[]) => Promise<Response>;
@@ -120,8 +118,8 @@ function translateCreateResult(
         resolveWriteToast("created", result.notices),
       );
 
-    case "fieldError":
-      return invalidEditorResponse(input, fieldErrorMessages(result), formData);
+    case "slugTaken":
+      return invalidEditorResponse(input, ["Slug already exists"], formData);
 
     default:
       return assertNever(result);
@@ -140,8 +138,8 @@ function translateUpdateResult(
         resolveWriteToast("updated", result.notices),
       );
 
-    case "fieldError":
-      return invalidEditorResponse(input, fieldErrorMessages(result), formData);
+    case "slugTaken":
+      return invalidEditorResponse(input, ["Slug already exists"], formData);
 
     case "notFound":
       return renderResponseError(404);
@@ -168,13 +166,6 @@ function parseDrinkDraft(formData: FormData) {
   const formResult = parseSafe(drinkFormSchema, formData);
 
   return formResult.success ? parseSafe(drinkDraftSchema, formResult.value) : formResult;
-}
-
-function fieldErrorMessages(result: AdminDrinkWriteFieldErrorResult): string[] {
-  return [
-    ...result.formErrors,
-    ...Object.values(result.fieldErrors).flatMap((messages) => messages ?? []),
-  ];
 }
 
 async function invalidEditorResponse(
@@ -223,7 +214,7 @@ function redirectToAdminDrinksWithToast(session: Session, toast: ToastMessage): 
 
 function resolveWriteToast(
   operation: "created" | "updated" | "deleted",
-  notices: DrinkWriteNotice[],
+  notices: DrinkWriteNoticeCode[],
 ): ToastMessage {
   if (notices.length === 0) return { kind: "success", message: `Drink ${operation}!` };
 
@@ -233,15 +224,15 @@ function resolveWriteToast(
   };
 }
 
-function resolveWriteNoticeMessage(notice: DrinkWriteNotice): string {
-  switch (notice.code) {
-    case DrinkWriteNoticeCodes.oldImageCleanupFailed:
+function resolveWriteNoticeMessage(notice: DrinkWriteNoticeCode): string {
+  switch (notice) {
+    case "oldImageCleanupFailed":
       return "old image cleanup failed";
 
-    case DrinkWriteNoticeCodes.cacheRefreshFailed:
+    case "cacheRefreshFailed":
       return "cache refresh failed";
 
     default:
-      return assertNever(notice.code);
+      return assertNever(notice);
   }
 }

@@ -80,8 +80,9 @@ and ImageKit. See [MCP Apps UI guidance](https://developers.openai.com/plugins/b
 
 A committed Drink write counts as success even if old-image cleanup or a public-cache refresh fails.
 Report these follow-up failures as warnings so an admin is not invited to repeat an already-completed
-write. Remote effects stay outside database transactions; before persistence succeeds, a failure
-must preserve the original error even if compensating cleanup also fails.
+write. The Drinks module logs the cause of each follow-up failure. Remote effects stay outside
+database transactions; before persistence succeeds, a failure must preserve the original error even
+if compensating cleanup also fails.
 
 ## Public page caching
 

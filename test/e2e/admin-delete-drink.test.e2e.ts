@@ -1,5 +1,5 @@
 import { test, describe } from "remix/test";
-import { createBrowserPage } from "#/test/e2e.ts";
+import { captureLoggedErrorLabels, createBrowserPage } from "#/test/e2e.ts";
 import { expect } from "remix/assert";
 import { http, HttpResponse } from "msw/http";
 import { server as requestMocks } from "#/test/server.ts";
@@ -23,6 +23,7 @@ describe("Delete Drink", () => {
   });
 
   test("can delete a drink with warnings after image cleanup and network purge failures", async (testContext) => {
+    const loggedErrorLabels = captureLoggedErrorLabels(testContext);
     const pageAsAdmin = await createBrowserPage(testContext, { admin: true });
     requestMocks.use(
       http.delete(
@@ -50,5 +51,9 @@ describe("Delete Drink", () => {
     expect(await notification.getAttribute("data-kind")).toBe("warning");
     expect(await notification.innerText()).toBe(expectedMessage);
     expect((await pageAsAdmin.request.get("/test-old-fashioned")).status()).toBe(404);
+    expect(loggedErrorLabels()).toEqual([
+      "Failed to clean up old image after committed write:",
+      "Failed to refresh cache after committed write:",
+    ]);
   });
 });

@@ -12,14 +12,13 @@ import { toDrinkTagViews } from "./drinks-tags.ts";
 
 export { purgeSearchCache };
 
-import {
-  DrinkWriteNoticeCodes,
-  type AdminDrinksWriteService,
-  type DrinkDraft,
-  type DrinkEditor,
-  type DrinksService,
-  type DrinkTagView,
-  type DrinkWriteNotice,
+import type {
+  AdminDrinksWriteService,
+  DrinkDraft,
+  DrinkEditor,
+  DrinksService,
+  DrinkTagView,
+  DrinkWriteNoticeCode,
 } from "./drinks-contract.ts";
 
 type Db = ReturnType<typeof getDb>;
@@ -178,7 +177,6 @@ export function createDrinksService(deps: { db: Db }): DrinksService {
 
       return {
         mode: "edit",
-        drinkSlug: drink.slug,
         imageUrl: drink.imageUrl,
         initialValues: {
           title: drink.title,
@@ -207,11 +205,7 @@ export function createAdminDrinksWriteService({
       const slugAvailability = await checkSlugAvailability(db, draft.slug);
 
       if (!slugAvailability.available) {
-        return {
-          kind: "fieldError",
-          fieldErrors: { slug: ["Slug already exists"] },
-          formErrors: [],
-        };
+        return { kind: "slugTaken" };
       }
 
       const uploadedImage = await writeEffects.uploadImage(imageBuffer, `${draft.slug}.jpg`);
@@ -234,7 +228,6 @@ export function createAdminDrinksWriteService({
 
       return {
         kind: "success",
-        drinkSlug: createdDrink.slug,
         notices,
       };
     },
@@ -242,17 +235,13 @@ export function createAdminDrinksWriteService({
       const existingDrink = await findDrinkBySlug(db, slug);
 
       if (!existingDrink) {
-        return { kind: "notFound", slug };
+        return { kind: "notFound" };
       }
 
       const slugAvailability = await checkSlugAvailability(db, draft.slug, existingDrink.id);
 
       if (!slugAvailability.available) {
-        return {
-          kind: "fieldError",
-          fieldErrors: { slug: ["Slug already exists"] },
-          formErrors: [],
-        };
+        return { kind: "slugTaken" };
       }
 
       const uploadedImage = imageBuffer
@@ -285,7 +274,6 @@ export function createAdminDrinksWriteService({
 
       return {
         kind: "success",
-        drinkSlug: updatedDrink.slug,
         notices,
       };
     },
@@ -293,7 +281,7 @@ export function createAdminDrinksWriteService({
       const existingDrink = await findDrinkBySlug(db, slug);
 
       if (!existingDrink) {
-        return { kind: "notFound", slug };
+        return { kind: "notFound" };
       }
 
       await db.delete(drinks, existingDrink.id);
@@ -326,36 +314,30 @@ async function compensateUploadedImage(
 async function retireDrinkImage(
   writeEffects: Pick<DrinksWriteEffects, "deleteImage">,
   fileId: string,
-): Promise<DrinkWriteNotice[]> {
+): Promise<DrinkWriteNoticeCode[]> {
   try {
     await writeEffects.deleteImage(fileId);
 
     return [];
   } catch (error) {
-    return [
-      {
-        code: DrinkWriteNoticeCodes.oldImageCleanupFailed,
-        message: error instanceof Error ? error.message : "Unknown image cleanup failure",
-      },
-    ];
+    console.error("Failed to clean up old image after committed write:", { fileId }, error);
+
+    return ["oldImageCleanupFailed"];
   }
 }
 
 async function refreshDrinkCache(
   writeEffects: Pick<DrinksWriteEffects, "purgeDrinkCache">,
   affectedPages: AffectedDrinkPages,
-): Promise<DrinkWriteNotice[]> {
+): Promise<DrinkWriteNoticeCode[]> {
   try {
     await writeEffects.purgeDrinkCache(affectedPages);
 
     return [];
   } catch (error) {
-    return [
-      {
-        code: DrinkWriteNoticeCodes.cacheRefreshFailed,
-        message: error instanceof Error ? error.message : "Unknown cache refresh failure",
-      },
-    ];
+    console.error("Failed to refresh cache after committed write:", affectedPages, error);
+
+    return ["cacheRefreshFailed"];
   }
 }
 

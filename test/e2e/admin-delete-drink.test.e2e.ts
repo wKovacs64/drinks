@@ -1,5 +1,5 @@
 import { test, describe } from "remix/test";
-import { captureLoggedErrorLabels, createBrowserPage } from "#/test/e2e.ts";
+import { captureLoggedErrorLabels, createBrowserPage, freezeClock } from "#/test/e2e.ts";
 import { expect } from "remix/assert";
 import { http, HttpResponse } from "msw/http";
 import { server as requestMocks } from "#/test/server.ts";
@@ -7,6 +7,7 @@ import { server as requestMocks } from "#/test/server.ts";
 describe("Delete Drink", () => {
   test("a document load consumes its deletion notification once", async (testContext) => {
     const page = await createBrowserPage(testContext, { admin: true });
+    await freezeClock(page);
 
     const deletion = await page.request.post("/admin/drinks/test-mojito/delete", {
       maxRedirects: 0,
@@ -25,6 +26,7 @@ describe("Delete Drink", () => {
   test("can delete a drink with warnings after image cleanup and network purge failures", async (testContext) => {
     const loggedErrorLabels = captureLoggedErrorLabels(testContext);
     const pageAsAdmin = await createBrowserPage(testContext, { admin: true });
+    await freezeClock(pageAsAdmin);
     requestMocks.use(
       http.delete(
         "https://api.imagekit.io/v1/files/:fileId",

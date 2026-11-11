@@ -1,6 +1,6 @@
 import { test } from "remix/test";
 import { expect } from "remix/assert";
-import { captureLoggedErrorLabels, createBrowserPage } from "#/test/e2e.ts";
+import { captureLoggedErrorLabels, createBrowserPage, freezeClockOnRedirect } from "#/test/e2e.ts";
 import { http, HttpResponse } from "msw/http";
 import { server as requestMocks } from "#/test/server.ts";
 
@@ -119,6 +119,7 @@ test("editing a drink purges the existing public route cache keys", async (testC
 test("a committed rename navigates with a warning after network purge failure", async (testContext) => {
   const loggedErrorLabels = captureLoggedErrorLabels(testContext);
   const page = await createBrowserPage(testContext, { admin: true });
+  await freezeClockOnRedirect(page);
   requestMocks.use(
     http.post("https://api.fastly.com/service/:serviceId/purge", () => HttpResponse.error()),
   );

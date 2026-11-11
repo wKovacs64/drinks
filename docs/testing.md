@@ -25,5 +25,8 @@ their expected `console.error` calls with `testContext.mock.method`, which resto
 each test. Keep unexpected errors visible.
 
 Wait for `document.documentElement.dataset.remixReady === "true"` before using hydrated controls.
+Call `freezeClock` from `test/e2e.ts` before navigating when a test reads or drives a timer, such as a
+toast's expiry; then only `page.clock.runFor` advances page time. Playwright's `clock.install` alone
+keeps following real time, so a slow run can outlast the timer.
 
 Performance budgets have their own harness; see [performance budgets](performance.md).

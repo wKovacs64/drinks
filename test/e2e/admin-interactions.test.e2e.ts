@@ -1,14 +1,14 @@
 import { test } from "remix/test";
 import { expect } from "remix/assert";
-import { createBrowserPage } from "#/test/e2e.ts";
+import { createBrowserPage, freezeClock, freezeClockOnRedirect } from "#/test/e2e.ts";
 import { getDb } from "#/app/db/client.ts";
 import { drinks } from "#/app/db/schema.ts";
 
 test("deletion follows the native redirect and retains sorting and filtering", async (testContext) => {
   const page = await createBrowserPage(testContext, { admin: true });
+  await freezeClock(page);
   await page.goto("/admin/drinks");
   await page.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
-  await page.clock.install();
   await page.getByRole("textbox", { name: "Filter drinks" }).fill("Test");
   await page.getByRole("button", { name: "Calories", exact: true }).click();
   await page.waitForFunction(() =>
@@ -416,6 +416,7 @@ for (const corner of ["north west", "north east", "south east", "south west"]) {
 
 test("image crop supports drawing and keyboard movement and uploads a square JPEG", async (testContext) => {
   const pageAsAdmin = await createBrowserPage(testContext, { admin: true });
+  await freezeClockOnRedirect(pageAsAdmin);
   await pageAsAdmin.goto("/admin/drinks/test-margarita/edit");
   await pageAsAdmin.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
   await pageAsAdmin

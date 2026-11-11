@@ -1,10 +1,10 @@
 import { test, type TestContext } from "remix/test";
 import { expect } from "remix/assert";
-import { createBrowserPage } from "#/test/e2e.ts";
+import { createBrowserPage, freezeClock } from "#/test/e2e.ts";
 
 async function showDeletionNotification(testContext: TestContext) {
   const page = await createBrowserPage(testContext, { admin: true });
-  await page.clock.install();
+  await freezeClock(page);
   await page.request.post("/admin/drinks/test-mojito/delete", { maxRedirects: 0 });
   await page.goto("/admin/drinks");
   await page.waitForFunction(() => document.documentElement.dataset.remixReady === "true");

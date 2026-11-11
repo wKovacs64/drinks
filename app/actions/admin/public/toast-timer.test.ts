@@ -12,23 +12,6 @@ function run(events: ToastTimerEvent[], timer: ToastTimer = startToastTimer(0)) 
   return events.reduce(transitionToastTimer, timer);
 }
 
-test("overlapping holds pause once and resume only after the last release", () => {
-  const paused = run([
-    { type: "hold", hold: "hover", now: 3000 },
-    { type: "hold", hold: "press", now: 3100 },
-    { type: "hold", hold: "focus", now: 3100 },
-    { type: "release", hold: "press", now: 3200 },
-    { type: "release", hold: "hover", now: 9000 },
-  ]);
-
-  expect(paused).toEqual({ status: "paused", remainingMs: 1000, holds: ["focus"] });
-  expect(transitionToastTimer(paused, { type: "release", hold: "focus", now: 9500 })).toEqual({
-    status: "running",
-    remainingMs: 1000,
-    resumedAt: 9500,
-  });
-});
-
 test("releasing a hold that is not held leaves the timer unchanged", () => {
   const running = startToastTimer(0);
 

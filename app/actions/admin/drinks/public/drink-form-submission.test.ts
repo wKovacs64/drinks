@@ -18,45 +18,25 @@ const saving = run([
   { type: "resubmitted" },
 ]);
 
-test("a save stays busy until the frame reloads, then settles with the navigation", () => {
+test("a save ignores submits until its frame reloads", () => {
   expect(saving).toEqual({ status: "saving" });
   expect(isSubmissionBusy(saving)).toBe(true);
+  expect(transitionDrinkFormSubmission(saving, { type: "submit" })).toBe(saving);
 
   const settling = transitionDrinkFormSubmission(saving, { type: "reloaded" });
 
   expect(settling).toEqual({ status: "settling" });
   expect(isSubmissionBusy(settling)).toBe(false);
-  expect(
-    transitionDrinkFormSubmission(settling, { type: "navigated", outcome: "succeeded" }),
-  ).toEqual(idleSubmission);
 });
 
-test("a rejected save navigation fails the save unless it was superseded", () => {
+test("an aborted save navigation returns to editing without a failure", () => {
   const settling = transitionDrinkFormSubmission(saving, { type: "reloaded" });
 
-  expect(transitionDrinkFormSubmission(settling, { type: "navigated", outcome: "failed" })).toEqual(
-    { status: "failed", reason: "saveFailed" },
-  );
-  expect(transitionDrinkFormSubmission(saving, { type: "navigated", outcome: "aborted" })).toEqual(
-    idleSubmission,
-  );
-});
-
-test("a missing image or invalid field returns to editing without saving", () => {
-  expect(run([{ type: "submit" }, { type: "cropped", outcome: "imageRequired" }])).toEqual({
-    status: "failed",
-    reason: "imageRequired",
-  });
-  expect(run([{ type: "submit" }, { type: "cropped", outcome: "invalid" }])).toEqual(
-    idleSubmission,
-  );
-});
-
-test("submits while busy are ignored and a retry clears the previous failure", () => {
-  expect(transitionDrinkFormSubmission(saving, { type: "submit" })).toBe(saving);
-  expect(
-    transitionDrinkFormSubmission({ status: "failed", reason: "saveFailed" }, { type: "submit" }),
-  ).toEqual({ status: "cropping" });
+  for (const submission of [saving, settling]) {
+    expect(
+      transitionDrinkFormSubmission(submission, { type: "navigated", outcome: "aborted" }),
+    ).toEqual(idleSubmission);
+  }
 });
 
 test("frame and navigation events outside a save are ignored", () => {

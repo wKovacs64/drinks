@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.2.1](https://github.com/wKovacs64/drinks/compare/v5.2.0...v5.2.1) (2026-11-12)
+
+
+### Bug Fixes
+
+* **cache:** purge Tag pages by the Tag slug they emit ([#454](https://github.com/wKovacs64/drinks/issues/454)) ([9c52e92](https://github.com/wKovacs64/drinks/commit/9c52e92bb635e1e6cbe939879c309d8ee7342d4c))
+
 ## [5.2.0](https://github.com/wKovacs64/drinks/compare/v5.1.0...v5.2.0) (2026-11-08)
 
 

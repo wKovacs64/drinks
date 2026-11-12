@@ -61,7 +61,7 @@
     "@wkovacs64/oxlint-config": "0.5.0",
     "esbuild": "0.28.2",
     "msw": "3.0.4",
-    "oxfmt": "0.77.0",
+    "oxfmt": "0.78.0",
     "oxlint": "1.92.0",
     "oxlint-tsgolint": "7.0.2006",
     "playwright": "1.65.0",

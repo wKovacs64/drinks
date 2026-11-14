@@ -225,8 +225,8 @@ importers:
         specifier: 0.28.2
         version: 0.28.2
       msw:
-        specifier: 3.0.4
-        version: 3.0.4(@types/node@26.6.6)(supports-color@7.2.0)(typescript@7.0.2)
+        specifier: 3.0.5
+        version: 3.0.5(@types/node@26.6.6)(supports-color@7.2.0)(typescript@7.0.2)
       oxfmt:
         specifier: 0.78.0
         version: 0.78.0
@@ -3228,8 +3228,8 @@ packages:
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
 
-  msw@3.0.4:
-    resolution: {integrity: sha512-lrILj+WEoJ4pp3SZHdEDnnZvP6jfWrNua+v2jgXz82RAaATAVqOqMNMxj2n2TUMNR9JP/eWG5tBry3mKnxPNbA==}
+  msw@3.0.5:
+    resolution: {integrity: sha512-RkzyWIaG+T2jYf9KOUrNOZuXl4sCpz35m13nVlt1ACFQhl/WjHU9zKMwlrR/6NatgKjL5U84UmVXOz9/+mvGsw==}
     engines: {node: '>=22.12.0'}
     hasBin: true
     peerDependencies:
@@ -6375,7 +6375,7 @@ snapshots:
 
   ms@2.1.3: {}
 
-  msw@3.0.4(@types/node@26.6.6)(supports-color@7.2.0)(typescript@7.0.2):
+  msw@3.0.5(@types/node@26.6.6)(supports-color@7.2.0)(typescript@7.0.2):
     dependencies:
       '@inquirer/confirm': 6.4.0(@types/node@26.6.6)
       '@msw/url': 0.1.2

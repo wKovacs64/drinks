@@ -1,21 +1,58 @@
-import { Marked, Renderer } from "marked";
+import { Marked } from "marked";
+import sanitizeHtml from "sanitize-html";
 
-const markdown = new Marked({
-  renderer: {
-    // https://github.com/markedjs/marked/issues/655#issuecomment-383226346
-    link(linkToken) {
-      // SAFETY: `Marked` is configured with the default string parser and renderer output.
-      const defaultRenderer = Renderer.prototype as Renderer;
+const markdown = new Marked();
 
-      return defaultRenderer.link
-        .call(this, linkToken)
-        .replace(/^<a /, '<a target="_blank" rel="noreferrer noopener nofollow" ');
-    },
+/** Elements and attributes marked emits for notes markdown; everything else is dropped. */
+const sanitizeOptions = {
+  allowedTags: [
+    "p",
+    "br",
+    "hr",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "blockquote",
+    "ul",
+    "ol",
+    "li",
+    "input",
+    "strong",
+    "em",
+    "del",
+    "code",
+    "pre",
+    "a",
+    "img",
+    "table",
+    "thead",
+    "tbody",
+    "tr",
+    "th",
+    "td",
+  ],
+  allowedAttributes: {
+    a: ["href", "title", "target", "rel"],
+    img: ["src", "alt", "title"],
+    input: [{ name: "type", multiple: false, values: ["checkbox"] }, "checked", "disabled"],
+    ol: ["start"],
+    th: ["align"],
+    td: ["align"],
   },
-});
+  allowedClasses: { code: ["language-*"] },
+  allowedSchemes: ["http", "https", "mailto"],
+  transformTags: {
+    // Every link, markdown or raw HTML, opens in a new tab without referrer or ranking credit.
+    a: sanitizeHtml.simpleTransform("a", {
+      target: "_blank",
+      rel: "noreferrer noopener nofollow",
+    }),
+  },
+} satisfies sanitizeHtml.IOptions;
 
 export function markdownToHtml(markdownString: string) {
-  // TODO: sanitize resulting HTML
-
-  return markdown.parse(markdownString, { async: false });
+  return sanitizeHtml(markdown.parse(markdownString, { async: false }), sanitizeOptions);
 }

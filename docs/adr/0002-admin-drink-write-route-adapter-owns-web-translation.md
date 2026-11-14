@@ -31,6 +31,8 @@ updates, and deletes:
 - complete typed outcome translation
 - every error message, for submission validation and typed outcomes
 - not-found responses for missing update/delete targets
+- reloading the editor for failed create/update submissions and rendering it with the submitted
+  values and errors
 - redirects to the admin drinks list
 - success and warning toasts
 

@@ -3,23 +3,27 @@ import { drinkDraftSchema, drinkStatusValues } from "./drinks-schemas.ts";
 
 export type DrinkStatus = (typeof drinkStatusValues)[number];
 
-/**
- * Drink read model for gallery UI (image placeholders, note text as shown).
- * Used for published-only lists/search/tags and for slug detail — including
- * unpublished rows when {@link DrinkForViewer.visibility} is `"private"`.
- */
 export type DrinkTagView = {
   displayName: string;
   slug: string;
 };
 
-export type DrinkView = {
+/** Drink summary: a Published drink as shown in gallery lists, Search results, and Tag pages. */
+export type DrinkSummaryView = {
   title: string;
   slug: string;
   image: { url: string; blurDataUrl: string };
   ingredients: string[];
   calories: number;
-  notes: string | null;
+};
+
+/**
+ * Drink view: the slug page presentation, including unpublished Drinks when
+ * {@link DrinkForViewer.visibility} is `"private"`. `notesHtml` is the stored notes markdown
+ * rendered to HTML; no other read model carries notes.
+ */
+export type DrinkView = DrinkSummaryView & {
+  notesHtml: string | null;
   tags: DrinkTagView[];
 };
 
@@ -27,16 +31,23 @@ export { drinkDraftSchema, drinkStatusValues };
 
 export type DrinkDraft = InferOutput<typeof drinkDraftSchema>;
 
-type DrinkEditorValues = {
-  title: string;
-  slug: string;
-  ingredients: string;
-  calories: string;
-  tags: string;
-  notes: string;
-  rank: string;
-  status: DrinkStatus;
-};
+/** The Drink editor's form fields. */
+export const drinkEditorFieldNames = [
+  "title",
+  "slug",
+  "ingredients",
+  "calories",
+  "tags",
+  "notes",
+  "rank",
+  "status",
+] as const;
+
+/** Editor values are form text, except `status`, which is always a valid Drink status. */
+export type DrinkEditorValues = Record<
+  Exclude<(typeof drinkEditorFieldNames)[number], "status">,
+  string
+> & { status: DrinkStatus };
 
 /** A new Drink has no image until one is uploaded; an existing Drink always has one. */
 export type DrinkEditor =
@@ -109,11 +120,11 @@ export interface AdminDrinksWriteService {
 
 export type DrinksByTagSlug = {
   tag: DrinkTagView;
-  drinks: DrinkView[];
+  drinks: DrinkSummaryView[];
 };
 
 export interface DrinksService {
-  getPublishedDrinks: () => Promise<DrinkView[]>;
+  getPublishedDrinks: () => Promise<DrinkSummaryView[]>;
   getAllDrinks: () => Promise<AdminDrinkListItem[]>;
   getDrinkBySlug: (input: {
     slug: string;
@@ -125,6 +136,6 @@ export interface DrinksService {
     query: string;
     /** Return only the exact title match when one exists. */
     preferExactTitle?: boolean;
-  }) => Promise<DrinkView[]>;
+  }) => Promise<DrinkSummaryView[]>;
   findDrinkEditorBySlug: (slug: string) => Promise<DrinkEditor | null>;
 }

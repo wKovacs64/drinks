@@ -10,15 +10,15 @@ import { Image } from "#/app/ui/images/public/image.tsx";
 
 export function AdminDrinksPage(
   handle: Handle<{
-    drinkSummaries: AdminDrinkListItem[];
+    drinkListItems: AdminDrinkListItem[];
     user: SessionUser;
     toast?: ToastMessage;
   }>,
 ) {
   return () => {
-    const { drinkSummaries, user, toast } = handle.props;
+    const { drinkListItems, user, toast } = handle.props;
 
-    const drinks = drinkSummaries.map((drink) => ({
+    const drinks = drinkListItems.map((drink) => ({
       ...drink,
       createdAt: drink.createdAt.toISOString(),
       updatedAt: drink.updatedAt.toISOString(),

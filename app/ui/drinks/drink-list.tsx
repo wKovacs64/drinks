@@ -1,10 +1,10 @@
 import { routes } from "#/app/routes.ts";
 import type { Handle } from "remix/component";
-import type { DrinkView } from "#/app/modules/drinks/drinks.ts";
+import type { DrinkSummaryView } from "#/app/modules/drinks/drinks.ts";
 import { Glass } from "./glass.tsx";
 import { DrinkSummary } from "./drink-summary.tsx";
 
-export function DrinkList(handle: Handle<{ drinks: DrinkView[] }>) {
+export function DrinkList(handle: Handle<{ drinks: DrinkSummaryView[] }>) {
   return () => {
     const { drinks } = handle.props;
 

@@ -1,219 +1,238 @@
 import { routes } from "#/app/routes.ts";
+import type { AppContext } from "#/app/router.ts";
 import { redirect } from "remix/response/redirect";
 import type { Session } from "remix/session";
 import { parseSafe, string } from "remix/data-schema";
-import { field, object } from "remix/data-schema/form-data";
 import { assertNever } from "#/app/core/public/assert-never.ts";
-import type { ToastMessage } from "#/app/core/toast.ts";
+import { flashToast, type ToastMessage } from "#/app/core/toast.ts";
+import { getDb } from "#/app/db/client.ts";
 import {
+  createDrinksService,
   drinkDraftSchema,
-  type AdminDrinksWriteService,
-  type CreateAdminDrinkResult,
+  drinkEditorFieldNames,
+  drinkStatusValues,
+  newDrinkEditor,
   type DeleteAdminDrinkResult,
+  type DrinkDraft,
   type DrinkEditor,
+  type DrinkEditorValues,
   type DrinkWriteNoticeCode,
-  type UpdateAdminDrinkResult,
 } from "#/app/modules/drinks/drinks.ts";
-import { parseDrinkSubmission } from "./submission.ts";
+import type { SessionUser } from "#/app/modules/identity/identity.ts";
+import { renderDrinkEditor } from "#/app/actions/admin/drinks/editor-page.tsx";
+import { createDrinkWriteService } from "./write-service.ts";
 import { renderResponseError } from "#/app/web/error-pages/response-error.tsx";
+import { parseDrinkSubmission, type DrinkImageUpload } from "./submission.ts";
 
-type AdminDrinkWriteActionAdapterInput = {
-  session: Session;
-  adminDrinksWriteService: AdminDrinksWriteService;
+type AdminDrinkContext = Pick<AppContext, "session" | "render">;
+
+type AdminDrinkEditorContext = AdminDrinkContext &
+  Pick<AppContext, "request"> & { auth: { identity: SessionUser } };
+
+type DrinkSlugParams = { params: { slug: string } };
+
+type DrinkEditorWrite = { kind: "create" } | { kind: "update"; slug: string };
+
+/** Form text for each editor field the submission sent. */
+type SubmittedEditorValues = Partial<Record<keyof DrinkEditorValues, string>>;
+
+type SubmittedEditorForm = {
+  values: SubmittedEditorValues;
+  /** Messages for editor fields the submission did not send as text, in field order. */
+  fieldErrors: string[];
+  formData: FormData | undefined;
 };
 
-type AdminDrinkEditorAdapterInput = AdminDrinkWriteActionAdapterInput & {
-  request: Request;
-  invalidEditor: {
-    load: () => Promise<DrinkEditor | null>;
-    render: (editor: DrinkEditor, errors: string[]) => Promise<Response>;
-  };
-};
+type WriteToastOperation = "created" | "updated" | "deleted";
 
-const drinkFormSchema = object({
-  title: field(string()),
-  slug: field(string()),
-  ingredients: field(string()),
-  calories: field(string()),
-  tags: field(string()),
-  notes: field(string()),
-  rank: field(string()),
-  status: field(string()),
-});
+const writeToastOperations = {
+  create: "created",
+  update: "updated",
+} as const satisfies Record<DrinkEditorWrite["kind"], WriteToastOperation>;
 
-export async function createAdminDrinkActionAdapter(input: AdminDrinkEditorAdapterInput) {
-  const submission = await parseDrinkSubmission(input.request);
-
-  if (submission.kind === "invalid") {
-    return invalidEditorResponse(input, submission.errors, submission.formData);
-  }
-
-  if (!submission.imageUpload) {
-    return invalidEditorResponse(input, ["Image is required"], submission.formData);
-  }
-
-  const draftResult = parseDrinkDraft(submission.formData);
-
-  if (!draftResult.success) {
-    return invalidEditorResponse(
-      input,
-      draftResult.issues.map((issue) => issue.message),
-      submission.formData,
-    );
-  }
-
-  const result = await input.adminDrinksWriteService.create({
-    draft: draftResult.value,
-    imageBuffer: submission.imageUpload.buffer,
-  });
-
-  return translateCreateResult(result, input, submission.formData);
+export function createAdminDrinkActionAdapter(context: AdminDrinkEditorContext) {
+  return submitDrinkEditor(context, { kind: "create" });
 }
 
-export async function deleteAdminDrinkActionAdapter(
-  input: AdminDrinkWriteActionAdapterInput & { slug: string },
-) {
-  const result = await input.adminDrinksWriteService.delete({ slug: input.slug });
-
-  return translateDeleteResult(result, input.session);
+export function updateAdminDrinkActionAdapter(context: AdminDrinkEditorContext & DrinkSlugParams) {
+  return submitDrinkEditor(context, { kind: "update", slug: context.params.slug });
 }
 
-export async function updateAdminDrinkActionAdapter(
-  input: AdminDrinkEditorAdapterInput & { slug: string },
-) {
-  const submission = await parseDrinkSubmission(input.request);
+export async function deleteAdminDrinkActionAdapter(context: AdminDrinkContext & DrinkSlugParams) {
+  const result = await createDrinkWriteService().delete({ slug: context.params.slug });
 
-  if (submission.kind === "invalid") {
-    return invalidEditorResponse(input, submission.errors, submission.formData);
-  }
-
-  const draftResult = parseDrinkDraft(submission.formData);
-
-  if (!draftResult.success) {
-    return invalidEditorResponse(
-      input,
-      draftResult.issues.map((issue) => issue.message),
-      submission.formData,
-    );
-  }
-
-  const result = await input.adminDrinksWriteService.update({
-    slug: input.slug,
-    draft: draftResult.value,
-    imageBuffer: submission.imageUpload?.buffer,
-  });
-
-  return translateUpdateResult(result, input, submission.formData);
+  return translateDeleteResult(result, context);
 }
 
-function translateCreateResult(
-  result: CreateAdminDrinkResult,
-  input: AdminDrinkEditorAdapterInput,
-  formData: FormData,
-) {
+async function submitDrinkEditor(
+  context: AdminDrinkEditorContext,
+  write: DrinkEditorWrite,
+): Promise<Response> {
+  const submission = await parseDrinkSubmission(context.request);
+  const submittedForm = readSubmittedEditorForm(submission.formData);
+
+  const rejectSubmission = (errors: string[]) =>
+    renderSubmittedEditor(context, write, submittedForm, errors);
+
+  if (submission.kind === "invalid") return rejectSubmission(submission.errors);
+  const writeDraft = prepareDraftWrite(write, submission.imageUpload);
+
+  if (!writeDraft) return rejectSubmission(["Image is required"]);
+  const draftResult = parseDrinkDraft(submittedForm);
+
+  if (draftResult.kind === "invalid") return rejectSubmission(draftResult.errors);
+  const result = await writeDraft(draftResult.draft);
+
   switch (result.kind) {
     case "success":
       return redirectToAdminDrinksWithToast(
-        input.session,
-        resolveWriteToast("created", result.notices),
+        context.session,
+        resolveWriteToast(writeToastOperations[write.kind], result.notices),
       );
 
     case "slugTaken":
-      return invalidEditorResponse(input, ["Slug already exists"], formData);
+      return rejectSubmission(["Slug already exists"]);
+
+    case "notFound":
+      return renderResponseError(context.render, 404);
 
     default:
       return assertNever(result);
   }
 }
 
-function translateUpdateResult(
-  result: UpdateAdminDrinkResult,
-  input: AdminDrinkEditorAdapterInput,
-  formData: FormData,
-) {
+/** Returns the service call for a valid draft, or null when the write lacks a required image. */
+function prepareDraftWrite(write: DrinkEditorWrite, imageUpload: DrinkImageUpload | undefined) {
+  const adminDrinksWriteService = createDrinkWriteService();
+
+  switch (write.kind) {
+    case "create":
+      if (!imageUpload) return null;
+
+      return (draft: DrinkDraft) =>
+        adminDrinksWriteService.create({ draft, imageBuffer: imageUpload.buffer });
+
+    case "update":
+      return (draft: DrinkDraft) =>
+        adminDrinksWriteService.update({
+          slug: write.slug,
+          draft,
+          imageBuffer: imageUpload?.buffer,
+        });
+
+    default:
+      return assertNever(write);
+  }
+}
+
+function translateDeleteResult(result: DeleteAdminDrinkResult, context: AdminDrinkContext) {
   switch (result.kind) {
     case "success":
       return redirectToAdminDrinksWithToast(
-        input.session,
-        resolveWriteToast("updated", result.notices),
+        context.session,
+        resolveWriteToast("deleted", result.notices),
       );
 
-    case "slugTaken":
-      return invalidEditorResponse(input, ["Slug already exists"], formData);
-
     case "notFound":
-      return renderResponseError(404);
+      return renderResponseError(context.render, 404);
 
     default:
       return assertNever(result);
   }
 }
 
-function translateDeleteResult(result: DeleteAdminDrinkResult, session: Session) {
-  switch (result.kind) {
-    case "success":
-      return redirectToAdminDrinksWithToast(session, resolveWriteToast("deleted", result.notices));
+function readSubmittedEditorForm(formData: FormData | undefined): SubmittedEditorForm {
+  const values: SubmittedEditorValues = {};
+  const fieldErrors: string[] = [];
 
-    case "notFound":
-      return renderResponseError(404);
+  for (const fieldName of drinkEditorFieldNames) {
+    const fieldResult = parseSafe(string(), formData?.get(fieldName) ?? undefined);
 
-    default:
-      return assertNever(result);
+    if (fieldResult.success) values[fieldName] = fieldResult.value;
+    else fieldErrors.push(...fieldResult.issues.map((issue) => issue.message));
   }
+
+  return { values, fieldErrors, formData };
 }
 
-function parseDrinkDraft(formData: FormData) {
-  const formResult = parseSafe(drinkFormSchema, formData);
+/** Requires every editor field as text before validating the draft. */
+function parseDrinkDraft(
+  submittedForm: SubmittedEditorForm,
+): { kind: "valid"; draft: DrinkDraft } | { kind: "invalid"; errors: string[] } {
+  if (submittedForm.fieldErrors.length > 0)
+    return { kind: "invalid", errors: submittedForm.fieldErrors };
+  const draftResult = parseSafe(drinkDraftSchema, submittedForm.values);
 
-  return formResult.success ? parseSafe(drinkDraftSchema, formResult.value) : formResult;
+  return draftResult.success
+    ? { kind: "valid", draft: draftResult.value }
+    : { kind: "invalid", errors: draftResult.issues.map((issue) => issue.message) };
 }
 
-async function invalidEditorResponse(
-  input: AdminDrinkEditorAdapterInput,
+async function renderSubmittedEditor(
+  context: AdminDrinkEditorContext,
+  write: DrinkEditorWrite,
+  submittedForm: SubmittedEditorForm,
   errors: string[],
-  formData?: FormData,
 ) {
-  const editor = await input.invalidEditor.load();
+  const editorPage = await loadEditorPage(write);
 
-  if (!editor) return renderResponseError(404);
-  const initialValues = { ...editor.initialValues };
+  if (!editorPage) return renderResponseError(context.render, 404);
+  const { values, formData } = submittedForm;
 
-  for (const name of [
-    "title",
-    "slug",
-    "ingredients",
-    "calories",
-    "tags",
-    "notes",
-    "rank",
-  ] as const) {
-    const value = parseSafe(string(), formData?.get(name));
+  const status =
+    drinkStatusValues.find((statusValue) => statusValue === values.status) ??
+    editorPage.editor.initialValues.status;
 
-    if (value.success) initialValues[name] = value.value;
-  }
+  const editor = {
+    ...editorPage.editor,
+    initialValues: { ...editorPage.editor.initialValues, ...values, status },
+  };
 
-  const status = formData?.get("status");
-
-  if (status === "published" || status === "unpublished") initialValues.status = status;
   // The upload handler stores a sent file's name. Enhanced editors keep the selected image.
   const image = parseSafe(string(), formData?.get("imageFile"));
 
   const imageNotice =
-    image.success && image.value && input.request.headers.get("X-Remix-Frame") !== "true"
+    image.success && image.value && context.request.headers.get("X-Remix-Frame") !== "true"
       ? ["Select the image again before saving."]
       : [];
 
-  return input.invalidEditor.render({ ...editor, initialValues }, [...errors, ...imageNotice]);
+  return renderDrinkEditor(context, {
+    editor,
+    user: context.auth.identity,
+    action: editorPage.action,
+    errors: [...errors, ...imageNotice],
+  });
+}
+
+async function loadEditorPage(
+  write: DrinkEditorWrite,
+): Promise<{ editor: DrinkEditor; action: string } | null> {
+  switch (write.kind) {
+    case "create":
+      return { editor: newDrinkEditor, action: routes.admin.drinks.new.action.href() };
+
+    case "update": {
+      const drinksService = createDrinksService({ db: getDb() });
+      const editor = await drinksService.findDrinkEditorBySlug(write.slug);
+
+      return editor
+        ? { editor, action: routes.admin.drinks.edit.action.href({ slug: write.slug }) }
+        : null;
+    }
+
+    default:
+      return assertNever(write);
+  }
 }
 
 function redirectToAdminDrinksWithToast(session: Session, toast: ToastMessage): Response {
-  session.flash("toast", toast);
+  flashToast(session, toast);
 
   return redirect(routes.admin.drinks.index.href(), { status: 303 });
 }
 
 function resolveWriteToast(
-  operation: "created" | "updated" | "deleted",
+  operation: WriteToastOperation,
   notices: DrinkWriteNoticeCode[],
 ): ToastMessage {
   if (notices.length === 0) return { kind: "success", message: `Drink ${operation}!` };

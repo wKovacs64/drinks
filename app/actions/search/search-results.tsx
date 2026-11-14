@@ -1,11 +1,11 @@
 import type { Handle } from "remix/component";
-import type { DrinkView } from "#/app/modules/drinks/drinks.ts";
+import type { DrinkSummaryView } from "#/app/modules/drinks/drinks.ts";
 import { DrinkList } from "#/app/ui/drinks/drink-list.tsx";
 import { SearchStatus } from "#/app/actions/search/public/search-status.tsx";
 import { NoSearchTerm } from "#/app/actions/search/public/no-search-term.tsx";
 import { NoDrinksFound } from "#/app/actions/search/no-drinks-found.tsx";
 
-export function SearchResults(handle: Handle<{ query: string; drinks: DrinkView[] }>) {
+export function SearchResults(handle: Handle<{ query: string; drinks: DrinkSummaryView[] }>) {
   return () => {
     const { query, drinks } = handle.props;
 

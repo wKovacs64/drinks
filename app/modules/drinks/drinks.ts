@@ -4,11 +4,10 @@ import { randomUUID } from "node:crypto";
 
 import type { getDb } from "#/app/db/client.ts";
 import { drinks } from "#/app/db/schema.ts";
-import { markdownToHtml } from "./drinks-markdown.ts";
-import { withPlaceholderImages } from "./drinks-images.ts";
 import { toDrink } from "./drinks-rows.ts";
 import { purgeSearchCache, searchDrinks } from "./drinks-search.ts";
 import { toDrinkTagViews } from "./drinks-tags.ts";
+import { toDrinkSummaryViews, toDrinkView } from "./drinks-views.ts";
 
 export { purgeSearchCache };
 
@@ -63,7 +62,7 @@ export function createDrinksService(deps: { db: Db }): DrinksService {
         })
       ).map(toDrink);
 
-      return withPlaceholderImages(publishedDrinks);
+      return toDrinkSummaryViews(publishedDrinks);
     },
     async getAllDrinks() {
       const adminDrinks = (
@@ -107,18 +106,9 @@ export function createDrinksService(deps: { db: Db }): DrinksService {
         return null;
       }
 
-      const [enhancedDrink] = await withPlaceholderImages([drink]);
-
-      const renderedNotes = enhancedDrink.notes
-        ? markdownToHtml(enhancedDrink.notes)
-        : enhancedDrink.notes;
-
       return {
         visibility: drink.status === "published" ? "public" : "private",
-        drink: {
-          ...enhancedDrink,
-          notes: renderedNotes,
-        },
+        drink: await toDrinkView(drink),
       };
     },
     async getDrinksByTagSlug({ tagSlug }) {
@@ -152,7 +142,7 @@ export function createDrinksService(deps: { db: Db }): DrinksService {
 
       return {
         tag: resolvedTag,
-        drinks: await withPlaceholderImages(matchingDrinks),
+        drinks: await toDrinkSummaryViews(matchingDrinks),
       };
     },
     async searchPublishedDrinks({ query, preferExactTitle = false }) {
@@ -166,7 +156,7 @@ export function createDrinksService(deps: { db: Db }): DrinksService {
         ? matchingDrinks.find((drink) => drink.title.toLowerCase() === query.trim().toLowerCase())
         : undefined;
 
-      return withPlaceholderImages(exactTitleMatch ? [exactTitleMatch] : matchingDrinks);
+      return toDrinkSummaryViews(exactTitleMatch ? [exactTitleMatch] : matchingDrinks);
     },
     async findDrinkEditorBySlug(slug) {
       const drink = await findDrinkBySlug(deps.db, slug);

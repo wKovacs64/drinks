@@ -8,7 +8,7 @@ import { z } from "zod";
 import type { Middleware } from "remix/router";
 import { createMatcher } from "remix/route-pattern/match";
 import { getDb } from "#/app/db/client.ts";
-import { createDrinksService, type DrinkView } from "#/app/modules/drinks/drinks.ts";
+import { createDrinksService, type DrinkSummaryView } from "#/app/modules/drinks/drinks.ts";
 import { routes } from "#/app/routes.ts";
 import { cardResultSchema, searchResultSchema } from "#/app/integrations/mcp/public/recipe.ts";
 import {
@@ -29,7 +29,7 @@ export const mcpHandler = createMcpHandler(({ requestInfo }) => {
   if (!requestInfo) throw new Error("MCP requires an HTTP request");
   const origin = new URL(requestInfo.url).origin;
 
-  const toSummary = (drink: DrinkView) => ({
+  const toSummary = (drink: DrinkSummaryView) => ({
     title: drink.title,
     slug: drink.slug,
     ingredients: drink.ingredients,
@@ -123,7 +123,7 @@ export const mcpHandler = createMcpHandler(({ requestInfo }) => {
           return { isError: true, content: [{ type: "text", text: "Drink not found." }] };
         const recipe: (typeof recipes)[number] = toSummary(result.drink);
 
-        if (view === "recipe") recipe.notes = result.drink.notes;
+        if (view === "recipe") recipe.notes = result.drink.notesHtml;
         recipes.push(recipe);
       }
 

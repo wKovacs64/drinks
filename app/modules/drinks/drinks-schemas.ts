@@ -1,5 +1,5 @@
 import { enum_, object, string } from "remix/data-schema";
-import slugify from "@sindresorhus/slugify";
+import { toDrinkTagViews } from "./drinks-tags.ts";
 
 export const drinkStatusValues = ["published", "unpublished"] as const;
 const trimmedString = string().transform((value) => value.trim());
@@ -31,16 +31,7 @@ export const drinkDraftSchema = object({
     "Calories cannot be negative",
   ),
   tags: string()
-    .transform((value) =>
-      [
-        ...new Set(
-          value
-            .split(",")
-            .map((tag) => slugify(tag))
-            .filter(Boolean),
-        ),
-      ].map((slug) => slug.replaceAll("-", " ")),
-    )
+    .transform((value) => toDrinkTagViews(value.split(",")).map((tag) => tag.displayName))
     .refine((value) => value.length > 0, "At least one tag is required"),
   notes: trimmedString.transform((value) => value || null),
   rank: integerString("Rank must be a whole number"),

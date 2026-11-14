@@ -10,8 +10,12 @@ The language of drinks.fyi, a curated cocktail gallery with a single admin.
 A cocktail entry in the gallery with recipe content, image, tags, and a visibility state.
 _Avoid_: cocktail row, entry, record
 
+**Drink summary**:
+The gallery presentation of a **Published drink** in lists, **Search results**, and **Tag** pages: title, image, ingredients, and calories.
+_Avoid_: list item, teaser, preview
+
 **Drink view**:
-The gallery presentation of a **Drink** shown in lists, search, tags, and slug pages.
+The presentation of a **Drink** on its slug page: its **Drink summary** fields plus notes rendered as HTML and its **Tags**.
 _Avoid_: DTO, card payload, enhanced drink
 
 **Published drink**:
@@ -39,7 +43,7 @@ A **Drink view** paired with the visibility outcome for a specific viewer.
 _Avoid_: page payload, visible drink
 
 **Search result**:
-A **Published drink** returned from text search.
+A **Published drink** returned from text search, presented as a **Drink summary**.
 _Avoid_: hit, match row
 
 ### Access control

@@ -177,12 +177,8 @@ describe("createDrinksService", () => {
     expect(publishedDrinks[0]).toMatchObject({
       title: "Test Margarita",
       calories: 200,
-      notes: "A classic test margarita",
-      tags: [
-        { displayName: "tequila", slug: "tequila" },
-        { displayName: "citrus", slug: "citrus" },
-      ],
     });
+    expect(publishedDrinks[0]).not.toHaveProperty("notes");
   });
 
   test("resolves public and private Drink visibility for the viewer", async () => {
@@ -203,7 +199,7 @@ describe("createDrinksService", () => {
         { displayName: "citrus", slug: "citrus" },
       ],
     });
-    expect(drinkForViewer?.drink.notes).toContain("<p>A classic test margarita</p>");
+    expect(drinkForViewer?.drink.notesHtml).toContain("<p>A classic test margarita</p>");
     await setDrinkStatus("test-margarita", "unpublished");
     expect(await service.getDrinkBySlug({ slug: "test-margarita", viewerRole: "user" })).toBeNull();
 
@@ -214,7 +210,7 @@ describe("createDrinksService", () => {
 
     expect(adminDrink).toMatchObject({
       visibility: "private",
-      drink: { slug: "test-margarita", notes: drinkForViewer?.drink.notes },
+      drink: { slug: "test-margarita", notesHtml: drinkForViewer?.drink.notesHtml },
     });
   });
 
@@ -228,7 +224,7 @@ describe("createDrinksService", () => {
       viewerRole: "user",
     });
 
-    expect(result?.drink.notes).toBe(
+    expect(result?.drink.notesHtml).toBe(
       '<p>See <a target="_blank" rel="noreferrer noopener nofollow" href="https://example.com/margarita">the source</a>.</p>\n',
     );
   });
@@ -259,7 +255,13 @@ describe("createDrinksService", () => {
       "test-margarita",
       "test-mojito",
     ]);
-    expect(taggedDrinks?.drinks[0]?.tags).toEqual([
+
+    const taggedDrink = await service.getDrinkBySlug({
+      slug: "test-margarita",
+      viewerRole: "user",
+    });
+
+    expect(taggedDrink?.drink.tags).toEqual([
       { displayName: "tequila", slug: "tequila" },
       { displayName: "bright citrus", slug: "bright-citrus" },
     ]);
@@ -308,10 +310,6 @@ describe("createDrinksService", () => {
     const searchResults = await service.searchPublishedDrinks({ query: "tequila" });
 
     expect(searchResults.map((drink) => drink.slug)).toEqual(["test-margarita"]);
-    expect(searchResults[0]?.tags).toEqual([
-      { displayName: "tequila", slug: "tequila" },
-      { displayName: "citrus", slug: "citrus" },
-    ]);
 
     for (const query of ["", "xyznonexistent123"]) {
       expect(await service.searchPublishedDrinks({ query })).toEqual([]);

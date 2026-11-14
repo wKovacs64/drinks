@@ -2,11 +2,11 @@ import type { Handle } from "remix/component";
 import { transformBaseSourceProps } from "@unpic/core/base";
 import { imagekitTransformer, isImageKitUrl } from "#/app/core/public/images.ts";
 import { detailImageSizes, drinkImageBreakpoints, galleryImageSizes } from "./image-layout.ts";
-import type { DrinkView } from "#/app/modules/drinks/drinks.ts";
+import type { DrinkSummaryView } from "#/app/modules/drinks/drinks.ts";
 
 export type ImagePreloadProps = { src: string; layout: "gallery" | "detail"; media?: string };
 
-export function getGalleryImagePreloads(drinks: DrinkView[]): ImagePreloadProps[] {
+export function getGalleryImagePreloads(drinks: DrinkSummaryView[]): ImagePreloadProps[] {
   return drinks.slice(0, 3).map((drink, index) => ({
     src: drink.image.url,
     layout: "gallery",

@@ -20,7 +20,7 @@ import {
 } from "#/app/modules/drinks/drinks.ts";
 import type { SessionUser } from "#/app/modules/identity/identity.ts";
 import { renderDrinkEditor } from "#/app/actions/admin/drinks/editor-page.tsx";
-import { createDrinkWriteService } from "#/app/actions/admin/drinks/write-service.ts";
+import { createDrinkWriteService } from "./write-service.ts";
 import { renderResponseError } from "#/app/web/error-pages/response-error.tsx";
 import { parseDrinkSubmission, type DrinkImageUpload } from "./submission.ts";
 

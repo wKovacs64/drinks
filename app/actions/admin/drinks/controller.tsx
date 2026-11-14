@@ -12,11 +12,11 @@ export default createController(routes.admin.drinks, {
   actions: {
     async index(context) {
       const drinksService = createDrinksService({ db: getDb() });
-      const drinkSummaries = await drinksService.getAllDrinks();
+      const drinkListItems = await drinksService.getAllDrinks();
 
       return context.render(
         <AdminDrinksPage
-          drinkSummaries={drinkSummaries}
+          drinkListItems={drinkListItems}
           user={context.auth.identity}
           toast={readFlashedToast(context.session)}
         />,

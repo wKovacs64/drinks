@@ -1,6 +1,6 @@
 import type { Handle } from "remix/component";
 import { routes } from "#/app/routes.ts";
-import type { DrinkView } from "#/app/modules/drinks/drinks.ts";
+import type { DrinkSummaryView } from "#/app/modules/drinks/drinks.ts";
 import { Document } from "#/app/actions/document.tsx";
 import { Gallery } from "#/app/ui/gallery.tsx";
 import { Breadcrumbs } from "#/app/ui/navigation/breadcrumbs.tsx";
@@ -9,7 +9,7 @@ import { SearchResults } from "./search-results.tsx";
 import { getGalleryImagePreloads } from "#/app/ui/drinks/image-preload.tsx";
 
 export function SearchPage(
-  handle: Handle<{ query: string; drinks: DrinkView[]; modulePreloads: readonly string[] }>,
+  handle: Handle<{ query: string; drinks: DrinkSummaryView[]; modulePreloads: readonly string[] }>,
 ) {
   return () => {
     const { query, drinks, modulePreloads } = handle.props;

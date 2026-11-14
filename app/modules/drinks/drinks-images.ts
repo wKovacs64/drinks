@@ -1,7 +1,4 @@
 import { imageUrl } from "#/app/core/public/images.ts";
-import type { DrinkView } from "./drinks.ts";
-import type { Drink } from "./drinks-rows.ts";
-import { toDrinkTagViews } from "./drinks-tags.ts";
 
 // Transparent 1x1 pixel GIF as fallback when blur placeholder generation fails
 const FALLBACK_BLUR_DATA_URL =
@@ -12,7 +9,7 @@ const PLACEHOLDER_CACHE_LIFETIME_MS = 60 * 60 * 1000;
 const blurPlaceholders = new Map<string, { expiresAt: number; result: Promise<string> }>();
 
 /** Generate an ImageKit blur placeholder, falling back for other image sources. */
-async function generateBlurDataUrl(imageUrlSource: string): Promise<string> {
+export async function generateBlurDataUrl(imageUrlSource: string): Promise<string> {
   const blurredImageUrl = imageUrl(imageUrlSource, 10, "webp", undefined, 90);
 
   if (blurredImageUrl === imageUrlSource) return FALLBACK_BLUR_DATA_URL;
@@ -62,22 +59,4 @@ async function fetchBlurDataUrl(blurredImageUrl: string): Promise<string> {
     // Fetch failed, use fallback
     return FALLBACK_BLUR_DATA_URL;
   }
-}
-
-export async function withPlaceholderImages(drinks: Drink[]): Promise<DrinkView[]> {
-  return Promise.all(
-    drinks.map(async (drink) => {
-      const blurDataUrl = await generateBlurDataUrl(drink.imageUrl);
-
-      return {
-        title: drink.title,
-        slug: drink.slug,
-        image: { url: drink.imageUrl, blurDataUrl },
-        ingredients: drink.ingredients,
-        calories: drink.calories,
-        notes: drink.notes,
-        tags: toDrinkTagViews(drink.tags),
-      };
-    }),
-  );
 }

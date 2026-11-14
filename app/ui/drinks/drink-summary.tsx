@@ -1,7 +1,7 @@
 import type { Handle } from "remix/component";
 import { classes } from "#/app/core/public/strings.ts";
 import { Source, Image, type ImageProps, type SourceProps } from "#/app/ui/images/public/image.tsx";
-import type { DrinkView } from "#/app/modules/drinks/drinks.ts";
+import type { DrinkSummaryView } from "#/app/modules/drinks/drinks.ts";
 import {
   detailImageSizes,
   drinkImageBreakpoints,
@@ -93,7 +93,7 @@ export function DrinkSummary(handle: Handle<DrinkSummaryProps>) {
 }
 
 type DrinkSummaryProps = {
-  drink: Pick<DrinkView, "title" | "ingredients" | "calories" | "image">;
+  drink: Pick<DrinkSummaryView, "title" | "ingredients" | "calories" | "image">;
   variant: keyof typeof imagePresets;
   priority?: ImageProps["priority"];
 };

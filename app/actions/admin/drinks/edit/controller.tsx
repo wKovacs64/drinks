@@ -4,8 +4,7 @@ import { requireAdmin } from "#/app/middleware/admin.ts";
 import { getDb } from "#/app/db/client.ts";
 import { createDrinksService } from "#/app/modules/drinks/drinks.ts";
 import { renderDrinkEditor } from "#/app/actions/admin/drinks/editor-page.tsx";
-import { createDrinkWriteService } from "#/app/actions/admin/drinks/write-service.ts";
-import { ResponseErrorDocument } from "#/app/ui/core/response-error-document.tsx";
+import { renderResponseError } from "#/app/web/error-pages/response-error.tsx";
 import { updateAdminDrinkActionAdapter } from "#/app/web/admin-drink-write/route-adapter.ts";
 
 export default createController(routes.admin.drinks.edit, {
@@ -15,7 +14,7 @@ export default createController(routes.admin.drinks.edit, {
       const drinksService = createDrinksService({ db: getDb() });
       const editor = await drinksService.findDrinkEditorBySlug(context.params.slug);
 
-      if (!editor) return context.render(<ResponseErrorDocument status={404} />, { status: 404 });
+      if (!editor) return renderResponseError(context.render, 404);
 
       return renderDrinkEditor(context, {
         editor,
@@ -24,23 +23,7 @@ export default createController(routes.admin.drinks.edit, {
       });
     },
     action(context) {
-      return updateAdminDrinkActionAdapter({
-        request: context.request,
-        session: context.session,
-        slug: context.params.slug,
-        adminDrinksWriteService: createDrinkWriteService(),
-        invalidEditor: {
-          load: () =>
-            createDrinksService({ db: getDb() }).findDrinkEditorBySlug(context.params.slug),
-          render: (editor, errors) =>
-            renderDrinkEditor(context, {
-              editor,
-              user: context.auth.identity,
-              action: routes.admin.drinks.edit.action.href({ slug: context.params.slug }),
-              errors,
-            }),
-        },
-      });
+      return updateAdminDrinkActionAdapter(context);
     },
   },
 });

@@ -3,11 +3,9 @@ import { routes } from "#/app/routes.ts";
 import { requireAdmin } from "#/app/middleware/admin.ts";
 import { getDb } from "#/app/db/client.ts";
 import { createDrinksService } from "#/app/modules/drinks/drinks.ts";
-import { parseSafe } from "remix/data-schema";
-import { toastSchema } from "#/app/core/toast.ts";
+import { readFlashedToast } from "#/app/core/toast.ts";
 import { deleteAdminDrinkActionAdapter } from "#/app/web/admin-drink-write/route-adapter.ts";
 import { AdminDrinksPage } from "./index-page.tsx";
-import { createDrinkWriteService } from "./write-service.ts";
 
 export default createController(routes.admin.drinks, {
   middleware: requireAdmin,
@@ -15,22 +13,17 @@ export default createController(routes.admin.drinks, {
     async index(context) {
       const drinksService = createDrinksService({ db: getDb() });
       const drinkSummaries = await drinksService.getAllDrinks();
-      const toastResult = parseSafe(toastSchema, context.session.get("toast"));
 
       return context.render(
         <AdminDrinksPage
           drinkSummaries={drinkSummaries}
           user={context.auth.identity}
-          toast={toastResult.success ? toastResult.value : undefined}
+          toast={readFlashedToast(context.session)}
         />,
       );
     },
     deleteDrink(context) {
-      return deleteAdminDrinkActionAdapter({
-        session: context.session,
-        slug: context.params.slug,
-        adminDrinksWriteService: createDrinkWriteService(),
-      });
+      return deleteAdminDrinkActionAdapter(context);
     },
   },
 });

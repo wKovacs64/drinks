@@ -31,16 +31,23 @@ export { drinkDraftSchema, drinkStatusValues };
 
 export type DrinkDraft = InferOutput<typeof drinkDraftSchema>;
 
-type DrinkEditorValues = {
-  title: string;
-  slug: string;
-  ingredients: string;
-  calories: string;
-  tags: string;
-  notes: string;
-  rank: string;
-  status: DrinkStatus;
-};
+/** The Drink editor's form fields. */
+export const drinkEditorFieldNames = [
+  "title",
+  "slug",
+  "ingredients",
+  "calories",
+  "tags",
+  "notes",
+  "rank",
+  "status",
+] as const;
+
+/** Editor values are form text, except `status`, which is always a valid Drink status. */
+export type DrinkEditorValues = Record<
+  Exclude<(typeof drinkEditorFieldNames)[number], "status">,
+  string
+> & { status: DrinkStatus };
 
 /** A new Drink has no image until one is uploaded; an existing Drink always has one. */
 export type DrinkEditor =

@@ -20,7 +20,7 @@ export type DrinkSummaryView = {
 /**
  * Drink view: the slug page presentation, including unpublished Drinks when
  * {@link DrinkForViewer.visibility} is `"private"`. `notesHtml` is the stored notes markdown
- * rendered to HTML; no other read model carries notes.
+ * rendered to allowlisted HTML; no other read model carries notes.
  */
 export type DrinkView = DrinkSummaryView & {
   notesHtml: string | null;

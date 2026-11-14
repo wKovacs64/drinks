@@ -225,7 +225,28 @@ describe("createDrinksService", () => {
     });
 
     expect(result?.drink.notesHtml).toBe(
-      '<p>See <a target="_blank" rel="noreferrer noopener nofollow" href="https://example.com/margarita">the source</a>.</p>\n',
+      '<p>See <a href="https://example.com/margarita" target="_blank" rel="noreferrer noopener nofollow">the source</a>.</p>\n',
+    );
+  });
+
+  test("renders script, event-handler, and javascript: input in notes inert", async () => {
+    await getDb().update(drinks, "test-drink-1", {
+      notes: [
+        "hi <img src=x onerror=alert(1)> <script>alert(2)</script>",
+        "[x](javascript:alert(3)) ![y](javascript:alert(4))",
+        '<a href="javascript:alert(5)" onclick="alert(6)">z</a> <iframe src="https://evil.example"></iframe>',
+      ].join("\n\n"),
+    });
+
+    const result = await createReadOnlyService().getDrinkBySlug({
+      slug: "test-margarita",
+      viewerRole: "user",
+    });
+
+    expect(result?.drink.notesHtml).toBe(
+      '<p>hi <img src="x" /> </p>\n' +
+        '<p><a target="_blank" rel="noreferrer noopener nofollow">x</a> <img alt="y" /></p>\n' +
+        '<p><a target="_blank" rel="noreferrer noopener nofollow">z</a> </p>\n',
     );
   });
 

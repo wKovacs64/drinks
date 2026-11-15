@@ -40,6 +40,11 @@
 }
 
 @layer base {
+  ::selection {
+    background-color: var(--color-maroon);
+    color: var(--color-cream);
+  }
+
   h1,
   h2,
   h3,

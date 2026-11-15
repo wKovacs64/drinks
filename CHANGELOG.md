@@ -1,5 +1,17 @@
 # Changelog
 
+## [5.3.0](https://github.com/wKovacs64/drinks/compare/v5.2.1...v5.3.0) (2026-11-15)
+
+
+### Features
+
+* style text selection cream on maroon ([#463](https://github.com/wKovacs64/drinks/issues/463)) ([5e7a441](https://github.com/wKovacs64/drinks/commit/5e7a441153e9c4d6bf97b6c691aa1b0c69a13512))
+
+
+### Bug Fixes
+
+* **drinks:** sanitize rendered notes HTML to an allowlist ([#461](https://github.com/wKovacs64/drinks/issues/461)) ([1983d09](https://github.com/wKovacs64/drinks/commit/1983d094e42832cc4b2887f087fa30416d9d4dc7)), closes [#460](https://github.com/wKovacs64/drinks/issues/460)
+
 ## [5.2.1](https://github.com/wKovacs64/drinks/compare/v5.2.0...v5.2.1) (2026-11-12)
 
 

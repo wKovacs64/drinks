@@ -65,7 +65,7 @@
     "msw": "3.0.5",
     "oxfmt": "0.78.0",
     "oxlint": "1.93.0",
-    "oxlint-tsgolint": "7.0.2006",
+    "oxlint-tsgolint": "7.0.2007",
     "playwright": "1.65.0",
     "tailwindcss": "4.3.5",
     "typescript": "7.0.2"

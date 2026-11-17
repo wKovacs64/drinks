@@ -204,7 +204,7 @@ importers:
         version: 7.2.0
       remix:
         specifier: 3.2.0
-        version: 3.2.0(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)(playwright@1.65.0)
+        version: 3.2.0(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)(playwright@1.65.1)
       sanitize-html:
         specifier: 2.18.2
         version: 2.18.2
@@ -252,8 +252,8 @@ importers:
         specifier: 7.0.2007
         version: 7.0.2007
       playwright:
-        specifier: 1.65.0
-        version: 1.65.0
+        specifier: 1.65.1
+        version: 1.65.1
       tailwindcss:
         specifier: 4.3.5
         version: 4.3.5
@@ -3487,13 +3487,13 @@ packages:
     resolution: {integrity: sha512-wQ0b/W4Fr01qtpHlqSqspcj3EhBvimsdh0KlHhH8HRZnMsEa0ea2fTULOXOS9ccQr3om+GcGRk4e+isrZWV8qQ==}
     engines: {node: '>=16.20.0'}
 
-  playwright-core@1.65.0:
-    resolution: {integrity: sha512-vNSKgH6YqtN7cdT/L334zo0a+YwkrpicyrHJlWWPIm/Q+Nn2SWInil01oT0mbu96U4GgoRtCYQD9CzJQgju+lA==}
+  playwright-core@1.65.1:
+    resolution: {integrity: sha512-hqPpz7blSMPxWVdoeE1yiBSzXsKiVOd2k+kjCvmUywD2GPO2Dd9HfcWnq9NN0GHbNZDFgZ9JfBFr+X5/BLo0qw==}
     engines: {node: '>=20'}
     hasBin: true
 
-  playwright@1.65.0:
-    resolution: {integrity: sha512-F3AMWcR44qMBt4kq+6Kb6mX7bjGXshktKFOPULd7reED6ZJWevjbNRqysP7q+AATE9kdPEZBibex1BYsvpVoeA==}
+  playwright@1.65.1:
+    resolution: {integrity: sha512-vJ1FuoOrNwOKHUIVEvSt3jT1L+wjjDpwhwIstKtfvTh8XIG4FG4bIFuvNdMxi81LGfAhUgUZleVFaOLY4RIUUw==}
     engines: {node: '>=20'}
     hasBin: true
 
@@ -4944,7 +4944,7 @@ snapshots:
       '@remix-run/fetch-router': 1.0.0
       '@remix-run/session': 1.0.1
 
-  '@remix-run/cli@1.0.2(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)(playwright@1.65.0)':
+  '@remix-run/cli@1.0.2(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)(playwright@1.65.1)':
     dependencies:
       '@remix-run/assets': 1.0.2(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)
       '@remix-run/data-table': 1.0.0
@@ -4952,7 +4952,7 @@ snapshots:
       '@remix-run/data-table-postgres': 1.0.0
       '@remix-run/data-table-sqlite': 1.0.0
       '@remix-run/terminal': 1.0.0
-      '@remix-run/test': 1.1.0(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)(playwright@1.65.0)
+      '@remix-run/test': 1.1.0(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)(playwright@1.65.1)
       jsonc-parser: 3.3.1
       semver: 7.8.6
     transitivePeerDependencies:
@@ -5159,7 +5159,7 @@ snapshots:
 
   '@remix-run/terminal@1.0.0': {}
 
-  '@remix-run/test@1.1.0(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)(playwright@1.65.0)':
+  '@remix-run/test@1.1.0(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)(playwright@1.65.1)':
     dependencies:
       '@remix-run/node-tsx': 1.0.0(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)
       '@remix-run/terminal': 1.0.0
@@ -5174,7 +5174,7 @@ snapshots:
       source-map-js: 1.2.2
       v8-to-istanbul: 9.3.0
     optionalDependencies:
-      playwright: 1.65.0
+      playwright: 1.65.1
     transitivePeerDependencies:
       - '@emnapi/core'
       - '@emnapi/runtime'
@@ -6829,11 +6829,11 @@ snapshots:
 
   pkce-challenge@5.0.1: {}
 
-  playwright-core@1.65.0: {}
+  playwright-core@1.65.1: {}
 
-  playwright@1.65.0:
+  playwright@1.65.1:
     dependencies:
-      playwright-core: 1.65.0
+      playwright-core: 1.65.1
 
   postcss@8.5.33:
     dependencies:
@@ -6912,14 +6912,14 @@ snapshots:
 
   readdirp@5.1.1: {}
 
-  remix@3.2.0(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)(playwright@1.65.0):
+  remix@3.2.0(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)(playwright@1.65.1):
     dependencies:
       '@remix-run/assert': 1.0.0
       '@remix-run/assets': 1.0.2(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)
       '@remix-run/async-context-middleware': 1.0.0
       '@remix-run/auth': 1.0.1
       '@remix-run/auth-middleware': 1.0.1
-      '@remix-run/cli': 1.0.2(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)(playwright@1.65.0)
+      '@remix-run/cli': 1.0.2(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)(playwright@1.65.1)
       '@remix-run/component': 1.2.0
       '@remix-run/component-hmr': 1.0.1(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)
       '@remix-run/compression-middleware': 1.0.2
@@ -6962,9 +6962,9 @@ snapshots:
       '@remix-run/static-middleware': 1.0.2
       '@remix-run/tar-parser': 1.0.1
       '@remix-run/terminal': 1.0.0
-      '@remix-run/test': 1.1.0(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)(playwright@1.65.0)
+      '@remix-run/test': 1.1.0(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)(playwright@1.65.1)
     optionalDependencies:
-      playwright: 1.65.0
+      playwright: 1.65.1
     transitivePeerDependencies:
       - '@emnapi/core'
       - '@emnapi/runtime'

@@ -9,7 +9,7 @@ WORKDIR /app
 
 # Keep package-manager tooling out of the runtime image.
 FROM base AS build-tools
-RUN npm install -g pnpm@12.20.0
+RUN npm install -g pnpm@12.21.0
 
 # Install all node_modules, including dev dependencies
 FROM build-tools AS dev-deps

@@ -52,8 +52,6 @@ export async function parseDrinkSubmission(request: Request): Promise<DrinkSubmi
       uploadHandler,
     );
   } catch (error) {
-    // Limit errors are thrown directly rather than wrapped in FormDataParseError.
-    // See node_modules/remix/src/form-data-parser/README.md
     if (error instanceof MaxFileSizeExceededError) return invalid("Image must be under 5MB");
 
     if (error instanceof MaxFilesExceededError) return invalid("Upload only one image");

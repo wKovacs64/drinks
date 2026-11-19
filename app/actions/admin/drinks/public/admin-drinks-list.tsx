@@ -16,19 +16,17 @@ type Drink = Omit<AdminDrinkListItem, "createdAt" | "updatedAt"> & {
 
 type SortableColumn = "title" | "slug" | "calories" | "rank" | "status" | "createdAt" | "updatedAt";
 
-/** Unsorted keeps the server's order. Directions match `aria-sort` values. */
 type DrinkSort =
-  | { status: "unsorted" }
+  | { status: "serverOrder" }
   | { status: "sorted"; key: SortableColumn; direction: "ascending" | "descending" };
 
-/** Each column cycles through ascending, descending, and the server's order. */
 function nextSort(sort: DrinkSort, key: SortableColumn): DrinkSort {
-  if (sort.status === "unsorted" || sort.key !== key)
+  if (sort.status === "serverOrder" || sort.key !== key)
     return { status: "sorted", key, direction: "ascending" };
 
   return sort.direction === "ascending"
     ? { status: "sorted", key, direction: "descending" }
-    : { status: "unsorted" };
+    : { status: "serverOrder" };
 }
 
 const SORTABLE_COLUMNS: { key: SortableColumn; label: string; align?: "right" }[] = [
@@ -67,10 +65,10 @@ function SortArrow(handle: Handle<{ direction: "ascending" | "descending" | unde
 }
 
 function DrinkRow(
-  handle: Handle<{ drink: Drink; timestampFormatter: Intl.DateTimeFormat | undefined }>,
+  handle: Handle<{ drink: Drink; viewerTimeZoneFormatter: Intl.DateTimeFormat | undefined }>,
 ) {
   return () => {
-    const { drink, timestampFormatter } = handle.props;
+    const { drink, viewerTimeZoneFormatter } = handle.props;
 
     return (
       <tr className="border-b border-zinc-800/50 hover:bg-zinc-800/30">
@@ -102,12 +100,12 @@ function DrinkRow(
         </td>
         <td className="py-3 pr-4 whitespace-nowrap text-zinc-400">
           <time dateTime={drink.createdAt}>
-            {timestampFormatter?.format(new Date(drink.createdAt))}
+            {viewerTimeZoneFormatter?.format(new Date(drink.createdAt))}
           </time>
         </td>
         <td className="py-3 pr-4 whitespace-nowrap text-zinc-400">
           <time dateTime={drink.updatedAt}>
-            {timestampFormatter?.format(new Date(drink.updatedAt))}
+            {viewerTimeZoneFormatter?.format(new Date(drink.updatedAt))}
           </time>
         </td>
         <td className="py-3 text-right whitespace-nowrap">
@@ -138,11 +136,10 @@ export const AdminDrinksList = clientEntry(
   import.meta.url,
   function AdminDrinksList(handle: Handle<{ drinks: Drink[] }>) {
     let filter = "";
-    let sort: DrinkSort = { status: "unsorted" };
-    // Only the browser knows the viewer's time zone, so timestamps render after hydration.
-    let timestampFormatter: Intl.DateTimeFormat | undefined;
+    let sort: DrinkSort = { status: "serverOrder" };
+    let viewerTimeZoneFormatter: Intl.DateTimeFormat | undefined;
     handle.queueTask(() => {
-      timestampFormatter = new Intl.DateTimeFormat("en-US", {
+      viewerTimeZoneFormatter = new Intl.DateTimeFormat("en-US", {
         year: "numeric",
         month: "short",
         day: "numeric",
@@ -244,7 +241,11 @@ export const AdminDrinksList = clientEntry(
               </thead>
               <tbody>
                 {processed.map((drink) => (
-                  <DrinkRow key={drink.id} drink={drink} timestampFormatter={timestampFormatter} />
+                  <DrinkRow
+                    key={drink.id}
+                    drink={drink}
+                    viewerTimeZoneFormatter={viewerTimeZoneFormatter}
+                  />
                 ))}
               </tbody>
             </table>

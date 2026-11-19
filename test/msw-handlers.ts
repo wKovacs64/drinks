@@ -1,8 +1,7 @@
 import { http, HttpResponse } from "msw/http";
 import { passthrough } from "msw/utils/passthrough";
 
-// 1x1 transparent WebP (smallest valid WebP)
-const TINY_WEBP = new Uint8Array([
+const TRANSPARENT_1PX_WEBP = new Uint8Array([
   0x52, 0x49, 0x46, 0x46, 0x1a, 0x00, 0x00, 0x00, 0x57, 0x45, 0x42, 0x50, 0x56, 0x50, 0x38, 0x4c,
   0x0d, 0x00, 0x00, 0x00, 0x2f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 ]);
@@ -10,7 +9,6 @@ const TINY_WEBP = new Uint8Array([
 let uploadCounter = 0;
 
 export const handlers = [
-  // ImageKit upload
   http.post("https://upload.imagekit.io/api/v1/files/upload", async ({ request }) => {
     uploadCounter++;
     const formData = await request.formData();
@@ -34,27 +32,24 @@ export const handlers = [
     });
   }),
 
-  // ImageKit delete
   http.delete("https://api.imagekit.io/v1/files/:fileId", () => {
     return new HttpResponse(null, { status: 204 });
   }),
 
-  // ImageKit CDN (for blur placeholder generation)
   http.get("https://ik.imagekit.io/*", () => {
-    return new HttpResponse(TINY_WEBP, {
+    return new HttpResponse(TRANSPARENT_1PX_WEBP, {
       headers: { "Content-Type": "image/webp" },
     });
   }),
 
-  // Fastly cache purge
   http.post("https://api.fastly.com/service/:serviceId/purge", () => {
     return HttpResponse.json({ status: "ok" });
   }),
 
-  // ImageKit probes fetch FormData support with a data URL. Match only that protocol
-  // so other unhandled GET requests still fail under the strict network policy.
   http.get(
-    ({ request }) => request.url.startsWith("data:"),
+    function isImageKitFormDataSupportProbe({ request }) {
+      return request.url.startsWith("data:");
+    },
     () => passthrough(),
   ),
 ];

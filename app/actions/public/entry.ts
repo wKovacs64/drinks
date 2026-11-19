@@ -34,16 +34,19 @@ const app = run({
   },
 });
 
+function isFrameRejectionOfServerErrorPage(errorMessage: string) {
+  return /^Failed to resolve frame: 5\d{2}\b/.test(errorMessage);
+}
+
+function showServerErrorPageAsDocument() {
+  window.location.assign(app.frames.top.src);
+}
+
 app.addEventListener("error", (event) => {
   console.error("Remix browser runtime failed", event.error);
 
-  // Native frame loads reject 5xx HTML. Navigate the document to show the route's error page.
-  if (
-    event.error instanceof Error &&
-    /^Failed to resolve frame: 5\d{2}\b/.test(event.error.message)
-  ) {
-    window.location.assign(app.frames.top.src);
-  }
+  if (event.error instanceof Error && isFrameRejectionOfServerErrorPage(event.error.message))
+    showServerErrorPageAsDocument();
 });
 
 await app.ready();

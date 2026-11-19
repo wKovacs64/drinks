@@ -69,15 +69,6 @@ test("a displayed-size change rescales the crop and keeps it inside the image", 
     crop: { x: 150, y: 100, size: 50 },
     displayedSize: { width: 200, height: 150 },
   });
-  // Height rounds independently of width, so the vertical position scales by height and clamps.
-  expect(
-    cropOf(
-      transitionCropSelection(selection, {
-        type: "imageResized",
-        displayedSize: { width: 200, height: 149 },
-      }),
-    ),
-  ).toEqual({ x: 150, y: 99, size: 50 });
 
   for (const displayedSize of [
     { width: 400, height: 300 },
@@ -87,6 +78,28 @@ test("a displayed-size change rescales the crop and keeps it inside the image", 
       selection,
     );
   }
+});
+
+test("a displayed-size change scales the vertical position by height, not width, and clamps it", () => {
+  expect(
+    cropOf(
+      transitionCropSelection(readyWith({ x: 100, y: 100, size: 100 }), {
+        type: "imageResized",
+        displayedSize: { width: 1000, height: 749 },
+      }),
+    ),
+  ).toEqual({ x: 250, y: (100 * 749) / 300, size: 250 });
+
+  const selection = readyWith({ x: 300, y: 200, size: 100 });
+
+  expect(
+    cropOf(
+      transitionCropSelection(selection, {
+        type: "imageResized",
+        displayedSize: { width: 200, height: 149 },
+      }),
+    ),
+  ).toEqual({ x: 150, y: 99, size: 50 });
 });
 
 test("the source rectangle maps the displayed crop to natural image pixels", () => {
@@ -164,8 +177,9 @@ test("pointer moves outside the gesture's pointer and lifetime are ignored", () 
 
   expect(cropOf(ended)).toEqual({ x: 60, y: 0, size: 300 });
   expect(transitionCropSelection(ended, moveTo(1, 250))).toBe(ended);
+});
 
-  // A second pointer can neither take over, move, nor end the first pointer's gesture.
+test("a second pointer can neither take over, move, nor end the first pointer's gesture", () => {
   for (const event of [
     { type: "gestureStarted", target: "se", pointerId: 2, point: { x: 350, y: 300 } },
     moveTo(2, 250),
@@ -215,7 +229,7 @@ test("arrow keys move the crop by the pressed step", () => {
   }
 });
 
-test("each handle grows outward and shrinks inward around its opposite corner", () => {
+test("each handle grows outward and shrinks inward around its opposite corner, dragged by horizontal travel only", () => {
   const selection = readyWith({ x: 100, y: 100, size: 100 });
 
   const handleCases: {
@@ -270,7 +284,6 @@ test("each handle grows outward and shrinks inward around its opposite corner", 
 
     for (const arrow of inward) expect(press(arrow)).toEqual(shrunk);
 
-    // A pointer resizes by horizontal travel only.
     const outwardX = outward.includes("left") ? -10 : 10;
 
     const dragged = run(

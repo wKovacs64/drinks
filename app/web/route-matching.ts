@@ -2,7 +2,6 @@ import { createMatcher } from "remix/route-pattern/match";
 import { joinPatterns } from "remix/route-pattern/join";
 import { routes } from "#/app/routes.ts";
 
-// Use the router's decoding rules for every consumer of the admin boundary.
 const adminMatchers = [
   createMatcher(routes.admin.index.pattern),
   createMatcher(joinPatterns(routes.admin.index.pattern, "/*path")),
@@ -25,7 +24,6 @@ export function isAuthUrl(url: URL): boolean {
   return authMatchers.some((matcher) => matcher.match(url) !== null);
 }
 
-/** Non-document routes whose errors keep their own responses. */
 export function isResourceUrl(url: URL): boolean {
   return resourceMatchers.some((matcher) => matcher.match(url) !== null);
 }

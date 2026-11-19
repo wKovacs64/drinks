@@ -1,4 +1,4 @@
-import { enum_, parse } from "remix/data-schema";
+import { parseStoredEnumUnvalidatedByColumnType } from "#/app/db/stored-enum.ts";
 import type { TableRow } from "remix/data-table";
 import type { getDb } from "#/app/db/client.ts";
 import { users } from "#/app/db/schema.ts";
@@ -32,13 +32,12 @@ export function createIdentityService({ db }: CreateIdentityServiceDeps): Identi
   };
 }
 
-/** `c.enum` does not validate stored values; an invalid `role` throws `ValidationError`. */
 function toSessionUser(user: TableRow<typeof users>): SessionUser {
   return {
     id: user.id,
     email: user.email,
     name: user.name,
     avatarUrl: user.avatar_url,
-    role: parse(enum_(["user", "admin"]), user.role),
+    role: parseStoredEnumUnvalidatedByColumnType(["user", "admin"], user.role),
   };
 }

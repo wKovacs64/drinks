@@ -13,17 +13,15 @@ function isRenderFunction(value: unknown): value is RenderFunction {
 
 const requireAdminAuthentication = requireAuth<SessionUser>({
   onFailure(context) {
-    // Only a GET or HEAD can be replayed by navigating back after login.
     const { method } = context.request;
+    const replayableByNavigatingBackAfterLogin = method === "GET" || method === "HEAD";
 
-    const loginHref =
-      method !== "GET" && method !== "HEAD"
-        ? routes.auth.login.href()
-        : routes.auth.login.href(undefined, {
-            searchParams: { returnTo: context.url.pathname + context.url.search },
-          });
+    const loginHref = replayableByNavigatingBackAfterLogin
+      ? routes.auth.login.href(undefined, {
+          searchParams: { returnTo: context.url.pathname + context.url.search },
+        })
+      : routes.auth.login.href();
 
-    // Frame requests fetch same-origin only, so they can't follow the redirect to Google.
     const render = context.get(Renderer);
 
     if (context.request.headers.get("X-Remix-Frame") === "true" && isRenderFunction(render))
@@ -51,10 +49,8 @@ const requireAdminRole: Middleware = (context, next) => {
   return next();
 };
 
-/** Controller middleware that admits only an Admin and narrows `context.auth` to a `SessionUser`. */
 export const requireAdmin = createMiddleware(requireAdminAuthentication, requireAdminRole);
 
-/** Denies every admin URL by default, including ones no controller with `requireAdmin` handles. */
 export const protectAdmin: Middleware = (context, next) => {
   if (!isAdminUrl(context.url)) return next();
 

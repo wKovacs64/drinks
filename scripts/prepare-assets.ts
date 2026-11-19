@@ -32,14 +32,10 @@ writeFileSync(
   `<svg xmlns="http://www.w3.org/2000/svg">${symbols.join("")}</svg>`,
 );
 
-// Retire the caching service worker earlier releases registered: browsers that still have it fetch
-// /sw.js on update checks, so this replacement clears its caches and unregisters itself.
-writeFileSync(
-  "public/sw.js",
-  `self.addEventListener('install', event => event.waitUntil(self.skipWaiting()));\nself.addEventListener('activate', event => event.waitUntil(caches.keys().then(keys => Promise.all(keys.map(key => caches.delete(key)))).then(() => self.registration.unregister())));\n`,
-);
+const serviceWorkerThatRetiresEarlierReleasesCachingWorker = `self.addEventListener('install', event => event.waitUntil(self.skipWaiting()));\nself.addEventListener('activate', event => event.waitUntil(caches.keys().then(keys => Promise.all(keys.map(key => caches.delete(key)))).then(() => self.registration.unregister())));\n`;
 
-// Bundle the shared Drink summary and MCP Apps bridge without the website runtime.
+writeFileSync("public/sw.js", serviceWorkerThatRetiresEarlierReleasesCachingWorker);
+
 await build({
   entryPoints: ["app/integrations/mcp/public/card.tsx"],
   outfile: "public/mcp-card.js",

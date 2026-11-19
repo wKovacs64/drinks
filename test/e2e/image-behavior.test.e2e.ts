@@ -21,14 +21,12 @@ test("images without a CDN render directly without fabricated format or resoluti
 
 test("hosted images preserve format fallbacks and responsive selection at twice pixel density", async (testContext) => {
   const pageAsAdmin = await createBrowserPage(testContext, { admin: true });
-  // Stub only external image bytes; the markup and browser candidate selection are real.
   await pageAsAdmin.route("https://ik.imagekit.io/**", (route) =>
     route.fulfill({
       contentType: "image/jpeg",
       path: "app/assets/images/background-768.jpg",
     }),
   );
-  // The real form/upload path makes this drink use the test ImageKit boundary.
   await pageAsAdmin.goto("/admin/drinks/test-margarita/edit");
   await pageAsAdmin.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
   await pageAsAdmin
@@ -37,8 +35,9 @@ test("hosted images preserve format fallbacks and responsive selection at twice 
   await pageAsAdmin.getByAltText("Crop preview").waitFor();
   await pageAsAdmin.getByRole("button", { name: "Update Drink" }).click();
   await pageAsAdmin.waitForURL("/admin/drinks");
-  // Start a fresh document so the readiness marker covers the table, rather than the old editor.
-  await pageAsAdmin.goto("/admin/drinks");
+  const startFreshDocumentSoReadinessMarkerCoversTable = () => pageAsAdmin.goto("/admin/drinks");
+
+  await startFreshDocumentSoReadinessMarkerCoversTable();
   await pageAsAdmin.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
 
   const thumbnail = pageAsAdmin
@@ -108,7 +107,6 @@ test("hosted images preserve format fallbacks and responsive selection at twice 
     );
   }
 
-  // An unsupported MIME type exercises the browser's real picture fallback selection.
   await sources.nth(0).evaluate((element) => element.setAttribute("type", "image/unsupported"));
   await pageAsAdmin.waitForFunction(
     (element) =>

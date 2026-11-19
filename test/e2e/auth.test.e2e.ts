@@ -2,7 +2,7 @@ import { test, describe } from "remix/test";
 import { expect } from "remix/assert";
 import { http, HttpResponse } from "msw/http";
 import { server as requestMocks } from "#/test/server.ts";
-import { createBrowserPage } from "#/test/e2e.ts";
+import { createBrowserPage, stubGoogleSignInByInterceptingTheLoginRedirect } from "#/test/e2e.ts";
 import { getDb } from "#/app/db/client.ts";
 import { drinks, users } from "#/app/db/schema.ts";
 import { TEST_ADMIN_USER } from "#/test/database.ts";
@@ -149,10 +149,8 @@ describe("Authentication", () => {
 
     await pageAsAdmin.getByText("admin@test.com").waitFor();
 
-    // Click logout
     await pageAsAdmin.getByRole("button", { name: "Sign out" }).click();
 
-    // Should be redirected to home
     await pageAsAdmin.waitForURL("/");
     const response = await pageAsAdmin.request.get("/admin/drinks", { maxRedirects: 0 });
     expect(response.headers().location).toBe("/login?returnTo=%2Fadmin%2Fdrinks");
@@ -160,7 +158,6 @@ describe("Authentication", () => {
 
   test("Google sign-in follows only same-origin Return-to URLs", async (testContext) => {
     const page = await createBrowserPage(testContext);
-    // Cookie session storage warns when sign-in regenerates the session ID.
     const logWarning = testContext.mock.method(console, "warn", () => undefined);
     requestMocks.use(
       http.post("https://oauth2.googleapis.com/token", () =>
@@ -211,14 +208,7 @@ test("login-failed Try again uses document navigation to Google", async (testCon
   const page = await createBrowserPage(testContext);
   await page.goto(routes.auth.failed.href());
   await page.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
-  // Browser interception matches the first URL in a redirect chain, so intercept /login.
-  const oauthDestination = Promise.withResolvers<string>();
-  await page.route("**/login", async (route) => {
-    const response = await route.fetch({ maxRedirects: 0 });
-    expect(response.status()).toBe(302);
-    oauthDestination.resolve(response.headers().location);
-    await route.fulfill({ status: 200, contentType: "text/html", body: "<h1>Google sign in</h1>" });
-  });
+  const oauthDestination = await stubGoogleSignInByInterceptingTheLoginRedirect(page);
 
   const loginRequest = page.waitForRequest(
     (request) => new URL(request.url()).pathname === "/login" && request.isNavigationRequest(),

@@ -11,8 +11,8 @@ import type {
   McpUiOpenLinkRequest,
   McpUiSizeChangedNotification,
 } from "@modelcontextprotocol/ext-apps";
+import { afterAwaitingCleanup } from "#/test/cleanup.ts";
 
-// Exercise the built card through the MCP Apps messages a host sends and receives.
 test("the card displays private recipe notes and opens summary and note links through the host", async (testContext) => {
   const page = await createBrowserPage(testContext);
   await getDb().update(drinks, "test-drink-1", {
@@ -21,8 +21,7 @@ test("the card displays private recipe notes and opens summary and note links th
   });
   await page.goto("/");
   const client = new Client({ name: "card-test", version: "1.0.0" });
-  // oxlint-disable-next-line typescript/no-misused-promises -- remix/test types `after` as `() => void`, but its cleanup awaits each callback.
-  testContext.after(() => client.close());
+  afterAwaitingCleanup(testContext, () => client.close());
   await client.connect(new StreamableHTTPClientTransport(new URL("/mcp", page.url())));
 
   const result = await client.callTool({
@@ -30,8 +29,9 @@ test("the card displays private recipe notes and opens summary and note links th
     arguments: { slugs: ["test-margarita"], view: "recipe" },
   });
 
-  // Host the card outside the website document, whose nonce-based CSP the frame would inherit.
-  await page.goto("about:blank");
+  const leaveWebsiteDocumentWhoseNonceCspFrameWouldInherit = () => page.goto("about:blank");
+
+  await leaveWebsiteDocumentWhoseNonceCspFrameWouldInherit();
   await page.setViewportSize({ width: 390, height: 1000 });
   await page.setContent('<iframe title="Drink card" style="width:100%;border:0"></iframe>');
   await page.evaluate(

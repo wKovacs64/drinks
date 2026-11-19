@@ -1,7 +1,6 @@
 import { css, type Handle, type RemixNode } from "remix/component";
 import { routes } from "#/app/routes.ts";
 
-// These fallbacks render without the application stylesheet.
 const errorHeadingStyles = css({ fontSize: "24px" });
 
 const errorDetailsStyles = css({

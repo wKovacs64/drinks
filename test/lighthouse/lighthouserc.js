@@ -1,28 +1,23 @@
-// oxlint-disable-next-line typescript/no-require-imports, typescript/no-unsafe-call -- LHCI loads its config with require(), so this file stays CommonJS; type-aware lint has no Node types for `require` here.
-const { chromium } = require("playwright");
+import { chromium } from "playwright";
+
+const lockfilePinnedPlaywrightChromiumPath = chromium.executablePath();
 
 const baseUrl = "http://localhost:4173";
 
-// Timing metrics swing between identical builds on CI runners, so they warn; layout shift and
-// script bytes stay stable and gate.
 const sharedAssertions = {
   "categories:performance": ["warn", { minScore: 0.9, aggregationMethod: "median" }],
   "largest-contentful-paint": ["warn", { maxNumericValue: 2500, aggregationMethod: "median" }],
-  // Lab data cannot measure INP; Total Blocking Time is its proxy.
   "total-blocking-time": ["warn", { maxNumericValue: 200, aggregationMethod: "median" }],
   "cumulative-layout-shift": ["error", { maxNumericValue: 0.05, aggregationMethod: "median" }],
   "server-response-time": ["warn", { maxNumericValue: 200, aggregationMethod: "median" }],
 };
 
-/**
- * Uncompressed script bytes: production leaves compression to Fastly and Fly Proxy.
- * @param {number} maxBytes
- */
+/** @param {number} maxBytes */
 function scriptBudget(maxBytes) {
   return ["error", { maxNumericValue: maxBytes, aggregationMethod: "median" }];
 }
 
-module.exports = {
+export default {
   ci: {
     collect: {
       startServerCommand:
@@ -35,8 +30,7 @@ module.exports = {
         `${baseUrl}/search?q=citrus`,
       ],
       numberOfRuns: 3,
-      // Pin the browser to the Playwright version in the lockfile.
-      chromePath: chromium.executablePath(),
+      chromePath: lockfilePinnedPlaywrightChromiumPath,
       settings: {
         onlyCategories: ["performance"],
         chromeFlags: "--headless=new --no-sandbox",

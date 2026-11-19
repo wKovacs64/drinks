@@ -25,8 +25,12 @@ them as the `lighthouse-reports` artifact.
 | Script bytes, uncompressed              | 180 KiB; 220 KiB on `/search` | error |
 | Performance score                       | 90                            | warn  |
 
+The `Source Sans 3 Fallback` metric overrides in `app/assets/app.css` come from
+[fontpie](https://github.com/pixel-point/fontpie) and keep the web font swap from shifting layout.
+Regenerate them with fontpie when the font changes.
+
 The lab setup differs from production: seeded Drinks use a same-origin JPEG rather than ImageKit, so
 pages render no AVIF/WebP sources, responsive candidates, or image preloads, and the server sends
 uncompressed responses because production leaves compression to Fastly and Fly Proxy. Treat the
 numbers as regression guards, not field predictions. Budgets live in
-[`test/lighthouse/lighthouserc.cjs`](../test/lighthouse/lighthouserc.cjs).
+[`test/lighthouse/lighthouserc.js`](../test/lighthouse/lighthouserc.js).

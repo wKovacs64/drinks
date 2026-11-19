@@ -260,8 +260,7 @@ for (const gesture of ["draw", "move", "resize"]) {
               name: "Use the arrow keys to move the south east drag handle to change the crop selection area",
             });
 
-    // Retain the old target to prove queued movement cannot change the replacement crop.
-    const moveOldTarget = await target.evaluateHandle((element) => {
+    const queueMovementOnReplacedCropTarget = await target.evaluateHandle((element) => {
       let start: PointerEvent | undefined;
       element.addEventListener(
         "pointerdown",
@@ -291,7 +290,6 @@ for (const gesture of ["draw", "move", "resize"]) {
       bounds.y + (gesture === "draw" ? 2 : bounds.height / 2),
     );
     await page.mouse.down();
-    // Activate the button without releasing the active pointer first.
     await page.getByRole("button", { name: "Change image" }).evaluate((element) => {
       if (!(element instanceof HTMLElement)) throw new Error("Change image is not an HTML control");
       element.click();
@@ -300,11 +298,15 @@ for (const gesture of ["draw", "move", "resize"]) {
     await filePicker.setInputFiles("app/assets/images/background-768.jpg");
     await selection.waitFor();
     const replacementStyle = await selection.getAttribute("style");
-    await moveOldTarget.evaluate((move) => move());
+    await queueMovementOnReplacedCropTarget.evaluate((move) => move());
     await page.mouse.up();
-    // Flush the same component through a real keyboard update before inspecting its crop.
-    await selection.press("ArrowRight");
-    await selection.press("ArrowLeft");
+
+    const flushComponentThroughRealKeyboardUpdate = async () => {
+      await selection.press("ArrowRight");
+      await selection.press("ArrowLeft");
+    };
+
+    await flushComponentThroughRealKeyboardUpdate();
     await page.waitForFunction(
       (expectedStyle) => {
         return (
@@ -319,7 +321,7 @@ for (const gesture of ["draw", "move", "resize"]) {
       { timeout: 2000 },
     );
     expect(await selection.getAttribute("style")).toBe(replacementStyle);
-    await moveOldTarget.dispose();
+    await queueMovementOnReplacedCropTarget.dispose();
   });
 }
 

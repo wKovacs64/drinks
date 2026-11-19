@@ -11,7 +11,6 @@
   --ease-default: ease;
 }
 
-/* Customized fallback fonts to avoid CLS, values courtesy of fontpie */
 @font-face {
   font-family: "Source Sans 3 Fallback";
   font-style: normal;

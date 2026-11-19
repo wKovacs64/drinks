@@ -33,12 +33,10 @@ type DrinkSlugParams = { params: { slug: string } };
 
 type DrinkEditorWrite = { kind: "create" } | { kind: "update"; slug: string };
 
-/** Form text for each editor field the submission sent. */
 type SubmittedEditorValues = Partial<Record<keyof DrinkEditorValues, string>>;
 
 type SubmittedEditorForm = {
   values: SubmittedEditorValues;
-  /** Messages for editor fields the submission did not send as text, in field order. */
   fieldErrors: string[];
   formData: FormData | undefined;
 };
@@ -101,7 +99,6 @@ async function submitDrinkEditor(
   }
 }
 
-/** Returns the service call for a valid draft, or null when the write lacks a required image. */
 function prepareDraftWrite(write: DrinkEditorWrite, imageUpload: DrinkImageUpload | undefined) {
   const adminDrinksWriteService = createDrinkWriteService();
 
@@ -155,7 +152,6 @@ function readSubmittedEditorForm(formData: FormData | undefined): SubmittedEdito
   return { values, fieldErrors, formData };
 }
 
-/** Requires every editor field as text before validating the draft. */
 function parseDrinkDraft(
   submittedForm: SubmittedEditorForm,
 ): { kind: "valid"; draft: DrinkDraft } | { kind: "invalid"; errors: string[] } {
@@ -188,11 +184,11 @@ async function renderSubmittedEditor(
     initialValues: { ...editorPage.editor.initialValues, ...values, status },
   };
 
-  // The upload handler stores a sent file's name. Enhanced editors keep the selected image.
-  const image = parseSafe(string(), formData?.get("imageFile"));
+  const sentImageFileName = parseSafe(string(), formData?.get("imageFile"));
+  const enhancedEditorKeepsSelectedImage = context.request.headers.get("X-Remix-Frame") === "true";
 
   const imageNotice =
-    image.success && image.value && context.request.headers.get("X-Remix-Frame") !== "true"
+    sentImageFileName.success && sentImageFileName.value && !enhancedEditorKeepsSelectedImage
       ? ["Select the image again before saving."]
       : [];
 

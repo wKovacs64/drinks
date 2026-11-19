@@ -14,7 +14,6 @@ async function showDeletionNotification(testContext: TestContext) {
   return page;
 }
 
-/** An expired toast keeps its last attributes until its exit animation ends, so wait it out. */
 async function expectTimerState(notification: Locator, state: "running" | "paused") {
   await notification.evaluate((element) =>
     Promise.all(element.getAnimations().map((animation) => animation.finished.catch(() => null))),
@@ -84,7 +83,6 @@ test("a canceled toast gesture resumes its expiration", async (testContext) => {
   await page.mouse.down();
   await page.clock.runFor(5000);
   await expectTimerState(notification, "paused");
-  // A canceled gesture ignores its pointerup, so only pointercancel can release the press.
   await notification.dispatchEvent("pointercancel", { pointerId: 1, pointerType: "mouse" });
   await page.mouse.up();
   await page.mouse.move(0, 0);

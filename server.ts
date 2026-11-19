@@ -10,10 +10,12 @@ await migrateDatabase();
 
 const port = Number(process.env.PORT ?? 5173);
 
+const flyTlsProxyOrHmrSupervisorSuppliesPublicOrigin =
+  Boolean(process.env.FLY_APP_NAME) || process.env.REMIX_NODE_HMR === "1";
+
 const server = http.createServer(
   createRequestListener((request) => router.fetch(request), {
-    // Fly terminates TLS; the HMR supervisor also supplies the public request origin.
-    trustProxy: Boolean(process.env.FLY_APP_NAME) || process.env.REMIX_NODE_HMR === "1",
+    trustProxy: flyTlsProxyOrHmrSupervisorSuppliesPublicOrigin,
     onError: (error) => {
       console.error("Remix request failed", error);
 

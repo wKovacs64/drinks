@@ -1,3 +1,4 @@
+import type { Route } from "playwright";
 import { test, type TestContext } from "remix/test";
 import { expect } from "remix/assert";
 import { DataTableDatabaseError, rawSql } from "remix/data-table";
@@ -105,11 +106,12 @@ test("a failed search update replaces the gallery with the original exception do
   expectLoggedError(SyntaxError);
 });
 
+const bypassBrowserCacheSoPrefetchedSuccessCannotHideFailure = (route: Route) => route.continue();
+
 test("a failed drink navigation displays its exception document instead of retaining the gallery", async (testContext) => {
   const page = await createBrowserPage(testContext);
   const expectLoggedError = captureRouteErrors(testContext);
-  // Disable the document cache so a viewport-prefetched success cannot hide the later failure.
-  await page.route("**/test-margarita", (route) => route.continue());
+  await page.route("**/test-margarita", bypassBrowserCacheSoPrefetchedSuccessCannotHideFailure);
   await page.goto("/");
   await page.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
   await getDb().exec(

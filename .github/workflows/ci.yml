@@ -140,7 +140,6 @@ jobs:
     name: 🚦 Lighthouse
     runs-on: ubuntu-latest
     timeout-minutes: 6
-    # Lab metrics vary between runners; gate branches before merge, never deploys from main.
     if: ${{ github.ref != 'refs/heads/main' }}
     steps:
       - name: ⬇️ Checkout repo
@@ -194,7 +193,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     needs: [release]
-    # deploy to dev on push to main, skip when release-please creates a release
     if: github.ref == 'refs/heads/main' && needs.release.outputs.release_created != 'true'
     steps:
       - name: ⬇️ Checkout repo

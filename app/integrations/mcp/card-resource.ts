@@ -2,14 +2,22 @@ import { readFileSync } from "node:fs";
 
 export const cardUri = "ui://drinks/card-v6.html";
 const script = readFileSync("public/mcp-card.js", "utf8");
-let styles = readFileSync("public/app.css", "utf8");
 
-// Inline fonts keep the sandbox independent of website asset CORS and relative URLs.
-for (const weight of [300, 400]) {
-  const filename = `source-sans-3-latin-${weight}-normal.woff2`;
-  const font = readFileSync(`public/fonts/${filename}`).toString("base64");
-  styles = styles.replaceAll(`./fonts/${filename}`, `data:font/woff2;base64,${font}`);
+function inlineFontsSoSandboxNeedsNoAssetCorsOrRelativeUrls(css: string) {
+  let inlined = css;
+
+  for (const weight of [300, 400]) {
+    const filename = `source-sans-3-latin-${weight}-normal.woff2`;
+    const font = readFileSync(`public/fonts/${filename}`).toString("base64");
+    inlined = inlined.replaceAll(`./fonts/${filename}`, `data:font/woff2;base64,${font}`);
+  }
+
+  return inlined;
 }
+
+const styles = inlineFontsSoSandboxNeedsNoAssetCorsOrRelativeUrls(
+  readFileSync("public/app.css", "utf8"),
+);
 
 export const cardHtml = `<!doctype html>
 <html lang="en">

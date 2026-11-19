@@ -1,6 +1,5 @@
 import { imageUrl } from "#/app/core/public/images.ts";
 
-// Transparent 1x1 pixel GIF as fallback when blur placeholder generation fails
 const FALLBACK_BLUR_DATA_URL =
   "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 
@@ -8,7 +7,6 @@ const MAX_CACHED_PLACEHOLDERS = 128;
 const PLACEHOLDER_CACHE_LIFETIME_MS = 60 * 60 * 1000;
 const blurPlaceholders = new Map<string, { expiresAt: number; result: Promise<string> }>();
 
-/** Generate an ImageKit blur placeholder, falling back for other image sources. */
 export async function generateBlurDataUrl(imageUrlSource: string): Promise<string> {
   const blurredImageUrl = imageUrl(imageUrlSource, 10, "webp", undefined, 90);
 
@@ -31,9 +29,10 @@ export async function generateBlurDataUrl(imageUrlSource: string): Promise<strin
   };
 
   blurPlaceholders.set(blurredImageUrl, entry);
-  // A failed request must be retried; replacing/versioning an image creates a different key.
   void entry.result.then((result) => {
-    if (result === FALLBACK_BLUR_DATA_URL && blurPlaceholders.get(blurredImageUrl) === entry)
+    const failedFetchShouldRetry = result === FALLBACK_BLUR_DATA_URL;
+
+    if (failedFetchShouldRetry && blurPlaceholders.get(blurredImageUrl) === entry)
       blurPlaceholders.delete(blurredImageUrl);
   });
 
@@ -56,7 +55,6 @@ async function fetchBlurDataUrl(blurredImageUrl: string): Promise<string> {
 
     return `data:image/webp;base64,${blurredImageBase64String}`;
   } catch {
-    // Fetch failed, use fallback
     return FALLBACK_BLUR_DATA_URL;
   }
 }

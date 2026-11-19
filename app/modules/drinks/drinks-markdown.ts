@@ -3,8 +3,7 @@ import sanitizeHtml from "sanitize-html";
 
 const markdown = new Marked();
 
-/** Elements and attributes marked emits for notes markdown; everything else is dropped. */
-const sanitizeOptions = {
+const markedOutputAllowlist = {
   allowedTags: [
     "p",
     "br",
@@ -45,7 +44,6 @@ const sanitizeOptions = {
   allowedClasses: { code: ["language-*"] },
   allowedSchemes: ["http", "https", "mailto"],
   transformTags: {
-    // Every link, markdown or raw HTML, opens in a new tab without referrer or ranking credit.
     a: sanitizeHtml.simpleTransform("a", {
       target: "_blank",
       rel: "noreferrer noopener nofollow",
@@ -53,6 +51,6 @@ const sanitizeOptions = {
   },
 } satisfies sanitizeHtml.IOptions;
 
-export function markdownToHtml(markdownString: string) {
-  return sanitizeHtml(markdown.parse(markdownString, { async: false }), sanitizeOptions);
+export function markdownToAllowlistedHtml(markdownString: string) {
+  return sanitizeHtml(markdown.parse(markdownString, { async: false }), markedOutputAllowlist);
 }

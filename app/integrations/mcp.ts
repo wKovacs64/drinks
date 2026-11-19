@@ -145,7 +145,6 @@ export const mcpHandler = createMcpHandler(({ requestInfo }) => {
 
 const mcpMatcher = createMatcher("/mcp");
 
-// MCP owns its protocol responses; website sessions and document middleware never run here.
 export const mcp: Middleware = async (context, next) => {
   if (mcpMatcher.match(context.url) === null) return next();
   const request = context.request;

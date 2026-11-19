@@ -13,8 +13,9 @@ export async function uploadImage(
   file: Buffer,
   fileName: string,
 ): Promise<{ url: string; fileId: string }> {
-  // Local test drives never upload to the production ImageKit library.
-  if (env.NODE_ENV === "development") {
+  const keepOutOfProductionImageKitLibrary = env.NODE_ENV === "development";
+
+  if (keepOutOfProductionImageKitLibrary) {
     await mkdir("public/uploads", { recursive: true });
     const id = randomUUID();
     const filename = `${id}-${fileName}`;

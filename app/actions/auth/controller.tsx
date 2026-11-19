@@ -23,7 +23,6 @@ const googleAuthProvider = createGoogleAuthProvider({
 export default createController(routes.auth, {
   actions: {
     login(context) {
-      // Remix drops Return-to URLs that leave the origin.
       return startExternalAuth(googleAuthProvider, context, {
         returnTo: context.url.searchParams.get("returnTo"),
       });

@@ -18,10 +18,8 @@ describe("Create New Drink", () => {
     await pageAsAdmin.goto("/admin/drinks/new");
     await pageAsAdmin.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
 
-    // Should see the form
     await pageAsAdmin.getByRole("heading", { name: "Add New Drink" }).waitFor();
 
-    // Fill out the form
     await pageAsAdmin.getByLabel("Title").fill("New Test Drink");
     await pageAsAdmin.getByLabel("Slug").fill("new-test-drink");
     await pageAsAdmin.getByLabel("Ingredients (one per line)").fill("1 oz vodka\n2 oz juice");
@@ -30,7 +28,6 @@ describe("Create New Drink", () => {
     await pageAsAdmin.getByLabel("Notes (markdown)").fill("A test drink");
     await pageAsAdmin.getByLabel("Rank").fill("5");
 
-    // Upload a test image so the form passes client-side validation
     const testImageBuffer = Buffer.from(
       "iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVQYV2P8/5+hnoEIwDiqEF8oAABkvQMRzBOz/QAAAABJRU5ErkJggg==",
       "base64",
@@ -43,13 +40,10 @@ describe("Create New Drink", () => {
     });
     await pageAsAdmin.getByAltText("Crop preview").waitFor();
 
-    // Submit the form
     await pageAsAdmin.getByRole("button", { name: "Create Drink" }).click();
 
-    // Should redirect to drinks list
     await pageAsAdmin.waitForURL("/admin/drinks");
 
-    // New drink should appear in list
     await pageAsAdmin.getByRole("cell", { name: "New Test Drink" }).waitFor();
     const notification = pageAsAdmin.getByRole("status");
     await notification.filter({ hasText: "Drink created, but cache refresh failed" }).waitFor();
@@ -138,7 +132,6 @@ test("create retries preserve the draft and crop, and each save uploads the curr
   await page.unroute("**/admin/drinks/new");
 
   await cropHandle.press("Shift+ArrowLeft");
-  // Hold the crop's encoding so the save is observably waiting on it.
   await page.evaluate(() => {
     const nativeToBlob = HTMLCanvasElement.prototype.toBlob;
     const cropRelease: PromiseWithResolvers<void> = Promise.withResolvers();
@@ -157,7 +150,6 @@ test("create retries preserve the draft and crop, and each save uploads the curr
   await page.getByRole("button", { name: "Create Drink" }).click();
   await page.getByRole("button", { name: "Saving..." }).waitFor();
   expect(submissions).toEqual([]);
-  // A field invalidated while the crop encodes cancels the save and re-enables it.
   await page.getByLabel("Title", { exact: true }).fill("");
   await page.evaluate(() => {
     // SAFETY: the evaluate that holds the crop's encoding sets window.releaseCrop to a resolver.

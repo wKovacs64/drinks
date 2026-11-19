@@ -6,14 +6,13 @@ import { startSeededApp } from "#/test/seeded-app.ts";
 import { cardResultSchema, searchResultSchema } from "#/app/integrations/mcp/public/recipe.ts";
 import { getDb } from "#/app/db/client.ts";
 import { drinks } from "#/app/db/schema.ts";
+import { afterAwaitingCleanup } from "#/test/cleanup.ts";
 
 async function connect(testContext: TestContext, { admin = false } = {}) {
   const app = await startSeededApp({ admin });
   const client = new Client({ name: "drinks-test", version: "1.0.0" });
-  // oxlint-disable-next-line typescript/no-misused-promises -- remix/test types `after` as `() => void`, but its cleanup awaits each callback.
-  testContext.after(() => client.close());
-  // oxlint-disable-next-line typescript/no-misused-promises -- remix/test types `after` as `() => void`, but its cleanup awaits each callback.
-  testContext.after(() => app.close());
+  afterAwaitingCleanup(testContext, () => client.close());
+  afterAwaitingCleanup(testContext, () => app.close());
 
   const cookie = app.adminSessionCookie
     ? `${app.adminSessionCookie.name}=${app.adminSessionCookie.value}`

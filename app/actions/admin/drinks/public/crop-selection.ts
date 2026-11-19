@@ -1,31 +1,24 @@
 import { assertNever } from "#/app/core/public/assert-never.ts";
 
-/** A square in displayed image pixels, from the image's top-left corner. */
 export type Crop = { x: number; y: number; size: number };
 
 export type Size = { width: number; height: number };
 
-/** A position in displayed image pixels, relative to the image's top-left corner. */
 export type Point = { x: number; y: number };
 
 export type CropHandle = "nw" | "ne" | "se" | "sw";
 
-/** A pointer on the image draws a new crop; on the crop it moves it; on a handle it resizes from that corner. */
 export type CropTarget = "image" | "crop" | CropHandle;
 
 export type Arrow = "left" | "right" | "up" | "down";
 
-/** An active pointer gesture, owned by the pointer that started it. */
 export type CropGesture = {
   target: CropTarget;
   pointerId: number;
-  /** Where the pointer went down; a draw clamps it to the image. */
   origin: Point;
-  /** The crop when the gesture started; moves and resizes are relative to it. */
   startingCrop: Crop;
 };
 
-/** The chosen file, from its object URL through a crop sized to the displayed image. */
 export type CropSelection =
   | { status: "empty" }
   | { status: "loading"; objectUrl: string }
@@ -44,14 +37,12 @@ export type CropSelectionEvent =
   | { type: "imageCleared" }
   | { type: "gestureStarted"; target: CropTarget; pointerId: number; point: Point }
   | { type: "pointerMoved"; pointerId: number; point: Point }
-  /** The pointer was released or its gesture was cancelled. */
   | { type: "gestureEnded"; pointerId: number }
   | { type: "arrowPressed"; target: Exclude<CropTarget, "image">; arrow: Arrow; step: number };
 
 export const emptyCropSelection: CropSelection = { status: "empty" };
 
-/** Each handle's outward direction: dragging or pressing an arrow that way grows the crop. */
-const handleDirections = {
+const handleOutwardDirections = {
   nw: { x: -1, y: -1 },
   ne: { x: 1, y: -1 },
   se: { x: 1, y: 1 },
@@ -75,7 +66,6 @@ function initialCrop({ width, height }: Size): Crop {
   return { x: (width - size) / 2, y: (height - size) / 2, size };
 }
 
-/** Rescales the crop to a new displayed size of the same image. */
 function rescaleCrop(crop: Crop, previous: Size, { width, height }: Size): Crop {
   const scale = width / previous.width;
   const size = Math.min(crop.size * scale, width, height);
@@ -95,10 +85,9 @@ function moveCrop(crop: Crop, bounds: Size, deltaX: number, deltaY: number): Cro
   };
 }
 
-/** Grows or shrinks the crop by `delta` from a handle, keeping the opposite corner fixed. */
 function resizeCrop(crop: Crop, bounds: Size, handle: CropHandle, delta: number): Crop {
-  const west = handleDirections[handle].x < 0,
-    north = handleDirections[handle].y < 0;
+  const west = handleOutwardDirections[handle].x < 0,
+    north = handleOutwardDirections[handle].y < 0;
 
   const maximum = Math.min(
     west ? crop.x + crop.size : bounds.width - crop.x,
@@ -114,7 +103,6 @@ function resizeCrop(crop: Crop, bounds: Size, handle: CropHandle, delta: number)
   };
 }
 
-/** A square from the draw origin toward the pointer, sized by horizontal travel. */
 function drawCrop(origin: Point, point: Point, bounds: Size): Crop {
   const deltaX = point.x - origin.x,
     deltaY = point.y - origin.y;
@@ -143,12 +131,11 @@ function dragCrop(gesture: CropGesture, point: Point, bounds: Size): Crop {
     case "crop":
       return moveCrop(gesture.startingCrop, bounds, deltaX, deltaY);
     default:
-      // A corner handle resizes by horizontal travel only.
       return resizeCrop(
         gesture.startingCrop,
         bounds,
         gesture.target,
-        deltaX * handleDirections[gesture.target].x,
+        deltaX * handleOutwardDirections[gesture.target].x,
       );
   }
 }
@@ -163,7 +150,7 @@ function nudgeCrop(
   const direction = arrowDirections[arrow];
 
   if (target === "crop") return moveCrop(crop, bounds, direction.x * step, direction.y * step);
-  const outward = handleDirections[target];
+  const outward = handleOutwardDirections[target];
 
   return resizeCrop(
     crop,
@@ -203,7 +190,6 @@ export function transitionCropSelection(
 
       if (width === previous.width && height === previous.height) return selection;
 
-      // An active gesture's origin and starting crop are in the old size, so the resize ends it.
       return {
         ...selection,
         crop: rescaleCrop(selection.crop, previous, event.displayedSize),
@@ -264,7 +250,6 @@ export function transitionCropSelection(
   }
 }
 
-/** The crop in natural image pixels, for drawing the chosen image onto a canvas. */
 export function cropSourceRect(
   selection: Extract<CropSelection, { status: "ready" }>,
   naturalSize: Size,

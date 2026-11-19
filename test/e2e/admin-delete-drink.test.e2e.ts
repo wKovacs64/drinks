@@ -38,14 +38,11 @@ describe("Delete Drink", () => {
     await pageAsAdmin.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
     await pageAsAdmin.getByText("Test Old Fashioned").waitFor();
 
-    // Set up dialog handler before clicking delete
     pageAsAdmin.on("dialog", (dialog) => dialog.accept());
 
-    // Click the delete button in the Test Old Fashioned row
     const row = pageAsAdmin.getByRole("row").filter({ hasText: "Test Old Fashioned" });
     await row.getByRole("button", { name: "Delete" }).click();
 
-    // Drink should be removed from the list
     await pageAsAdmin.getByText("Test Old Fashioned").waitFor({ state: "hidden" });
     const notification = pageAsAdmin.getByRole("status");
     const expectedMessage = "Drink deleted, but old image cleanup failed and cache refresh failed";

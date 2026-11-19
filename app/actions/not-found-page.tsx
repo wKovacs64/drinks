@@ -20,9 +20,7 @@ export function NotFoundPage(handle: Handle<{ gallery?: boolean }>) {
   );
 }
 
-/** Renders the gallery not-found page for URLs no route matches, whatever the method. */
 export function renderUnmatchedUrl(render: RenderFunction, method: string) {
-  // Only safe-method 404s are shared cacheable; other methods never carried public cache headers.
   const headers =
     method === "GET" || method === "HEAD" ? notFoundHeaders : { "Cache-Control": "no-store" };
 

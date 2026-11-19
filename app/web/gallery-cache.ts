@@ -41,11 +41,6 @@ function publicPageHeaders(...pageKeys: string[]) {
   };
 }
 
-/**
- * Keys for the pages a Drink write affects: home, search, the tags index, the Drink pages, and the
- * Tag pages. `all` is not one of the fixed keys here; the deploy purges it. Slugs share a namespace
- * with each other and with the fixed keys, so a slug equal to another key over-purges.
- */
 export function purgeKeysFor(affectedPages: { drinkSlugs: string[]; tagSlugs: string[] }) {
   return ["index", "search", ...affectedPages.drinkSlugs, "tags", ...affectedPages.tagSlugs];
 }

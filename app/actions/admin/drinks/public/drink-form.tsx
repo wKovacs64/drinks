@@ -1,4 +1,4 @@
-import { clientEntry, on, ref, type Handle } from "remix/component";
+import { clientEntry, on, ref, type Handle, type RemixNode } from "remix/component";
 import slugify from "@sindresorhus/slugify";
 import type { DrinkEditor } from "#/app/modules/drinks/drinks.ts";
 import { ImageCrop } from "#/app/actions/admin/drinks/public/image-crop.tsx";
@@ -33,21 +33,24 @@ type SlugField = { source: "title" | "manual"; value: string };
 export const DrinkForm = clientEntry(
   import.meta.url,
   function DrinkForm(handle: Handle<DrinkFormProps>) {
-    // Remix reconciles keyed siblings inside fragments.
-    return () => (
-      <>
-        <DrinkEditorForm key={handle.props.action} {...handle.props} />
-      </>
-    );
+    return () =>
+      remountOnKeyChange(<DrinkEditorForm key={handle.props.action} {...handle.props} />);
   },
 );
+
+function remountOnKeyChange(keyedNode: RemixNode) {
+  return <>{keyedNode}</>;
+}
+
+function waitForSubmitEventDispatchToEnd() {
+  return new Promise((resolve) => setTimeout(resolve));
+}
 
 function DrinkEditorForm(handle: Handle<DrinkFormProps>) {
   const { editor, action } = handle.props;
   let submission = idleSubmission;
   let getCroppedImage: (() => Promise<Blob | null>) | undefined;
 
-  // A new Drink's slug follows its title until the slug is edited.
   let slug: SlugField = {
     source: editor.mode === "create" ? "title" : "manual",
     value: editor.initialValues.slug,
@@ -85,7 +88,7 @@ function DrinkEditorForm(handle: Handle<DrinkFormProps>) {
     void handle.update();
   }
 
-  async function handleSubmit(event: SubmitEvent & { currentTarget: HTMLFormElement }) {
+  async function holdSubmitUntilCropped(event: SubmitEvent & { currentTarget: HTMLFormElement }) {
     if (submission.status === "resubmitting") return;
     event.preventDefault();
 
@@ -93,8 +96,7 @@ function DrinkEditorForm(handle: Handle<DrinkFormProps>) {
     const form = event.currentTarget;
     send({ type: "submit" });
     const image = (await getCroppedImage?.()) ?? null;
-    // Browsers ignore requestSubmit while the original submit event is still dispatching.
-    await new Promise((resolve) => setTimeout(resolve));
+    await waitForSubmitEventDispatchToEnd();
 
     if (handle.signal.aborted) return;
 
@@ -104,8 +106,9 @@ function DrinkEditorForm(handle: Handle<DrinkFormProps>) {
       return;
     }
 
-    // Fields edited during the crop can fail validation, which cancels requestSubmit silently.
-    if (!form.reportValidity()) {
+    const fieldsEditedDuringCropStillValid = form.reportValidity();
+
+    if (!fieldsEditedDuringCropStillValid) {
       send({ type: "cropped", outcome: "invalid" });
 
       return;
@@ -142,7 +145,10 @@ function DrinkEditorForm(handle: Handle<DrinkFormProps>) {
         action={action}
         encType="multipart/form-data"
         aria-busy={isBusy ? "true" : undefined}
-        mix={[observeSaveNavigation, on<HTMLFormElement, "submit">("submit", handleSubmit)]}
+        mix={[
+          observeSaveNavigation,
+          on<HTMLFormElement, "submit">("submit", holdSubmitUntilCropped),
+        ]}
         className="space-y-6"
       >
         {errors.length > 0 ? (

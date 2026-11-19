@@ -29,6 +29,7 @@ before-and-after `pnpm perf` timings.
 - Use native subpath imports.
 - Prefer runtime narrowing to type assertions.
 - Prioritize correctness > readability > brevity, with explicit variable names.
+- Comments say why, never what; prefer a name, type, or test.
 
 ## Module design
 

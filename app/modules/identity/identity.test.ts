@@ -32,7 +32,6 @@ describe("createIdentityService", () => {
       });
 
       expect(user).toBeNull();
-      // Include timestamps and every User to verify rejection makes no persistence changes.
       expect(await db.findMany(users)).toEqual(existingUsers);
     });
   }

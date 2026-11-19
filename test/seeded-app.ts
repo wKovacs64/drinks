@@ -12,14 +12,8 @@ import { resetAndSeedDatabase, TEST_ADMIN_USER } from "#/test/database.ts";
 import { server as requestMocks } from "#/test/server.ts";
 import { getSessionCookieValue } from "#/test/session.ts";
 
-/**
- * Seeds the database and serves the real router over HTTP, optionally with an Admin session cookie
- * for the client to carry. The result is a test server: pass it to `testContext.serve` for a browser
- * page, or request `baseUrl` directly and register `close` with `testContext.after`.
- */
 export async function startSeededApp(options: { admin?: boolean } = {}) {
   await resetAndSeedDatabase();
-  // The search cache outlives a database reset.
   purgeSearchCache();
 
   const adminSessionCookie =
@@ -28,11 +22,11 @@ export async function startSeededApp(options: { admin?: boolean } = {}) {
       : undefined;
 
   const server = createServer(createRequestListener((request) => router.fetch(request)));
+  const dropSocketsThatRejectedSubmissionsHoldOpen = () => server.closeAllConnections();
   server.listen(0, "127.0.0.1");
   await once(server, "listening");
   const { port } = parse(object({ port: number() }), server.address());
   const baseUrl = `http://127.0.0.1:${port}`;
-  // MSW intercepts this worker's requests, including Playwright's request client; let them reach the real router.
   requestMocks.use(http.all(`${baseUrl}/*`, () => passthrough()));
 
   return {
@@ -43,9 +37,7 @@ export async function startSeededApp(options: { admin?: boolean } = {}) {
           if (error) reject(error);
           else resolve();
         });
-        // A submission rejected mid-body keeps its socket open for seconds, and `server.close` alone
-        // waits for it. Remix's `createTestServer` exposes no way to drop it.
-        server.closeAllConnections();
+        dropSocketsThatRejectedSubmissionsHoldOpen();
       }),
     adminSessionCookie,
   };

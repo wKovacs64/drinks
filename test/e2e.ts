@@ -1,6 +1,8 @@
 import type { Page } from "playwright";
+import { expect } from "remix/assert";
 import type { TestContext } from "remix/test";
 import { startSeededApp } from "#/test/seeded-app.ts";
+import { afterAwaitingCleanup } from "#/test/cleanup.ts";
 
 export async function createBrowserPage(
   testContext: TestContext,
@@ -19,8 +21,7 @@ export async function createBrowserPage(
       timezoneId: options.timezoneId,
     });
     const customPage = page;
-    // oxlint-disable-next-line typescript/no-misused-promises -- remix/test types `after` as `() => void`, but its cleanup awaits each callback.
-    testContext.after(() => customPage.close());
+    afterAwaitingCleanup(testContext, () => customPage.close());
   }
 
   if (app.adminSessionCookie)
@@ -37,22 +38,13 @@ export function captureLoggedErrorLabels(testContext: TestContext) {
 
 const clockInstalledAt = Date.parse("2026-01-01T00:00:00Z");
 
-// Pausing ahead of the install time stays valid however long the test ran before pausing.
-const clockPausedAt = clockInstalledAt + 60 * 60 * 1000;
+const clockPausedAheadOfAnyTestDuration = clockInstalledAt + 60 * 60 * 1000;
 
-/**
- * Stops page time before navigation so only `page.clock.runFor` advances timers. Playwright's
- * installed clock otherwise follows real time, letting a slow test outlive a toast's expiry.
- */
 export async function freezeClock(page: Page) {
   await page.clock.install({ time: clockInstalledAt });
-  await page.clock.pauseAt(clockPausedAt);
+  await page.clock.pauseAt(clockPausedAheadOfAnyTestDuration);
 }
 
-/**
- * Lets time run until a POST redirects, then stops it before the browser follows the redirect.
- * Editors need running timers to submit, so tests that save and then read the toast use this.
- */
 export async function freezeClockOnRedirect(page: Page) {
   await page.clock.install({ time: clockInstalledAt });
   await page.route("**/*", async (route) => {
@@ -61,8 +53,21 @@ export async function freezeClockOnRedirect(page: Page) {
     const response = await route.fetch({ maxRedirects: 0 });
 
     if (response.status() >= 300 && response.status() < 400)
-      await page.clock.pauseAt(clockPausedAt);
+      await page.clock.pauseAt(clockPausedAheadOfAnyTestDuration);
 
     return route.fulfill({ response });
   });
+}
+
+export async function stubGoogleSignInByInterceptingTheLoginRedirect(page: Page) {
+  const oauthDestination = Promise.withResolvers<string>();
+
+  await page.route("**/login", async (route) => {
+    const response = await route.fetch({ maxRedirects: 0 });
+    expect(response.status()).toBe(302);
+    oauthDestination.resolve(response.headers().location);
+    await route.fulfill({ status: 200, contentType: "text/html", body: "<h1>Google sign in</h1>" });
+  });
+
+  return oauthDestination;
 }

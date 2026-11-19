@@ -5,7 +5,6 @@ export default createConfig(
     jsPlugins: ["./lint-rules/route-matching.js"],
     overrides: [
       {
-        // Server request handling must match URLs the way the router does.
         files: ["app/**/*.{ts,tsx}", "server.ts"],
         rules: { "route-matching/no-raw-pathname-match": "error" },
       },

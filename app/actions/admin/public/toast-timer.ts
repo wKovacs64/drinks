@@ -2,7 +2,6 @@ import { assertNever } from "#/app/core/public/assert-never.ts";
 
 export const TOAST_DURATION_MS = 4000;
 
-/** Interactions that each keep a toast open until released. */
 export type ToastHold = "hover" | "focus" | "press";
 
 export type ToastTimer =

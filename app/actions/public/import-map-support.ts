@@ -1,6 +1,4 @@
-// The server installs a complete initial import map before this module runs. Test
-// one additional mapping in this document instead of booting a hidden iframe.
-export const supportsMultipleImportMaps = (async () => {
+async function probeOneMoreMappingInThisDocumentWithoutIframe() {
   const script = document.createElement("script");
   let url: string | undefined;
 
@@ -15,11 +13,12 @@ export const supportsMultipleImportMaps = (async () => {
 
     return true;
   } catch {
-    // Unsupported maps or a blocked probe retain Remix's compatibility loader.
     return false;
   } finally {
     script.remove();
 
     if (url) URL.revokeObjectURL(url);
   }
-})();
+}
+
+export const supportsMultipleImportMaps = probeOneMoreMappingInThisDocumentWithoutIframe();

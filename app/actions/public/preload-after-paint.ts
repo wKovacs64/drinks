@@ -1,4 +1,5 @@
-// Speculative imports should not compete with the first visible server-rendered page.
+const PRELOADS_PER_TASK_SO_INPUT_RUNS_BETWEEN = 4;
+
 const preloads = document.getElementById("client-module-preloads");
 
 if (preloads instanceof HTMLTemplateElement) {
@@ -6,14 +7,16 @@ if (preloads instanceof HTMLTemplateElement) {
     if (!preloads.isConnected) return;
     const batch = document.createDocumentFragment();
 
-    for (let index = 0; index < 4 && preloads.content.firstChild; index++) {
+    for (
+      let index = 0;
+      index < PRELOADS_PER_TASK_SO_INPUT_RUNS_BETWEEN && preloads.content.firstChild;
+      index++
+    ) {
       batch.appendChild(preloads.content.firstChild);
     }
 
     preloads.before(batch);
 
-    // Inserting the whole graph starts module processing in one long task, even
-    // with low fetch priority. Let input and rendering run between small batches.
     if (preloads.content.firstChild) setTimeout(insertBatch, 0);
     else preloads.remove();
   };

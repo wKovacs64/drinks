@@ -8,7 +8,6 @@ import { SearchForm } from "./public/search-form.tsx";
 import { SearchStatus } from "./public/search-status.tsx";
 import { getModulePreloads } from "#/app/assets.ts";
 
-// Production compiles these graphs once at boot; development recomputes them so edits stay fresh.
 const productionModulePreloads =
   process.env.NODE_ENV === "production"
     ? await getModulePreloads(SearchForm, SearchStatus)

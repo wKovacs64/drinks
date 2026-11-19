@@ -1,20 +1,11 @@
 import { assertNever } from "#/app/core/public/assert-never.ts";
 
-/**
- * The enhanced editor's save lifecycle. The runtime cannot await the crop, so a submit is held
- * while the crop renders, then resubmitted natively as a frame navigation. The frame reloads
- * before the navigation settles, and a failed reload rejects the navigation afterward.
- */
 export type DrinkFormSubmission =
   | { status: "idle" }
   | { status: "failed"; reason: "imageRequired" | "saveFailed" }
-  /** The submit was held while the crop renders. */
   | { status: "cropping" }
-  /** The native resubmit is dispatching synchronously; its submit event must pass through. */
   | { status: "resubmitting" }
-  /** The frame navigation is loading the response. */
   | { status: "saving" }
-  /** The frame rendered the response; the navigation has not settled. */
   | { status: "settling" };
 
 export type DrinkFormSubmissionEvent =

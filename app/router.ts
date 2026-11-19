@@ -1,4 +1,4 @@
-import { createRouter, type RouterContext } from "remix/router";
+import { createRouter, type Middleware, type RouterContext } from "remix/router";
 import { render } from "remix/middleware/render";
 import { staticFiles } from "remix/middleware/static";
 import { cop } from "remix/middleware/cop";
@@ -33,6 +33,8 @@ const renderMiddleware = render({
   onError: (error) => console.error("Remix rendering failed", error),
 });
 
+const leaveCompressionToFastlyAndFlyProxy: Middleware = (_context, next) => next();
+
 const sessionMiddleware = getIdentitySessionMiddleware();
 const authMiddleware = getIdentityAuthMiddleware();
 
@@ -43,9 +45,8 @@ export const router = createRouter({
       colors: false,
       log: process.env.NODE_ENV === "test" ? () => undefined : undefined,
     }),
-    // The original origin deliberately leaves compression to Fastly and Fly Proxy.
     process.env.NODE_ENV === "production"
-      ? (_context, next) => next()
+      ? leaveCompressionToFastlyAndFlyProxy
       : compression({
           filterMediaType: (mediaType) =>
             mediaType !== "text/event-stream" && isCompressibleMimeType(mediaType),
@@ -53,7 +54,6 @@ export const router = createRouter({
     mcp,
     cop(),
     staticFiles("./public", { index: false }),
-    // Document reads the CSP nonce through the request's async context.
     asyncContext(),
     contentSecurityPolicy,
     renderMiddleware,

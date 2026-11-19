@@ -1,7 +1,11 @@
 import { test, describe } from "remix/test";
 import { expect } from "remix/assert";
 import type { Route } from "playwright";
-import { createBrowserPage, freezeClockOnRedirect } from "#/test/e2e.ts";
+import {
+  createBrowserPage,
+  freezeClockOnRedirect,
+  stubGoogleSignInByInterceptingTheLoginRedirect,
+} from "#/test/e2e.ts";
 import { getDb } from "#/app/db/client.ts";
 import { users } from "#/app/db/schema.ts";
 import { TEST_ADMIN_USER } from "#/test/database.ts";
@@ -13,13 +17,11 @@ describe("Edit Drink", () => {
     await pageAsAdmin.goto("/admin/drinks/test-margarita/edit");
     await pageAsAdmin.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
 
-    // Should see the form pre-filled with existing values
     await pageAsAdmin.getByRole("heading", { name: "Edit Drink" }).waitFor();
     expect(await pageAsAdmin.getByLabel("Title").inputValue()).toBe("Test Margarita");
     expect(await pageAsAdmin.getByLabel("Slug").inputValue()).toBe("test-margarita");
     expect(await pageAsAdmin.getByLabel("Calories").inputValue()).toBe("200");
 
-    // Update the title
     await pageAsAdmin.getByLabel("Title").fill("Updated Margarita");
     expect(await pageAsAdmin.getByLabel("Slug").inputValue()).toBe("test-margarita");
     await pageAsAdmin.getByLabel("Slug").fill("test-mojito");
@@ -30,13 +32,10 @@ describe("Edit Drink", () => {
     expect(new URL(pageAsAdmin.url()).pathname).toBe("/admin/drinks/test-margarita/edit");
     await pageAsAdmin.getByLabel("Slug").fill("test-margarita");
 
-    // Submit the form
     await pageAsAdmin.getByRole("button", { name: "Update Drink" }).click();
 
-    // Should redirect to drinks list
     await pageAsAdmin.waitForURL("/admin/drinks");
 
-    // Updated drink should appear in list
     await pageAsAdmin.getByRole("cell", { name: "Updated Margarita" }).waitFor();
     await pageAsAdmin.getByRole("status").filter({ hasText: "Drink updated!" }).waitFor();
   });
@@ -62,15 +61,7 @@ test("an editor with a lost session shows a sign-in page that uses document navi
   await page.goto("/admin/drinks/test-margarita/edit");
   await page.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
   await page.context().clearCookies();
-  const oauthDestination = Promise.withResolvers<string>();
-  // Inspect the real login response before the external OAuth boundary. Browser interception
-  // matches the first URL in a redirect chain, so intercept /login rather than Google's URL.
-  await page.route("**/login", async (route) => {
-    const response = await route.fetch({ maxRedirects: 0 });
-    expect(response.status()).toBe(302);
-    oauthDestination.resolve(response.headers().location);
-    await route.fulfill({ status: 200, contentType: "text/html", body: "<h1>Google sign in</h1>" });
-  });
+  const oauthDestination = await stubGoogleSignInByInterceptingTheLoginRedirect(page);
   const submission = page.waitForResponse((response) => response.request().method() === "POST");
   await page.getByRole("button", { name: "Update Drink" }).click();
   expect((await submission).status()).toBe(401);

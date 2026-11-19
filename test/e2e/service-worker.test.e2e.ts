@@ -24,10 +24,12 @@ test("retired service worker clears caches and unregisters itself", async (testC
     const worker = registration.installing;
 
     if (!worker) throw new Error("Expected an installing service worker");
-    // Activation waits for the worker's activate handler; unregistering can end it as redundant.
     await new Promise<void>((resolve) =>
       worker.addEventListener("statechange", () => {
-        if (worker.state === "activated" || worker.state === "redundant") resolve();
+        const activateHandlerFinished =
+          worker.state === "activated" || worker.state === "redundant";
+
+        if (activateHandlerFinished) resolve();
       }),
     );
 

@@ -1,6 +1,7 @@
-import { array, enum_, parse, string } from "remix/data-schema";
+import { array, parse, string } from "remix/data-schema";
 import type { TableRow } from "remix/data-table";
 import type { drinks } from "#/app/db/schema.ts";
+import { parseStoredEnumUnvalidatedByColumnType } from "#/app/db/stored-enum.ts";
 import { drinkStatusValues, type DrinkStatus } from "./drinks-contract.ts";
 
 export type Drink = {
@@ -19,10 +20,6 @@ export type Drink = {
   updatedAt: Date;
 };
 
-/**
- * Decode a stored `drinks` row. `c.enum` does not validate stored values, so `status` is checked
- * here; JSON columns are parsed as string arrays. Throws `ValidationError` on invalid data.
- */
 export function toDrink(row: TableRow<typeof drinks>): Drink {
   return {
     id: row.id,
@@ -35,7 +32,7 @@ export function toDrink(row: TableRow<typeof drinks>): Drink {
     tags: parseStringArrayColumn(row.tags),
     notes: row.notes,
     rank: row.rank,
-    status: parse(enum_(drinkStatusValues), row.status),
+    status: parseStoredEnumUnvalidatedByColumnType(drinkStatusValues, row.status),
     createdAt: new Date(row.created_at * 1000),
     updatedAt: new Date(row.updated_at * 1000),
   };

@@ -9,7 +9,6 @@ test("navigation reuses the loaded stylesheet", async (testContext) => {
   let stylesheetRequests = 0;
   await page.route("**/app.css", async (route) => {
     stylesheetRequests++;
-    // A stylesheet revalidation must not leave the page unstyled on a slower LAN.
     await new Promise((resolve) => setTimeout(resolve, 500));
     await route.continue();
   });

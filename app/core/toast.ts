@@ -10,7 +10,6 @@ const toastSchema = object({
 
 export type ToastMessage = InferOutput<typeof toastSchema>;
 
-/** Shows `toast` on the next request that reads it from `session`. */
 export function flashToast(session: Session, toast: ToastMessage) {
   session.flash(toastFlashKey, toast);
 }

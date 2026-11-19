@@ -3,7 +3,6 @@ import { env } from "#/app/core/env.ts";
 import { getDb } from "#/app/db/client.ts";
 import { users, drinks } from "#/app/db/schema.ts";
 
-// 1x1 transparent PNG as a data URI to avoid external network requests in tests
 const TEST_IMAGE_URL =
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
 

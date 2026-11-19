@@ -87,8 +87,9 @@ export const Toast = clientEntry(
       if (notificationId !== handle.props.notificationId) {
         notificationId = handle.props.notificationId;
 
-        // A replacement keeps an in-progress swipe with its press hold; a new toast element starts clean.
-        if (timer.status === "dismissed") swipeStart = undefined;
+        const startsNewToastElement = timer.status === "dismissed";
+
+        if (startsNewToastElement) swipeStart = undefined;
         timer = transitionToastTimer(timer, { type: "restart", now: Date.now() });
         handle.queueTask((signal) => {
           if (!signal.aborted) scheduleExpiry();
@@ -111,7 +112,6 @@ export const Toast = clientEntry(
             initialize,
             on("pointerenter", () => hold("hover")),
             on("pointerleave", () => release("hover")),
-            // Keyboard focus holds the toast; focus from a mouse press does not outlast the press.
             on("focus", (event) => {
               if (event.currentTarget.matches(":focus-visible")) hold("focus");
             }),

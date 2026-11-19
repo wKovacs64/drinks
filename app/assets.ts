@@ -15,8 +15,8 @@ const { assets: assetConfig } = await loadConfig();
 
 if (!assetConfig) throw new Error("Missing Remix asset configuration");
 
-const hmrEventsPath = `${assetConfig.basePath}/__remix_hmr/events`;
-const hmrEventsMatcher = createMatcher(hmrEventsPath);
+const appOriginHmrEventsPath = `${assetConfig.basePath}/__remix_hmr/events`;
+const hmrEventsMatcher = createMatcher(appOriginHmrEventsPath);
 
 export const hmrClientHref = browserHmrChannel
   ? `${assetConfig.basePath}/__remix_hmr/client.js`
@@ -30,8 +30,7 @@ export const assets = createAssetServer({
   fingerprint: process.env.NODE_ENV === "production",
   hmr: browserHmrChannel
     ? {
-        // Serve the EventSource on the app origin, including LAN/collaborative previews.
-        channel: () => ({ ...browserHmrChannel, url: hmrEventsPath }),
+        channel: () => ({ ...browserHmrChannel, url: appOriginHmrEventsPath }),
         moduleImporter: "remix/multiple-import-maps-polyfill",
       }
     : undefined,
@@ -58,9 +57,9 @@ export const renderAssets: Pick<typeof assets, "getScriptEntry"> = {
   async getScriptEntry(sourceId) {
     const entry = await assets.getScriptEntry(sourceId);
 
-    // Admin keeps Remix's eager head preloads. Public pages pass their hints to Document,
-    // which schedules them after paint; native module URLs and maps stay intact.
-    return sourceId.startsWith(adminSourceUrl) ? entry : { ...entry, preloads: [] };
+    const keepsEagerHeadPreloads = sourceId.startsWith(adminSourceUrl);
+
+    return keepsEagerHeadPreloads ? entry : { ...entry, preloads: [] };
   },
 };
 

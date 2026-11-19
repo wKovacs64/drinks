@@ -156,8 +156,9 @@ export function ImageCrop(
     if (!imageElement || selection.status !== "ready") return;
     event.preventDefault();
 
-    // Moves and resizes keep their press; a handle sits inside the crop, which would start a move.
-    if (target !== "image") event.stopPropagation();
+    const enclosedByImage = target !== "image";
+
+    if (enclosedByImage) event.stopPropagation();
 
     event.currentTarget.setPointerCapture(event.pointerId);
     send({
@@ -174,8 +175,9 @@ export function ImageCrop(
     if (!arrow) return;
     event.preventDefault();
 
-    // A handle sits inside the crop, which would otherwise move.
-    if (target !== "crop") event.stopPropagation();
+    const enclosedByCrop = target !== "crop";
+
+    if (enclosedByCrop) event.stopPropagation();
 
     send({ type: "arrowPressed", target, arrow, step: keyboardStep(event) });
   }
@@ -224,7 +226,6 @@ export function ImageCrop(
             <div
               className="relative inline-block max-h-96 max-w-full cursor-crosshair"
               mix={[
-                // Captured pointers bubble here from whichever part started the gesture.
                 on("pointermove", (event) => {
                   if (event instanceof PointerEvent && imageElement)
                     send({

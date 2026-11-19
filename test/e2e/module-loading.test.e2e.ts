@@ -3,16 +3,18 @@ import { expect } from "remix/assert";
 import { createBrowserPage } from "#/test/e2e.ts";
 import { assets } from "#/app/assets.ts";
 
+const olderBrowserIsolatedProbeResult =
+  "export const supportsImportMaps = true; export const supportsMultipleImportMaps = false; export const featureDetectionPromise = Promise.resolve();";
+
 for (const singleImportMap of [false, true]) {
   test(`Search hydrates after navigation (${singleImportMap ? "single import map" : "native import maps"})`, async (context) => {
     const page = await createBrowserPage(context);
 
     if (singleImportMap) {
       await page.route("**/features*.js", async (route) => {
-        // Supply the capability result an older browser's isolated probe returns.
         await route.fulfill({
           contentType: "text/javascript",
-          body: "export const supportsImportMaps = true; export const supportsMultipleImportMaps = false; export const featureDetectionPromise = Promise.resolve();",
+          body: olderBrowserIsolatedProbeResult,
         });
       });
       await page.addInitScript(() => {
@@ -23,7 +25,6 @@ for (const singleImportMap of [false, true]) {
             node instanceof HTMLScriptElement &&
             node.type === "importmap"
           ) {
-            // Leave late maps available to Remix, but prevent native installation.
             node.type = "application/json";
             appendChild.call(this, node);
             node.type = "importmap";
@@ -93,8 +94,11 @@ test("Search defers module hints for its client entries", async (testContext) =>
 
 test("Admin pages carry Remix module hints for their client entries", async (testContext) => {
   const page = await createBrowserPage(testContext, { admin: true });
-  // The deletion notification renders the Toast client entry.
-  await page.request.post("/admin/drinks/test-mojito/delete", { maxRedirects: 0 });
+
+  const renderToastClientEntryWithDeletionNotification = () =>
+    page.request.post("/admin/drinks/test-mojito/delete", { maxRedirects: 0 });
+
+  await renderToastClientEntryWithDeletionNotification();
   const preloads = await getModulePreloads(page, "/admin/drinks");
   const headHrefs = preloads.head.filter(({ framework }) => framework).map(({ href }) => href);
 

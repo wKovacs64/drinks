@@ -68,8 +68,6 @@ export function Document(
           <link rel="icon" type="image/png" sizes="32x32" href="/images/icon-32x32.png" />
           <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png" />
           <link rel="manifest" href={routes.manifest.href()} />
-          {/* Moving a loaded stylesheet makes the browser unload/revalidate it. Keep it
-              in place across frame navigation; a new fingerprint gets a new identity. */}
           <link
             rel="stylesheet"
             href={stylesheetHref}

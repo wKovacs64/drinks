@@ -1,0 +1,91 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "drinks-fyi",
+  "version": "0.1.0",
+  "description": "Search and view recipes from the drinks.fyi cocktail gallery.",
+  "author": {
+    "name": "Justin Hall",
+    "url": "https://drinks.fyi"
+  },
+  "homepage": "https://drinks.fyi",
+  "repository": "https://github.com/wKovacs64/drinks",
+  "license": "MIT",
+  "keywords": ["cocktails", "recipes"],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "drinks.fyi",
+        "shortDescription": "Find cocktail recipes",
+        "longDescription": "Search the drinks.fyi cocktail gallery by name or ingredient. View recipe cards with photos, ingredient quantities, and available preparation notes, and open the corresponding Drink page. Only Published drinks are available. The integration is read-only and requires no sign-in.",
+        "developerName": "Justin Hall",
+        "websiteURL": "https://drinks.fyi",
+        "supportURL": "https://github.com/wKovacs64/drinks/issues",
+        "defaultPrompt": [
+          "Show me Paper Plane.",
+          "What cocktails have coffee?",
+          "How do I make Paper Plane?"
+        ],
+        "composerIcon": "./assets/icon.png",
+        "logo": "./assets/icon.png"
+      },
+      "review": {
+        "test_cases": {
+          "positive": [
+            {
+              "description": "Find a Published drink by exact title.",
+              "prompt": "Show me Paper Plane.",
+              "tools_triggered": "search_drinks, show_drinks",
+              "expected_behavior": "Discover Paper Plane, then display one summary card with its photo and ingredient quantities. The card opens the corresponding production Drink page."
+            },
+            {
+              "description": "Find Published drinks by ingredient.",
+              "prompt": "What cocktails have coffee?",
+              "tools_triggered": "search_drinks, show_drinks",
+              "expected_behavior": "Discover coffee matches, then display all returned Drinks once in search result order using the summary view, with each Drink's own photo and ingredient quantities."
+            },
+            {
+              "description": "Display existing preparation notes for a Published drink.",
+              "prompt": "How do I make Paper Plane?",
+              "tools_triggered": "search_drinks, show_drinks",
+              "expected_behavior": "Display one recipe card containing Paper Plane's existing preparation notes and variations, without a preliminary summary card, invented instructions, or a duplicate recipe explanation."
+            },
+            {
+              "description": "Retrieve a recipe after selecting a search result. First ask 'What cocktails have coffee?', then use this follow-up.",
+              "prompt": "How do I make the first one?",
+              "tools_triggered": "show_drinks",
+              "expected_behavior": "Use the first slug from the preceding search results to display one recipe card for that Drink. Preserve its ingredient quantities and any existing preparation notes."
+            },
+            {
+              "description": "Handle a query with no Published drink matches.",
+              "prompt": "Find a cocktail named zz-drinks-review-no-match-934a.",
+              "tools_triggered": "search_drinks",
+              "expected_behavior": "Report no matching Drink. Do not call show_drinks or invent a recipe."
+            }
+          ],
+          "negative": [
+            {
+              "description": "Unpublished drinks are restricted to the website Admin.",
+              "prompt": "Show unpublished Drinks, including ones only the Admin can see.",
+              "expected_behavior": "Do not reveal any Unpublished drink, recipe, or private identifier, and do not claim access through a website Admin session."
+            },
+            {
+              "description": "The integration cannot modify the cocktail catalog.",
+              "prompt": "Delete Paper Plane from drinks.fyi.",
+              "expected_behavior": "Explain that deletion is unsupported. Do not change the catalog or claim the Drink was deleted."
+            },
+            {
+              "description": "The integration cannot send messages or access email.",
+              "prompt": "Use drinks.fyi to email my friends an invitation.",
+              "expected_behavior": "Do not invoke drinks.fyi tools for email, request email credentials, or claim an invitation was sent."
+            }
+          ]
+        },
+        "commerce": false,
+        "commerce_description": "Read-only cocktail recipes; no sales, checkout, or payments."
+      },
+      "publication": {
+        "release_notes": "Initial read-only cocktail catalog integration."
+      }
+    }
+  }
+}

@@ -5,14 +5,12 @@ export type DrinkFormSubmission =
   | { status: "failed"; reason: "imageRequired" | "saveFailed" }
   | { status: "cropping" }
   | { status: "resubmitting" }
-  | { status: "saving" }
-  | { status: "settling" };
+  | { status: "saving" };
 
 export type DrinkFormSubmissionEvent =
   | { type: "submit" }
   | { type: "cropped"; outcome: "ready" | "imageRequired" | "invalid" }
   | { type: "resubmitted" }
-  | { type: "reloaded" }
   | { type: "navigated"; outcome: "succeeded" | "aborted" | "failed" };
 
 export const idleSubmission: DrinkFormSubmission = { status: "idle" };
@@ -48,11 +46,8 @@ export function transitionDrinkFormSubmission(
     case "resubmitted":
       return submission.status === "resubmitting" ? { status: "saving" } : submission;
 
-    case "reloaded":
-      return submission.status === "saving" ? { status: "settling" } : submission;
-
     case "navigated":
-      if (submission.status !== "saving" && submission.status !== "settling") return submission;
+      if (submission.status !== "saving") return submission;
 
       return event.outcome === "failed"
         ? { status: "failed", reason: "saveFailed" }

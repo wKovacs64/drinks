@@ -24,7 +24,6 @@ navigation, so the client entry keeps its draft and selected image across a 400;
 the reselect-image notice for frame requests. Frame requests that fail the admin session check get a
 401 sign-in page instead of the login redirect, because the frame resolver fetches same-origin only
 and cannot follow the hop to Google; its link uses document navigation.
-See [Remix forms](https://github.com/remix-run/remix/blob/remix%403.2.0/packages/remix/guides/09-forms-and-mutations.md#add-pending-feedback).
 [ADR-0001](adr/0001-admin-drink-write-route-adapters.md) and [ADR-0002](adr/0002-admin-drink-write-route-adapter-owns-web-translation.md) record this seam.
 
 ## Browser and assets
@@ -35,31 +34,23 @@ import in a browser graph must be allowed. Type-only imports are erased before s
 Files use ordinary `.ts` and `.tsx` names; server isolation comes from the allowlist rather than a
 filename suffix. Browsers that pass an in-document multiple-import-map probe use native module
 loading; other browsers use Remix's compatibility loader. Remix's CSP middleware issues a nonce per
-response; `script-src` allows only same-origin URLs and that nonce. Remix stamps its import maps
-and module preloads, Document stamps its authored scripts and preloads, and the loader's `blob:`
-modules inherit the nonce from the module graph. Fastly-cached public pages share one nonce until
-the cache entry expires or is purged; [ADR-0003](adr/0003-cached-public-pages-share-a-csp-nonce.md)
-records why. See the
-[CSP middleware](https://github.com/remix-run/remix/tree/remix%403.2.0/packages/csp-middleware#usage)
-and the [loader's CSP requirements](https://github.com/remix-run/remix/tree/remix%403.2.0/packages/multiple-import-maps-polyfill#content-security-policy).
-Public pages keep module hints out of the
-LCP image preload's way: the render assets strip Remix's head preloads from public client entries,
-and Document defers the `entry.ts` graph, plus any graphs a page passes such as Search's client
-entries, until after paint, yielding between small batches. Admin client entries keep Remix's
-head preloads. Static asset sources live under `app/assets/`; root `public/`
-is generated output and local uploads. Navigation uses native anchors, and links and forms reload
-the top frame, so every page action returns a complete document. The search form keeps scroll
-position and focus across soft searches. See
-[whole-page navigation](https://github.com/remix-run/remix/blob/remix%403.2.0/packages/remix/guides/06-streaming-ui-with-frames.md#choose-per-region-frames-or-whole-page-navigation).
-Gallery, navigation, and Tag
-links use Remix's `data-rmx-prefetch="viewport"` for low-priority frame HTML and asset discovery,
+response; `script-src` allows only same-origin URLs and that nonce. Remix stamps its import maps and
+module preloads, Document stamps its authored scripts and preloads, and the loader's `blob:` modules
+inherit the nonce from the module graph. Fastly-cached public pages share one nonce until the cache
+entry expires or is purged; [ADR-0003](adr/0003-cached-public-pages-share-a-csp-nonce.md) records
+why. Public pages keep module hints out of the LCP image preload's way: the render assets strip
+Remix's head preloads from public client entries, and Document defers the `entry.ts` graph, plus any
+graphs a page passes such as Search's client entries, until after paint, yielding between small
+batches. Admin client entries keep Remix's head preloads. Static asset sources live under
+`app/assets/`; root `public/` is generated output and local uploads. Navigation uses native anchors,
+and links and forms reload the top frame, so every page action returns a complete document. The
+search form keeps scroll position and focus across soft searches. Gallery, navigation, and Tag links
+use Remix's `data-rmx-prefetch="viewport"` for low-priority frame HTML and asset discovery,
 respecting Save-Data and slow connections. The header Search link uses `data-rmx-prefetch="intent"`
-so asset discovery reads Search's deferred hints before a soft navigation. Card markup stays server-rendered without prefetch client
-entries. Remix owns script-entry caching and watch/HMR invalidation.
-See [Remix prefetching](https://github.com/remix-run/remix/blob/remix%403.1.0/packages/component/docs/frames.md#prefetching)
-and [asset caching](https://github.com/remix-run/remix/releases/tag/assets%401.0.1).
-The editor client entry keys its inner form by action URL so soft navigation resets the draft and
-submission endpoint together.
+so asset discovery reads Search's deferred hints before a soft navigation. Card markup stays
+server-rendered without prefetch client entries. Remix owns script-entry caching and watch/HMR
+invalidation. The editor client entry keys its inner form by action URL so soft navigation resets
+the draft and submission endpoint together.
 
 The public `/mcp` adapter lives under `app/integrations/mcp.ts` and runs before website document,
 session, authentication, and browser provenance middleware. It uses the official SDK's Fetch handler

@@ -254,17 +254,13 @@ describe("createDrinksService", () => {
     const db = getDb();
     await db.updateMany(
       drinks,
-      { tags: JSON.stringify(["tequila", "Bright Citrus"]) },
+      { tags: ["tequila", "Bright Citrus"] },
       { where: { slug: "test-margarita" } },
     );
+    await db.updateMany(drinks, { tags: ["bright-citrus"] }, { where: { slug: "test-mojito" } });
     await db.updateMany(
       drinks,
-      { tags: JSON.stringify(["bright-citrus"]) },
-      { where: { slug: "test-mojito" } },
-    );
-    await db.updateMany(
-      drinks,
-      { tags: JSON.stringify(["bright citrus"]), status: "unpublished" },
+      { tags: ["bright citrus"], status: "unpublished" },
       { where: { slug: "test-old-fashioned" } },
     );
     const service = createDrinksService({ db });
@@ -292,7 +288,7 @@ describe("createDrinksService", () => {
     const db = getDb();
     await db.updateMany(
       drinks,
-      { tags: JSON.stringify(["Tequila!", "bright citrus", "bright-citrus", " "]) },
+      { tags: ["Tequila!", "bright citrus", "bright-citrus", " "] },
       { where: { slug: "test-margarita" } },
     );
     await setDrinkStatus("test-old-fashioned", "unpublished");
@@ -323,7 +319,7 @@ describe("createDrinksService", () => {
     const db = getDb();
     await db.updateMany(
       drinks,
-      { ingredients: JSON.stringify(["2 oz tequila"]), status: "unpublished" },
+      { ingredients: ["2 oz tequila"], status: "unpublished" },
       { where: { slug: "test-old-fashioned" } },
     );
     const service = createDrinksService({ db });

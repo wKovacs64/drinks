@@ -2,13 +2,14 @@ import type { Route } from "playwright";
 import { test, type TestContext } from "remix/test";
 import { expect } from "remix/assert";
 import { DataTableDatabaseError, rawSql } from "remix/data-table";
+import { ValidationError } from "remix/data-schema";
 import { getDb } from "#/app/db/client.ts";
 import { createBrowserPage } from "#/test/e2e.ts";
 
 function captureRouteErrors(testContext: TestContext) {
   const logError = testContext.mock.method(console, "error", () => undefined);
 
-  return (errorType: typeof SyntaxError | typeof DataTableDatabaseError) => {
+  return (errorType: typeof ValidationError | typeof DataTableDatabaseError) => {
     expect(logError).toHaveBeenCalled();
 
     for (const call of logError.mock.calls) {
@@ -66,7 +67,7 @@ test("a public route failure displays the exception page and a working recovery 
   await getDb().exec(rawSql("DELETE FROM drinks WHERE slug = 'test-margarita'"));
   await page.getByRole("link", { name: "Try Starting Over" }).click();
   await page.getByRole("heading", { name: "Test Mojito", exact: true }).waitFor();
-  expectLoggedError(SyntaxError);
+  expectLoggedError(ValidationError);
 });
 
 test("an admin route failure displays the asset-independent server error document", async (testContext) => {
@@ -103,7 +104,7 @@ test("a failed search update replaces the gallery with the original exception do
     timeout: 2000,
   });
   expect(await page.getByRole("link", { name: "Try Starting Over" }).count()).toBe(1);
-  expectLoggedError(SyntaxError);
+  expectLoggedError(ValidationError);
 });
 
 const bypassBrowserCacheSoPrefetchedSuccessCannotHideFailure = (route: Route) => route.continue();
@@ -121,5 +122,5 @@ test("a failed drink navigation displays its exception document instead of retai
   await page.getByRole("heading", { name: "Unhandled Exception" }).waitFor();
   expect(new URL(page.url()).pathname).toBe("/test-margarita");
   expect(await page.locator("header").count()).toBe(0);
-  expectLoggedError(SyntaxError);
+  expectLoggedError(ValidationError);
 });

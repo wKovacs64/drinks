@@ -20,6 +20,8 @@ export type Drink = {
   updatedAt: Date;
 };
 
+const storedStringArraySchema = array(string());
+
 export function toDrink(row: TableRow<typeof drinks>): Drink {
   return {
     id: row.id,
@@ -28,16 +30,12 @@ export function toDrink(row: TableRow<typeof drinks>): Drink {
     imageUrl: row.image_url,
     imageFileId: row.image_file_id,
     calories: row.calories,
-    ingredients: parseStringArrayColumn(row.ingredients),
-    tags: parseStringArrayColumn(row.tags),
+    ingredients: parse(storedStringArraySchema, row.ingredients),
+    tags: parse(storedStringArraySchema, row.tags),
     notes: row.notes,
     rank: row.rank,
     status: parseStoredEnumUnvalidatedByColumnType(drinkStatusValues, row.status),
     createdAt: new Date(row.created_at * 1000),
     updatedAt: new Date(row.updated_at * 1000),
   };
-}
-
-function parseStringArrayColumn(value: string): string[] {
-  return parse(array(string()), JSON.parse(value));
 }

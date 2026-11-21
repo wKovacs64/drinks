@@ -6,16 +6,21 @@ type ModuleNamespace = Awaited<ReturnType<typeof MultipleImportMapsPolyfill.impo
 
 type Component = (...args: never[]) => void;
 
+function isModuleNamespace(value: unknown): value is ModuleNamespace {
+  return typeof value === "object" && value !== null;
+}
+
 function isComponent(value: unknown): value is Component {
   return typeof value === "function";
 }
 
 const app = run({
   async loadModule(moduleUrl, exportName) {
-    // SAFETY: `import()` resolves to the module's namespace object, the same shape the polyfill returns.
-    const module = (await supportsMultipleImportMaps)
-      ? ((await import(moduleUrl)) as ModuleNamespace)
+    const module: unknown = (await supportsMultipleImportMaps)
+      ? await import(moduleUrl)
       : await (await import("remix/multiple-import-maps-polyfill")).importModule(moduleUrl);
+
+    if (!isModuleNamespace(module)) throw new Error(`Unknown module: ${moduleUrl}`);
 
     const component = module[exportName];
 

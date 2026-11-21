@@ -5,6 +5,7 @@ import type { DrinksByTagSlug } from "#/app/modules/drinks/drinks.ts";
 import { Gallery } from "#/app/ui/gallery.tsx";
 import { DrinkList } from "#/app/ui/drinks/drink-list.tsx";
 import { getGalleryImagePreloads } from "#/app/ui/drinks/image-preload.tsx";
+import { BreadcrumbHeading } from "#/app/ui/navigation/breadcrumbs.tsx";
 
 export function TagPage(handle: Handle<{ taggedDrinks: DrinksByTagSlug }>) {
   return () => {
@@ -23,7 +24,7 @@ export function TagPage(handle: Handle<{ taggedDrinks: DrinksByTagSlug }>) {
             {
               title: (
                 <div className="inline-flex gap-2">
-                  <span>{taggedDrinks.tag.displayName}</span>
+                  <BreadcrumbHeading>{taggedDrinks.tag.displayName}</BreadcrumbHeading>
                   <span>( {taggedDrinks.drinks.length} )</span>
                 </div>
               ),

@@ -11,7 +11,7 @@ export function HomePage(handle: Handle<{ drinks: DrinkSummaryView[] }>) {
 
     return (
       <Document preloadImages={getGalleryImagePreloads(drinks)}>
-        <Gallery breadcrumbs={[{ title: "All Drinks" }]}>
+        <Gallery breadcrumbs={[{ title: "All Drinks" }]} siteNameIsPageHeading>
           <DrinkList drinks={drinks} />
         </Gallery>
       </Document>

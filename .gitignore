@@ -236,23 +236,18 @@ $RECYCLE.BIN/
 
 # End of https://www.toptal.com/developers/gitignore/api/osx,node,linux,windows,visualstudiocode
 
-# Manual exclusions
 !**/.gitkeep
 
-# Playwright
 /.playwright
 /.playwright-cli
 
-# Claude Code
 /.claude
 
-# Local dev database
 /data
 
-# Root public is generated static output and local uploads; app/**/public is source.
+# Anchored to the root: app/**/public is source.
 /public/*
 !/public/.gitkeep
 /.playwright-mcp/
 
-# Lighthouse CI
 /.lighthouseci

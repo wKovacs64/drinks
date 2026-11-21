@@ -20,13 +20,17 @@ function captureRouteErrors(testContext: TestContext) {
   };
 }
 
-test("an unmatched path keeps the gallery navigation around its not-found message", async (testContext) => {
+test("every public not-found page keeps the site header and footer without breadcrumbs", async (testContext) => {
   const page = await createBrowserPage(testContext);
-  const response = await page.goto("/unknown/deep/path");
-  expect(response?.status()).toBe(404);
-  expect(await page.locator("header").count()).toBe(1);
-  expect(await page.locator("footer").count()).toBe(1);
-  await page.getByRole("navigation").filter({ hasText: "All Drinks" }).waitFor();
+
+  for (const path of ["/unknown/deep/path", "/missing-drink", "/tags/missing-tag"]) {
+    const response = await page.goto(path);
+    expect(response?.status()).toBe(404);
+    expect(await page.locator("header").count()).toBe(1);
+    expect(await page.locator("footer").count()).toBe(1);
+    expect(await page.getByRole("navigation").count()).toBe(0);
+  }
+
   await page.getByRole("link", { name: "Back to Drinks" }).click();
   await page.getByRole("heading", { name: "Test Margarita", exact: true }).waitFor();
 });
@@ -44,14 +48,15 @@ test("an unmatched path is not found for every method", async (testContext) => {
   }
 });
 
-test("a missing admin drink displays a not-found response and a working recovery link", async (testContext) => {
+test("a missing admin drink shows the public not-found page without caching it", async (testContext) => {
   const page = await createBrowserPage(testContext, { admin: true });
   const response = await page.goto("/admin/drinks/missing/edit");
   expect(response?.status()).toBe(404);
-  await page.getByRole("heading", { name: "404 Not Found", exact: true }).waitFor();
-  expect(await page.locator("header").count()).toBe(0);
+  expect(response?.headers()["cache-control"]).toBe("private, no-store");
+  await page.getByRole("heading", { name: "Not Found", level: 1 }).waitFor();
+  expect(await page.locator("header").count()).toBe(1);
   await page.getByRole("link", { name: "Back to Drinks" }).click();
-  await page.getByRole("cell", { name: "Test Margarita", exact: true }).waitFor();
+  await page.getByRole("heading", { name: "Test Margarita", exact: true }).waitFor();
 });
 
 test("a public route failure displays the exception page and a working recovery link", async (testContext) => {

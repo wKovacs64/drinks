@@ -21,7 +21,7 @@ import {
 import type { SessionUser } from "#/app/modules/identity/identity.ts";
 import { renderDrinkEditor } from "#/app/actions/admin/drinks/editor-page.tsx";
 import { createDrinkWriteService } from "./write-service.ts";
-import { renderResponseError } from "#/app/web/error-pages/response-error.tsx";
+import { renderNotFound } from "#/app/web/error-pages/not-found.tsx";
 import { parseDrinkSubmission, type DrinkImageUpload } from "./submission.ts";
 
 type AdminDrinkContext = Pick<AppContext, "session" | "render">;
@@ -92,7 +92,7 @@ async function submitDrinkEditor(
       return rejectSubmission(["Slug already exists"]);
 
     case "notFound":
-      return renderResponseError(context.render, 404);
+      return renderNotFound(context.render);
 
     default:
       return assertNever(result);
@@ -131,7 +131,7 @@ function translateDeleteResult(result: DeleteAdminDrinkResult, context: AdminDri
       );
 
     case "notFound":
-      return renderResponseError(context.render, 404);
+      return renderNotFound(context.render);
 
     default:
       return assertNever(result);
@@ -172,7 +172,7 @@ async function renderSubmittedEditor(
 ) {
   const editorPage = await loadEditorPage(write);
 
-  if (!editorPage) return renderResponseError(context.render, 404);
+  if (!editorPage) return renderNotFound(context.render);
   const { values, formData } = submittedForm;
 
   const status =

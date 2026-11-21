@@ -1,5 +1,4 @@
 /**
- * The ESTree fields this rule reads. Oxlint does not export its JS plugin AST types.
  * @typedef {object} AstNode
  * @property {string} type
  * @property {string} [name]

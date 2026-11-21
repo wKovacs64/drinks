@@ -13,6 +13,13 @@ import type {
 } from "@modelcontextprotocol/ext-apps";
 import { afterAwaitingCleanup } from "#/test/cleanup.ts";
 
+type CardFrameMessage = (
+  | McpUiInitializeRequest
+  | McpUiInitializedNotification
+  | McpUiOpenLinkRequest
+  | McpUiSizeChangedNotification
+) & { id?: string | number };
+
 test("the card displays private recipe notes and opens summary and note links through the host", async (testContext) => {
   const page = await createBrowserPage(testContext);
   await getDb().update(drinks, "test-drink-1", {
@@ -39,17 +46,10 @@ test("the card displays private recipe notes and opens summary and note links th
       const iframe = document.querySelector("iframe");
 
       if (!iframe) throw new Error("Missing card frame");
-      window.addEventListener("message", (event) => {
+      window.addEventListener("message", (event: MessageEvent<CardFrameMessage>) => {
         if (event.source !== iframe.contentWindow) return;
 
-        // SAFETY: the card frame (checked above) posts flat MCP Apps JSON-RPC messages. Branches below
-        // read fields only after matching one of these methods; other messages fall through.
-        const message = event.data as (
-          | McpUiInitializeRequest
-          | McpUiInitializedNotification
-          | McpUiOpenLinkRequest
-          | McpUiSizeChangedNotification
-        ) & { id?: string | number };
+        const message = event.data;
 
         if (message.method === "ui/initialize") {
           iframe.contentWindow?.postMessage(

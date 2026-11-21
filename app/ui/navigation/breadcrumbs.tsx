@@ -5,6 +5,10 @@ import { NavDivider } from "./nav-divider.tsx";
 
 export type Breadcrumb = { title: RemixNode; href?: string };
 
+export function BreadcrumbHeading(handle: Handle<{ children: RemixNode }>) {
+  return () => <h1 className="inline [font-weight:inherit]">{handle.props.children}</h1>;
+}
+
 export function Breadcrumbs(handle: Handle<{ breadcrumbs: Breadcrumb[] }>) {
   return () => (
     <Nav>

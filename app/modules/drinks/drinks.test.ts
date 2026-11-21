@@ -229,6 +229,19 @@ describe("createDrinksService", () => {
     );
   });
 
+  test("nests note headings under the Drink title, keeping their relative levels", async () => {
+    await getDb().update(drinks, "test-drink-1", {
+      notes: "# Method\n\n### Shaking\n\n<h1>Raw</h1>",
+    });
+
+    const result = await createReadOnlyService().getDrinkBySlug({
+      slug: "test-margarita",
+      viewerRole: "user",
+    });
+
+    expect(result?.drink.notesHtml).toBe("<h2>Method</h2>\n<h4>Shaking</h4>\n<h2>Raw</h2>");
+  });
+
   test("renders script, event-handler, and javascript: input in notes inert", async () => {
     await getDb().update(drinks, "test-drink-1", {
       notes: [
@@ -364,6 +377,15 @@ describe("createDrinksService", () => {
     await expect(service.findDrinkEditorBySlug("test-mojito")).rejects.toBeInstanceOf(
       ValidationError,
     );
+  });
+
+  test("rejects stored Drink ingredients that are not a JSON string array", async () => {
+    await getDb().exec(
+      rawSql("UPDATE drinks SET ingredients = 'gin, tonic' WHERE slug = 'test-mojito'"),
+    );
+    const service = createReadOnlyService();
+
+    await expect(service.getAllDrinks()).rejects.toBeInstanceOf(ValidationError);
   });
 });
 

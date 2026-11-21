@@ -8,7 +8,6 @@ const markedOutputAllowlist = {
     "p",
     "br",
     "hr",
-    "h1",
     "h2",
     "h3",
     "h4",
@@ -51,6 +50,25 @@ const markedOutputAllowlist = {
   },
 } satisfies sanitizeHtml.IOptions;
 
+const shallowestNoteHeadingLevel = 2;
+
+function headingTagsNestedUnderPageTitle(html: string) {
+  const levels = Array.from(html.matchAll(/<h([1-6])[\s>]/g), (match) => Number(match[1]));
+  const shift = shallowestNoteHeadingLevel - Math.min(...levels);
+
+  return Object.fromEntries(
+    [1, 2, 3, 4, 5, 6].map((level) => [`h${level}`, `h${Math.min(level + shift, 6)}`]),
+  );
+}
+
 export function markdownToAllowlistedHtml(markdownString: string) {
-  return sanitizeHtml(markdown.parse(markdownString, { async: false }), markedOutputAllowlist);
+  const html = markdown.parse(markdownString, { async: false });
+
+  return sanitizeHtml(html, {
+    ...markedOutputAllowlist,
+    transformTags: {
+      ...markedOutputAllowlist.transformTags,
+      ...headingTagsNestedUnderPageTitle(html),
+    },
+  });
 }

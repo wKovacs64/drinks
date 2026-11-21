@@ -94,12 +94,7 @@ test("create retries preserve the draft and crop, and each save uploads the curr
       if (imageFile instanceof File) {
         const digest = await crypto.subtle.digest("SHA-256", await imageFile.arrayBuffer());
 
-        // SAFETY: page.exposeFunction above installs recordUploadedImage on window.
-        const { recordUploadedImage } = window as Window & {
-          recordUploadedImage?: (summary: string) => Promise<void>;
-        };
-
-        await recordUploadedImage?.(
+        await window.recordUploadedImage?.(
           `${imageFile.name} ${imageFile.type} ${Array.from(new Uint8Array(digest)).join(",")}`,
         );
       }
@@ -135,7 +130,7 @@ test("create retries preserve the draft and crop, and each save uploads the curr
   await page.evaluate(() => {
     const nativeToBlob = HTMLCanvasElement.prototype.toBlob;
     const cropRelease: PromiseWithResolvers<void> = Promise.withResolvers();
-    Reflect.set(window, "releaseCrop", cropRelease.resolve);
+    window.releaseCrop = cropRelease.resolve;
     HTMLCanvasElement.prototype.toBlob = function (
       this: HTMLCanvasElement,
       ...arguments_: Parameters<HTMLCanvasElement["toBlob"]>
@@ -152,9 +147,7 @@ test("create retries preserve the draft and crop, and each save uploads the curr
   expect(submissions).toEqual([]);
   await page.getByLabel("Title", { exact: true }).fill("");
   await page.evaluate(() => {
-    // SAFETY: the evaluate that holds the crop's encoding sets window.releaseCrop to a resolver.
-    const { releaseCrop } = window as Window & { releaseCrop?: () => void };
-    releaseCrop?.();
+    window.releaseCrop?.();
   });
   await page.getByRole("button", { name: "Create Drink" }).waitFor();
   expect(await page.getByRole("button", { name: "Create Drink" }).isEnabled()).toBe(true);

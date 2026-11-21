@@ -5,6 +5,7 @@ import type { DrinkTagView } from "#/app/modules/drinks/drinks.ts";
 import { Gallery } from "#/app/ui/gallery.tsx";
 import { Tag } from "#/app/ui/tags/tag.tsx";
 import { TagLink } from "#/app/ui/tags/tag-link.tsx";
+import { BreadcrumbHeading } from "#/app/ui/navigation/breadcrumbs.tsx";
 
 export function TagsPage(handle: Handle<{ tags: DrinkTagView[] }>) {
   return () => {
@@ -13,7 +14,10 @@ export function TagsPage(handle: Handle<{ tags: DrinkTagView[] }>) {
     return (
       <Document title="Ingredient Tags" description="Discover drinks by ingredient">
         <Gallery
-          breadcrumbs={[{ title: "All Drinks", href: routes.home.href() }, { title: "Tags" }]}
+          breadcrumbs={[
+            { title: "All Drinks", href: routes.home.href() },
+            { title: <BreadcrumbHeading>Tags</BreadcrumbHeading> },
+          ]}
         >
           <div className="mx-4 grid gap-4 sm:mx-0 sm:gap-8 lg:grid-cols-2 xl:grid-cols-3">
             {tags.map((tag) => (

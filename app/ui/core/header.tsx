@@ -2,15 +2,16 @@ import { routes } from "#/app/routes.ts";
 import type { Handle, Props } from "remix/component";
 import { Icon } from "#/app/ui/icons/public/icon.tsx";
 
-export function Header() {
+export function Header(handle: Handle<{ siteNameIsPageHeading?: boolean }>) {
   return () => {
+    const SiteName = handle.props.siteNameIsPageHeading === true ? "h1" : "p";
+
     return (
       <header className="bg-dreamless-sleep flex flex-col items-center p-4 text-stone-300 md:p-8">
         <section className="flex w-full flex-wrap items-center justify-between sm:w-104 lg:w-full lg:max-w-240 xl:max-w-7xl">
-          {/* TODO: change to h2 or something, move h1 to interesting page content */}
-          <h1 className="text-3xl font-light">
+          <SiteName className="text-3xl font-light">
             <HeaderLink href={routes.home.href()}>drinks.fyi</HeaderLink>
-          </h1>
+          </SiteName>
           <HeaderLink href={routes.search.index.href()} data-rmx-prefetch="intent">
             <span className="sr-only">Search</span>
             <Icon name="ic-baseline-search" aria-hidden size={32} />

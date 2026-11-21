@@ -60,7 +60,7 @@ app.addEventListener("toolresult", (result) => {
         </a>
         {drink.notes ? (
           <div
-            className="border-burnt-orange [&_a]:active:text-burnt-orange border-bs border-dotted p-4 text-base leading-normal [&_a]:underline [&_a]:focus-visible:outline-3 [&_a]:focus-visible:outline-offset-2 [&_h1]:text-xl [&_h2]:text-xl [&_h3]:text-lg [&_li+li]:mbs-2 [&_ol]:list-decimal [&_ol]:ps-5 [&_ul]:list-disc [&_ul]:ps-5 [&>*]:my-0 [&>*+*]:mbs-4"
+            className="border-burnt-orange [&_a]:active:text-burnt-orange border-bs border-dotted p-4 text-base leading-normal [&_a]:underline [&_a]:focus-visible:outline-3 [&_a]:focus-visible:outline-offset-2 [&_h2]:text-xl [&_h3]:text-lg [&_li+li]:mbs-2 [&_ol]:list-decimal [&_ol]:ps-5 [&_ul]:list-disc [&_ul]:ps-5 [&>*]:my-0 [&>*+*]:mbs-4"
             innerHTML={unsafeHTML(drink.notes)}
           />
         ) : null}

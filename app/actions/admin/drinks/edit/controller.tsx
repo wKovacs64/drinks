@@ -4,7 +4,7 @@ import { requireAdmin } from "#/app/middleware/admin.ts";
 import { getDb } from "#/app/db/client.ts";
 import { createDrinksService } from "#/app/modules/drinks/drinks.ts";
 import { renderDrinkEditor } from "#/app/actions/admin/drinks/editor-page.tsx";
-import { renderResponseError } from "#/app/web/error-pages/response-error.tsx";
+import { renderNotFound } from "#/app/web/error-pages/not-found.tsx";
 import { updateAdminDrinkActionAdapter } from "#/app/web/admin-drink-write/route-adapter.ts";
 
 export default createController(routes.admin.drinks.edit, {
@@ -14,7 +14,7 @@ export default createController(routes.admin.drinks.edit, {
       const drinksService = createDrinksService({ db: getDb() });
       const editor = await drinksService.findDrinkEditorBySlug(context.params.slug);
 
-      if (!editor) return renderResponseError(context.render, 404);
+      if (!editor) return renderNotFound(context.render);
 
       return renderDrinkEditor(context, {
         editor,

@@ -92,7 +92,7 @@ test("a Drink removed while editing shows not found", async (testContext) => {
 
   await page.getByRole("button", { name: "Update Drink" }).click();
   expect((await submission).status()).toBe(404);
-  await page.getByRole("heading", { name: "404 Not Found" }).waitFor();
+  await page.getByRole("heading", { name: "Not Found", exact: true }).waitFor();
   expect(new URL(page.url()).pathname).toBe("/admin/drinks/test-margarita/edit");
 });
 

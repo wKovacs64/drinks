@@ -20,6 +20,7 @@ export function DrinkSummary(handle: Handle<DrinkSummaryProps>) {
     const { breakpoints, sizes } = imagePresets[variant];
     const compact = variant === "compact";
     const detail = variant === "detail";
+    const Title = detail ? "h1" : "h2";
 
     const imageProps = {
       src: drink.image.url,
@@ -62,7 +63,7 @@ export function DrinkSummary(handle: Handle<DrinkSummaryProps>) {
               compact ? "min-w-0 p-4" : detail ? "px-8 pbs-8" : "p-8",
             )}
           >
-            <h2
+            <Title
               className={classes(
                 "tracking-widest uppercase",
                 compact ? "text-xl" : "text-2xl",
@@ -70,7 +71,7 @@ export function DrinkSummary(handle: Handle<DrinkSummaryProps>) {
               )}
             >
               {drink.title}
-            </h2>
+            </Title>
             <ul
               className={classes(
                 "flex-1 list-outside list-disc leading-normal",

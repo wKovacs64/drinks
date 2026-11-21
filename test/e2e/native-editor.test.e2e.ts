@@ -81,7 +81,7 @@ test("soft navigation replaces an editor draft and its save endpoint", async (te
   await page.waitForFunction(() => document.documentElement.dataset.remixReady === "true");
   await page.getByLabel("Title", { exact: true }).fill("Abandoned draft");
   await page.evaluate(() => {
-    Reflect.set(window, "editorNavigationMarker", "same document");
+    window.editorNavigationMarker = "same document";
     const link = document.createElement("a");
     link.href = "/admin/drinks/test-mojito/edit";
     link.textContent = "Switch editor";
@@ -92,12 +92,7 @@ test("soft navigation replaces an editor draft and its save endpoint", async (te
   await page.waitForFunction(
     () => document.querySelector('form[action="/admin/drinks/test-mojito/edit"]') !== null,
   );
-  expect(
-    await page.evaluate(
-      // SAFETY: the evaluate before navigation set window.editorNavigationMarker to a string.
-      () => (window as Window & { editorNavigationMarker?: string }).editorNavigationMarker,
-    ),
-  ).toBe("same document");
+  expect(await page.evaluate(() => window.editorNavigationMarker)).toBe("same document");
   expect(await page.getByLabel("Title", { exact: true }).inputValue()).toBe("Test Mojito");
   expect(await page.getByLabel("Slug", { exact: true }).inputValue()).toBe("test-mojito");
   await page.getByLabel("Title", { exact: true }).fill("Correct mojito editor");

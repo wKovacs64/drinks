@@ -3,7 +3,7 @@ import { routes } from "#/app/routes.ts";
 import type { DrinkSummaryView } from "#/app/modules/drinks/drinks.ts";
 import { Document } from "#/app/actions/document.tsx";
 import { Gallery } from "#/app/ui/gallery.tsx";
-import { Breadcrumbs } from "#/app/ui/navigation/breadcrumbs.tsx";
+import { BreadcrumbHeading, Breadcrumbs } from "#/app/ui/navigation/breadcrumbs.tsx";
 import { SearchForm } from "./public/search-form.tsx";
 import { SearchResults } from "./search-results.tsx";
 import { getGalleryImagePreloads } from "#/app/ui/drinks/image-preload.tsx";
@@ -26,18 +26,18 @@ export function SearchPage(
             <Breadcrumbs
               breadcrumbs={[
                 { title: "All Drinks", href: routes.home.href() },
-                { title: "Search", href: query ? routes.search.index.href() : undefined },
                 ...(query
                   ? [
+                      { title: "Search", href: routes.search.index.href() },
                       {
                         title: (
-                          <span>
+                          <BreadcrumbHeading>
                             &quot;<span>{query}</span>&quot;
-                          </span>
+                          </BreadcrumbHeading>
                         ),
                       },
                     ]
-                  : []),
+                  : [{ title: <BreadcrumbHeading>Search</BreadcrumbHeading> }]),
               ]}
             />
             <div>

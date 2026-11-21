@@ -14,6 +14,7 @@ to production and purges the Fastly cache.
 
 Both Fly apps run with `NODE_ENV=production`. `DEPLOYMENT_ENV=dev` identifies the hosting target;
 it does not enable the local-development safeguards for ImageKit or Fastly. Each app needs its own
-SQLite volume and database.
+SQLite volume and database, and Fly secrets for the variables in `.env.example`.
 
-Keep deployments in one region until a SQLite replication strategy exists.
+Keep each app on one machine in one region until a SQLite replication strategy exists: a Fly volume
+attaches to only one machine.

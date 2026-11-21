@@ -174,7 +174,6 @@ test("deleting a missing drink returns 404", async (testContext) => {
   const response = await pageAsAdmin.request.post("/admin/drinks/missing/delete");
   expect(response.status()).toBe(404);
   expect(response.headers()["content-type"]).toContain("text/html");
-  expect(await response.text()).toContain("404 Not Found");
 });
 
 test("leaving the editor cancels its pending submission", async (testContext) => {
@@ -196,16 +195,11 @@ test("leaving the editor cancels its pending submission", async (testContext) =>
       if (options?.method?.toUpperCase() !== "POST" || !(options.body instanceof FormData))
         return nativeFetch(...arguments_);
 
-      // SAFETY: page.exposeFunction above installs recordSubmissionState on window.
-      const { recordSubmissionState } = window as Window & {
-        recordSubmissionState?: (state: string) => Promise<void>;
-      };
-
-      void recordSubmissionState?.("pending");
+      void window.recordSubmissionState?.("pending");
 
       return new Promise<Response>((_, reject) => {
         options.signal?.addEventListener("abort", () => {
-          void recordSubmissionState?.("aborted");
+          void window.recordSubmissionState?.("aborted");
           reject(new DOMException("Submission aborted", "AbortError"));
         });
       });
@@ -515,16 +509,7 @@ test("image crop supports drawing and keyboard movement and uploads a square JPE
       if (imageFile instanceof File) {
         const image = await createImageBitmap(imageFile);
 
-        // SAFETY: page.exposeFunction above installs recordCroppedImage on window.
-        const { recordCroppedImage } = window as Window & {
-          recordCroppedImage?: (image: {
-            width: number;
-            height: number;
-            type: string;
-          }) => Promise<void>;
-        };
-
-        await recordCroppedImage?.({
+        await window.recordCroppedImage?.({
           width: image.width,
           height: image.height,
           type: imageFile.type,

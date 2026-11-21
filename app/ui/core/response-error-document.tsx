@@ -12,25 +12,6 @@ const errorDetailsStyles = css({
 
 const errorDocumentStyles = css({ fontFamily: "system-ui, sans-serif", padding: "2rem" });
 
-export function ResponseErrorDocument(handle: Handle<{ status: number; statusText?: string }>) {
-  return () => {
-    const { status, statusText } = handle.props;
-    const title = `${status} ${statusText ?? (status === 404 ? "Not Found" : "Request failed")}`;
-
-    return (
-      <RootErrorDocument title={title}>
-        <h1 mix={errorHeadingStyles}>{title}</h1>
-        <p>
-          {status === 404
-            ? "The drink or page you requested could not be found."
-            : "We could not complete that request."}
-        </p>
-        <a href={routes.admin.drinks.index.href()}>Back to Drinks</a>
-      </RootErrorDocument>
-    );
-  };
-}
-
 export function ApplicationErrorDocument(handle: Handle<{ details: string }>) {
   return () => (
     <RootErrorDocument title="Server error | drinks.fyi">

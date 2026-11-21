@@ -4,9 +4,12 @@ import { Icon } from "#/app/ui/icons/public/icon.tsx";
 export function NotFound() {
   return () => (
     <div className="flex flex-1 flex-col items-center justify-evenly bg-neutral-800 bg-[url('./images/background-768.jpg')] bg-cover bg-fixed bg-center bg-no-repeat text-gray-100 lg:bg-[url('./images/background-2078.jpg')]">
-      <p className="max-w-[23ch] text-center text-xl font-normal md:text-2xl md:font-light lg:text-4xl">
-        Oops, this doesn&apos;t appear to be a tasty drink recipe!
-      </p>
+      <div className="flex flex-col items-center gap-2 px-4 text-center lg:gap-4">
+        <h1 className="text-3xl font-light lg:text-5xl">Not Found</h1>
+        <p className="max-w-[23ch] text-lg text-balance text-gray-300 lg:text-2xl lg:font-light">
+          Oops, this doesn&apos;t appear to be a tasty drink recipe!
+        </p>
+      </div>
       <Icon name="broken_glass" className="text-burnt-orange my-[10vh] inline h-[20vh] w-[20vh]" />
       <a
         href={routes.home.href()}

@@ -1,7 +1,7 @@
-import { array, parse, string } from "remix/data-schema";
 import type { TableRow } from "remix/data-table";
 import type { drinks } from "#/app/db/schema.ts";
 import { parseStoredEnumUnvalidatedByColumnType } from "#/app/db/stored-enum.ts";
+import { parseStoredStringArrayUnvalidatedByColumnType } from "#/app/db/stored-json.ts";
 import { drinkStatusValues, type DrinkStatus } from "./drinks-contract.ts";
 
 export type Drink = {
@@ -20,8 +20,6 @@ export type Drink = {
   updatedAt: Date;
 };
 
-const storedStringArraySchema = array(string());
-
 export function toDrink(row: TableRow<typeof drinks>): Drink {
   return {
     id: row.id,
@@ -30,8 +28,8 @@ export function toDrink(row: TableRow<typeof drinks>): Drink {
     imageUrl: row.image_url,
     imageFileId: row.image_file_id,
     calories: row.calories,
-    ingredients: parse(storedStringArraySchema, row.ingredients),
-    tags: parse(storedStringArraySchema, row.tags),
+    ingredients: parseStoredStringArrayUnvalidatedByColumnType(row.ingredients),
+    tags: parseStoredStringArrayUnvalidatedByColumnType(row.tags),
     notes: row.notes,
     rank: row.rank,
     status: parseStoredEnumUnvalidatedByColumnType(drinkStatusValues, row.status),

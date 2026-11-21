@@ -2,6 +2,25 @@ import { test } from "remix/test";
 import { expect } from "remix/assert";
 import { createBrowserPage } from "#/test/e2e.ts";
 
+test("each public page has one level-one heading naming it", async (testContext) => {
+  const page = await createBrowserPage(testContext);
+
+  for (const [path, heading] of [
+    ["/", "drinks.fyi"],
+    ["/test-margarita", "Test Margarita"],
+    ["/tags", "Tags"],
+    ["/tags/citrus", "citrus"],
+    ["/search", "Search"],
+    ["/search?q=citrus", '"citrus"'],
+    ["/missing-drink", "Not Found"],
+    ["/tags/missing-tag", "Not Found"],
+    ["/missing/path", "Not Found"],
+  ]) {
+    await page.goto(path);
+    expect(await page.getByRole("heading", { level: 1 }).allTextContents()).toEqual([heading]);
+  }
+});
+
 test("navigation reuses the loaded stylesheet", async (testContext) => {
   const page = await createBrowserPage(testContext);
   await page.goto("/");

@@ -1,4 +1,10 @@
-import { clientEntry, on, ref, type Handle, type RemixNode } from "remix/component";
+import {
+  clientEntry,
+  on,
+  type Handle,
+  type NavigationEvent,
+  type RemixNode,
+} from "remix/component";
 import slugify from "@sindresorhus/slugify";
 import type { DrinkEditor } from "#/app/modules/drinks/drinks.ts";
 import { ImageCrop } from "#/app/actions/admin/drinks/public/image-crop.tsx";
@@ -46,6 +52,13 @@ function waitForSubmitEventDispatchToEnd() {
   return new Promise((resolve) => setTimeout(resolve));
 }
 
+function navigationOutcome(event: NavigationEvent) {
+  return event.finished.then(
+    (navigationSignal) => (navigationSignal.aborted ? "aborted" : "succeeded"),
+    () => "failed" as const,
+  );
+}
+
 function DrinkEditorForm(handle: Handle<DrinkFormProps>) {
   const { editor, action } = handle.props;
   let submission = idleSubmission;
@@ -63,25 +76,12 @@ function DrinkEditorForm(handle: Handle<DrinkFormProps>) {
     if (submission !== previous) void handle.update();
   }
 
-  handle.frame.addEventListener("reloadComplete", () => send({ type: "reloaded" }), {
-    signal: handle.signal,
-  });
+  async function followSave(event: NavigationEvent, signal: AbortSignal) {
+    const outcome = await navigationOutcome(event);
 
-  const observeSaveNavigation = ref<HTMLFormElement>((_form, signal) => {
-    window.navigation?.addEventListener(
-      "navigatesuccess",
-      () => send({ type: "navigated", outcome: "succeeded" }),
-      { signal },
-    );
-    window.navigation?.addEventListener(
-      "navigateerror",
-      (event) => {
-        const aborted = event.error instanceof DOMException && event.error.name === "AbortError";
-        send({ type: "navigated", outcome: aborted ? "aborted" : "failed" });
-      },
-      { signal },
-    );
-  });
+    if (signal.aborted) return;
+    send({ type: "navigated", outcome });
+  }
 
   function setSlug(value: SlugField) {
     slug = value;
@@ -146,7 +146,7 @@ function DrinkEditorForm(handle: Handle<DrinkFormProps>) {
         encType="multipart/form-data"
         aria-busy={isBusy ? "true" : undefined}
         mix={[
-          observeSaveNavigation,
+          on<HTMLFormElement, "rmx:navigation">("rmx:navigation", followSave),
           on<HTMLFormElement, "submit">("submit", holdSubmitUntilCropped),
         ]}
         className="space-y-6"

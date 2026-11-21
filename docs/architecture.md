@@ -21,7 +21,8 @@ actions pass it their request context, and it constructs the Drinks services it 
 Failed submissions reload the editor and render it with the submitted values and HTTP 400. With the
 browser runtime, the editor awaits its crop, puts it on the image input, and resubmits as a frame
 navigation, so the client entry keeps its draft and selected image across a 400; the adapter omits
-the reselect-image notice for frame requests. Frame requests that fail the admin session check get a
+the reselect-image notice for frame requests. The form's `rmx:navigation` event tracks that save
+until it completes, is cancelled, or fails. Frame requests that fail the admin session check get a
 401 sign-in page instead of the login redirect, because the frame resolver fetches same-origin only
 and cannot follow the hop to Google; its link uses document navigation.
 [ADR-0001](adr/0001-admin-drink-write-route-adapters.md) and [ADR-0002](adr/0002-admin-drink-write-route-adapter-owns-web-translation.md) record this seam.

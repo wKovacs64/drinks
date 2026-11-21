@@ -1,4 +1,10 @@
-import { column as c, table } from "remix/data-table";
+import { ColumnBuilder, column as c, table } from "remix/data-table";
+
+// `c.json()` is typed `unknown`, which would accept a leftover `JSON.stringify` and double-encode.
+// Reads still validate, since the SQLite adapter returns invalid JSON as the raw string.
+function stringArrayJson() {
+  return new ColumnBuilder<string[]>(c.json().build());
+}
 
 export const users = table({
   name: "users",
@@ -22,8 +28,8 @@ export const drinks = table({
     image_url: c.text(),
     image_file_id: c.text(),
     calories: c.integer(),
-    ingredients: c.text(),
-    tags: c.text(),
+    ingredients: stringArrayJson(),
+    tags: stringArrayJson(),
     notes: c.text().nullable(),
     rank: c.integer().default(0),
     status: c.enum(["published", "unpublished"] as const).default("published"),

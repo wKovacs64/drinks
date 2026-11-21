@@ -136,7 +136,7 @@ test("MCP exact titles return only that Drink while partial, ingredient and webs
   await db.update(drinks, "test-drink-3", { title: "Old Fashioned" });
   await db.update(drinks, "test-drink-2", {
     notes: "Serve in an old fashioned glass.",
-    ingredients: JSON.stringify(["2 oz bourbon", "mint", "sugar"]),
+    ingredients: ["2 oz bourbon", "mint", "sugar"],
   });
 
   const search = async (query: string) => {

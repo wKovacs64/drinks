@@ -1,5 +1,13 @@
 # Changelog
 
+## [5.3.1](https://github.com/wKovacs64/drinks/compare/v5.3.0...v5.3.1) (2026-11-21)
+
+
+### Bug Fixes
+
+* give each page one h1 and share one not-found page ([#475](https://github.com/wKovacs64/drinks/issues/475)) ([c3a4987](https://github.com/wKovacs64/drinks/commit/c3a4987677660f5a81cd42484d6cfb87433da532))
+* scope drink save tracking to its rmx:navigation ([#472](https://github.com/wKovacs64/drinks/issues/472)) ([b4c6d01](https://github.com/wKovacs64/drinks/commit/b4c6d0126b0949c20e51d717e77d2908e48df997))
+
 ## [5.3.0](https://github.com/wKovacs64/drinks/compare/v5.2.1...v5.3.0) (2026-11-15)
 
 

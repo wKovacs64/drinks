@@ -5,7 +5,7 @@ ENV NODE_ENV="production"
 WORKDIR /app
 
 FROM base AS build-tools
-RUN npm install -g pnpm@12.21.0
+RUN npm install -g pnpm@12.23.0
 
 FROM build-tools AS dev-deps
 

@@ -227,7 +227,7 @@ importers:
     devDependencies:
       '@lhci/cli':
         specifier: 0.16.1
-        version: 0.16.1(@types/node@26.6.7)(supports-color@7.2.0)
+        version: 0.16.1(@types/node@26.6.10)(supports-color@7.2.0)
       '@modelcontextprotocol/client':
         specifier: 2.4.0
         version: 2.4.0
@@ -235,8 +235,8 @@ importers:
         specifier: 4.3.5
         version: 4.3.5
       '@types/node':
-        specifier: 26.6.7
-        version: 26.6.7
+        specifier: 26.6.10
+        version: 26.6.10
       '@types/sanitize-html':
         specifier: 2.16.2
         version: 2.16.2
@@ -251,7 +251,7 @@ importers:
         version: 0.28.2
       msw:
         specifier: 3.0.7
-        version: 3.0.7(@types/node@26.6.7)(supports-color@7.2.0)(typescript@7.0.2)
+        version: 3.0.7(@types/node@26.6.10)(supports-color@7.2.0)(typescript@7.0.2)
       oxfmt:
         specifier: 0.80.0
         version: 0.80.0
@@ -2136,8 +2136,8 @@ packages:
   '@types/ms@2.1.0':
     resolution: {integrity: sha512-GsCCIZDE/p3i96vtEqx+7dBUGXrc7zeSK3wwPHIaRThS+9OhWIXRqzs4d6k1SVU8g91DrNRWxWUGhp5KXQb2VA==}
 
-  '@types/node@26.6.7':
-    resolution: {integrity: sha512-tovuRfrUILu6v46bMG+BgXxMvsqPBx2WO2as8Rpln+JTff1dbexMtAM4KFTejmL0axsnSWViCW7MecUQpLuBRA==}
+  '@types/node@26.6.10':
+    resolution: {integrity: sha512-WJuPHoGB8WNQuTksNF7SOQpnH02PXeDYz4iueWbBT6/hTWnShY5F3T/hoJA3fY9+uYReDZ7pyTKKx83jQa7aGg==}
 
   '@types/sanitize-html@2.16.2':
     resolution: {integrity: sha512-kuAbgDCFv418flrp3z4o/4ufLA/5ovmXRH0L419iZCPGO7w00znjeDI5Wy/KZWNIBpDQc7hucCK+J5almB6FyA==}
@@ -4240,38 +4240,38 @@ snapshots:
 
   '@inquirer/ansi@2.1.1': {}
 
-  '@inquirer/confirm@6.4.1(@types/node@26.6.7)':
+  '@inquirer/confirm@6.4.1(@types/node@26.6.10)':
     dependencies:
-      '@inquirer/core': 12.1.1(@types/node@26.6.7)
-      '@inquirer/type': 4.3.1(@types/node@26.6.7)
+      '@inquirer/core': 12.1.1(@types/node@26.6.10)
+      '@inquirer/type': 4.3.1(@types/node@26.6.10)
     optionalDependencies:
-      '@types/node': 26.6.7
+      '@types/node': 26.6.10
 
-  '@inquirer/core@12.1.1(@types/node@26.6.7)':
+  '@inquirer/core@12.1.1(@types/node@26.6.10)':
     dependencies:
       '@inquirer/ansi': 2.1.1
       '@inquirer/figures': 2.1.1
-      '@inquirer/type': 4.3.1(@types/node@26.6.7)
+      '@inquirer/type': 4.3.1(@types/node@26.6.10)
       cli-width: 4.1.0
       fast-string-width: 3.0.2
       fast-wrap-ansi: 0.2.2
       mute-stream: 3.0.0
       signal-exit: 4.1.0
     optionalDependencies:
-      '@types/node': 26.6.7
+      '@types/node': 26.6.10
 
-  '@inquirer/external-editor@1.0.3(@types/node@26.6.7)':
+  '@inquirer/external-editor@1.0.3(@types/node@26.6.10)':
     dependencies:
       chardet: 2.2.0
       iconv-lite: 0.7.3
     optionalDependencies:
-      '@types/node': 26.6.7
+      '@types/node': 26.6.10
 
   '@inquirer/figures@2.1.1': {}
 
-  '@inquirer/type@4.3.1(@types/node@26.6.7)':
+  '@inquirer/type@4.3.1(@types/node@26.6.10)':
     optionalDependencies:
-      '@types/node': 26.6.7
+      '@types/node': 26.6.10
 
   '@isaacs/nonrecursive-glob-match@1.1.0': {}
 
@@ -4302,14 +4302,14 @@ snapshots:
 
   '@keyv/serialize@1.1.1': {}
 
-  '@lhci/cli@0.16.1(@types/node@26.6.7)(supports-color@7.2.0)':
+  '@lhci/cli@0.16.1(@types/node@26.6.10)(supports-color@7.2.0)':
     dependencies:
       '@lhci/utils': 0.16.1(proxy-agent@8.0.3(supports-color@7.2.0))(supports-color@7.2.0)
       chrome-launcher: 0.13.4(supports-color@7.2.0)
       compression: 1.8.2(supports-color@7.2.0)
       debug: 4.4.3(supports-color@7.2.0)
       express: 4.22.3(supports-color@7.2.0)
-      inquirer: 8.2.7(@types/node@26.6.7)
+      inquirer: 8.2.7(@types/node@26.6.10)
       isomorphic-fetch: 3.0.0
       lighthouse: 13.6.0(proxy-agent@8.0.3(supports-color@7.2.0))(supports-color@7.2.0)
       lighthouse-logger: 1.2.0(supports-color@7.2.0)
@@ -5343,7 +5343,7 @@ snapshots:
 
   '@types/ms@2.1.0': {}
 
-  '@types/node@26.6.7':
+  '@types/node@26.6.10':
     dependencies:
       undici-types: 8.9.0
 
@@ -5353,7 +5353,7 @@ snapshots:
 
   '@types/set-cookie-parser@2.4.10':
     dependencies:
-      '@types/node': 26.6.7
+      '@types/node': 26.6.10
 
   '@typescript/typescript-aix-ppc64@7.0.2':
     optional: true
@@ -5582,7 +5582,7 @@ snapshots:
 
   chrome-launcher@0.13.4(supports-color@7.2.0):
     dependencies:
-      '@types/node': 26.6.7
+      '@types/node': 26.6.10
       escape-string-regexp: 1.0.5
       is-wsl: 2.2.0
       lighthouse-logger: 1.2.0(supports-color@7.2.0)
@@ -5593,7 +5593,7 @@ snapshots:
 
   chrome-launcher@1.2.3(supports-color@7.2.0):
     dependencies:
-      '@types/node': 26.6.7
+      '@types/node': 26.6.10
       escape-string-regexp: 4.0.0
       is-wsl: 2.2.0
       lighthouse-logger: 2.0.2(supports-color@7.2.0)
@@ -6200,9 +6200,9 @@ snapshots:
 
   inherits@2.0.4: {}
 
-  inquirer@8.2.7(@types/node@26.6.7):
+  inquirer@8.2.7(@types/node@26.6.10):
     dependencies:
-      '@inquirer/external-editor': 1.0.3(@types/node@26.6.7)
+      '@inquirer/external-editor': 1.0.3(@types/node@26.6.10)
       ansi-escapes: 4.3.2
       chalk: 4.1.2
       cli-cursor: 3.1.0
@@ -6504,9 +6504,9 @@ snapshots:
 
   ms@2.1.3: {}
 
-  msw@3.0.7(@types/node@26.6.7)(supports-color@7.2.0)(typescript@7.0.2):
+  msw@3.0.7(@types/node@26.6.10)(supports-color@7.2.0)(typescript@7.0.2):
     dependencies:
-      '@inquirer/confirm': 6.4.1(@types/node@26.6.7)
+      '@inquirer/confirm': 6.4.1(@types/node@26.6.10)
       '@msw/url': 0.1.3
       '@mswjs/interceptors': 0.45.12(supports-color@7.2.0)
       cookie: 2.0.2
@@ -7120,7 +7120,7 @@ snapshots:
 
   speedline-core@1.4.3:
     dependencies:
-      '@types/node': 26.6.7
+      '@types/node': 26.6.10
       image-ssim: 0.2.0
       jpeg-js: 0.4.4
 
